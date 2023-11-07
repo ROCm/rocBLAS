@@ -19,7 +19,12 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_rot.hpp"
-#include "rocblas_rot_imp.hpp"
 
-INST_ROT_C_API(rocblas_int);
+#include "../blas1/rocblas_rot_64.hpp"
+#include "blas1/rocblas_rot.hpp"
+#include "blas_ex/rocblas_rot_ex.hpp"
+#include "blas_ex/rocblas_rot_ex_template.hpp"
+#include "rocblas_block_sizes.h"
+
+INSTANTIATE_ROT_EX_TEMPLATE(int64_t, ROCBLAS_DOT_NB, false);
+INSTANTIATE_ROT_EX_TEMPLATE(int64_t, ROCBLAS_DOT_NB, true);

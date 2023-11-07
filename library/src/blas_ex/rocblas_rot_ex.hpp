@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +26,20 @@
 #include "handle.hpp"
 #include "logging.hpp"
 
-template <rocblas_int NB, bool ISBATCHED = false>
+template <typename API_INT, rocblas_int NB, bool ISBATCHED = false>
+
 rocblas_status rocblas_rot_ex_template(rocblas_handle   handle,
-                                       rocblas_int      n,
+                                       API_INT          n,
                                        void*            x,
                                        rocblas_datatype x_type,
-                                       rocblas_int      incx,
+                                       API_INT          incx,
                                        rocblas_stride   stride_x,
                                        void*            y,
                                        rocblas_datatype y_type,
-                                       rocblas_int      incy,
+                                       API_INT          incy,
                                        rocblas_stride   stride_y,
                                        const void*      c,
                                        const void*      s,
                                        rocblas_datatype cs_type,
-                                       rocblas_int      batch_count,
+                                       API_INT          batch_count,
                                        rocblas_datatype execution_type);

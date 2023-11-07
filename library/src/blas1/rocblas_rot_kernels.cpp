@@ -20,161 +20,22 @@
  *
  * ************************************************************************ */
 
-#include "check_numerics_vector.hpp"
-#include "handle.hpp"
+#include "rocblas_rot_kernels.hpp"
 #include "rocblas_rot.hpp"
-
-template <typename Tex,
-          typename Tx,
-          typename Ty,
-          typename Tc,
-          typename Ts,
-          std::enable_if_t<!rocblas_is_complex<Ts>, int> = 0>
-__device__ void rocblas_rot_kernel_calc(
-    rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
-{
-    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if(tid < n)
-    {
-        int64_t ix    = tid * incx;
-        int64_t iy    = tid * incy;
-        Tex     tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
-        Tex     tempy = Tex(c * y[iy]) - Tex((s)*x[ix]);
-        y[iy]         = Ty(tempy);
-        x[ix]         = Tx(tempx);
-    }
-}
-
-template <typename Tex,
-          typename Tx,
-          typename Ty,
-          typename Tc,
-          typename Ts,
-          std::enable_if_t<rocblas_is_complex<Ts>, int> = 0>
-__device__ void rocblas_rot_kernel_calc(
-    rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
-{
-    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if(tid < n)
-    {
-        int64_t ix    = tid * incx;
-        int64_t iy    = tid * incy;
-        Tex     tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
-        Tex     tempy = Tex(c * y[iy]) - Tex(conj(s) * x[ix]);
-        y[iy]         = Ty(tempy);
-        x[ix]         = Tx(tempx);
-    }
-}
-
-template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
-ROCBLAS_KERNEL(NB)
-rocblas_rot_kernel(rocblas_int    n,
-                   Tx             x_in,
-                   rocblas_stride offset_x,
-                   rocblas_int    incx,
-                   rocblas_stride stride_x,
-                   Ty             y_in,
-                   rocblas_stride offset_y,
-                   rocblas_int    incy,
-                   rocblas_stride stride_y,
-                   Tc             c_in,
-                   rocblas_stride c_stride,
-                   Ts             s_in,
-                   rocblas_stride s_stride)
-{
-    auto c = std::real(load_scalar(c_in, blockIdx.y, c_stride));
-    auto s = load_scalar(s_in, blockIdx.y, s_stride);
-    auto x = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
-    auto y = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
-
-    rocblas_rot_kernel_calc<Tex>(n, x, incx, y, incy, c, s);
-}
-
-template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
-rocblas_status rocblas_rot_template(rocblas_handle handle,
-                                    rocblas_int    n,
-                                    Tx             x,
-                                    rocblas_stride offset_x,
-                                    rocblas_int    incx,
-                                    rocblas_stride stride_x,
-                                    Ty             y,
-                                    rocblas_stride offset_y,
-                                    rocblas_int    incy,
-                                    rocblas_stride stride_y,
-                                    Tc*            c,
-                                    rocblas_stride c_stride,
-                                    Ts*            s,
-                                    rocblas_stride s_stride,
-                                    rocblas_int    batch_count)
-{
-    // Quick return if possible
-    if(n <= 0 || batch_count <= 0)
-        return rocblas_status_success;
-
-    int64_t shiftx = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
-    int64_t shifty = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
-
-    dim3        blocks((n - 1) / NB + 1, batch_count);
-    dim3        threads(NB);
-    hipStream_t rocblas_stream = handle->get_stream();
-
-    if(rocblas_pointer_mode_device == handle->pointer_mode)
-        ROCBLAS_LAUNCH_KERNEL((rocblas_rot_kernel<NB, Tex>),
-                              blocks,
-                              threads,
-                              0,
-                              rocblas_stream,
-                              n,
-                              x,
-                              shiftx,
-                              incx,
-                              stride_x,
-                              y,
-                              shifty,
-                              incy,
-                              stride_y,
-                              c,
-                              c_stride,
-                              s,
-                              s_stride);
-    else // c and s are on host
-        ROCBLAS_LAUNCH_KERNEL((rocblas_rot_kernel<NB, Tex>),
-                              blocks,
-                              threads,
-                              0,
-                              rocblas_stream,
-                              n,
-                              x,
-                              shiftx,
-                              incx,
-                              stride_x,
-                              y,
-                              shifty,
-                              incy,
-                              stride_y,
-                              *c,
-                              c_stride,
-                              *s,
-                              s_stride);
-
-    return rocblas_status_success;
-}
 
 template <typename T>
 rocblas_status rocblas_rot_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
-                                          rocblas_int    n,
+                                          int64_t        n,
                                           T              x,
                                           rocblas_stride offset_x,
-                                          rocblas_int    inc_x,
+                                          int64_t        inc_x,
                                           rocblas_stride stride_x,
                                           T              y,
                                           rocblas_stride offset_y,
-                                          rocblas_int    inc_y,
+                                          int64_t        inc_y,
                                           rocblas_stride stride_y,
-                                          rocblas_int    batch_count,
+                                          int64_t        batch_count,
                                           const int      check_numerics,
                                           bool           is_input)
 {
@@ -218,16 +79,16 @@ rocblas_status rocblas_rot_check_numerics(const char*    function_name,
 template rocblas_status rocblas_rot_check_numerics<T_>                   \
                                          (const char*    function_name,  \
                                           rocblas_handle handle,         \
-                                          rocblas_int    n,              \
+                                          int64_t    n,              \
                                           T_             x,              \
                                           rocblas_stride offset_x,       \
-                                          rocblas_int    inc_x,          \
+                                          int64_t    inc_x,          \
                                           rocblas_stride stride_x,       \
                                           T_             y,              \
                                           rocblas_stride offset_y,       \
-                                          rocblas_int    inc_y,          \
+                                          int64_t    inc_y,          \
                                           rocblas_stride stride_y,       \
-                                          rocblas_int    batch_count,    \
+                                          int64_t    batch_count,    \
                                           const int      check_numerics, \
                                           bool           is_input);
 
@@ -253,51 +114,129 @@ INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_half* const*)
 
 #undef INSTANTIATE_ROT_CHECK_NUMERICS
 
-#ifdef INSTANTIATE_ROT_TEMPLATE
-#error INSTANTIATE_ROT_TEMPLATE already defined
+template <typename API_INT,
+          rocblas_int NB,
+          typename Tex,
+          typename Tx,
+          typename Ty,
+          typename Tc,
+          typename Ts>
+rocblas_status rocblas_internal_rot_launcher(rocblas_handle handle,
+                                             API_INT        n,
+                                             Tx             x,
+                                             rocblas_stride offset_x,
+                                             int64_t        incx,
+                                             rocblas_stride stride_x,
+                                             Ty             y,
+                                             rocblas_stride offset_y,
+                                             int64_t        incy,
+                                             rocblas_stride stride_y,
+                                             Tc*            c,
+                                             rocblas_stride c_stride,
+                                             Ts*            s,
+                                             rocblas_stride s_stride,
+                                             API_INT        batch_count)
+{
+    // Quick return if possible
+    if(n <= 0 || batch_count <= 0)
+        return rocblas_status_success;
+
+    int64_t shiftx = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
+    int64_t shifty = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
+
+    dim3        blocks((n - 1) / NB + 1, batch_count);
+    dim3        threads(NB);
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    if(rocblas_pointer_mode_device == handle->pointer_mode)
+        ROCBLAS_LAUNCH_KERNEL((rocblas_rot_kernel<API_INT, NB, Tex>),
+                              blocks,
+                              threads,
+                              0,
+                              rocblas_stream,
+                              n,
+                              x,
+                              shiftx,
+                              incx,
+                              stride_x,
+                              y,
+                              shifty,
+                              incy,
+                              stride_y,
+                              c,
+                              c_stride,
+                              s,
+                              s_stride);
+    else // c and s are on host
+        ROCBLAS_LAUNCH_KERNEL((rocblas_rot_kernel<API_INT, NB, Tex>),
+                              blocks,
+                              threads,
+                              0,
+                              rocblas_stream,
+                              n,
+                              x,
+                              shiftx,
+                              incx,
+                              stride_x,
+                              y,
+                              shifty,
+                              incy,
+                              stride_y,
+                              *c,
+                              c_stride,
+                              *s,
+                              s_stride);
+
+    return rocblas_status_success;
+}
+
+#ifdef INSTANTIATE_ROT_LAUNCHER
+#error INSTANTIATE_ROT_LAUNCHER already defined
 #endif
 
-#define INSTANTIATE_ROT_TEMPLATE(NB_, Tex_, Tx_, Ty_, Tc_, Ts_)              \
-template rocblas_status rocblas_rot_template <NB_, Tex_, Tx_, Ty_, Tc_, Ts_> \
-                                             (rocblas_handle handle,         \
-                                              rocblas_int    n,              \
-                                              Tx_            x,              \
-                                              rocblas_stride offset_x,       \
-                                              rocblas_int    incx,           \
-                                              rocblas_stride stride_x,       \
-                                              Ty_            y,              \
-                                              rocblas_stride offset_y,       \
-                                              rocblas_int    incy,           \
-                                              rocblas_stride stride_y,       \
-                                              Tc_*           c,              \
-                                              rocblas_stride c_stride,       \
-                                              Ts_*           s,              \
-                                              rocblas_stride s_stride,       \
-                                              rocblas_int    batch_count);
+#define INSTANTIATE_ROT_LAUNCHER(NB_, Tex_, Tx_, Ty_, Tc_, Ts_)                    \
+    template rocblas_status                                                        \
+        rocblas_internal_rot_launcher<rocblas_int, NB_, Tex_, Tx_, Ty_, Tc_, Ts_>( \
+            rocblas_handle handle,                                                 \
+            rocblas_int    n,                                                      \
+            Tx_            x,                                                      \
+            rocblas_stride offset_x,                                               \
+            int64_t    incx,                                                   \
+            rocblas_stride stride_x,                                               \
+            Ty_            y,                                                      \
+            rocblas_stride offset_y,                                               \
+            int64_t    incy,                                                   \
+            rocblas_stride stride_y,                                               \
+            Tc_ * c,                                                               \
+            rocblas_stride c_stride,                                               \
+            Ts_ * s,                                                               \
+            rocblas_stride s_stride,                                               \
+            rocblas_int    batch_count);
+
 
 //  instantiate for rocblas_Xrot and rocblas_Xrot_strided_batched
-INSTANTIATE_ROT_TEMPLATE(512,  float,  float*,         float*,         float const,  float const)
-INSTANTIATE_ROT_TEMPLATE(512, double, double*,        double*,        double const, double const)
-INSTANTIATE_ROT_TEMPLATE(512, float, rocblas_bfloat16*,        rocblas_bfloat16*,        rocblas_bfloat16 const, rocblas_bfloat16 const)
-INSTANTIATE_ROT_TEMPLATE(512, float,     rocblas_half*,            rocblas_half*,            rocblas_half const,     rocblas_half const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_float_complex, rocblas_float_complex*,        rocblas_float_complex*,                        float const,                 float const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_float_complex, rocblas_float_complex*,        rocblas_float_complex*,                        float const, rocblas_float_complex const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_float_complex, rocblas_float_complex*,        rocblas_float_complex*,        rocblas_float_complex const, rocblas_float_complex const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_double_complex, rocblas_double_complex*,               rocblas_double_complex*, double const, double const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_double_complex, rocblas_double_complex*,               rocblas_double_complex*, double const, rocblas_double_complex const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_double_complex, rocblas_double_complex*,               rocblas_double_complex*, rocblas_double_complex const, rocblas_double_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB,  float,  float*,         float*,         float const,  float const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, double, double*,        double*,        double const, double const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, float, rocblas_bfloat16*,        rocblas_bfloat16*,        rocblas_bfloat16 const, rocblas_bfloat16 const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, float,     rocblas_half*,            rocblas_half*,            rocblas_half const,     rocblas_half const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_float_complex, rocblas_float_complex*,        rocblas_float_complex*,                        float const,                 float const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_float_complex, rocblas_float_complex*,        rocblas_float_complex*,                        float const, rocblas_float_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_float_complex, rocblas_float_complex*,        rocblas_float_complex*,        rocblas_float_complex const, rocblas_float_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_double_complex, rocblas_double_complex*,               rocblas_double_complex*, double const, double const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_double_complex, rocblas_double_complex*,               rocblas_double_complex*, double const, rocblas_double_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_double_complex, rocblas_double_complex*,               rocblas_double_complex*, rocblas_double_complex const, rocblas_double_complex const)
 
 //  instantiate for rocblas_Xrot__batched
-INSTANTIATE_ROT_TEMPLATE(512,  float,  float* const*,  float* const*,  float const,  float const)
-INSTANTIATE_ROT_TEMPLATE(512, double, double* const*, double* const*, double const, double const)
-INSTANTIATE_ROT_TEMPLATE(512, float, rocblas_bfloat16* const*, rocblas_bfloat16* const*, rocblas_bfloat16 const, rocblas_bfloat16 const)
-INSTANTIATE_ROT_TEMPLATE(512, float,     rocblas_half* const*,     rocblas_half* const*,     rocblas_half const,     rocblas_half const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_float_complex, rocblas_float_complex* const*, rocblas_float_complex* const*,                 float const,                 float const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_float_complex, rocblas_float_complex* const*, rocblas_float_complex* const*,                 float const, rocblas_float_complex const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_float_complex, rocblas_float_complex* const*, rocblas_float_complex* const*, rocblas_float_complex const, rocblas_float_complex const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_double_complex, rocblas_double_complex* const*, rocblas_double_complex* const*, rocblas_double_complex const, rocblas_double_complex const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_double_complex, rocblas_double_complex* const*, rocblas_double_complex* const*, double const, double const)
-INSTANTIATE_ROT_TEMPLATE(512, rocblas_double_complex, rocblas_double_complex* const*, rocblas_double_complex* const*, double const, rocblas_double_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB,  float,  float* const*,  float* const*,  float const,  float const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, double, double* const*, double* const*, double const, double const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, float, rocblas_bfloat16* const*, rocblas_bfloat16* const*, rocblas_bfloat16 const, rocblas_bfloat16 const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, float,     rocblas_half* const*,     rocblas_half* const*,     rocblas_half const,     rocblas_half const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_float_complex, rocblas_float_complex* const*, rocblas_float_complex* const*,                 float const,                 float const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_float_complex, rocblas_float_complex* const*, rocblas_float_complex* const*,                 float const, rocblas_float_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_float_complex, rocblas_float_complex* const*, rocblas_float_complex* const*, rocblas_float_complex const, rocblas_float_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_double_complex, rocblas_double_complex* const*, rocblas_double_complex* const*, rocblas_double_complex const, rocblas_double_complex const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_double_complex, rocblas_double_complex* const*, rocblas_double_complex* const*, double const, double const)
+INSTANTIATE_ROT_LAUNCHER(ROCBLAS_ROT_NB, rocblas_double_complex, rocblas_double_complex* const*, rocblas_double_complex* const*, double const, rocblas_double_complex const)
 
-#undef INSTANTIATE_ROT_TEMPLATE
+#undef INSTANTIATE_ROT_LAUNCHER
 // clang-format on

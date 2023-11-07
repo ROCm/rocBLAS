@@ -22,16 +22,7 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T, typename U = T, typename V = T>
 void testing_rot_strided_batched_bad_arg(const Arguments& arg)
@@ -40,13 +31,16 @@ void testing_rot_strided_batched_bad_arg(const Arguments& arg)
                                               ? rocblas_rot_strided_batched<T, U, V, true>
                                               : rocblas_rot_strided_batched<T, U, V, false>;
 
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_stride      stride_x    = 1;
-    rocblas_int         incy        = 1;
-    rocblas_stride      stride_y    = 1;
-    rocblas_int         batch_count = 5;
-    static const size_t safe_size   = 100;
+    auto                rocblas_rot_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                                ? rocblas_rot_strided_batched_64<T, U, V, true>
+                                                                : rocblas_rot_strided_batched_64<T, U, V, false>;
+    int64_t             N                                 = 100;
+    int64_t             incx                              = 1;
+    rocblas_stride      stride_x                          = 1;
+    int64_t             incy                              = 1;
+    rocblas_stride      stride_y                          = 1;
+    int64_t             batch_count                       = 5;
+    static const size_t safe_size                         = 100;
 
     rocblas_local_handle handle{arg};
 
@@ -62,26 +56,21 @@ void testing_rot_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
     CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_strided_batched_fn(
-            nullptr, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)),
-        rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_strided_batched_fn(
-            handle, N, nullptr, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_strided_batched_fn(
-            handle, N, dx, incx, stride_x, nullptr, incy, stride_y, dc, ds, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_strided_batched_fn(
-            handle, N, dx, incx, stride_x, dy, incy, stride_y, nullptr, ds, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_strided_batched_fn(
-            handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, nullptr, batch_count)),
-        rocblas_status_invalid_pointer);
+    DAPI_EXPECT(rocblas_status_invalid_handle,
+                rocblas_rot_strided_batched_fn,
+                (nullptr, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_rot_strided_batched_fn,
+                (handle, N, nullptr, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_rot_strided_batched_fn,
+                (handle, N, dx, incx, stride_x, nullptr, incy, stride_y, dc, ds, batch_count));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_rot_strided_batched_fn,
+                (handle, N, dx, incx, stride_x, dy, incy, stride_y, nullptr, ds, batch_count));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_rot_strided_batched_fn,
+                (handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, nullptr, batch_count));
 }
 
 template <typename T, typename U = T, typename V = T>
@@ -91,15 +80,19 @@ void testing_rot_strided_batched(const Arguments& arg)
                                               ? rocblas_rot_strided_batched<T, U, V, true>
                                               : rocblas_rot_strided_batched<T, U, V, false>;
 
-    rocblas_int N           = arg.N;
-    rocblas_int incx        = arg.incx;
-    rocblas_int stride_x    = arg.stride_x;
-    rocblas_int stride_y    = arg.stride_y;
-    rocblas_int incy        = arg.incy;
-    rocblas_int batch_count = arg.batch_count;
+    auto rocblas_rot_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                 ? rocblas_rot_strided_batched_64<T, U, V, true>
+                                                 : rocblas_rot_strided_batched_64<T, U, V, false>;
+
+    int64_t        N           = arg.N;
+    int64_t        incx        = arg.incx;
+    rocblas_stride stride_x    = arg.stride_x;
+    rocblas_stride stride_y    = arg.stride_y;
+    int64_t        incy        = arg.incy;
+    int64_t        batch_count = arg.batch_count;
 
     rocblas_local_handle handle{arg};
-    double               gpu_time_used, cpu_time_used;
+    double               cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
 
@@ -107,18 +100,20 @@ void testing_rot_strided_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_rot_strided_batched_fn)(handle,
-                                                               N,
-                                                               nullptr,
-                                                               incx,
-                                                               stride_x,
-                                                               nullptr,
-                                                               incy,
-                                                               stride_y,
-                                                               nullptr,
-                                                               nullptr,
-                                                               batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_rot_strided_batched_fn,
+                    (handle,
+                     N,
+                     nullptr,
+                     incx,
+                     stride_x,
+                     nullptr,
+                     incy,
+                     stride_y,
+                     nullptr,
+                     nullptr,
+                     batch_count));
+
         return;
     }
 
@@ -166,8 +161,8 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_fn(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, hc, hs, batch_count)));
+            DAPI_CHECK(rocblas_rot_strided_batched_fn,
+                       (handle, N, dx, incx, stride_x, dy, incy, stride_y, hc, hs, batch_count));
             handle.post_test(arg);
 
             CHECK_HIP_ERROR(hx.transfer_from(dx));
@@ -182,13 +177,13 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_fn(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)));
+            DAPI_CHECK(rocblas_rot_strided_batched_fn,
+                       (handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count));
             handle.post_test(arg);
         }
 
         cpu_time_used = get_time_us_no_sync();
-        for(int b = 0; b < batch_count; b++)
+        for(size_t b = 0; b < batch_count; b++)
         {
             cblas_rot<T, T, U, V>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
         }
@@ -232,8 +227,9 @@ void testing_rot_strided_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -241,19 +237,18 @@ void testing_rot_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dc.transfer_from(hc));
         CHECK_HIP_ERROR(ds.transfer_from(hs));
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_rot_strided_batched_fn(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count);
-        }
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-        for(int iter = 0; iter < number_hot_calls; iter++)
+
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_rot_strided_batched_fn(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_rot_strided_batched_fn,
+                          (handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count));
         }
+
         gpu_time_used = (get_time_us_sync(stream) - gpu_time_used);
 
         ArgumentModel<e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count>{}.log_args<T>(
