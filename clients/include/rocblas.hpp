@@ -89,13 +89,14 @@
     static auto FN##_64<A, B, false> = PFN##_64; \
     template <>                                  \
     static auto FN##_64<A, B, true> = PFN##_64_fortran
-#define MAP2DCF5(FN, A, B, C, PFN)                                  \
-    template <>                                                     \
-    static auto FN<A, B, C, false> = PFN;                           \
-    template <>                                                     \
-    static auto FN<A, B, C, true>       = PFN##_fortran template <> \
-    static auto FN##_64<A, B, C, false> = PFN##_64;                 \
-    template <>                                                     \
+#define MAP2DCF5(FN, A, B, C, PFN)                  \
+    template <>                                     \
+    static auto FN<A, B, C, false> = PFN;           \
+    template <>                                     \
+    static auto FN<A, B, C, true> = PFN##_fortran;  \
+    template <>                                     \
+    static auto FN##_64<A, B, C, false> = PFN##_64; \
+    template <>                                     \
     static auto FN##_64<A, B, C, true> = PFN##_64_fortran
 #else
 // mapping fortran and C to C API
@@ -826,12 +827,22 @@ static rocblas_status (*rocblas_rot)(rocblas_handle handle,
                                      const U*       c,
                                      const V*       s);
 
-MAP2CF(rocblas_rot, float, float, float, rocblas_srot);
-MAP2CF(rocblas_rot, double, double, double, rocblas_drot);
-MAP2CF(rocblas_rot, rocblas_float_complex, float, rocblas_float_complex, rocblas_crot);
-MAP2CF(rocblas_rot, rocblas_float_complex, float, float, rocblas_csrot);
-MAP2CF(rocblas_rot, rocblas_double_complex, double, rocblas_double_complex, rocblas_zrot);
-MAP2CF(rocblas_rot, rocblas_double_complex, double, double, rocblas_zdrot);
+template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
+static rocblas_status (*rocblas_rot_64)(rocblas_handle handle,
+                                        int64_t        n,
+                                        T*             x,
+                                        int64_t        incx,
+                                        T*             y,
+                                        int64_t        incy,
+                                        const U*       c,
+                                        const V*       s);
+
+MAP2CF_D64(rocblas_rot, float, float, float, rocblas_srot);
+MAP2CF_D64(rocblas_rot, double, double, double, rocblas_drot);
+MAP2CF_D64(rocblas_rot, rocblas_float_complex, float, rocblas_float_complex, rocblas_crot);
+MAP2CF_D64(rocblas_rot, rocblas_float_complex, float, float, rocblas_csrot);
+MAP2CF_D64(rocblas_rot, rocblas_double_complex, double, rocblas_double_complex, rocblas_zrot);
+MAP2CF_D64(rocblas_rot, rocblas_double_complex, double, double, rocblas_zdrot);
 
 // rot_batched
 template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
@@ -845,17 +856,28 @@ static rocblas_status (*rocblas_rot_batched)(rocblas_handle handle,
                                              const V*       s,
                                              rocblas_int    batch_count);
 
-MAP2CF(rocblas_rot_batched, float, float, float, rocblas_srot_batched);
-MAP2CF(rocblas_rot_batched, double, double, double, rocblas_drot_batched);
-MAP2CF(
+template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
+static rocblas_status (*rocblas_rot_batched_64)(rocblas_handle handle,
+                                                int64_t        n,
+                                                T* const       x[],
+                                                int64_t        incx,
+                                                T* const       y[],
+                                                int64_t        incy,
+                                                const U*       c,
+                                                const V*       s,
+                                                int64_t        batch_count);
+
+MAP2CF_D64(rocblas_rot_batched, float, float, float, rocblas_srot_batched);
+MAP2CF_D64(rocblas_rot_batched, double, double, double, rocblas_drot_batched);
+MAP2CF_D64(
     rocblas_rot_batched, rocblas_float_complex, float, rocblas_float_complex, rocblas_crot_batched);
-MAP2CF(rocblas_rot_batched, rocblas_float_complex, float, float, rocblas_csrot_batched);
-MAP2CF(rocblas_rot_batched,
-       rocblas_double_complex,
-       double,
-       rocblas_double_complex,
-       rocblas_zrot_batched);
-MAP2CF(rocblas_rot_batched, rocblas_double_complex, double, double, rocblas_zdrot_batched);
+MAP2CF_D64(rocblas_rot_batched, rocblas_float_complex, float, float, rocblas_csrot_batched);
+MAP2CF_D64(rocblas_rot_batched,
+           rocblas_double_complex,
+           double,
+           rocblas_double_complex,
+           rocblas_zrot_batched);
+MAP2CF_D64(rocblas_rot_batched, rocblas_double_complex, double, double, rocblas_zdrot_batched);
 
 // rot_strided_batched
 template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
@@ -871,28 +893,41 @@ static rocblas_status (*rocblas_rot_strided_batched)(rocblas_handle handle,
                                                      const V*       s,
                                                      rocblas_int    batch_count);
 
-MAP2CF(rocblas_rot_strided_batched, float, float, float, rocblas_srot_strided_batched);
-MAP2CF(rocblas_rot_strided_batched, double, double, double, rocblas_drot_strided_batched);
-MAP2CF(rocblas_rot_strided_batched,
-       rocblas_float_complex,
-       float,
-       rocblas_float_complex,
-       rocblas_crot_strided_batched);
-MAP2CF(rocblas_rot_strided_batched,
-       rocblas_float_complex,
-       float,
-       float,
-       rocblas_csrot_strided_batched);
-MAP2CF(rocblas_rot_strided_batched,
-       rocblas_double_complex,
-       double,
-       rocblas_double_complex,
-       rocblas_zrot_strided_batched);
-MAP2CF(rocblas_rot_strided_batched,
-       rocblas_double_complex,
-       double,
-       double,
-       rocblas_zdrot_strided_batched);
+template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
+static rocblas_status (*rocblas_rot_strided_batched_64)(rocblas_handle handle,
+                                                        int64_t        n,
+                                                        T*             x,
+                                                        int64_t        incx,
+                                                        rocblas_stride stride_x,
+                                                        T*             y,
+                                                        int64_t        incy,
+                                                        rocblas_stride stride_y,
+                                                        const U*       c,
+                                                        const V*       s,
+                                                        int64_t        batch_count);
+
+MAP2CF_D64(rocblas_rot_strided_batched, float, float, float, rocblas_srot_strided_batched);
+MAP2CF_D64(rocblas_rot_strided_batched, double, double, double, rocblas_drot_strided_batched);
+MAP2CF_D64(rocblas_rot_strided_batched,
+           rocblas_float_complex,
+           float,
+           rocblas_float_complex,
+           rocblas_crot_strided_batched);
+MAP2CF_D64(rocblas_rot_strided_batched,
+           rocblas_float_complex,
+           float,
+           float,
+           rocblas_csrot_strided_batched);
+MAP2CF_D64(rocblas_rot_strided_batched,
+           rocblas_double_complex,
+           double,
+           rocblas_double_complex,
+           rocblas_zrot_strided_batched);
+MAP2CF_D64(rocblas_rot_strided_batched,
+           rocblas_double_complex,
+           double,
+           double,
+           rocblas_zdrot_strided_batched);
 
 // rotg
 template <typename T, typename U = T, bool FORTRAN = false>

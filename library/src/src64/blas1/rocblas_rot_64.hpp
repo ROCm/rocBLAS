@@ -19,7 +19,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_rot.hpp"
-#include "rocblas_rot_imp.hpp"
 
-INST_ROT_C_API(rocblas_int);
+#pragma once
+
+#include "blas1/rocblas_rot.hpp"
+#include "handle.hpp"
+#include "rocblas.h"

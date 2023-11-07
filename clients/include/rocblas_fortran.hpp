@@ -302,6 +302,372 @@ rocblas_status rocblas_dznrm2_strided_batched_fortran(rocblas_handle            
                                                       rocblas_int                   batch_count,
                                                       double*                       results);
 
+// amax
+rocblas_status rocblas_isamax_fortran(
+    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
+
+rocblas_status rocblas_idamax_fortran(
+    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
+
+rocblas_status rocblas_icamax_fortran(rocblas_handle               handle,
+                                      rocblas_int                  n,
+                                      const rocblas_float_complex* x,
+                                      rocblas_int                  incx,
+                                      rocblas_int*                 result);
+
+rocblas_status rocblas_izamax_fortran(rocblas_handle                handle,
+                                      rocblas_int                   n,
+                                      const rocblas_double_complex* x,
+                                      rocblas_int                   incx,
+                                      rocblas_int*                  result);
+
+// amax_batched
+rocblas_status rocblas_isamax_batched_fortran(rocblas_handle     handle,
+                                              rocblas_int        n,
+                                              const float* const x[],
+                                              rocblas_int        incx,
+                                              rocblas_int        batch_count,
+                                              rocblas_int*       result);
+
+rocblas_status rocblas_idamax_batched_fortran(rocblas_handle      handle,
+                                              rocblas_int         n,
+                                              const double* const x[],
+                                              rocblas_int         incx,
+                                              rocblas_int         batch_count,
+                                              rocblas_int*        result);
+
+rocblas_status rocblas_icamax_batched_fortran(rocblas_handle                     handle,
+                                              rocblas_int                        n,
+                                              const rocblas_float_complex* const x[],
+                                              rocblas_int                        incx,
+                                              rocblas_int                        batch_count,
+                                              rocblas_int*                       result);
+
+rocblas_status rocblas_izamax_batched_fortran(rocblas_handle                      handle,
+                                              rocblas_int                         n,
+                                              const rocblas_double_complex* const x[],
+                                              rocblas_int                         incx,
+                                              rocblas_int                         batch_count,
+                                              rocblas_int*                        result);
+
+// amax_strided_batched
+rocblas_status rocblas_isamax_strided_batched_fortran(rocblas_handle handle,
+                                                      rocblas_int    n,
+                                                      const float*   x,
+                                                      rocblas_int    incx,
+                                                      rocblas_stride stridex,
+                                                      rocblas_int    batch_count,
+                                                      rocblas_int*   result);
+
+rocblas_status rocblas_idamax_strided_batched_fortran(rocblas_handle handle,
+                                                      rocblas_int    n,
+                                                      const double*  x,
+                                                      rocblas_int    incx,
+                                                      rocblas_stride stridex,
+                                                      rocblas_int    batch_count,
+                                                      rocblas_int*   result);
+
+rocblas_status rocblas_icamax_strided_batched_fortran(rocblas_handle               handle,
+                                                      rocblas_int                  n,
+                                                      const rocblas_float_complex* x,
+                                                      rocblas_int                  incx,
+                                                      rocblas_stride               stridex,
+                                                      rocblas_int                  batch_count,
+                                                      rocblas_int*                 result);
+
+rocblas_status rocblas_izamax_strided_batched_fortran(rocblas_handle                handle,
+                                                      rocblas_int                   n,
+                                                      const rocblas_double_complex* x,
+                                                      rocblas_int                   incx,
+                                                      rocblas_stride                stridex,
+                                                      rocblas_int                   batch_count,
+                                                      rocblas_int*                  result);
+
+// amin
+rocblas_status rocblas_isamin_fortran(
+    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
+
+rocblas_status rocblas_idamin_fortran(
+    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
+
+rocblas_status rocblas_icamin_fortran(rocblas_handle               handle,
+                                      rocblas_int                  n,
+                                      const rocblas_float_complex* x,
+                                      rocblas_int                  incx,
+                                      rocblas_int*                 result);
+
+rocblas_status rocblas_izamin_fortran(rocblas_handle                handle,
+                                      rocblas_int                   n,
+                                      const rocblas_double_complex* x,
+                                      rocblas_int                   incx,
+                                      rocblas_int*                  result);
+
+// amin_batched
+rocblas_status rocblas_isamin_batched_fortran(rocblas_handle     handle,
+                                              rocblas_int        n,
+                                              const float* const x[],
+                                              rocblas_int        incx,
+                                              rocblas_int        batch_count,
+                                              rocblas_int*       result);
+
+rocblas_status rocblas_idamin_batched_fortran(rocblas_handle      handle,
+                                              rocblas_int         n,
+                                              const double* const x[],
+                                              rocblas_int         incx,
+                                              rocblas_int         batch_count,
+                                              rocblas_int*        result);
+
+rocblas_status rocblas_icamin_batched_fortran(rocblas_handle                     handle,
+                                              rocblas_int                        n,
+                                              const rocblas_float_complex* const x[],
+                                              rocblas_int                        incx,
+                                              rocblas_int                        batch_count,
+                                              rocblas_int*                       result);
+
+rocblas_status rocblas_izamin_batched_fortran(rocblas_handle                      handle,
+                                              rocblas_int                         n,
+                                              const rocblas_double_complex* const x[],
+                                              rocblas_int                         incx,
+                                              rocblas_int                         batch_count,
+                                              rocblas_int*                        result);
+
+// amin_strided_batched
+rocblas_status rocblas_isamin_strided_batched_fortran(rocblas_handle handle,
+                                                      rocblas_int    n,
+                                                      const float*   x,
+                                                      rocblas_int    incx,
+                                                      rocblas_stride stridex,
+                                                      rocblas_int    batch_count,
+                                                      rocblas_int*   result);
+
+rocblas_status rocblas_idamin_strided_batched_fortran(rocblas_handle handle,
+                                                      rocblas_int    n,
+                                                      const double*  x,
+                                                      rocblas_int    incx,
+                                                      rocblas_stride stridex,
+                                                      rocblas_int    batch_count,
+                                                      rocblas_int*   result);
+
+rocblas_status rocblas_icamin_strided_batched_fortran(rocblas_handle               handle,
+                                                      rocblas_int                  n,
+                                                      const rocblas_float_complex* x,
+                                                      rocblas_int                  incx,
+                                                      rocblas_stride               stridex,
+                                                      rocblas_int                  batch_count,
+                                                      rocblas_int*                 result);
+
+rocblas_status rocblas_izamin_strided_batched_fortran(rocblas_handle                handle,
+                                                      rocblas_int                   n,
+                                                      const rocblas_double_complex* x,
+                                                      rocblas_int                   incx,
+                                                      rocblas_stride                stridex,
+                                                      rocblas_int                   batch_count,
+                                                      rocblas_int*                  result);
+
+// rotg
+rocblas_status rocblas_srotg_fortran(rocblas_handle handle, float* a, float* b, float* c, float* s);
+
+rocblas_status
+    rocblas_drotg_fortran(rocblas_handle handle, double* a, double* b, double* c, double* s);
+
+rocblas_status rocblas_crotg_fortran(rocblas_handle         handle,
+                                     rocblas_float_complex* a,
+                                     rocblas_float_complex* b,
+                                     float*                 c,
+                                     rocblas_float_complex* s);
+
+rocblas_status rocblas_zrotg_fortran(rocblas_handle          handle,
+                                     rocblas_double_complex* a,
+                                     rocblas_double_complex* b,
+                                     double*                 c,
+                                     rocblas_double_complex* s);
+
+// rotg_batched
+rocblas_status rocblas_srotg_batched_fortran(rocblas_handle handle,
+                                             float* const   a[],
+                                             float* const   b[],
+                                             float* const   c[],
+                                             float* const   s[],
+                                             rocblas_int    batch_count);
+
+rocblas_status rocblas_drotg_batched_fortran(rocblas_handle handle,
+                                             double* const  a[],
+                                             double* const  b[],
+                                             double* const  c[],
+                                             double* const  s[],
+                                             rocblas_int    batch_count);
+
+rocblas_status rocblas_crotg_batched_fortran(rocblas_handle               handle,
+                                             rocblas_float_complex* const a[],
+                                             rocblas_float_complex* const b[],
+                                             float* const                 c[],
+                                             rocblas_float_complex* const s[],
+                                             rocblas_int                  batch_count);
+
+rocblas_status rocblas_zrotg_batched_fortran(rocblas_handle                handle,
+                                             rocblas_double_complex* const a[],
+                                             rocblas_double_complex* const b[],
+                                             double* const                 c[],
+                                             rocblas_double_complex* const s[],
+                                             rocblas_int                   batch_count);
+
+// rotg_strided_batched
+rocblas_status rocblas_srotg_strided_batched_fortran(rocblas_handle handle,
+                                                     float*         a,
+                                                     rocblas_stride stride_a,
+                                                     float*         b,
+                                                     rocblas_stride stride_b,
+                                                     float*         c,
+                                                     rocblas_stride stride_c,
+                                                     float*         s,
+                                                     rocblas_stride stride_s,
+                                                     rocblas_int    batch_count);
+
+rocblas_status rocblas_drotg_strided_batched_fortran(rocblas_handle handle,
+                                                     double*        a,
+                                                     rocblas_stride stride_a,
+                                                     double*        b,
+                                                     rocblas_stride stride_b,
+                                                     double*        c,
+                                                     rocblas_stride stride_c,
+                                                     double*        s,
+                                                     rocblas_stride stride_s,
+                                                     rocblas_int    batch_count);
+
+rocblas_status rocblas_crotg_strided_batched_fortran(rocblas_handle         handle,
+                                                     rocblas_float_complex* a,
+                                                     rocblas_stride         stride_a,
+                                                     rocblas_float_complex* b,
+                                                     rocblas_stride         stride_b,
+                                                     float*                 c,
+                                                     rocblas_stride         stride_c,
+                                                     rocblas_float_complex* s,
+                                                     rocblas_stride         stride_s,
+                                                     rocblas_int            batch_count);
+
+rocblas_status rocblas_zrotg_strided_batched_fortran(rocblas_handle          handle,
+                                                     rocblas_double_complex* a,
+                                                     rocblas_stride          stride_a,
+                                                     rocblas_double_complex* b,
+                                                     rocblas_stride          stride_b,
+                                                     double*                 c,
+                                                     rocblas_stride          stride_c,
+                                                     rocblas_double_complex* s,
+                                                     rocblas_stride          stride_s,
+                                                     rocblas_int             batch_count);
+
+// rotm
+rocblas_status rocblas_srotm_fortran(rocblas_handle handle,
+                                     rocblas_int    n,
+                                     float*         x,
+                                     rocblas_int    incx,
+                                     float*         y,
+                                     rocblas_int    incy,
+                                     const float*   param);
+
+rocblas_status rocblas_drotm_fortran(rocblas_handle handle,
+                                     rocblas_int    n,
+                                     double*        x,
+                                     rocblas_int    incx,
+                                     double*        y,
+                                     rocblas_int    incy,
+                                     const double*  param);
+
+// rotm_batched
+rocblas_status rocblas_srotm_batched_fortran(rocblas_handle     handle,
+                                             rocblas_int        n,
+                                             float* const       x[],
+                                             rocblas_int        incx,
+                                             float* const       y[],
+                                             rocblas_int        incy,
+                                             const float* const param[],
+                                             rocblas_int        batch_count);
+
+rocblas_status rocblas_drotm_batched_fortran(rocblas_handle      handle,
+                                             rocblas_int         n,
+                                             double* const       x[],
+                                             rocblas_int         incx,
+                                             double* const       y[],
+                                             rocblas_int         incy,
+                                             const double* const param[],
+                                             rocblas_int         batch_count);
+
+// rotm_strided_batched
+rocblas_status rocblas_srotm_strided_batched_fortran(rocblas_handle handle,
+                                                     rocblas_int    n,
+                                                     float*         x,
+                                                     rocblas_int    incx,
+                                                     rocblas_stride stride_x,
+                                                     float*         y,
+                                                     rocblas_int    incy,
+                                                     rocblas_stride stride_y,
+                                                     const float*   param,
+                                                     rocblas_stride stride_param,
+                                                     rocblas_int    batch_count);
+
+rocblas_status rocblas_drotm_strided_batched_fortran(rocblas_handle handle,
+                                                     rocblas_int    n,
+                                                     double*        x,
+                                                     rocblas_int    incx,
+                                                     rocblas_stride stride_x,
+                                                     double*        y,
+                                                     rocblas_int    incy,
+                                                     rocblas_stride stride_y,
+                                                     const double*  param,
+                                                     rocblas_stride stride_param,
+                                                     rocblas_int    batch_count);
+
+// rotmg
+rocblas_status rocblas_srotmg_fortran(
+    rocblas_handle handle, float* d1, float* d2, float* x1, const float* y1, float* param);
+
+rocblas_status rocblas_drotmg_fortran(
+    rocblas_handle handle, double* d1, double* d2, double* x1, const double* y1, double* param);
+
+// rotmg_batched
+rocblas_status rocblas_srotmg_batched_fortran(rocblas_handle     handle,
+                                              float* const       d1[],
+                                              float* const       d2[],
+                                              float* const       x1[],
+                                              const float* const y1[],
+                                              float* const       param[],
+                                              rocblas_int        batch_count);
+
+rocblas_status rocblas_drotmg_batched_fortran(rocblas_handle      handle,
+                                              double* const       d1[],
+                                              double* const       d2[],
+                                              double* const       x1[],
+                                              const double* const y1[],
+                                              double* const       param[],
+                                              rocblas_int         batch_count);
+
+// rotmg_strided_batched
+rocblas_status rocblas_srotmg_strided_batched_fortran(rocblas_handle handle,
+                                                      float*         d1,
+                                                      rocblas_stride stride_d1,
+                                                      float*         d2,
+                                                      rocblas_stride stride_d2,
+                                                      float*         x1,
+                                                      rocblas_stride stride_x1,
+                                                      const float*   y1,
+                                                      rocblas_stride stride_y1,
+                                                      float*         param,
+                                                      rocblas_stride stride_param,
+                                                      rocblas_int    batch_count);
+
+rocblas_status rocblas_drotmg_strided_batched_fortran(rocblas_handle handle,
+                                                      double*        d1,
+                                                      rocblas_stride stride_d1,
+                                                      double*        d2,
+                                                      rocblas_stride stride_d2,
+                                                      double*        x1,
+                                                      rocblas_stride stride_x1,
+                                                      const double*  y1,
+                                                      rocblas_stride stride_y1,
+                                                      double*        param,
+                                                      rocblas_stride stride_param,
+                                                      rocblas_int    batch_count);
+
 // rot
 rocblas_status rocblas_srot_fortran(rocblas_handle handle,
                                     rocblas_int    n,
@@ -5859,50 +6225,6 @@ rocblas_status rocblas_nrm2_strided_batched_ex_fortran(rocblas_handle   handle,
                                                        void*            result,
                                                        rocblas_datatype result_type,
                                                        rocblas_datatype execution_type);
-
-// rot_ex
-rocblas_status rocblas_rot_ex_fortran(rocblas_handle   handle,
-                                      rocblas_int      n,
-                                      void*            x,
-                                      rocblas_datatype x_type,
-                                      rocblas_int      incx,
-                                      void*            y,
-                                      rocblas_datatype y_type,
-                                      rocblas_int      incy,
-                                      const void*      c,
-                                      const void*      s,
-                                      rocblas_datatype cs_type,
-                                      rocblas_datatype execution_type);
-
-rocblas_status rocblas_rot_batched_ex_fortran(rocblas_handle   handle,
-                                              rocblas_int      n,
-                                              void*            x,
-                                              rocblas_datatype x_type,
-                                              rocblas_int      incx,
-                                              void*            y,
-                                              rocblas_datatype y_type,
-                                              rocblas_int      incy,
-                                              const void*      c,
-                                              const void*      s,
-                                              rocblas_datatype cs_type,
-                                              rocblas_int      batch_count,
-                                              rocblas_datatype execution_type);
-
-rocblas_status rocblas_rot_strided_batched_ex_fortran(rocblas_handle   handle,
-                                                      rocblas_int      n,
-                                                      void*            x,
-                                                      rocblas_datatype x_type,
-                                                      rocblas_int      incx,
-                                                      rocblas_stride   stride_x,
-                                                      void*            y,
-                                                      rocblas_datatype y_type,
-                                                      rocblas_int      incy,
-                                                      rocblas_stride   stride_y,
-                                                      const void*      c,
-                                                      const void*      s,
-                                                      rocblas_datatype cs_type,
-                                                      rocblas_int      batch_count,
-                                                      rocblas_datatype execution_type);
 
 // gemm_ex
 rocblas_status rocblas_gemm_ex_fortran(rocblas_handle    handle,

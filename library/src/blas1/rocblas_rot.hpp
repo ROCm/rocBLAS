@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,39 +19,49 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#pragma once
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
+#include "int64_helpers.hpp"
+#include "rocblas_block_sizes.h"
 
 template <typename T>
 rocblas_status rocblas_rot_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
-                                          rocblas_int    n,
+                                          int64_t        n,
                                           T              x,
                                           rocblas_stride offset_x,
-                                          rocblas_int    inc_x,
+                                          int64_t        inc_x,
                                           rocblas_stride stride_x,
                                           T              y,
                                           rocblas_stride offset_y,
-                                          rocblas_int    inc_y,
+                                          int64_t        inc_y,
                                           rocblas_stride stride_y,
-                                          rocblas_int    batch_count,
+                                          int64_t        batch_count,
                                           const int      check_numerics,
                                           bool           is_input);
 
-template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
-rocblas_status rocblas_rot_template(rocblas_handle handle,
-                                    rocblas_int    n,
-                                    Tx             x,
-                                    rocblas_stride offset_x,
-                                    rocblas_int    incx,
-                                    rocblas_stride stride_x,
-                                    Ty             y,
-                                    rocblas_stride offset_y,
-                                    rocblas_int    incy,
-                                    rocblas_stride stride_y,
-                                    Tc*            c,
-                                    rocblas_stride c_stride,
-                                    Ts*            s,
-                                    rocblas_stride s_stride,
-                                    rocblas_int    batch_count);
+template <typename API_INT,
+          rocblas_int NB,
+          typename Tex,
+          typename Tx,
+          typename Ty,
+          typename Tc,
+          typename Ts>
+ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE
+    rocblas_status ROCBLAS_API(rocblas_internal_rot_launcher)(rocblas_handle handle,
+                                                              API_INT        n,
+                                                              Tx             x,
+                                                              rocblas_stride offset_x,
+                                                              int64_t        incx,
+                                                              rocblas_stride stride_x,
+                                                              Ty             y,
+                                                              rocblas_stride offset_y,
+                                                              int64_t        incy,
+                                                              rocblas_stride stride_y,
+                                                              Tc*            c,
+                                                              rocblas_stride c_stride,
+                                                              Ts*            s,
+                                                              rocblas_stride s_stride,
+                                                              API_INT        batch_count);

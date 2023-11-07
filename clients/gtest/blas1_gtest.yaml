@@ -479,6 +479,38 @@ Tests:
       - dot_strided_batched: *half_precision
       - dot_strided_batched_ex: *half_precision
 
+  - name: rot_64
+    category: nightly
+    N: [ 64 ]
+    arguments:
+      - { incx: 1, incy: 1, batch_count: 1 }
+    api: [ FORTRAN_64 ]
+    function:
+      - rot:  *rot_precisions
+      - rot_ex:  *rot_ex_precisions
+      - rot_batched:  *rot_precisions
+      - rot_batched_ex:  *rot_ex_precisions
+      - rot_strided_batched:  *rot_precisions
+      - rot_strided_batched_ex:  *rot_ex_precisions
+
+  - name: rot_64
+    category: stress
+    arguments:
+      - { N: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+      - { N: 2, incx: 1, incy: 2147483649, batch_count: 1 }
+      - { N: 3, incx: 1, incy: 1, stride_x: 3, stride_y: 3, batch_count: *c_grid_yz_require_passes }
+      - { N: 2, incx: -2147483649, incy:  1, batch_count: 1 }
+      - { N: 2, incx:  1, incy: -2147483649, batch_count: 1 }
+    api: [ C_64 ]
+    function:
+      - rot:  *rot_precisions
+      - rot_ex:  *rot_ex_precisions
+      - rot_batched:  *rot_precisions
+      - rot_batched_ex:  *rot_ex_precisions
+      - rot_strided_batched:  *rot_precisions
+      - rot_strided_batched_ex:  *rot_ex_precisions
+
   - name: iamax_iamin_64
     category: nightly
     N: [ 64 ]
@@ -1507,6 +1539,12 @@ Tests:
       - copy_bad_arg:  *single_double_precisions_complex_real
       - copy_batched_bad_arg:  *single_double_precisions_complex_real
       - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - rot_bad_arg:  *rot_precisions
+      - rot_ex_bad_arg:  *rot_ex_precisions
+      - rot_batched_bad_arg:  *rot_precisions
+      - rot_batched_ex_bad_arg:  *rot_ex_precisions
+      - rot_strided_batched_bad_arg:  *rot_precisions
+      - rot_strided_batched_ex_bad_arg:  *rot_ex_precisions
 
   - name: blas1_graph_test
     category: pre_checkin
