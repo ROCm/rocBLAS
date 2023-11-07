@@ -206,12 +206,34 @@ public:
     }
 
     //!
+    //! @brief Broadcast data from one matrix on host to each batch_count matrices.
+    //! @param that That matrix on host.
+    //! @return The hip error.
+    //!
+    hipError_t broadcast_one_matrix_from(const host_matrix<T>& that)
+    {
+        hipError_t status = hipSuccess;
+        for(int64_t batch_index = 0; batch_index < m_batch_count; batch_index++)
+        {
+            status = hipMemcpy(this->data() + (batch_index * m_stride),
+                               that.data(),
+                               sizeof(T) * this->m_n * this->m_lda,
+                               this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice);
+            if(status != hipSuccess)
+                break;
+        }
+        return status;
+    }
+
+    //!
     //! @brief Check if memory exists.
     //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
     //!
     hipError_t memcheck() const
     {
-        if(*this)
+        bool valid_parameters = calculate_nmemb(m_n, m_lda, m_stride, m_batch_count) > 0;
+
+        if(*this || !valid_parameters)
             return hipSuccess;
         else
             return hipErrorOutOfMemory;
