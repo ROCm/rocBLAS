@@ -224,16 +224,31 @@ void testing_syrk(const Arguments& arg)
     size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
     size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
 
-    // matrix and flush sizes
-    size_t stride_a    = lda * cols;
-    size_t stride_c    = ldc * N;
-    size_t flush_count = 1;
+    // flush_malloc_size and flush_batch_count
+    // - To time syrk it is called number_hot_calls times.
+    // - if the size of dA, dB, dC, dD are small enough they will be cached
+    //   and reused number_hot_calls-1 times.
+    // - This "hot-cache" timing will give higher performance than if the
+    //   cache is flushed
+    // - arg.flush_malloc_size can be used to avoid caching of dA, dB, dC, dD
+    // - Note that this is only used in timing code, not in testing code.
+    // - The method is as outlined in
+    //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
+    // - If you want to flush n bytes of cache, then set arg.flush_malloc_size = 2*n.
+    // - The number of copies of dA, dB, dC and dD that are allocated is
+    //   flush_batch_count = arg.flush_malloc_size / size_of(dA + dB + dC + dD)
+    // - In the number_hot_calls timing loop it cycles through the flush_batch_count copies
+    //   of dA, dB, dC, dD, and if arg.flush_malloc_size is large enouth they will be evicted
+    //   from cache before they are reused.
+    size_t stride_a          = lda * cols;
+    size_t stride_c          = ldc * N;
+    size_t flush_batch_count = 1;
     if(arg.timing)
     {
-        size_t a_c_size   = (stride_a + stride_c) * sizeof(T);
-        size_t flush_size = arg.flush_size > 0 ? arg.flush_size : 1;
-        flush_count       = 1 + ((flush_size - 1) / a_c_size);
-        rocblas_cout << "flush_count = " << flush_count << std::endl;
+        size_t a_c_size          = (stride_a + stride_c) * sizeof(T);
+        size_t flush_malloc_size = arg.flush_malloc_size > 0 ? arg.flush_malloc_size : 1;
+        flush_batch_count        = 1 + ((flush_malloc_size - 1) / a_c_size);
+        rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
     }
 
     // Allocate host memory
@@ -249,8 +264,8 @@ void testing_syrk(const Arguments& arg)
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(rows, cols, lda, stride_a, flush_count);
-    device_strided_batch_matrix<T> dC(N, N, ldc, stride_c, flush_count);
+    device_strided_batch_matrix<T> dA(rows, cols, lda, stride_a, flush_batch_count);
+    device_strided_batch_matrix<T> dC(N, N, ldc, stride_c, flush_batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
 
@@ -376,7 +391,7 @@ void testing_syrk(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            int flush_index = (i + 1) % flush_count;
+            int flush_index = (i + 1) % flush_batch_count;
             rocblas_syrk_fn(handle,
                             uplo,
                             transA,
