@@ -33,15 +33,6 @@
 #include <type_traits>
 #include <utility>
 
-template <typename T>
-struct rocblas_index_64_value_t
-{
-    //! @brief Important: index must come first, so that rocblas_index_64_value_t* can be cast to int64_t*
-    int64_t index;
-    //! @brief The value.
-    T value;
-};
-
 //!
 //! @brief Struct-operator a default_value of rocblas_index_value_t<T>
 //!
