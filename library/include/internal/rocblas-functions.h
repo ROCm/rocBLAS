@@ -402,8 +402,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched_64(rocblas_handle  
     incy      [rocblas_int]
               specifies the increment for the elements of y.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scopy(rocblas_handle handle,
                                             rocblas_int    n,
@@ -483,8 +481,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_64(rocblas_handle                han
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
@@ -592,8 +588,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched_64(rocblas_handle           
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
@@ -4372,9 +4366,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_strided_batched(rocblas_handle      
         y := alpha*A**H*x + beta*y,
         where alpha and beta are scalars, x and y are vectors and A is an
         m by n matrix.
-
-    gemv has an implementation which uses atomic operations. See Atomic Operations
-    in the API Reference Guide for more information.
 
     @param[in]
     handle    [rocblas_handle]

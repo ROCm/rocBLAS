@@ -29,9 +29,9 @@ The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
   - rocBLAS array storage format is column major and one based. This is to maintain compatibility with the Legacy BLAS code, which is written in Fortran.
   - rocBLAS calls the AMD library `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`_ for Level 3 BLAS matrix multiplication.
 
---------------------------------------
+-------------------------------------
 rocBLAS API and Legacy BLAS Functions
---------------------------------------
+-------------------------------------
 
 rocBLAS is initialized by calling rocblas_create_handle, and it is terminated by calling rocblas_destroy_handle. The rocblas_handle is persistent, and it contains:
 
@@ -151,9 +151,20 @@ Below is a simple example code for calling function rocblas_sscal:
 LP64 Interface
 ^^^^^^^^^^^^^^
 
-The rocBLAS library is LP64, so rocblas_int arguments are 32 bit and
-rocblas_long arguments are 64 bit.
+The rocBLAS library default implementations are LP64, so rocblas_int arguments are 32 bit and
+rocblas_stride arguments are 64 bit.
 
+.. _ILP64 API:
+
+ILP64 Interface
+^^^^^^^^^^^^^^^
+
+The rocBLAS library Level-1 functions are also provided with ILP64 interfaces. With these interfaces all rocblas_int arguments are replaced by the typename
+int64_t.  These ILP64 function names all end with a suffix ``_64``.   The only output arguments that change are for the
+xMAX and xMIN for which the index is now int64_t.  Performance should match the LP64 API when problem sizes don't require the additional
+precision.  Function level documentation is not repeated for these API as they are identical in behavior to the LP64 versions,
+however functions which support this alternate API include the line:
+``This function supports the 64-bit integer interface (ILP64)``.
 
 Column-major Storage and 1 Based Indexing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -165,7 +176,6 @@ cuBLAS.
 If you need row-major and 0-based indexing (used in C language arrays), download the file cblas.tgz from the Netlib Repository.
 Look at the CBLAS functions that provide a thin interface to Legacy BLAS. They convert from row-major, 0 based, to column-major, 1
 based. This is done by swapping the order of function arguments. It is not necessary to transpose matrices.
-
 
 Pointer Mode
 ^^^^^^^^^^^^
@@ -280,6 +290,8 @@ recompilation is required to avoid casting if switching to pass in the hip compl
 types to hip utility functions (e.g. hipMemcpy), so uploading memory from std::complex arrays or hipFloatComplex arrays requires no changes
 regardless of complex data type API choice.
 
+
+.. _Atomic Operations:
 
 Atomic Operations
 ^^^^^^^^^^^^^^^^^
@@ -529,13 +541,13 @@ rocblas_handle
 
 
 rocblas_int
-^^^^^^^^^^^^
+^^^^^^^^^^^
 
 .. doxygentypedef:: rocblas_int
 
 
 rocblas_stride
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 
 .. doxygentypedef:: rocblas_stride
 
@@ -547,19 +559,19 @@ rocblas_half
 
 
 rocblas_bfloat16
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_bfloat16
 
 
 rocblas_float_complex
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_float_complex
 
 
 rocblas_double_complex
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_double_complex
 
@@ -578,13 +590,13 @@ rocblas_operation
 
 
 rocblas_fill
-^^^^^^^^^^^^^
+^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_fill
 
 
 rocblas_diagonal
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_diagonal
 
@@ -596,31 +608,31 @@ rocblas_side
 
 
 rocblas_status
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_status
 
 
 rocblas_datatype
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_datatype
 
 
 rocblas_pointer_mode
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_pointer_mode
 
 
 rocblas_atomics_mode
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_atomics_mode
 
 
 rocblas_layer_mode
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_layer_mode
 
@@ -632,7 +644,7 @@ rocblas_gemm_algo
 
 
 rocblas_gemm_flags
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_gemm_flags
 
@@ -685,6 +697,8 @@ Build Information Functions
 -------------------------
 rocBLAS Level-1 functions
 -------------------------
+
+Level-1 functions support the ILP64 API.  For more information on these `_64` functions, refer to section :ref:`ILP64 API`.
 
 rocblas_iXamax + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -812,6 +826,8 @@ rocblas_Xcopy + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zcopy
 
+The copy functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_scopy_batched
    :outline:
 .. doxygenfunction:: rocblas_dcopy_batched
@@ -820,6 +836,8 @@ rocblas_Xcopy + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zcopy_batched
 
+The copy_batched functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_scopy_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dcopy_strided_batched
@@ -827,6 +845,8 @@ rocblas_Xcopy + batched, strided_batched
 .. doxygenfunction:: rocblas_ccopy_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zcopy_strided_batched
+
+The copy_strided_batched functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
 
 rocblas_Xdot + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1068,7 +1088,6 @@ rocblas_Xswap + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zswap_strided_batched
 
-
 -------------------------
 rocBLAS Level-2 functions
 -------------------------
@@ -1111,6 +1130,8 @@ rocblas_Xgemv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgemv
 
+gemv functions have an implementation which uses atomic operations. See section :ref:`Atomic Operations` for more information.
+
 .. doxygenfunction:: rocblas_sgemv_batched
    :outline:
 .. doxygenfunction:: rocblas_dgemv_batched
@@ -1119,6 +1140,8 @@ rocblas_Xgemv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgemv_batched
 
+gemv_batched functions have an implementation which uses atomic operations. See section :ref:`Atomic Operations` for more information.
+
 .. doxygenfunction:: rocblas_sgemv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dgemv_strided_batched
@@ -1126,6 +1149,8 @@ rocblas_Xgemv + batched, strided_batched
 .. doxygenfunction:: rocblas_cgemv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgemv_strided_batched
+
+gemv_strided_batched functions have an implementation which uses atomic operations. See section :ref:`Atomic Operations` for more information.
 
 rocblas_Xger + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2010,8 +2035,8 @@ rocblas_gemm_ex3 + batched, strided_batched
 Graph Support for rocBLAS
 -------------------------
 
-Graph support is added as a beta feature in rocBLAS. Most of the rocBLAS functions can be captured into a graph node via Graph ManagementHIP APIs, except those listed in :ref:`Functions Unsupported with Graph Capture`.
-For complete list of support graph APIs, refer to `Graph ManagementHIP API <https://docs.amd.com/bundle/HIP-API-Guide-v5.2/page/group___graph.html>`__.
+Graph support is added as a beta feature in rocBLAS. Most of the rocBLAS functions can be captured into a graph node via Graph Management HIP APIs, except those listed in :ref:`Functions Unsupported with Graph Capture`.
+For a list of graph related HIP APIs, refer to `Graph Management HIP API <https://rocm.docs.amd.com/projects/HIP/en/latest/.doxygen/docBin/html/group___graph.html#graph-management>`_.
 
 .. code-block:: c++
 
