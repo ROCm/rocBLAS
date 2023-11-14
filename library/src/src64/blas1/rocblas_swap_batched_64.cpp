@@ -19,6 +19,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "blas1/rocblas_swap.hpp"
-#include "blas1/rocblas_swap_imp.hpp"
-INST_SWAP_C_API(rocblas_int);
+
+#include "rocblas_swap_64.hpp"
+
+#include "blas1/rocblas_swap_batched_imp.hpp"
+
+INST_SWAP_BATCHED_C_API(int64_t);

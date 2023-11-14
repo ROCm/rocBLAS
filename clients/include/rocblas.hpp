@@ -330,10 +330,15 @@ template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_swap)(
     rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy);
 
-MAP2CF(rocblas_swap, float, rocblas_sswap);
-MAP2CF(rocblas_swap, double, rocblas_dswap);
-MAP2CF(rocblas_swap, rocblas_float_complex, rocblas_cswap);
-MAP2CF(rocblas_swap, rocblas_double_complex, rocblas_zswap);
+// swap_64
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_swap_64)(
+    rocblas_handle handle, int64_t n, T* x, int64_t incx, T* y, int64_t incy);
+
+MAP2CF_D64(rocblas_swap, float, rocblas_sswap);
+MAP2CF_D64(rocblas_swap, double, rocblas_dswap);
+MAP2CF_D64(rocblas_swap, rocblas_float_complex, rocblas_cswap);
+MAP2CF_D64(rocblas_swap, rocblas_double_complex, rocblas_zswap);
 
 // swap_batched
 template <typename T, bool FORTRAN = false>
@@ -345,10 +350,20 @@ static rocblas_status (*rocblas_swap_batched)(rocblas_handle handle,
                                               rocblas_int    incy,
                                               rocblas_int    batch_count);
 
-MAP2CF(rocblas_swap_batched, float, rocblas_sswap_batched);
-MAP2CF(rocblas_swap_batched, double, rocblas_dswap_batched);
-MAP2CF(rocblas_swap_batched, rocblas_float_complex, rocblas_cswap_batched);
-MAP2CF(rocblas_swap_batched, rocblas_double_complex, rocblas_zswap_batched);
+// swap_batched_64
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_swap_batched_64)(rocblas_handle handle,
+                                                 int64_t        n,
+                                                 T* const       x[],
+                                                 int64_t        incx,
+                                                 T* const       y[],
+                                                 int64_t        incy,
+                                                 int64_t        batch_count);
+
+MAP2CF_D64(rocblas_swap_batched, float, rocblas_sswap_batched);
+MAP2CF_D64(rocblas_swap_batched, double, rocblas_dswap_batched);
+MAP2CF_D64(rocblas_swap_batched, rocblas_float_complex, rocblas_cswap_batched);
+MAP2CF_D64(rocblas_swap_batched, rocblas_double_complex, rocblas_zswap_batched);
 
 // swap_strided_batched
 template <typename T, bool FORTRAN = false>
@@ -362,10 +377,22 @@ static rocblas_status (*rocblas_swap_strided_batched)(rocblas_handle handle,
                                                       rocblas_stride stridey,
                                                       rocblas_int    batch_count);
 
-MAP2CF(rocblas_swap_strided_batched, float, rocblas_sswap_strided_batched);
-MAP2CF(rocblas_swap_strided_batched, double, rocblas_dswap_strided_batched);
-MAP2CF(rocblas_swap_strided_batched, rocblas_float_complex, rocblas_cswap_strided_batched);
-MAP2CF(rocblas_swap_strided_batched, rocblas_double_complex, rocblas_zswap_strided_batched);
+// swap_strided_batched_64
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_swap_strided_batched_64)(rocblas_handle handle,
+                                                         int64_t        n,
+                                                         T*             x,
+                                                         int64_t        incx,
+                                                         rocblas_stride stridex,
+                                                         T*             y,
+                                                         int64_t        incy,
+                                                         rocblas_stride stridey,
+                                                         int64_t        batch_count);
+
+MAP2CF_D64(rocblas_swap_strided_batched, float, rocblas_sswap_strided_batched);
+MAP2CF_D64(rocblas_swap_strided_batched, double, rocblas_dswap_strided_batched);
+MAP2CF_D64(rocblas_swap_strided_batched, rocblas_float_complex, rocblas_cswap_strided_batched);
+MAP2CF_D64(rocblas_swap_strided_batched, rocblas_double_complex, rocblas_zswap_strided_batched);
 
 // dot
 template <typename T, bool FORTRAN = false>

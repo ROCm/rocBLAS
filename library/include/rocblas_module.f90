@@ -2311,6 +2311,72 @@ module rocblas
         end function rocblas_zswap
     end interface
 
+
+    ! swap 64
+    interface
+        function rocblas_sswap_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_sswap_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sswap_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_sswap_64
+    end interface
+
+    interface
+        function rocblas_dswap_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_dswap_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dswap_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_dswap_64
+    end interface
+
+    interface
+        function rocblas_cswap_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_cswap_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cswap_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_cswap_64
+    end interface
+
+    interface
+        function rocblas_zswap_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_zswap_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zswap_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_zswap_64
+    end interface
+
     ! swap_batched
     interface
         function rocblas_sswap_batched(handle, n, x, incx, y, incy, batch_count) &
@@ -2361,6 +2427,75 @@ module rocblas
             integer(c_int), value :: incy
             integer(c_int), value :: batch_count
         end function rocblas_cswap_batched
+    end interface
+
+    ! swap_batched_64
+    interface
+        function rocblas_sswap_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_sswap_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sswap_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_sswap_batched_64
+    end interface
+
+    interface
+        function rocblas_dswap_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_dswap_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dswap_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dswap_batched_64
+    end interface
+
+    interface
+        function rocblas_cswap_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_cswap_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cswap_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_cswap_batched_64
+    end interface
+
+    interface
+        function rocblas_zswap_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_zswap_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zswap_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zswap_batched_64
     end interface
 
     interface
@@ -2455,6 +2590,83 @@ module rocblas
             integer(c_int64_t), value :: stride_y
             integer(c_int), value :: batch_count
         end function rocblas_zswap_strided_batched
+    end interface
+
+    ! swap_strided_batched_64
+    interface
+        function rocblas_sswap_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_sswap_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sswap_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_sswap_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dswap_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dswap_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dswap_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dswap_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_cswap_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_cswap_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cswap_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_cswap_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zswap_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zswap_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zswap_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zswap_strided_batched_64
     end interface
 
     ! axpy

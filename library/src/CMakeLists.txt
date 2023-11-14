@@ -618,10 +618,10 @@ set( rocblas64_blas1_source
   src64/blas1/rocblas_scal_kernels_64.cpp
   src64/blas1/rocblas_scal_batched_64.cpp
   src64/blas1/rocblas_scal_strided_batched_64.cpp
-  # src64/blas1/rocblas_swap.cpp
-  # src64/blas1/rocblas_swap_kernels.cpp
-  # src64/blas1/rocblas_swap_batched.cpp
-  # src64/blas1/rocblas_swap_strided_batched.cpp
+  src64/blas1/rocblas_swap_64.cpp
+  src64/blas1/rocblas_swap_kernels_64.cpp
+  src64/blas1/rocblas_swap_batched_64.cpp
+  src64/blas1/rocblas_swap_strided_batched_64.cpp
 )
 
 set( subdir_src64_list
