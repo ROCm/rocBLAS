@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,32 +24,35 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
+#include "int64_helpers.hpp"
+#include "rocblas_block_sizes.h"
 
-template <rocblas_int NB, typename T>
-rocblas_status rocblas_swap_template(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     T              x,
-                                     rocblas_stride offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     T              y,
-                                     rocblas_stride offsety,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey,
-                                     rocblas_int    batch_count);
+template <typename API_INT, rocblas_int NB, typename T>
+ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE
+    rocblas_status ROCBLAS_API(rocblas_internal_swap_launcher)(rocblas_handle handle,
+                                                               API_INT        n,
+                                                               T              x,
+                                                               rocblas_stride offsetx,
+                                                               API_INT        incx,
+                                                               rocblas_stride stridex,
+                                                               T              y,
+                                                               rocblas_stride offsety,
+                                                               API_INT        incy,
+                                                               rocblas_stride stridey,
+                                                               API_INT        batch_count);
 
 template <typename T>
 rocblas_status rocblas_swap_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            T              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);

@@ -19,6 +19,10 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+
+#pragma once
+
+#include "handle.hpp"
+#include "rocblas.h"
+
 #include "blas1/rocblas_swap.hpp"
-#include "blas1/rocblas_swap_imp.hpp"
-INST_SWAP_C_API(rocblas_int);
