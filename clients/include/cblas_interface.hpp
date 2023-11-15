@@ -67,12 +67,6 @@ template <typename T>
 void cblas_asum(int64_t n, const T* x, int64_t incx, real_t<T>* result);
 
 template <>
-inline void cblas_asum(int64_t n, const float* x, int64_t incx, float* result)
-{
-    *result = cblas_sasum(n, x, incx);
-}
-
-template <>
 inline void cblas_asum(int64_t n, const double* x, int64_t incx, double* result)
 {
     *result = cblas_dasum(n, x, incx);
@@ -227,12 +221,6 @@ inline void cblas_dotc(int64_t                       n,
 // nrm2
 template <typename T>
 void cblas_nrm2(int64_t n, const T* x, int64_t incx, real_t<T>* result);
-
-template <>
-inline void cblas_nrm2(int64_t n, const float* x, int64_t incx, float* result)
-{
-    *result = cblas_snrm2(n, x, incx);
-}
 
 template <>
 inline void cblas_nrm2(int64_t n, const double* x, int64_t incx, double* result)

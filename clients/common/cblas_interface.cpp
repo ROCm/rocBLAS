@@ -34,6 +34,19 @@
  */
 
 template <>
+void cblas_nrm2<float>(int64_t n, const float* x, int64_t incx, float* result)
+{
+    if(n <= 0 || incx <= 0)
+        return;
+
+    host_vector<double> x_double(n * incx);
+    for(size_t i = 0; i < n; i++)
+        x_double[i * incx] = x[i * incx];
+
+    *result = float(cblas_dnrm2(n, x_double, incx));
+}
+
+template <>
 void cblas_nrm2<rocblas_half>(int64_t n, const rocblas_half* x, int64_t incx, rocblas_half* result)
 {
     if(n <= 0 || incx <= 0)
@@ -78,6 +91,31 @@ void cblas_axpy<rocblas_half>(
 
     // used to reuse
     // cblas_saxpy(n, alpha, x_float, incx, y_float, incy);
+}
+
+template <>
+void cblas_asum<float>(int64_t n, const float* x, int64_t incx, float* result)
+{
+    if(n <= 0 || incx <= 0)
+        return;
+
+    float sum = 0;
+
+    // using partial sums to reduce rounding errors for 64-bit n
+    int64_t block_size = 1024 * 512;
+    int64_t blocks     = (n - 1) / block_size + 1;
+    for(int64_t b = 0; b < blocks; b++)
+    {
+        float partial_sum = 0;
+        for(int64_t i = 0; i < block_size; i++)
+        {
+            int64_t idx = i + b * block_size;
+            if(idx < n)
+                partial_sum += std::abs(x[idx * incx]);
+        }
+        sum += partial_sum;
+    }
+    *result = sum;
 }
 
 /**

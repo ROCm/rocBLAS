@@ -20,22 +20,13 @@
  *
  * ************************************************************************ */
 
-#pragma once
-
 #include "../blas1/rocblas_asum_nrm2.hpp"
-#include "handle.hpp"
-#include "logging.hpp"
+#include "blas_ex/rocblas_nrm2_ex.hpp"
+#include "blas_ex/rocblas_nrm2_ex_template.hpp"
+#include "rocblas_block_sizes.h"
 
-template <typename API_INT, rocblas_int NB, bool ISBATCHED>
-rocblas_status rocblas_nrm2_ex_template(rocblas_handle   handle,
-                                        API_INT          n,
-                                        const void*      x,
-                                        rocblas_datatype x_type,
-                                        rocblas_stride   shiftx,
-                                        API_INT          incx,
-                                        rocblas_stride   stridex,
-                                        API_INT          batch_count,
-                                        void*            results,
-                                        rocblas_datatype result_type,
-                                        rocblas_datatype execution_type,
-                                        void*            workspace);
+// Instantiations below will need to be manually updated to match any change in
+// template parameters in the files *nrm2_ex*.cpp
+
+INSTANTIATE_NRM2_EX_TEMPLATE(int64_t, ROCBLAS_NRM2_NB, false)
+INSTANTIATE_NRM2_EX_TEMPLATE(int64_t, ROCBLAS_NRM2_NB, true)
