@@ -15,13 +15,14 @@ Definitions:
     - {N: 20480000}
 
 Tests:
-  - name: axpy_bench
+  - name: copy_bench
     category: bench
-    function: axpy
+    function: copy
     precision: *single_double_precisions_complex_real
+#   precision: *single_precision
     cold_iters: 5000
     iters: 5000
-    alpha: 1
+    alpha: 2
     incx: 1
     incy: 1
     matrix_size: *sizes

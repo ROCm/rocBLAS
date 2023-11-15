@@ -30,6 +30,16 @@ def L1_theo_max(GBps):
     L1_theo_max_dict['cscal'] = GBps * ( 3 /  8 )
     L1_theo_max_dict['zscal'] = GBps * ( 3 / 16 )
 
+    L1_theo_max_dict['scopy'] = GBps
+    L1_theo_max_dict['dcopy'] = GBps
+    L1_theo_max_dict['ccopy'] = GBps
+    L1_theo_max_dict['zcopy'] = GBps
+
+    L1_theo_max_dict['sswap'] = GBps
+    L1_theo_max_dict['dswap'] = GBps
+    L1_theo_max_dict['cswap'] = GBps
+    L1_theo_max_dict['zswap'] = GBps
+
     return L1_theo_max_dict
 
 def L2_theo_max(GBps):

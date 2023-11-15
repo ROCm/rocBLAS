@@ -129,9 +129,11 @@ fi
 
 if [ "$LEVEL1" == "true" ]; then
   if [ "$BENCHMARK" == "true" ]; then
+    python3 benchmark.py -l blas1 -t $TAG -b $ROCBLAS_BENCH -f copy -f swap
     python3 benchmark.py -l blas1 -t $TAG -b $ROCBLAS_BENCH -f dot -f axpy -f scal
   fi
   if [ "$PLOT" == "true" ]; then
+    python3 plot.py -l blas1 -t $TAG $THEO_MAX -f copy -f swap
     python3 plot.py -l blas1 -t $TAG $THEO_MAX -f dot -f axpy -f scal
   fi
 fi
