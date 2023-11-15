@@ -568,6 +568,62 @@ Tests:
       - swap_batched:  *single_precision
       - swap_strided_batched:  *single_precision
 
+  - name: asum_64
+    category: nightly
+    N: [ 64 ]
+    arguments:
+      - { incx: 1, batch_count: 1 }
+    api: [ FORTRAN_64 ]
+    function:
+      - asum: *single_double_precisions_complex_real
+      - asum_batched: *single_double_precisions_complex_real
+      - asum_strided_batched: *single_double_precisions_complex_real
+
+  - name: nrm2_64
+    category: nightly
+    N: [ 64 ]
+    arguments:
+      - { incx: 1, batch_count: 1 }
+    api: [ FORTRAN_64 ]
+    function:
+      - nrm2: *single_double_precisions_complex_real
+      - nrm2_ex: *single_double_precisions_complex_real
+      - nrm2_batched: *single_double_precisions_complex_real
+      - nrm2_batched_ex: *single_double_precisions_complex_real
+      - nrm2_strided_batched: *single_double_precisions_complex_real
+      - nrm2_strided_batched_ex: *single_double_precisions_complex_real
+
+  - name: asum_64
+    category: stress
+    pointer_mode_host: false
+    initialization: hpl
+    arguments:
+      - { N: 2147483649, incx: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, batch_count: 1 }
+      - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
+      - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
+    api: [ C_64 ]
+    function:
+      - asum: *single_precision
+      - asum_batched: *single_precision
+      - asum_strided_batched: *single_precision
+
+  - name: nrm2_64
+    category: stress
+    pointer_mode_host: false
+    arguments:
+      - { N: 2147483649, incx: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, batch_count: 1 }
+      - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
+      - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
+    api: [ C_64 ]
+    function:
+      - nrm2: *single_precision
+      - nrm2_ex: *single_precision
+      - nrm2_batched: *single_precision
+      - nrm2_batched_ex: *single_precision
+      - nrm2_strided_batched: *single_precision
+      - nrm2_strided_batched_ex: *single_precision
 
 # fortran
   - name: scal_blas1_with_alpha

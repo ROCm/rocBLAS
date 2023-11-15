@@ -22,19 +22,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename Tx, typename Tr>
 void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
@@ -42,13 +30,16 @@ void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
     auto rocblas_nrm2_batched_ex_fn
         = arg.api == FORTRAN ? rocblas_nrm2_batched_ex_fortran : rocblas_nrm2_batched_ex;
 
+    auto rocblas_nrm2_batched_ex_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
+
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype result_type    = rocblas_datatype_f32_r;
     rocblas_datatype execution_type = rocblas_datatype_f32_r;
 
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int batch_count = 1;
+    int64_t N           = 100;
+    int64_t incx        = 1;
+    int64_t batch_count = 1;
 
     rocblas_local_handle handle{arg};
 
@@ -62,36 +53,40 @@ void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_batched_ex_fn(handle,
-                                                     N,
-                                                     nullptr,
-                                                     x_type,
-                                                     incx,
-                                                     batch_count,
-                                                     d_rocblas_result,
-                                                     result_type,
-                                                     execution_type),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_batched_ex_fn(handle,
-                                                     N,
-                                                     dx.ptr_on_device(),
-                                                     x_type,
-                                                     incx,
-                                                     batch_count,
-                                                     nullptr,
-                                                     result_type,
-                                                     execution_type),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_batched_ex_fn(nullptr,
-                                                     N,
-                                                     dx.ptr_on_device(),
-                                                     x_type,
-                                                     incx,
-                                                     batch_count,
-                                                     d_rocblas_result,
-                                                     result_type,
-                                                     execution_type),
-                          rocblas_status_invalid_handle);
+    DAPI_EXPECT(rocblas_status_invalid_handle,
+                rocblas_nrm2_batched_ex_fn,
+                (nullptr,
+                 N,
+                 dx.ptr_on_device(),
+                 x_type,
+                 incx,
+                 batch_count,
+                 d_rocblas_result,
+                 result_type,
+                 execution_type));
+
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_nrm2_batched_ex_fn,
+                (handle,
+                 N,
+                 nullptr,
+                 x_type,
+                 incx,
+                 batch_count,
+                 d_rocblas_result,
+                 result_type,
+                 execution_type));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_nrm2_batched_ex_fn,
+                (handle,
+                 N,
+                 dx.ptr_on_device(),
+                 x_type,
+                 incx,
+                 batch_count,
+                 nullptr,
+                 result_type,
+                 execution_type));
 }
 
 template <typename Tx, typename Tr>
@@ -100,13 +95,16 @@ void testing_nrm2_batched_ex(const Arguments& arg)
     auto rocblas_nrm2_batched_ex_fn
         = arg.api == FORTRAN ? rocblas_nrm2_batched_ex_fortran : rocblas_nrm2_batched_ex;
 
+    auto rocblas_nrm2_batched_ex_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
+
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype result_type    = arg.b_type;
     rocblas_datatype execution_type = arg.compute_type;
 
-    rocblas_int N           = arg.N;
-    rocblas_int incx        = arg.incx;
-    rocblas_int batch_count = arg.batch_count;
+    int64_t N           = arg.N;
+    int64_t incx        = arg.incx;
+    int64_t batch_count = arg.batch_count;
 
     double rocblas_error_1;
     double rocblas_error_2;
@@ -116,38 +114,40 @@ void testing_nrm2_batched_ex(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        device_vector<Tr> d_rocblas_result_0(std::max(1, batch_count));
-        host_vector<Tr>   h_rocblas_result_0(std::max(1, batch_count));
+        device_vector<Tr> d_rocblas_result_0(std::max(int64_t(1), batch_count));
+        host_vector<Tr>   h_rocblas_result_0(std::max(int64_t(1), batch_count));
         CHECK_HIP_ERROR(d_rocblas_result_0.memcheck());
         CHECK_HIP_ERROR(h_rocblas_result_0.memcheck());
 
-        rocblas_init_nan(h_rocblas_result_0, 1, std::max(1, batch_count), 1);
+        rocblas_init_nan(h_rocblas_result_0, 1, std::max(int64_t(1), batch_count), 1);
         CHECK_HIP_ERROR(hipMemcpy(d_rocblas_result_0,
                                   h_rocblas_result_0,
-                                  sizeof(Tr) * std::max(1, batch_count),
+                                  sizeof(Tr) * std::max(int64_t(1), batch_count),
                                   hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_ex_fn(handle,
-                                                       N,
-                                                       nullptr,
-                                                       x_type,
-                                                       incx,
-                                                       batch_count,
-                                                       d_rocblas_result_0,
-                                                       result_type,
-                                                       execution_type));
+        DAPI_CHECK(rocblas_nrm2_batched_ex_fn,
+                   (handle,
+                    N,
+                    nullptr,
+                    x_type,
+                    incx,
+                    batch_count,
+                    d_rocblas_result_0,
+                    result_type,
+                    execution_type));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_ex_fn(handle,
-                                                       N,
-                                                       nullptr,
-                                                       x_type,
-                                                       incx,
-                                                       batch_count,
-                                                       h_rocblas_result_0,
-                                                       result_type,
-                                                       execution_type));
+        DAPI_CHECK(rocblas_nrm2_batched_ex_fn,
+                   (handle,
+                    N,
+                    nullptr,
+                    x_type,
+                    incx,
+                    batch_count,
+                    h_rocblas_result_0,
+                    result_type,
+                    execution_type));
 
         if(batch_count > 0)
         {
@@ -185,37 +185,39 @@ void testing_nrm2_batched_ex(const Arguments& arg)
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
 
     if(arg.unit_check || arg.norm_check)
     {
         if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_ex_fn(handle,
-                                                           N,
-                                                           dx.ptr_on_device(),
-                                                           x_type,
-                                                           incx,
-                                                           batch_count,
-                                                           rocblas_result_1,
-                                                           result_type,
-                                                           execution_type));
+            DAPI_CHECK(rocblas_nrm2_batched_ex_fn,
+                       (handle,
+                        N,
+                        dx.ptr_on_device(),
+                        x_type,
+                        incx,
+                        batch_count,
+                        rocblas_result_1,
+                        result_type,
+                        execution_type));
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_ex_fn(handle,
-                                                           N,
-                                                           dx.ptr_on_device(),
-                                                           x_type,
-                                                           incx,
-                                                           batch_count,
-                                                           d_rocblas_result_2,
-                                                           result_type,
-                                                           execution_type));
+            DAPI_CHECK(rocblas_nrm2_batched_ex_fn,
+                       (handle,
+                        N,
+                        dx.ptr_on_device(),
+                        x_type,
+                        incx,
+                        batch_count,
+                        d_rocblas_result_2,
+                        result_type,
+                        execution_type));
             handle.post_test(arg);
         }
 
@@ -284,38 +286,29 @@ void testing_nrm2_batched_ex(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_nrm2_batched_ex_fn(handle,
-                                       N,
-                                       dx.ptr_on_device(),
-                                       x_type,
-                                       incx,
-                                       batch_count,
-                                       d_rocblas_result_2,
-                                       result_type,
-                                       execution_type);
-        }
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_nrm2_batched_ex_fn(handle,
-                                       N,
-                                       dx.ptr_on_device(),
-                                       x_type,
-                                       incx,
-                                       batch_count,
-                                       d_rocblas_result_2,
-                                       result_type,
-                                       execution_type);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream); // in microseconds
+
+            DAPI_DISPATCH(rocblas_nrm2_batched_ex_fn,
+                          (handle,
+                           N,
+                           dx.ptr_on_device(),
+                           x_type,
+                           incx,
+                           batch_count,
+                           d_rocblas_result_2,
+                           result_type,
+                           execution_type));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

@@ -22,27 +22,17 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_nrm2_bad_arg(const Arguments& arg)
 {
     auto rocblas_nrm2_fn = arg.api == FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
+    auto rocblas_nrm2_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_nrm2_64<T, true> : rocblas_nrm2_64<T, false>;
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
+    int64_t             N         = 100;
+    int64_t             incx      = 1;
     static const size_t safe_size = 100;
 
     rocblas_local_handle handle{arg};
@@ -57,21 +47,23 @@ void testing_nrm2_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_fn(handle, N, nullptr, incx, d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_fn(handle, N, dx, incx, nullptr),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_fn(nullptr, N, dx, incx, d_rocblas_result),
-                          rocblas_status_invalid_handle);
+    DAPI_EXPECT(
+        rocblas_status_invalid_handle, rocblas_nrm2_fn, (nullptr, N, dx, incx, d_rocblas_result));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_nrm2_fn,
+                (handle, N, nullptr, incx, d_rocblas_result));
+    DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_nrm2_fn, (handle, N, dx, incx, nullptr));
 }
 
 template <typename T>
 void testing_nrm2(const Arguments& arg)
 {
     auto rocblas_nrm2_fn = arg.api == FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
+    auto rocblas_nrm2_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_nrm2_64<T, true> : rocblas_nrm2_64<T, false>;
 
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
+    int64_t N    = arg.N;
+    int64_t incx = arg.incx;
 
     double rocblas_error_1;
     double rocblas_error_2;
@@ -91,10 +83,10 @@ void testing_nrm2(const Arguments& arg)
             d_rocblas_result_0, h_rocblas_result_0, sizeof(real_t<T>), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, nullptr, incx, d_rocblas_result_0));
+        DAPI_CHECK(rocblas_nrm2_fn, (handle, N, nullptr, incx, d_rocblas_result_0));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, nullptr, incx, h_rocblas_result_0));
+        DAPI_CHECK(rocblas_nrm2_fn, (handle, N, nullptr, incx, h_rocblas_result_0));
 
         host_vector<real_t<T>> cpu_0(1);
         host_vector<real_t<T>> gpu_0(1);
@@ -124,26 +116,26 @@ void testing_nrm2(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true, true);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
 
     if(arg.unit_check || arg.norm_check)
     {
         if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, rocblas_result_1));
+            DAPI_CHECK(rocblas_nrm2_fn, (handle, N, dx, incx, rocblas_result_1));
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2));
+            DAPI_CHECK(rocblas_nrm2_fn, (handle, N, dx, incx, d_rocblas_result_2));
             handle.post_test(arg);
         }
 
@@ -156,13 +148,13 @@ void testing_nrm2(const Arguments& arg)
         real_t<T> abs_error;
         if(abs_result > 0)
         {
-            abs_error = std::numeric_limits<real_t<T>>::epsilon() * N * abs_result;
+            abs_error = std::numeric_limits<real_t<T>>::epsilon() * abs_result;
         }
         else
         {
-            abs_error = std::numeric_limits<real_t<T>>::epsilon() * N;
+            abs_error = std::numeric_limits<real_t<T>>::epsilon();
         }
-        real_t<T> tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
+        real_t<T> tolerance = 20.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
 
@@ -187,7 +179,6 @@ void testing_nrm2(const Arguments& arg)
         if(arg.pointer_mode_device)
         {
             CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
-
             if(!rocblas_isnan(arg.alpha))
             {
                 if(arg.unit_check)
@@ -207,22 +198,20 @@ void testing_nrm2(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2);
-        }
-
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream); // in microseconds
+
+            DAPI_DISPATCH(rocblas_nrm2_fn, (handle, N, dx, incx, d_rocblas_result_2));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

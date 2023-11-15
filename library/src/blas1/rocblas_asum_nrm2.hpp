@@ -24,8 +24,26 @@
 
 #include "check_numerics_vector.hpp"
 #include "fetch_template.hpp"
+#include "int64_helpers.hpp"
 #include "reduction.hpp"
 #include "rocblas_reduction.hpp"
+
+template <typename API_INT,
+          int NB,
+          typename FETCH,
+          typename FINALIZE,
+          typename TPtrX,
+          typename To,
+          typename Tr>
+rocblas_status ROCBLAS_API(rocblas_internal_asum_nrm2_launcher)(rocblas_handle handle,
+                                                                API_INT        n,
+                                                                TPtrX          x,
+                                                                rocblas_stride shiftx,
+                                                                API_INT        incx,
+                                                                rocblas_stride stridex,
+                                                                API_INT        batch_count,
+                                                                To*            workspace,
+                                                                Tr*            result);
 
 template <class To>
 struct rocblas_fetch_asum
@@ -56,29 +74,13 @@ struct rocblas_finalize_nrm2
     }
 };
 
-template <rocblas_int NB,
-          typename FETCH,
-          typename FINALIZE,
-          typename TPtrX,
-          typename To,
-          typename Tr>
-rocblas_status rocblas_reduction_template(rocblas_handle handle,
-                                          rocblas_int    n,
-                                          TPtrX          x,
-                                          rocblas_stride shiftx,
-                                          rocblas_int    incx,
-                                          rocblas_stride stridex,
-                                          rocblas_int    batch_count,
-                                          To*            workspace,
-                                          Tr*            result);
-
-template <typename T, typename Tr>
+template <typename API_INT, typename T, typename Tr>
 rocblas_status rocblas_asum_nrm2_arg_check(rocblas_handle handle,
-                                           rocblas_int    n,
+                                           API_INT        n,
                                            T              x,
-                                           rocblas_int    incx,
+                                           API_INT        incx,
                                            rocblas_stride stridex,
-                                           rocblas_int    batch_count,
+                                           API_INT        batch_count,
                                            Tr*            result)
 {
 

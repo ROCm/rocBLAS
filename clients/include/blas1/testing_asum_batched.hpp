@@ -40,17 +40,19 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_asum_batched_fn
         = arg.api == FORTRAN ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
+    auto rocblas_asum_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_asum_batched_64<T, true>
+                                                            : rocblas_asum_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        rocblas_int N                = 100;
-        rocblas_int incx             = 1;
-        rocblas_int batch_count      = 2;
-        real_t<T>   rocblas_result   = 10;
-        real_t<T>*  h_rocblas_result = &rocblas_result;
+        int64_t    N                = 100;
+        int64_t    incx             = 1;
+        int64_t    batch_count      = 2;
+        real_t<T>  rocblas_result   = 10;
+        real_t<T>* h_rocblas_result = &rocblas_result;
 
         // Allocate device memory
         device_batch_vector<T> dx(N, incx, batch_count);
@@ -58,17 +60,16 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
         // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_asum_batched_fn(
-                nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result),
-            rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_asum_batched_fn,
+                    (nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, h_rocblas_result),
-            rocblas_status_invalid_pointer);
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_asum_batched_fn,
+                    (handle, N, nullptr, incx, batch_count, h_rocblas_result));
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_asum_batched_fn,
+                    (handle, N, dx.ptr_on_device(), incx, batch_count, nullptr));
     }
 }
 
@@ -77,10 +78,12 @@ void testing_asum_batched(const Arguments& arg)
 {
     auto rocblas_asum_batched_fn
         = arg.api == FORTRAN ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
+    auto rocblas_asum_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_asum_batched_64<T, true>
+                                                            : rocblas_asum_batched_64<T, false>;
 
-    rocblas_int N           = arg.N;
-    rocblas_int incx        = arg.incx;
-    rocblas_int batch_count = arg.batch_count;
+    int64_t N           = arg.N;
+    int64_t incx        = arg.incx;
+    int64_t batch_count = arg.batch_count;
 
     double rocblas_error_1;
     double rocblas_error_2;
@@ -90,23 +93,21 @@ void testing_asum_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<real_t<T>> hr_1(std::max(1, std::abs(batch_count)));
-        host_vector<real_t<T>> hr_2(std::max(1, std::abs(batch_count)));
-        host_vector<real_t<T>> result_0(std::max(1, std::abs(batch_count)));
+        host_vector<real_t<T>> hr_1(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<real_t<T>> hr_2(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<real_t<T>> result_0(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_HIP_ERROR(hr_1.memcheck());
         CHECK_HIP_ERROR(hr_2.memcheck());
         CHECK_HIP_ERROR(result_0.memcheck());
 
-        device_vector<real_t<T>> dr(std::max(1, std::abs(batch_count)));
+        device_vector<real_t<T>> dr(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, hr_1),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_asum_batched_fn, (handle, N, nullptr, incx, batch_count, hr_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS(rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, dr),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_asum_batched_fn, (handle, N, nullptr, incx, batch_count, dr));
 
         CHECK_HIP_ERROR(hr_2.transfer_from(dr));
 
@@ -142,22 +143,22 @@ void testing_asum_batched(const Arguments& arg)
     // Transfer from host to device.
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
     if(arg.unit_check || arg.norm_check)
     {
         if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR(
-                rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, hr_1));
+            DAPI_CHECK(rocblas_asum_batched_fn,
+                       (handle, N, dx.ptr_on_device(), incx, batch_count, hr_1));
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(
-                rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
+            DAPI_CHECK(rocblas_asum_batched_fn,
+                       (handle, N, dx.ptr_on_device(), incx, batch_count, dr));
             handle.post_test(arg);
         }
 
@@ -165,17 +166,28 @@ void testing_asum_batched(const Arguments& arg)
         real_t<T> cpu_result[batch_count];
 
         cpu_time_used = get_time_us_no_sync();
-        for(int b = 0; b < batch_count; b++)
+        for(size_t b = 0; b < batch_count; b++)
         {
             cblas_asum<T>(N, hx[b], incx, cpu_result + b);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
+        real_t<T> abs_error = std::numeric_limits<real_t<T>>::epsilon() * cpu_result[0];
+        real_t<T> tolerance = 20.0;
+        abs_error *= tolerance;
+
+        // Near check for asum ILP64 bit
+        bool near_check = arg.initialization == rocblas_initialization::hpl;
+
         if(arg.pointer_mode_host)
         {
             if(arg.unit_check)
             {
-                unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, cpu_result, hr_1);
+                if(near_check)
+                    near_check_general<real_t<T>, real_t<T>>(
+                        batch_count, 1, 1, cpu_result, hr_1, abs_error);
+                else
+                    unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, cpu_result, hr_1);
             }
 
             if(arg.norm_check)
@@ -191,7 +203,11 @@ void testing_asum_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, cpu_result, hr_2);
+                if(near_check)
+                    near_check_general<real_t<T>, real_t<T>>(
+                        batch_count, 1, 1, cpu_result, hr_2, abs_error);
+                else
+                    unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, cpu_result, hr_2);
             }
 
             if(arg.norm_check)
@@ -203,22 +219,22 @@ void testing_asum_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr);
-        }
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_asum_batched_fn,
+                          (handle, N, dx.ptr_on_device(), incx, batch_count, dr));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

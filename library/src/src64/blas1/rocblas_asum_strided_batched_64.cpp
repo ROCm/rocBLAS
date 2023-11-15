@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,23 +19,7 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "blas1/rocblas_asum_strided_batched_imp.hpp"
+#include "rocblas_asum_nrm2_64.hpp"
 
-#pragma once
-
-#include "../blas1/rocblas_asum_nrm2.hpp"
-#include "handle.hpp"
-#include "logging.hpp"
-
-template <typename API_INT, rocblas_int NB, bool ISBATCHED>
-rocblas_status rocblas_nrm2_ex_template(rocblas_handle   handle,
-                                        API_INT          n,
-                                        const void*      x,
-                                        rocblas_datatype x_type,
-                                        rocblas_stride   shiftx,
-                                        API_INT          incx,
-                                        rocblas_stride   stridex,
-                                        API_INT          batch_count,
-                                        void*            results,
-                                        rocblas_datatype result_type,
-                                        rocblas_datatype execution_type,
-                                        void*            workspace);
+INST_ASUM_STRIDED_BATCHED_C_API(int64_t)
