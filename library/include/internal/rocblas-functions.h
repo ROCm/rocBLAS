@@ -73,8 +73,6 @@ extern "C" {
     incx      [rocblas_int]
               specifies the increment for the elements of x.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sscal(
     rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx);
@@ -157,8 +155,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_64(
     @param[in]
     batch_count [rocblas_int]
                 specifies the number of batches in x.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sscal_batched(rocblas_handle handle,
@@ -276,8 +272,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched_64(rocblas_handle          
     @param[in]
     batch_count [rocblas_int]
                 specifies the number of batches in x.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sscal_strided_batched(rocblas_handle handle,
@@ -704,8 +698,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched_64(rocblas_handle   
               device pointer or host pointer to store the dot product.
               return is 0.0 if n <= 0.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sdot(rocblas_handle handle,
                                            rocblas_int    n,
@@ -874,8 +866,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_64(rocblas_handle                han
     result
               device array or host array of batch_count size to store the dot products of each batch.
               return 0.0 for each element if n <= 0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sdot_batched(rocblas_handle     handle,
@@ -1066,8 +1056,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched_64(rocblas_handle           
     result
               device array or host array of batch_count size to store the dot products of each batch.
               return 0.0 for each element if n <= 0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sdot_strided_batched(rocblas_handle handle,
@@ -1273,8 +1261,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched_64(rocblas_handle   
     incy      [rocblas_int]
               specifies the increment for the elements of y.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sswap(
     rocblas_handle handle, rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy);
@@ -1345,8 +1331,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_64(rocblas_handle          handle,
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sswap_batched(rocblas_handle handle,
@@ -1452,8 +1436,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched_64(rocblas_handle           
      @param[in]
      batch_count [rocblas_int]
                  number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
@@ -1563,8 +1545,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched_64(rocblas_handle   
     @param[in, out]
     incy      [rocblas_int]
               specifies the increment for the elements of y.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_haxpy(rocblas_handle      handle,
@@ -1676,8 +1656,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_64(rocblas_handle                han
     @param[in]
     batch_count rocblas_int
               number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_haxpy_batched(rocblas_handle            handle,
@@ -1805,8 +1783,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched_64(rocblas_handle           
     @param[in]
     batch_count rocblas_int
               number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_haxpy_strided_batched(rocblas_handle      handle,
@@ -1944,8 +1920,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_strided_batched_64(rocblas_handle   
               device pointer or host pointer to store the asum product.
               return is 0.0 if n <= 0.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sasum(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result);
@@ -2007,8 +1981,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_64(rocblas_handle                ha
     results
               device array or host array of batch_count size for results.
               return is 0.0 if n, incx<=0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
@@ -2100,8 +2072,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched_64(rocblas_handle          
     @param[in]
     batch_count [rocblas_int]
               number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_sasum_strided_batched(rocblas_handle handle,
@@ -2195,7 +2165,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched_64(rocblas_handle h
               device pointer or host pointer to store the nrm2 product.
               return is 0.0 if n, incx<=0.
 
-    This function supports the 64-bit integer interface (ILP64).
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_snrm2(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result);
@@ -2260,7 +2229,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_64(rocblas_handle                ha
               device pointer or host pointer to array of batch_count size for nrm2 results.
               return is 0.0 for each element if n <= 0, incx<=0.
 
-    This function supports the 64-bit integer interface (ILP64).
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_snrm2_batched(rocblas_handle     handle,
                                                     rocblas_int        n,
@@ -2353,7 +2321,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched_64(rocblas_handle          
               device pointer or host pointer to array for storing contiguous batch_count results.
               return is 0.0 for each element if n <= 0, incx<=0.
 
-    This function supports the 64-bit integer interface (ILP64).
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
@@ -2441,8 +2408,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched_64(rocblas_handle h
               device pointer or host pointer to store the amax index.
               return is 0.0 if n, incx<=0.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamax(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
@@ -2505,8 +2470,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_64(rocblas_handle                ha
     result
               device or host array of pointers of batch_count size for results.
               return is 0 if n, incx<=0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched(rocblas_handle     handle,
@@ -2587,8 +2550,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched_64(rocblas_handle          
     result
               device or host pointer for storing contiguous batch_count results.
               return is 0 if n <= 0, incx<=0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched(rocblas_handle handle,
@@ -2678,8 +2639,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched_64(rocblas_handle h
               device pointer or host pointer to store the amin index.
               return is 0.0 if n, incx<=0.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamin(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
@@ -2742,8 +2701,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_64(rocblas_handle                ha
     result
               device or host pointers to array of batch_count size for results.
               return is 0 if n, incx<=0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched(rocblas_handle     handle,
@@ -2830,8 +2787,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched_64(rocblas_handle          
     result
               device or host pointer to array for storing contiguous batch_count results.
               return is 0 if n <= 0, incx<=0.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched(rocblas_handle handle,
@@ -2926,8 +2881,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched_64(rocblas_handle h
     c       device pointer or host pointer storing scalar cosine component of the rotation matrix.
     @param[in]
     s       device pointer or host pointer storing scalar sine component of the rotation matrix.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srot(rocblas_handle handle,
@@ -3069,8 +3022,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_64(rocblas_handle          handle,
     @param[in]
     batch_count [rocblas_int]
                 the number of x and y arrays, i.e. the number of batches.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srot_batched(rocblas_handle handle,
@@ -3230,8 +3181,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched_64(rocblas_handle           
     @param[in]
     batch_count [rocblas_int]
             the number of x and y arrays, i.e. the number of batches.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srot_strided_batched(rocblas_handle handle,
@@ -3417,8 +3366,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched_64(rocblas_handle   
     @param[out]
     s       pointer to s, sine element of Givens rotation.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status
     rocblas_srotg(rocblas_handle handle, float* a, float* b, float* c, float* s);
@@ -3480,8 +3427,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_64(rocblas_handle          handle,
     @param[in]
     batch_count [rocblas_int]
                 number of batches (length of arrays a, b, c, and s).
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotg_batched(rocblas_handle handle,
@@ -3575,8 +3520,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched_64(rocblas_handle           
     @param[in]
     batch_count [rocblas_int]
                 number of batches (length of arrays a, b, c, and s).
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotg_strided_batched(rocblas_handle handle,
@@ -3710,8 +3653,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched_64(rocblas_handle   
         param may be stored in either host or device memory,
         location is specified by calling rocblas_set_pointer_mode.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotm(rocblas_handle handle,
                                             rocblas_int    n,
@@ -3790,8 +3731,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_64(rocblas_handle handle,
     @param[in]
     batch_count [rocblas_int]
                 the number of x and y arrays, i.e. the number of batches.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle     handle,
@@ -3886,8 +3825,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched_64(rocblas_handle      handl
     batch_count [rocblas_int]
                 the number of x and y arrays, i.e. the number of batches.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotm_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
@@ -3975,8 +3912,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched_64(rocblas_handle ha
         param may be stored in either host or device memory.
         Location is specified by calling rocblas_set_pointer_mode.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotmg(
     rocblas_handle handle, float* d1, float* d2, float* x1, const float* y1, float* param);
@@ -4035,8 +3970,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_64(
     @param[in]
     batch_count [rocblas_int]
                 the number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
@@ -4129,8 +4062,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched_64(rocblas_handle      hand
     @param[in]
     batch_count [rocblas_int]
                 the number of instances in the batch.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle handle,
@@ -18454,8 +18385,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_axpy_ex(rocblas_handle   handle,
                                               rocblas_int      n,
@@ -18540,8 +18469,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_ex_64(rocblas_handle   handle,
     @param[in]
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
@@ -18640,8 +18567,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex_64(rocblas_handle   handle
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   handle,
                                                               rocblas_int      n,
@@ -18732,8 +18657,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex_64(rocblas_handle 
     @param[in]
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_dot_ex(rocblas_handle   handle,
@@ -18850,8 +18773,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dotc_ex_64(rocblas_handle   handle,
     @param[in]
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_dot_batched_ex(rocblas_handle   handle,
@@ -18978,8 +18899,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dotc_batched_ex_64(rocblas_handle   handle
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_dot_strided_batched_ex(rocblas_handle   handle,
                                                              rocblas_int      n,
@@ -19089,7 +19008,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dotc_strided_batched_ex_64(rocblas_handle 
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_nrm2_ex(rocblas_handle   handle,
                                               rocblas_int      n,
@@ -19160,7 +19078,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_ex_64(rocblas_handle   handle,
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_nrm2_batched_ex(rocblas_handle   handle,
                                                       rocblas_int      n,
@@ -19238,7 +19155,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_batched_ex_64(rocblas_handle   handle
     execution_type [rocblas_datatype]
                   specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_nrm2_strided_batched_ex(rocblas_handle   handle,
                                                               rocblas_int      n,
@@ -19327,8 +19243,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_strided_batched_ex_64(rocblas_handle 
     @param[in]
     execution_type [rocblas_datatype]
                    specifies the datatype of computation.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_rot_ex(rocblas_handle   handle,
@@ -19425,8 +19339,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_ex_64(rocblas_handle   handle,
     @param[in]
     execution_type [rocblas_datatype]
                    specifies the datatype of computation.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_rot_batched_ex(rocblas_handle   handle,
@@ -19532,8 +19444,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_batched_ex_64(rocblas_handle   handle,
     execution_type [rocblas_datatype]
                    specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_rot_strided_batched_ex(rocblas_handle   handle,
                                                              rocblas_int      n,
@@ -19617,8 +19527,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_strided_batched_ex_64(rocblas_handle  
     execution_type [rocblas_datatype]
                    specifies the datatype of computation.
 
-    This function supports the 64-bit integer interface (ILP64).
-
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scal_ex(rocblas_handle   handle,
                                               rocblas_int      n,
@@ -19690,8 +19598,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_ex_64(rocblas_handle   handle,
     @param[in]
     execution_type [rocblas_datatype]
                    specifies the datatype of computation.
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scal_batched_ex(rocblas_handle   handle,
@@ -19773,8 +19679,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_batched_ex_64(rocblas_handle   handle
     execution_type [rocblas_datatype]
                    specifies the datatype of computation.
 
-
-    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scal_strided_batched_ex(rocblas_handle   handle,
