@@ -20,7 +20,8 @@ Tests:
     function: iamax
     precision: *single_double_precisions
     alpha: 1
-    iters: 20
+    cold_iters: 5000
+    iters: 5000
     matrix_size: *sizes
     incx: 1
     incy: 1

@@ -59,9 +59,15 @@ def plot_data(gflops_dicts, const_args_dicts, funcname_list, machine_spec_dict, 
 
         if(theo_max == True):
             axes.set_ylim(0, 1)
-            axes.set_ylabel('gflops / theoretical_maximum_gflops')
+            if ("copy" in funcname_list) or ("swap" in funcname_list):
+                axes.set_ylabel('GB/s / theoretical_maximum_GB/s')
+            else:
+                axes.set_ylabel('gflops / theoretical_maximum_gflops')
         else:
-            axes.set_ylabel('gflops')
+            if ("copy" in funcname_list) or ("swap" in funcname_list):
+                axes.set_ylabel('GB/sec')
+            else:
+                axes.set_ylabel('gflops')
 
         axes.set_xlabel('='.join(size_arg)) # in case we add multiple params
 
@@ -235,11 +241,17 @@ if __name__ =='__main__':
 
         output_filename = os.path.join(args.level, args.tag, function_name+".csv")
 
-        cur_dict = get_data_from_file(output_filename, "rocblas-Gflops", args.label1, args.label2, "rocblas-Gflops")
+        if (function_name == 'copy') or (function_name == 'swap'):
+            cur_dict = get_data_from_file(output_filename, "rocblas-GB/s", args.label1, args.label2, "rocblas-GB/s")
+        else:
+            cur_dict = get_data_from_file(output_filename, "rocblas-Gflops", args.label1, args.label2, "rocblas-Gflops")
 
         res_dicts.append(cur_dict)
 
-        const_args_dict = get_const_args_dict(output_filename, "rocblas-Gflops")
+        if (function_name == 'copy') or (function_name == 'swap'):
+            const_args_dict = get_const_args_dict(output_filename, "rocblas-GB/s")
+        else:
+            const_args_dict = get_const_args_dict(output_filename, "rocblas-Gflops")
 
         const_args_dicts.append(const_args_dict)
 

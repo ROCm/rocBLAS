@@ -19,7 +19,8 @@ Tests:
     category: bench
     function: dot
     precision: *single_double_precisions_complex_real
-    iters: 20
+    cold_iters: 5000
+    iters: 5000
     incx: 1
     incy: 1
     matrix_size: *sizes
