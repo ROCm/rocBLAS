@@ -346,7 +346,8 @@ Tests:
     function:
       - axpy_strided_batched_ex: *bfloat_half_single_double_complex_real_precisions
 
-# nightly - 64-bit (only testing interface, not 64-bit sizes yet)
+# nightly - 64-bit (nightly only testing interface, not 64-bit sizes)
+# windows testing only nightly not stress as ILP64 reference requires custom build
   - name: axpy_64
     category: nightly
     N: [ 64 ]
@@ -373,6 +374,7 @@ Tests:
       - { N: 2, incx:  1, incy: -2147483649, batch_count: 1 }
     alpha_beta: *alpha_beta_range_small
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - axpy: *single_precision
       - axpy_ex: *single_precision
@@ -425,6 +427,7 @@ Tests:
       - { N: 2, incx: 1, stride_x: 2, batch_count: *c_grid_yz_require_passes }
     alpha_beta: *alpha_beta_range_small
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - scal:  *single_precision
       - scal_batched:  *single_precision
@@ -453,6 +456,7 @@ Tests:
       - { N: 2147483649, incx: 1, incy: 1, batch_count: 1 }
       - { N: 2147483649, incx: 1, incy: -1, batch_count: 1 }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     initialization: hpl
     pointer_mode_host: false
     function:
@@ -471,6 +475,7 @@ Tests:
       - { N: 2, incx: 1, incy: -2147483649, batch_count: 1 }
       - { N: 3, incx: -1, incy: 1, stride_x: 3, stride_y: 3, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - dot: *half_precision
       - dot_ex: *half_precision
@@ -503,13 +508,14 @@ Tests:
       - { N: 2, incx: -2147483649, incy:  1, batch_count: 1 }
       - { N: 2, incx:  1, incy: -2147483649, batch_count: 1 }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
-      - rot:  *rot_precisions
-      - rot_ex:  *rot_ex_precisions
-      - rot_batched:  *rot_precisions
-      - rot_batched_ex:  *rot_ex_precisions
-      - rot_strided_batched:  *rot_precisions
-      - rot_strided_batched_ex:  *rot_ex_precisions
+      - rot:  *single_precision
+      - rot_ex:  *single_precision
+      - rot_batched:  *single_precision
+      - rot_batched_ex:  *single_precision
+      - rot_strided_batched:  *single_precision
+      - rot_strided_batched_ex:  *single_precision
 
   - name: iamax_iamin_64
     category: nightly
@@ -534,6 +540,7 @@ Tests:
       - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
       - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - iamax: *single_precision
       - iamin: *single_precision
@@ -563,6 +570,7 @@ Tests:
       - { N: 2, incx: 1, incy: -2147483649, batch_count: 1 }
       - { N: 2, incx: 1, incy: 1, stride_x: 2, stride_y: 2, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - swap:  *single_precision
       - swap_batched:  *single_precision
@@ -579,6 +587,22 @@ Tests:
       - asum_batched: *single_double_precisions_complex_real
       - asum_strided_batched: *single_double_precisions_complex_real
 
+  - name: asum_64
+    category: stress
+    pointer_mode_host: false
+    initialization: hpl
+    arguments:
+      - { N: 2147483649, incx: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, batch_count: 1 }
+      - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
+      - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
+    api: [ C_64 ]
+    os_flags: [ LINUX ]
+    function:
+      - asum: *single_precision
+      - asum_batched: *single_precision
+      - asum_strided_batched: *single_precision
+
   - name: nrm2_64
     category: nightly
     N: [ 64 ]
@@ -593,21 +617,6 @@ Tests:
       - nrm2_strided_batched: *single_double_precisions_complex_real
       - nrm2_strided_batched_ex: *single_double_precisions_complex_real
 
-  - name: asum_64
-    category: stress
-    pointer_mode_host: false
-    initialization: hpl
-    arguments:
-      - { N: 2147483649, incx: 1, batch_count: 1 }
-      - { N: 2, incx: 2147483649, batch_count: 1 }
-      - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
-      - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
-    api: [ C_64 ]
-    function:
-      - asum: *single_precision
-      - asum_batched: *single_precision
-      - asum_strided_batched: *single_precision
-
   - name: nrm2_64
     category: stress
     pointer_mode_host: false
@@ -617,6 +626,7 @@ Tests:
       - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
       - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - nrm2: *single_precision
       - nrm2_ex: *single_precision
@@ -823,7 +833,7 @@ Tests:
       # dot shared kernels for dot_ex so only testing size_t with dot_ex and half
       # batched and strided_batched also shared code
     algo: [0, 1] # algo 1 is x dot x
-    os_tags: LINUX
+    os_flags: LINUX
     gpu_arch: '90a'
 
   - name: blas1_size_t
@@ -1079,6 +1089,7 @@ Tests:
       - { N: 2, incx: -214748369, incy: 1, batch_count: 1 }
       - { N: 2, incx: 1, incy: -1, stride_x: 2, stride_y: 2, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     function:
       - copy:  *single_precision
       - copy_batched:  *single_precision
@@ -1425,6 +1436,7 @@ Tests:
       - { N: 2, incx: -2147483649, incy: 1, stride_x: 2, stride_y: 2, stride_c: 5, batch_count: 1 }
       - { N: 2, incx: -1, incy: 1, stride_x: 2, stride_y: 2, stride_c: 5, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     pointer_mode_host: false
     function:
       - rotm:  *single_precision
@@ -1436,6 +1448,7 @@ Tests:
     arguments: # stride_c is param stride so must be >= 5
       - { stride_a: 1, stride_b: 1, stride_x: 1, stride_y: 1, stride_c: 5, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     pointer_mode_host: false
     function:
       - rotmg:  *double_precision
@@ -1447,6 +1460,7 @@ Tests:
     arguments:
       - { stride_a: 1, stride_b: 1, stride_c: 1, stride_d: 1, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
+    os_flags: [ LINUX ]
     pointer_mode_host: false
     function:
       - rotg:  *double_precision
@@ -1533,10 +1547,34 @@ Tests:
 
 # all functions bad arg
 # for bad_arg no arguments should be used by test code
-  - name: blas1_bad_arg_64
+  - name: blas1_bad_arg
     category: pre_checkin
-    api: [ C, FORTRAN_64 ]
+    api: [ C, FORTRAN ]
     function:
+      - nrm2_bad_arg:  *single_double_precisions_complex_real
+      - nrm2_batched_bad_arg:  *single_double_precisions_complex_real
+      - nrm2_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - nrm2_ex_bad_arg: *nrm2_ex_precisions
+      - nrm2_batched_ex_bad_arg: *nrm2_ex_precisions
+      - nrm2_strided_batched_ex_bad_arg: *nrm2_ex_precisions
+      - asum_bad_arg:  *single_double_precisions_complex_real
+      - asum_batched_bad_arg:  *single_double_precisions_complex_real
+      - asum_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - iamax_bad_arg: *single_double_precisions_complex_real
+      - iamax_batched_bad_arg: *single_double_precisions_complex_real
+      - iamax_strided_batched_bad_arg: *single_double_precisions_complex_real
+      - iamin_bad_arg: *single_double_precisions_complex_real
+      - iamin_batched_bad_arg: *single_double_precisions_complex_real
+      - iamin_strided_batched_bad_arg: *single_double_precisions_complex_real
+      - axpy_bad_arg: *half_single_precisions_complex_real
+      - axpy_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
+      - axpy_batched_bad_arg: *half_single_precisions_complex_real
+      - axpy_batched_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
+      - axpy_strided_batched_bad_arg: *half_single_precisions_complex_real
+      - axpy_strided_batched_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
+      - copy_bad_arg:  *single_double_precisions_complex_real
+      - copy_batched_bad_arg:  *single_double_precisions_complex_real
+      - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
       - dot_bad_arg:   *half_bfloat_single_double_complex_real_precisions
       - dot_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
       - dot_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
@@ -1570,10 +1608,19 @@ Tests:
       - rotg_strided_batched_bad_arg:  *rotg_precisions
       - rotm_strided_batched_bad_arg:  *single_double_precisions
       - rotmg_strided_batched_bad_arg: *single_double_precisions
+      - rot_bad_arg:  *rot_precisions
+      - rot_ex_bad_arg:  *rot_ex_precisions
+      - rot_batched_bad_arg:  *rot_precisions
+      - rot_batched_ex_bad_arg:  *rot_ex_precisions
+      - rot_strided_batched_bad_arg:  *rot_precisions
+      - rot_strided_batched_ex_bad_arg:  *rot_ex_precisions
+      - swap_bad_arg:  *single_double_precisions_complex_real
+      - swap_batched_bad_arg:  *single_double_precisions_complex_real
+      - swap_strided_batched_bad_arg:  *single_double_precisions_complex_real
 
-  - name: blas1_bad_arg
-    category: pre_checkin
-    api: [ C, FORTRAN ]
+  - name: blas1_bad_arg_64
+    category: nightly
+    api: [ FORTRAN_64 ]
     function:
       - nrm2_bad_arg:  *single_double_precisions_complex_real
       - nrm2_batched_bad_arg:  *single_double_precisions_complex_real
@@ -1590,29 +1637,6 @@ Tests:
       - iamin_bad_arg: *single_double_precisions_complex_real
       - iamin_batched_bad_arg: *single_double_precisions_complex_real
       - iamin_strided_batched_bad_arg: *single_double_precisions_complex_real
-      - axpy_bad_arg:  *half_single_precisions_complex_real
-      - axpy_batched_bad_arg: *half_single_precisions_complex_real
-      - axpy_strided_batched_bad_arg: *half_single_precisions_complex_real
-      - axpy_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
-      - axpy_batched_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
-      - axpy_strided_batched_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
-      - copy_bad_arg:  *single_double_precisions_complex_real
-      - copy_batched_bad_arg:  *single_double_precisions_complex_real
-      - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
-      - swap_bad_arg:  *single_double_precisions_complex_real
-      - swap_batched_bad_arg:  *single_double_precisions_complex_real
-      - swap_strided_batched_bad_arg:  *single_double_precisions_complex_real
-      - rot_bad_arg:   *rot_precisions
-      - rot_ex_bad_arg: *rot_ex_precisions
-      - rot_batched_bad_arg:   *rot_precisions
-      - rot_batched_ex_bad_arg: *rot_ex_precisions
-      - rot_strided_batched_bad_arg:   *rot_precisions
-      - rot_strided_batched_ex_bad_arg: *rot_ex_precisions
-
-  - name: blas1_64_bad_arg
-    category: pre_checkin
-    api: [ FORTRAN_64 ]
-    function:
       - axpy_bad_arg: *half_single_precisions_complex_real
       - axpy_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
       - axpy_batched_bad_arg: *half_single_precisions_complex_real
@@ -1622,6 +1646,39 @@ Tests:
       - copy_bad_arg:  *single_double_precisions_complex_real
       - copy_batched_bad_arg:  *single_double_precisions_complex_real
       - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - dot_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_bad_arg:  *single_double_precisions_complex
+      - dotc_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - scal_bad_arg:  *single_double_precisions_complex_real
+      - scal_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_ex_bad_arg: *scal_ex_single_double_complex_real_alpha_complex_out
+      - scal_batched_bad_arg:  *single_double_precisions_complex_real
+      - scal_batched_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_batched_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_batched_ex_bad_arg: *scal_ex_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - scal_strided_batched_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_strided_batched_ex_bad_arg: *scal_ex_single_double_complex_real_alpha_complex_out
+      - rotg_bad_arg:  *rotg_precisions
+      - rotm_bad_arg:  *single_double_precisions
+      - rotmg_bad_arg: *single_double_precisions
+      - rotg_batched_bad_arg:  *rotg_precisions
+      - rotm_batched_bad_arg:  *single_double_precisions
+      - rotmg_batched_bad_arg: *single_double_precisions
+      - rotg_strided_batched_bad_arg:  *rotg_precisions
+      - rotm_strided_batched_bad_arg:  *single_double_precisions
+      - rotmg_strided_batched_bad_arg: *single_double_precisions
       - rot_bad_arg:  *rot_precisions
       - rot_ex_bad_arg:  *rot_ex_precisions
       - rot_batched_bad_arg:  *rot_precisions
