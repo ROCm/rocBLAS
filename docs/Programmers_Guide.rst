@@ -216,6 +216,14 @@ stream, maintained by the system. Users cannot create or destroy the default
 stream. However, users can create a new non-default stream and bind it to the rocBLAS handle with the
 two commands: ``hipStreamCreate()`` and ``rocblas_set_stream()``.
 
+rocBLAS supports use of non-blocking stream for functions requiring synchronization to guarantee results on the host.
+For functions like rocblas_Xnrm2, scalar result is copied from device to host when rocblas_pointer_mode == rocblas_pointer_mode_host.
+This is done using ``hipMemcpyAsync()`` followed by ``hipStreamSynchronize()``. The stream that is synchronized is the stream in the rocBLAS handle.
+
+.. note::
+    - Exception to the above pattern are the following rocBLAS functions, :any:`rocblas_set_vector` , :any:`rocblas_get_vector`, :any:`rocblas_set_matrix` , :any:`rocblas_get_matrix` which block on default stream.
+
+
 If the user creates a stream, they are responsible for destroying it with ``hipStreamDestroy()``. If the handle
 is switching from one non-default stream to another, then the old stream needs to be synchronized. Next, the user needs to create and set the new non-default stream using ``hipStreamCreate()`` and ``rocblas_set_stream()``, respectively. Then the user can optionally destroy the old stream.
 

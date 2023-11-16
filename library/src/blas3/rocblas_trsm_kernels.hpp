@@ -3552,8 +3552,11 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
         if(saved_pointer_mode == rocblas_pointer_mode_host)
             alpha_h = *alpha;
         else
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
-
+        {
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(
+                &alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost, handle->get_stream()));
+            RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
+        }
         if(alpha_h == T(0.0))
         {
             return set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, 0.0, offset_B);

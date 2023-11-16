@@ -126,8 +126,12 @@ rocblas_status rocblas_internal_iamax_iamin_launcher(rocblas_handle handle,
                                   (Tr*)(workspace + offset));
         }
 
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(result, workspace + offset, batch_count * sizeof(Tr), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(result,
+                                           workspace + offset,
+                                           batch_count * sizeof(Tr),
+                                           hipMemcpyDeviceToHost,
+                                           handle->get_stream()));
+        RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
     }
     return rocblas_status_success;
 }

@@ -617,16 +617,26 @@ rocblas_status rocblas_trtri_gemm_block(rocblas_handle handle,
         host_invAg2c = std::make_unique<T*[]>(batch_count);
         host_C       = std::make_unique<T*[]>(batch_count);
 
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&host_A[0], A, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&host_invAg1[0], invAg1, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&host_invAg2a[0], invAg2a, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&host_invAg2c[0], invAg2c, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&host_C[0], C, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(
+            &host_A[0], A, batch_count * sizeof(T*), hipMemcpyDeviceToHost, handle->get_stream()));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(&host_invAg1[0],
+                                           invAg1,
+                                           batch_count * sizeof(T*),
+                                           hipMemcpyDeviceToHost,
+                                           handle->get_stream()));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(&host_invAg2a[0],
+                                           invAg2a,
+                                           batch_count * sizeof(T*),
+                                           hipMemcpyDeviceToHost,
+                                           handle->get_stream()));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(&host_invAg2c[0],
+                                           invAg2c,
+                                           batch_count * sizeof(T*),
+                                           hipMemcpyDeviceToHost,
+                                           handle->get_stream()));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(
+            &host_C[0], C, batch_count * sizeof(T*), hipMemcpyDeviceToHost, handle->get_stream()));
+        RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
     }
 
     rocblas_status status       = rocblas_status_success;

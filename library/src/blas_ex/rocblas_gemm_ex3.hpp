@@ -2753,25 +2753,31 @@ rocblas_status rocblas_gemm_batched_ex3_typecasting(rocblas_handle      handle,
         std::unique_ptr<To*[]> d_host = std::make_unique<To*[]>(batch_count);
 
         if(a!=nullptr)
-            RETURN_IF_HIP_ERROR(hipMemcpy(&a_host[0],
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&a_host[0],
                             a,
                             sizeof(TiA*) * batch_count,
-                            hipMemcpyDeviceToHost));
+                            hipMemcpyDeviceToHost,
+                            handle->get_stream()));
         if(b!=nullptr)
-            RETURN_IF_HIP_ERROR(hipMemcpy(&b_host[0],
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&b_host[0],
                             b,
                             sizeof(TiB*) * batch_count,
-                            hipMemcpyDeviceToHost));
+                            hipMemcpyDeviceToHost,
+                            handle->get_stream()));
         if(c!=nullptr)
-            RETURN_IF_HIP_ERROR(hipMemcpy(&c_host[0],
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&c_host[0],
                             c,
                             sizeof(To*) * batch_count,
-                            hipMemcpyDeviceToHost));
+                            hipMemcpyDeviceToHost,
+                            handle->get_stream()));
         if(d!=nullptr)
-            RETURN_IF_HIP_ERROR(hipMemcpy(&d_host[0],
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&d_host[0],
                             d,
                             sizeof(To*) * batch_count,
-                            hipMemcpyDeviceToHost));
+                            hipMemcpyDeviceToHost,
+                            handle->get_stream()));
+
+        RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
 
         for(int i = 0; i<batch_count; i++)
         {
