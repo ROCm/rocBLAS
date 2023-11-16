@@ -2120,7 +2120,7 @@ rocblas_gemm_ex3 + batched, strided_batched
 Graph Support for rocBLAS
 -------------------------
 
-Graph support is added as a beta feature in rocBLAS. Most of the rocBLAS functions can be captured into a graph node via Graph Management HIP APIs, except those listed in :ref:`Functions Unsupported with Graph Capture`.
+Most of the rocBLAS functions can be captured into a graph node via Graph Management HIP APIs, except those listed in :ref:`Functions Unsupported with Graph Capture`.
 For a list of graph related HIP APIs, refer to `Graph Management HIP API <https://rocm.docs.amd.com/projects/HIP/en/latest/.doxygen/docBin/html/group___graph.html#graph-management>`_.
 
 .. code-block:: c++

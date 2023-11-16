@@ -176,7 +176,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_check_numerics_t h_abnormal;
 
     //Allocating memory for device structure
-    auto d_abnormal = handle->device_malloc(sizeof(rocblas_check_numerics_t));
+    auto        d_abnormal     = handle->device_malloc(sizeof(rocblas_check_numerics_t));
+    hipStream_t rocblas_stream = handle->get_stream();
     if(!d_abnormal)
     {
         rocblas_cerr << "rocBLAS internal error: No workspace memory available to allocate the "
@@ -187,13 +188,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
 
     //Transferring the rocblas_check_numerics_t structure from host to the device
-    RETURN_IF_HIP_ERROR(hipMemcpy((rocblas_check_numerics_t*)d_abnormal,
-                                  &h_abnormal,
-                                  sizeof(rocblas_check_numerics_t),
-                                  hipMemcpyHostToDevice));
-
-    hipStream_t           rocblas_stream = handle->get_stream();
-    constexpr rocblas_int NB             = 256;
+    RETURN_IF_HIP_ERROR(hipMemcpyAsync((rocblas_check_numerics_t*)d_abnormal,
+                                       &h_abnormal,
+                                       sizeof(rocblas_check_numerics_t),
+                                       hipMemcpyHostToDevice,
+                                       rocblas_stream));
+    constexpr rocblas_int NB = 256;
 
     size_t abs_inc = inc_x < 0 ? -inc_x : inc_x;
 
@@ -223,10 +223,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
 
     //Transferring the rocblas_check_numerics_t structure from device to the host
-    RETURN_IF_HIP_ERROR(hipMemcpy(&h_abnormal,
-                                  (rocblas_check_numerics_t*)d_abnormal,
-                                  sizeof(rocblas_check_numerics_t),
-                                  hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpyAsync(&h_abnormal,
+                                       (rocblas_check_numerics_t*)d_abnormal,
+                                       sizeof(rocblas_check_numerics_t),
+                                       hipMemcpyDeviceToHost,
+                                       rocblas_stream));
+    RETURN_IF_HIP_ERROR(hipStreamSynchronize(rocblas_stream));
 
     return rocblas_check_numerics_abnormal_struct(
         function_name, check_numerics, is_input, &h_abnormal);

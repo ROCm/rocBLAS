@@ -216,7 +216,8 @@ std::string log_trace_scalar_value(rocblas_handle handle, const T* value)
     T                        host;
     if(value && handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipMemcpy(&host, value, sizeof(host), hipMemcpyDeviceToHost);
+        hipMemcpyAsync(&host, value, sizeof(host), hipMemcpyDeviceToHost, handle->get_stream());
+        hipStreamSynchronize(handle->get_stream());
         value = &host;
     }
     os << log_trace_scalar_value(value);
@@ -260,7 +261,8 @@ std::string log_bench_scalar_value(rocblas_handle handle, const char* name, cons
     T host;
     if(value && handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipMemcpy(&host, value, sizeof(host), hipMemcpyDeviceToHost);
+        hipMemcpyAsync(&host, value, sizeof(host), hipMemcpyDeviceToHost, handle->get_stream());
+        hipStreamSynchronize(handle->get_stream());
         value = &host;
     }
     return log_bench_scalar_value(name, value);

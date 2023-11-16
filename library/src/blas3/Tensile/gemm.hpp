@@ -48,12 +48,18 @@ rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(rocblas_handle handl
             if(k == 0)
                 alpha_h = 0;
             else
-                RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tac), hipMemcpyDeviceToHost));
+            {
+                RETURN_IF_HIP_ERROR(hipMemcpyAsync(
+                    &alpha_h, alpha, sizeof(Tac), hipMemcpyDeviceToHost, handle->get_stream()));
+                RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
+            }
             alpha = &alpha_h;
         }
         if(beta)
         {
-            RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tbc), hipMemcpyDeviceToHost));
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(
+                &beta_h, beta, sizeof(Tbc), hipMemcpyDeviceToHost, handle->get_stream()));
+            RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
             beta = &beta_h;
         }
     }
