@@ -26,6 +26,8 @@ def runCI =
 
     boolean formatCheck = false
 
+    def settings = [gfilter: "*blas1/nightly*:*blas2/nightly*:*blas3/nightly*:*blas3_tensile/nightly*:*blas_ex/nightly*:*stress*:*HMM*"]
+
     def compileCommand =
     {
         platform, project->
@@ -38,9 +40,7 @@ def runCI =
     {
         platform, project->
 
-        def gfilter = "*blas1/nightly*:*blas2/nightly*:*blas3/nightly*:*blas3_tensile/nightly*:*blas_ex/nightly*:*stress*:*HMM*"
-
-        commonGroovy.runTestCommand(platform, project, gfilter)
+        commonGroovy.runTestCommand(platform, project, settings)
     }
 
     def packageCommand =

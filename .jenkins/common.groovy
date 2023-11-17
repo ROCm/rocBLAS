@@ -43,9 +43,10 @@ def runCompileCommand(platform, project, jobName)
     platform.runCommand(this, command)
 }
 
-def runTestCommand (platform, project, gfilter)
+def runTestCommand (platform, project, settings)
 {
     String sudo = auxiliary.sudo(platform.jenkinsLabel)
+
     String installPackage = ""
     if (platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('sles'))
     {
@@ -71,7 +72,7 @@ def runTestCommand (platform, project, gfilter)
     }
 
     def hmmTestCommand= ''
-    if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
+    if (platform.jenkinsLabel.contains('gfx90a') && settings.gfilter.contains('nightly'))
     {
         hmmTestCommand = """
                             ${gtestCommonEnv} HSA_XNACK=1 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
@@ -84,13 +85,13 @@ def runTestCommand (platform, project, gfilter)
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} ROCBLAS_CHECK_NUMERICS=4 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} ROCBLAS_CHECK_NUMERICS=4 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${settings.gfilter}-*known_bug*
                                  """
     }
     else
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${settings.gfilter}-*known_bug*
                                  """
     }
 
@@ -129,11 +130,21 @@ def runTestCommand (platform, project, gfilter)
                    """
     }
 
+    def LD_PATH = ''
+    if (settings.addressSanitizer)
+    {
+        LD_PATH = """
+                    export ASAN_LIB_PATH=\$(/opt/rocm/llvm/bin/clang -print-file-name=libclang_rt.asan-x86_64.so)
+                    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$(dirname "\${ASAN_LIB_PATH}")
+                  """
+    }
+
     def command = """#!/usr/bin/env bash
                     set -x
                     pushd ${project.paths.project_build_prefix}/build/release/package
                     ${installPackage}
                     popd
+                    ${LD_PATH}
                     ${runTests}
                   """
 

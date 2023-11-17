@@ -2,7 +2,7 @@
 // This shared library is available at https://github.com/ROCmSoftwarePlatform/rocJENKINS/
 @Library('rocJenkins@pong') _
 
-// This is file for AMD Continuous Integration use.
+// This is file for internal AMD use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
 import com.amd.project.*
@@ -13,19 +13,21 @@ def runCI =
 {
     nodeDetails, jobName->
 
-    def prj = new rocProject('rocBLAS', 'StaticLibrary')
+    def prj = new rocProject('rocBLAS', 'address-sanitizer')
     // customize for project
-    prj.paths.build_command = './install.sh -c --static'
+    prj.paths.build_command = './install.sh -c --address-sanitizer'
 
     prj.defaults.ccache = true
     prj.timeout.compile = 480
+    prj.timeout.test = 360
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
 
     boolean formatCheck = false
 
-    def settings = [gfilter: "*quick*:*pre_checkin*"]
+    def settings = [addressSanitizer: true,
+                   gfilter: "*quick*:*pre_checkin*"]
 
     def compileCommand =
     {
@@ -48,14 +50,15 @@ def runCI =
                 if (it == "TestTensileOnly")
                 {
                     testFilter += "*blas3_tensile/quick*:*blas3_tensile/pre_checkin*:"
+                    testFilter += "*blas2_tensile/quick*:*blas2_tensile/pre_checkin*:"
                 }
                 else if(it == "TestLevel3Only")
                 {
-                    testFilter += "*blas3/quick*:*blas3/pre_checkin*:"
+                    testFilter += "*blas3*quick*:*blas3*pre_checkin*:"
                 }
                 else if(it == "TestLevel2Only")
                 {
-                    testFilter += "*blas2/quick*:*blas2/pre_checkin*:"
+                    testFilter += "*blas2*quick*:*blas2*pre_checkin*:"
                 }
                 else if(it == "TestLevel1Only")
                 {
@@ -69,7 +72,6 @@ def runCI =
             // The below command chops the final character ':' in testFilter and transfers the string to settings.gfilter.
             settings.gfilter = testFilter.substring(0, testFilter.length() - 1);
         }
-
         commonGroovy.runTestCommand(platform, project, settings)
     }
 
@@ -81,15 +83,20 @@ def runCI =
     }
 
     buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
+
 }
 
 ci: {
     String urlJobName = auxiliary.getTopJobName(env.BUILD_URL)
 
-    def propertyList = ["compute-rocm-dkms-no-npi-hipclang":[pipelineTriggers([cron('0 1 * * 6')])]]
+    def propertyList = ["compute-rocm-dkms-no-npi":[pipelineTriggers([cron('0 1 * * 6')])],
+                        "compute-rocm-dkms-no-npi-hipclang":[pipelineTriggers([cron('0 1 * * 6')])],
+                        "rocm-docker":[]]
     propertyList = auxiliary.appendPropertyList(propertyList)
 
-    def jobNameList = ["compute-rocm-dkms-no-npi-hipclang":([ubuntu18:['gfx900']])]
+    def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
+                       "compute-rocm-dkms-no-npi-hipclang":([ubuntu18:['gfx900'],centos7:['gfx906'],centos8:['gfx906'],sles15sp1:['gfx908']]),
+                       "rocm-docker":([ubuntu18:['gfx900']])]
     jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
 
     propertyList.each
@@ -113,7 +120,7 @@ ci: {
     {
         properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * *')])]))
         stage(urlJobName) {
-            runCI([ubuntu18:['gfx900']], urlJobName)
+            runCI([ubuntu18:['gfx900', 'gfx906']], urlJobName)
         }
     }
 }
