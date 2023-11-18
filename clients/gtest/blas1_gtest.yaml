@@ -620,6 +620,7 @@ Tests:
   - name: nrm2_64
     category: stress
     pointer_mode_host: false
+    initialization: hpl
     arguments:
       - { N: 2147483649, incx: 1, batch_count: 1 }
       - { N: 2, incx: 2147483649, batch_count: 1 }
