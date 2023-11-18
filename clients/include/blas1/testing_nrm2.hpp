@@ -148,13 +148,13 @@ void testing_nrm2(const Arguments& arg)
         real_t<T> abs_error;
         if(abs_result > 0)
         {
-            abs_error = std::numeric_limits<real_t<T>>::epsilon() * abs_result;
+            abs_error = std::numeric_limits<real_t<T>>::epsilon() * N * abs_result;
         }
         else
         {
-            abs_error = std::numeric_limits<real_t<T>>::epsilon();
+            abs_error = std::numeric_limits<real_t<T>>::epsilon() * N;
         }
-        real_t<T> tolerance = 20.0; //  accounts for rounding in reduction sum. depends on n.
+        real_t<T> tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
 
