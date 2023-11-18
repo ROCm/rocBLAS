@@ -79,6 +79,7 @@ void testing_swap_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         DAPI_CHECK(rocblas_swap_batched_fn, (handle, N, nullptr, incx, nullptr, incy, batch_count));
+        return;
     }
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
