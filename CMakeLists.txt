@@ -100,7 +100,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "4.1.0" )
+set ( VERSION_STRING "4.2.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -153,7 +153,7 @@ if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
     set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
-    set( TENSILE_VERSION 4.39.0 CACHE STRING "The version of Tensile to be used")
+    set( TENSILE_VERSION 4.40.0 CACHE STRING "The version of Tensile to be used")
 
     if(BUILD_WITH_PIP)
       if (WIN32)
