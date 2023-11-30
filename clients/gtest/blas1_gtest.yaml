@@ -1153,7 +1153,7 @@ Tests:
 
   - name: blas1_batched
     category: quick
-    N: [ -1, 0, 1025, 13000]
+    N: [ -1, 0, 1023, 13000]
     incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     function:
@@ -1165,7 +1165,7 @@ Tests:
 
   - name: blas1_strided_batched
     category: quick
-    N: [ -1, 0, 1025, 13000]
+    N: [ -1, 0, 1023, 13000]
     incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     stride_scale: [ 1 ]
@@ -1379,6 +1379,31 @@ Tests:
       - dotc_strided_batched_ex:  *double_precision_complex_real
       - rot_strided_batched_ex: *rot_ex_precisions
       - rotm_strided_batched:  *single_double_precisions
+
+# Tests for testing rocblas_dot_batched_4_kernel
+  - name: dot_batched_kernel_test
+    category: nightly
+    N: [ 256 ]
+    incx_incy: *incx_incy_range
+    batch_count: [ 10002, 15003]
+    function:
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched:  *single_double_precisions_complex
+      - dot_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+
+# Tests for testing rocblas_dot_batched_4_kernel
+  - name: dot_strided_batched_kernel_test
+    category: nightly
+    N: [ 256 ]
+    incx_incy: *incx_incy_range
+    batch_count: [ 5001, 15003]
+    stride_scale: [ 2 ]
+    function:
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *single_double_precisions_complex
+      - dot_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
 
 # Swap, rot, and rotm get their own for quick tests as they write to x and y
 

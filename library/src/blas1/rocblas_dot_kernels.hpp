@@ -243,6 +243,43 @@ rocblas_dot_kernel_reduce(int n_sums, V* __restrict__ in, T* __restrict__ out)
         out[blockIdx.y] = T(sum);
 }
 
+template <typename API_INT, int NB_X, int NB_Y, bool CONJ, typename V, typename T, typename U>
+ROCBLAS_KERNEL(NB_X* NB_Y)
+rocblas_dot_batched_4_kernel(rocblas_int n,
+                             const U __restrict__ xa,
+                             rocblas_stride shiftx,
+                             API_INT        incx,
+                             rocblas_stride stridex,
+                             const U __restrict__ ya,
+                             rocblas_stride shifty,
+                             API_INT        incy,
+                             rocblas_stride stridey,
+                             rocblas_int    batch_count,
+                             T* __restrict__ out)
+{
+    // Thread Blocks more than or equal to the batch_count could be safely returned
+    if(blockIdx.x * NB_Y + threadIdx.y >= batch_count)
+        return;
+
+    const auto* x = load_ptr_batch(xa, blockIdx.x * NB_Y + threadIdx.y, shiftx, stridex);
+    const auto* y = load_ptr_batch(ya, blockIdx.x * NB_Y + threadIdx.y, shifty, stridey);
+
+    V reg_x = V(0), reg_y = V(0), sum = V(0);
+
+    for(int tid = threadIdx.x; tid < n; tid += blockDim.x)
+    {
+        reg_x = V(CONJ ? conj(x[tid * int64_t(incx)]) : x[tid * int64_t(incx)]);
+        reg_y = V(y[tid * int64_t(incy)]);
+        sum += reg_x * reg_y;
+    }
+    __syncthreads();
+
+    sum = rocblas_wavefront_reduce<NB_X>(sum); // sum over wavefront as NB_X is 64
+
+    if(threadIdx.x == 0)
+        out[blockIdx.x * NB_Y + threadIdx.y] = T(sum);
+}
+
 // assume workspace has already been allocated, recommended for repeated calling of dot_strided_batched product
 // routine
 template <typename API_INT, int NB, bool CONJ, typename T, typename U, typename V>
@@ -286,7 +323,8 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         return rocblas_status_success;
     }
 
-    static constexpr int WIN = rocblas_dot_WIN<T>();
+    bool                 is_gfx90a = handle->getArch() == 910 ? true : false;
+    static constexpr int WIN       = rocblas_dot_WIN<T>();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     int64_t shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
@@ -294,7 +332,52 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
 
     static constexpr int single_block_threshold = rocblas_dot_one_block_threshold<T>();
 
-    if(n <= single_block_threshold)
+    if(is_gfx90a && n <= 1024 && batch_count >= 256)
+    {
+        // Optimized kernel for small n and bigger batch_count
+        static constexpr int NB_X = 64;
+        static constexpr int NB_Y = 4;
+
+        dim3 grid((batch_count - 1) / NB_Y + 1);
+
+        // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
+        dim3 threads(NB_X, NB_Y);
+
+        T* output = results; // device mode output directly to results
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            size_t offset = size_t(batch_count);
+            output        = (T*)(workspace + offset);
+        }
+
+        ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, NB_X, NB_Y, CONJ, V>),
+                              grid,
+                              threads,
+                              0,
+                              handle->get_stream(),
+                              n,
+                              x,
+                              shiftx,
+                              incx,
+                              stridex,
+                              y,
+                              shifty,
+                              incy,
+                              stridey,
+                              batch_count,
+                              output);
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&results[0],
+                                               output,
+                                               sizeof(T) * batch_count,
+                                               hipMemcpyDeviceToHost,
+                                               handle->get_stream()));
+            RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->get_stream()));
+        }
+    }
+    else if(n <= single_block_threshold)
     {
         // we only reduce the block count to 1 so safe to ignore extra workspace allocated in caller
 
