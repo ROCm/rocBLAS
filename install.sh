@@ -405,27 +405,31 @@ printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m
 
 install_blis()
 {
-    #Download prebuilt AMD multithreaded blis
-    if [[ ! -e "./blis/lib/libblis.a" ]]; then
-      case "${ID}" in
-          centos|rhel|sles|opensuse-leap)
-              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
-              ;;
-          ubuntu)
-              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
-              ;;
-          *)
-              echo "Unsupported OS for this script"
-              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
-              ;;
-      esac
+    if [[ ! -e "/opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a" ]] && [[ ! -e "/opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a"  ]] && [[ ! -e "/usr/local/lib/libblis.a" ]]; then
+        pushd .
+        #Download prebuilt AMD multithreaded blis
+        if [[ ! -e "./blis/lib/libblis.a" ]]; then
+          case "${ID}" in
+              centos|rhel|sles|opensuse-leap)
+                  wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
+                  ;;
+              ubuntu)
+                  wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+                  ;;
+              *)
+                  echo "Unsupported OS for this script"
+                  wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+                  ;;
+          esac
 
-      tar -xvf blis.tar.gz
-      rm -rf blis/amd-blis-mt
-      mv amd-blis-mt blis
-      rm blis.tar.gz
-      cd blis/lib
-      ln -sf libblis-mt.a libblis.a
+          tar -xvf blis.tar.gz
+          rm -rf blis/amd-blis-mt
+          mv amd-blis-mt blis
+          rm blis.tar.gz
+          cd blis/lib
+          ln -sf libblis-mt.a libblis.a
+        fi
+        popd
     fi
 }
 
@@ -479,14 +483,14 @@ if [[ "${install_dependencies}" == true ]]; then
   if [[ "${build_clients}" == true ]]; then
     # The following builds googletest from source, installs into cmake default /usr/local
     pushd .
-    printf "\033[32mBuilding \033[33mgoogletest; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
+    install_blis
+
+    # build other deps
+    printf "\033[32mBuilding \033[33mgoogletest; installing into \033[33m/usr/local\033[0m\n"
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
     make build_deps
     elevate_if_not_root make install_deps
-    if [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]] && [[ ! -e "/usr/local/lib/libblis.a" ]]; then
-      install_blis
-    fi
     popd
   fi
 elif [[ "${build_clients}" == true ]]; then
