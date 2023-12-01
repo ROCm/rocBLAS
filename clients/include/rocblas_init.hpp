@@ -333,17 +333,17 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 {
     for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
-        auto* A   = hA[batch_index];
-        auto  M   = hA.m();
-        auto  N   = hA.n();
-        auto  lda = hA.lda();
+        auto*   A   = hA[batch_index];
+        int64_t M   = hA.m();
+        int64_t N   = hA.n();
+        int64_t lda = hA.lda();
         if(matrix_type == rocblas_client_general_matrix)
         {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-            for(size_t i = 0; i < M; ++i)
-                for(size_t j = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
+                for(size_t i = 0; i < M; ++i)
                     A[i + j * lda] = rand_gen();
         }
         else if(matrix_type == rocblas_client_hermitian_matrix)
@@ -407,27 +407,26 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-            for(size_t i = 0; i < M; ++i)
-                for(size_t j = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
+                for(size_t i = 0; i < M; ++i)
                 {
                     auto value
                         = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
                     A[i + j * lda] = value;
                 }
         }
-
-        /*An n x n triangle matrix with random entries has a condition number that grows exponentially with n ("Condition numbers of random triangular matrices" D. Viswanath and L.N.Trefethen).
-        Here we use a triangle matrix with random values that is strictly row and column diagonal dominant.
-        This matrix should have a lower condition number. An alternative is to calculate the Cholesky factor of an SPD matrix with random values and make it diagonal dominant.
-        This approach is not used because it is slow.*/
-
         else if(matrix_type == rocblas_client_diagonally_dominant_triangular_matrix)
         {
+            /*An n x n triangle matrix with random entries has a condition number that grows exponentially with n ("Condition numbers of random triangular matrices" D. Viswanath and L.N.Trefethen).
+            Here we use a triangle matrix with random values that is strictly row and column diagonal dominant.
+            This matrix should have a lower condition number. An alternative is to calculate the Cholesky factor of an SPD matrix with random values and make it diagonal dominant.
+            This approach is not used because it is slow.*/
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-            for(size_t i = 0; i < M; ++i)
-                for(size_t j = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
+                for(size_t i = 0; i < M; ++i)
                 {
                     auto value
                         = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
@@ -771,7 +770,7 @@ void rocblas_init_nan(T* A, size_t N)
 }
 
 template <typename T>
-void rocblas_init_nan(T* A, size_t start_offset, size_t end_offset)
+void rocblas_init_nan_range(T* A, size_t start_offset, size_t end_offset)
 {
     for(size_t i = start_offset; i < end_offset; ++i)
         A[i] = T(rocblas_nan_rng());
@@ -819,7 +818,7 @@ void rocblas_init_inf(T* A, size_t N)
 }
 
 template <typename T>
-void rocblas_init_inf(T* A, size_t start_offset, size_t end_offset)
+void rocblas_init_inf_range(T* A, size_t start_offset, size_t end_offset)
 {
     for(size_t i = start_offset; i < end_offset; ++i)
         A[i] = T(rocblas_inf_rng());
@@ -856,7 +855,7 @@ void rocblas_init_zero(
 }
 
 template <typename T>
-void rocblas_init_zero(T* A, size_t start_offset, size_t end_offset)
+void rocblas_init_zero_range(T* A, size_t start_offset, size_t end_offset)
 {
     for(size_t i = start_offset; i < end_offset; ++i)
         A[i] = T(rocblas_zero_rng());
@@ -876,7 +875,7 @@ void rocblas_init_denorm(
 }
 
 template <typename T>
-void rocblas_init_denorm(T* A, size_t start_offset, size_t end_offset)
+void rocblas_init_denorm_range(T* A, size_t start_offset, size_t end_offset)
 {
     for(size_t i = start_offset; i < end_offset; ++i)
         A[i] = T(rocblas_denorm_rng());
