@@ -167,7 +167,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                     bool           is_input)
 {
     //Quick return if possible. Not Argument error
-    if(n_64 <= 0 || inc_x <= 0 || batch_count_64 <= 0 || !x)
+    if(n_64 <= 0 || batch_count_64 <= 0 || !x)
     {
         return rocblas_status_success;
     }

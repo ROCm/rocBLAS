@@ -2,6 +2,7 @@
 include: rocblas_common.yaml
 include: known_bugs.yaml
 
+Definitions:
 
 f8 bf8: &f8_bf8_precisions
 - &f8_only_type
@@ -14,6 +15,7 @@ Half bfloat: &half_bfloat_precisions
 - *bf16_precision
 
 Tests:
+
 - name: f8_operators
   category: quick
   function: f8_operators
@@ -38,56 +40,69 @@ Tests:
   category : quick
   function : check_numerics_vector
   N : [ 5 ]
-  incx : [ 1 ]
-  batch_count : [ 5, 8 ]
+  incx : [ 1, 0, -2 ]
+  batch_count : [ 5 ]
   stride_x : [ 0 ]
-  precision : *single_double_precisions
+  precision : *half_bfloat_single_double_complex_real_precisions
 
-- name : check_numerics_vector
-  category : quick
+- name : check_numerics_vector_64
+  category : stress
   function : check_numerics_vector
-  N : [ 5 ]
+  N : [ -1, 2147486720 ]
   incx : [ 1 ]
-  batch_count : [ 5, 8 ]
+  batch_count : [ 1 ]
   stride_x : [ 0 ]
-  precision : *single_double_precisions_complex
+  precision : *half_precision
+  os_flags: [ LINUX ]
 
-- name : check_numerics_vector
-  category : quick
+- name : check_numerics_vector_64
+  category : stress
   function : check_numerics_vector
-  N : [ 5 ]
+  N : [ 1 ]
   incx : [ 1 ]
-  batch_count : [ 5, 8 ]
+  batch_count : [ -1, 666666 ]
   stride_x : [ 0 ]
-  precision : *half_bfloat_precisions
+  precision : *half_precision
+  os_flags: [ LINUX ]
 
 - name : check_numerics_matrix
-  category : quick
-  function : check_numerics_matrix
-  M : [ 3 ]
-  N : [ 5 ]
-  batch_count : [ 5, 8 ]
-  stride_x : [ 0 ]
-  uplo: [ L ]
-  precision : *single_double_precisions
-
-- name : check_numerics_matrix
-  category : quick
-  function : check_numerics_matrix
-  M : [ 3 ]
-  N : [ 5 ]
-  batch_count : [ 5, 8 ]
-  stride_x : [ 0 ]
-  uplo: [ U ]
-  precision : *single_double_precisions_complex
-
-- name : check_numerics_matrix
-  category : quick
-  function : check_numerics_matrix
-  M : [ 3 ]
-  N : [ 5 ]
-  batch_count : [ 5, 8 ]
+  category: quick
+  function:
+      - check_numerics_matrix
+      - check_numerics_matrix_batched
+  M : [ 5 ]
+  N : [ 3 ]
+  lda: 5
+  batch_count : [ 3 ]
   stride_x : [ 0 ]
   uplo: [ U, L ]
-  precision : *half_bfloat_precisions
+  transA: [ T, N, C ]
+  precision : *half_bfloat_single_double_complex_real_precisions
+
+- name : check_numerics_matrix_64
+  category : stress
+  function : check_numerics_matrix
+  M : [ 2147486720 ]
+  N : [ 1 ]
+  lda: 2147486720
+  batch_count : [ 1 ]
+  stride_x : [ 0 ]
+  uplo: [ U ]
+  transA: [ N ]
+  precision : *half_precision
+  os_flags: [ LINUX ]
+
+- name : check_numerics_matrix_batched_64
+  category : stress
+  function : check_numerics_matrix_batched
+  M : [ 3 ]
+  N : [ 3 ]
+  lda: 3
+  batch_count : [ 666666 ]
+  stride_x : [ 0 ]
+  uplo: [ U ]
+  transA: [ T ]
+  precision : *half_precision
+  os_flags: [ LINUX ]
+
 ...
