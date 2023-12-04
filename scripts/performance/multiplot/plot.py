@@ -9,9 +9,136 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 import yaml
+import sys
 from pathlib import Path
 
-def plot_data(gflops_dicts, const_args_dicts, funcname_list, machine_spec_dict, savedir, arch, theo_max, size_arg = 'N'):
+script_dir = os.path.dirname( __file__ )
+getspec_module_dir = os.path.join(script_dir, '..', 'blas')
+sys.path.append(getspec_module_dir)
+import getspecs
+
+theo_max_dict = {}
+
+#   L1 functions
+theo_max_dict['saxpy'] = ( 1 /  6 )
+theo_max_dict['daxpy'] = ( 1 / 12 )
+theo_max_dict['caxpy'] = ( 1 /  3 )
+theo_max_dict['zaxpy'] = ( 1 /  6 )
+
+theo_max_dict['sdot'] = ( 1 / 4 )
+theo_max_dict['ddot'] = ( 1 / 8 )
+theo_max_dict['cdot'] = ( 1 / 2 )
+theo_max_dict['zdot'] = ( 1 / 4 )
+
+theo_max_dict['sscal'] = ( 1 /  8 )
+theo_max_dict['dscal'] = ( 1 / 16 )
+theo_max_dict['cscal'] = ( 3 /  8 )
+theo_max_dict['zscal'] = ( 3 / 16 )
+
+theo_max_dict['scopy'] = 1
+theo_max_dict['dcopy'] = 1
+theo_max_dict['ccopy'] = 1
+theo_max_dict['zcopy'] = 1
+
+theo_max_dict['sswap'] = 1
+theo_max_dict['dswap'] = 1
+theo_max_dict['cswap'] = 1
+theo_max_dict['zswap'] = 1
+
+#   L2 functions
+# matrix vector multiplication
+theo_max_dict['sgemv'] = ( 1 / 2 )
+theo_max_dict['dgemv'] = ( 1 / 4 )
+theo_max_dict['cgemv'] = ( 1     )
+theo_max_dict['zgemv'] = ( 1 / 2 )
+
+#   theo_max_dict['sgbmv'] = ( 1 / 2 )
+#   theo_max_dict['dgbmv'] = ( 1 / 4 )
+#   theo_max_dict['cgbmv'] = ( 1     )
+#   theo_max_dict['zgbmv'] = ( 1 / 2 )
+
+theo_max_dict['strmv'] = ( 1 / 2 )
+theo_max_dict['dtrmv'] = ( 1 / 4 )
+theo_max_dict['ctrmv'] = ( 1     )
+theo_max_dict['ztrmv'] = ( 1 / 2 )
+
+#   theo_max_dict['stbmv'] = ( 1 / 2 )
+#   theo_max_dict['dtbmv'] = ( 1 / 4 )
+#   theo_max_dict['ctbmv'] = ( 1     )
+#   theo_max_dict['ztbmv'] = ( 1 / 2 )
+
+theo_max_dict['stpmv'] = ( 1 / 2 )
+theo_max_dict['dtpmv'] = ( 1 / 4 )
+theo_max_dict['ctpmv'] = ( 1     )
+theo_max_dict['ztpmv'] = ( 1 / 2 )
+
+# Symmetric matrix vector multiplication
+theo_max_dict['ssymv'] = ( 1     )
+theo_max_dict['dsymv'] = ( 1 / 2 )
+
+#   theo_max_dict['ssbmv'] = ( 1     )
+#   theo_max_dict['dsbmv'] = ( 1 / 2 )
+
+theo_max_dict['sspmv'] = ( 1     )
+theo_max_dict['dspmv'] = ( 1 / 2 )
+
+# Hermitian matrix vector multiplication
+theo_max_dict['chemv'] = ( 2     )
+theo_max_dict['zhemv'] = ( 1     )
+
+theo_max_dict['chpmv'] = ( 2     )
+theo_max_dict['zhpmv'] = ( 1     )
+
+#   theo_max_dict['chbmv'] = ( 2     )
+#   theo_max_dict['zhbmv'] = ( 1     )
+
+# rank 1 updates
+theo_max_dict['sger'] = ( 1 / 4 )
+theo_max_dict['dger'] = ( 1 / 8 )
+
+theo_max_dict['ssyr'] = ( 1 / 4 )
+theo_max_dict['dsyr'] = ( 1 / 8 )
+
+theo_max_dict['sspr'] = ( 1 / 4 )
+theo_max_dict['dspr'] = ( 1 / 8 )
+
+theo_max_dict['ssyr2'] = ( 1 / 2 )
+theo_max_dict['dsyr2'] = ( 1 / 4 )
+
+theo_max_dict['sspr2'] = ( 1 / 2 )
+theo_max_dict['dspr2'] = ( 1 / 4 )
+
+# Hermitian rank 1 updates
+theo_max_dict['cher'] = ( 1 / 2 )
+theo_max_dict['zher'] = ( 1 / 4 )
+
+theo_max_dict['chpr'] = ( 1 / 2 )
+theo_max_dict['zhpr'] = ( 1 / 4 )
+
+theo_max_dict['cher2'] = ( 1     )
+theo_max_dict['zher2'] = ( 1 / 2 )
+
+theo_max_dict['chpr2'] = ( 1     )
+theo_max_dict['zhpr2'] = ( 1 / 2 )
+
+# triangle solves
+theo_max_dict['strsv'] = ( 1 / 2 )
+theo_max_dict['dtrsv'] = ( 1 / 4 )
+theo_max_dict['ctrsv'] = ( 1     )
+theo_max_dict['ztrsv'] = ( 1 / 2 )
+
+#   theo_max_dict['stbsv'] = ( 1 / 2 )
+#   theo_max_dict['dtbsv'] = ( 1 / 4 )
+#   theo_max_dict['ctbsv'] = ( 1     )
+#   theo_max_dict['ztbsv'] = ( 1 / 2 )
+
+theo_max_dict['stpsv'] = ( 1 / 2 )
+theo_max_dict['dtpsv'] = ( 1 / 4 )
+theo_max_dict['ctpsv'] = ( 1     )
+theo_max_dict['ztpsv'] = ( 1 / 2 )
+
+
+def plot_data(gflops_dicts, const_args_dicts, funcname_list, savedir, arch, theo_max, memory_bandwidth, size_arg = 'N'):
     """
     plots gflops data from dictionaries, one plot for each common precision present in all dictionaries.
 
@@ -49,7 +176,8 @@ def plot_data(gflops_dicts, const_args_dicts, funcname_list, machine_spec_dict, 
                 function_label = "z" + funcname
 
             if(theo_max == True):
-                theo_max_value = machine_spec_dict[function_label]
+                theo_max_value = theo_max_dict[function_label] * memory_bandwidth
+
                 sorted_gflops[:] = [gf / theo_max_value for gf in sorted_gflops]
 
             function_label = function_label + " :  " + const_args_dict[prec]
@@ -102,9 +230,31 @@ def get_function_name(filename):
             function_idx = arg_line.index(function_str)
             return data_line[function_idx]
 
-def get_arch_from_yaml(machine_spec_yaml_file):
-    machine_spec_dict = yaml.safe_load(Path(machine_spec_yaml_file).read_text())
-    return machine_spec_dict['arch']
+def get_mem_bandwidth_from_file(filename, arch):
+    if os.path.exists(filename):
+        file = open(filename, 'r')
+        file.seek(0)
+        for line in file:
+            match = re.search('MCLK (\d+)', line)
+            if match:
+                MCLK = match.group(1)
+        file.seek(0)
+        for line in file:
+            match = re.search('memoryBusWidth (\d+)', line)
+            if match:
+                memoryBusWidth = match.group(1)
+
+        print("MCLK, memoryBusWidth = ", MCLK, ", ", memoryBusWidth)
+        if(arch == 'gfx906'):
+            return int(MCLK) / 1000 * int(memoryBusWidth) * 2
+        if(arch == 'gfx90a'):
+            return int(MCLK) / 1000 * int(memoryBusWidth) * 2
+        if(arch == 'gfx940' or arch == 'gfx941' or arch == '942'):
+            return int(MCLK) / 1000 * int(memoryBusWidth) * 4
+        else:
+            print("using memory bandwidth = memoryBusWidth * memoryClockRate * 2"
+            return int(MCLK) / 1000 * int(memoryBusWidth) * 2
+
 
 def get_data_from_file(filename, output_param='rocblas-Gflops', xaxis_str1='N', xaxis_str2='M', yaxis_str='rocblas-Gflops'):
 
@@ -232,14 +382,14 @@ if __name__ =='__main__':
     else:
         output_dir = os.path.join(output_dir, "plots_gflops")
 
-    machine_spec_yaml_file = os.path.join(args.level, args.tag, "machine_spec.yaml")
-
-    machine_spec_dict = yaml.safe_load(Path(machine_spec_yaml_file).read_text())
-    arch = machine_spec_dict['arch']
+    device_number = 1
+    cuda = False
+    arch = getspecs.getgfx(device_number, cuda)
 
     for function_name in args.function_names:
 
         output_filename = os.path.join(args.level, args.tag, function_name+".csv")
+        memory_bandwidth = get_mem_bandwidth_from_file(output_filename, arch)
 
         if (function_name == 'copy') or (function_name == 'swap'):
             cur_dict = get_data_from_file(output_filename, "rocblas-GB/s", args.label1, args.label2, "rocblas-GB/s")
@@ -259,4 +409,4 @@ if __name__ =='__main__':
         funcname_list.append(function_name)
 
     print("plotting for: ", funcname_list)
-    plot_data(res_dicts, const_args_dicts, funcname_list, machine_spec_dict, output_dir, arch, args.theo_max, args.label1)
+    plot_data(res_dicts, const_args_dicts, funcname_list, output_dir, arch, args.theo_max, memory_bandwidth, args.label1)
