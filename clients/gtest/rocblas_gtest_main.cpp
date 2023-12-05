@@ -221,6 +221,24 @@ static void rocblas_print_version()
     rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
 }
 
+// Print rocBLAS and Tensile commit hashes
+static void rocblas_print_commit_hashes()
+{
+    const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
+
+#if BUILD_WITH_TENSILE
+    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
+                 << std::endl;
+    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl
+                 << std::endl;
+#else
+    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
+                 << std::endl;
+    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl
+                 << std::endl;
+#endif
+}
+
 static void rocblas_print_usage_warning()
 {
     std::string warning(
@@ -279,6 +297,9 @@ int main(int argc, char** argv)
     }
 
     rocblas_print_version();
+
+    // Print rocBLAS and Tensile commit hashes
+    rocblas_print_commit_hashes();
 
     // Set test device
     rocblas_set_test_device();
