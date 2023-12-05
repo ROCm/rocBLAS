@@ -143,6 +143,20 @@ if( BUILD_VERBOSE )
   message( STATUS "\t==>CMAKE_SHARED_LINKER_FLAGS_RELEASE: ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
 endif( )
 
+find_package(Git REQUIRED)
+
+# Get the git hash of the rocBLAS branch
+execute_process(
+          COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+          WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+          OUTPUT_VARIABLE GIT_HASH_ROCBLAS
+          OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+#set the rocBLAS commit hash
+set(rocblas_VERSION_COMMIT_ID "${GIT_HASH_ROCBLAS}")
+
+#set the Tensile commit hash
+set(tensile_VERSION_COMMIT_ID "${tensile_tag}")
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in"

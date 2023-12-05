@@ -1751,9 +1751,11 @@ try
          value<std::string>(&name_filter),
          "Simple strstr filter on test name only without wildcards, only used with --yaml or --data")
 
-        ("help,h", "produces this help message")
+        ("version", "Prints the version number")
 
-        ("version", "Prints the version number");
+        ("rocblas_tensile_commit_hash", "Prints the rocBLAS and Tensile commit-hashes")
+
+        ("help,h", "produces this help message");
     // clang-format on
 
     // parse command line into arg structure and stack variables using desc
@@ -1785,6 +1787,27 @@ try
         rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
+
+    const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
+
+#if BUILD_WITH_TENSILE
+    rocblas_cout << std::endl
+                 << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
+                 << std::endl;
+    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl
+                 << std::endl;
+
+    if(vm.find("rocblas_tensile_commit_hash") != vm.end())
+        return 0;
+#else
+    rocblas_cout << std::endl
+                 << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
+                 << std::endl;
+    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl
+                 << std::endl;
+    if(vm.find("rocblas_tensile_commit_hash") != vm.end())
+        return 0;
+#endif
 
     // transfer local variable state
 
