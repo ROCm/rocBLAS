@@ -274,7 +274,7 @@ rocblas_dot_batched_4_kernel(rocblas_int n,
     }
     __syncthreads();
 
-    sum = rocblas_wavefront_reduce<NB_X>(sum); // sum over wavefront as NB_X is 64
+    sum = rocblas_wavefront_reduce<NB_X>(sum); // sum over wavefront
 
     if(threadIdx.x == 0)
         out[blockIdx.x * NB_Y + threadIdx.y] = T(sum);
@@ -323,8 +323,10 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         return rocblas_status_success;
     }
 
-    bool                 is_gfx90a = handle->getArch() == 910 ? true : false;
-    static constexpr int WIN       = rocblas_dot_WIN<T>();
+    //Identifying the architecture to have an appropriate optimization
+    int                  arch_major       = handle->getArchMajor();
+    bool                 is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
+    static constexpr int WIN              = rocblas_dot_WIN<T>();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     int64_t shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
@@ -332,16 +334,12 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
 
     static constexpr int single_block_threshold = rocblas_dot_one_block_threshold<T>();
 
-    if(is_gfx90a && n <= 1024 && batch_count >= 256)
+    if(n <= 1024 && batch_count >= 256)
     {
         // Optimized kernel for small n and bigger batch_count
-        static constexpr int NB_X = 64;
         static constexpr int NB_Y = 4;
 
         dim3 grid((batch_count - 1) / NB_Y + 1);
-
-        // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
-        dim3 threads(NB_X, NB_Y);
 
         T* output = results; // device mode output directly to results
         if(handle->pointer_mode == rocblas_pointer_mode_host)
@@ -350,23 +348,56 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
             output        = (T*)(workspace + offset);
         }
 
-        ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, NB_X, NB_Y, CONJ, V>),
-                              grid,
-                              threads,
-                              0,
-                              handle->get_stream(),
-                              n,
-                              x,
-                              shiftx,
-                              incx,
-                              stridex,
-                              y,
-                              shifty,
-                              incy,
-                              stridey,
-                              batch_count,
-                              output);
+        if(is_arch_10_or_11)
+        {
+            static constexpr int NB_X
+                = 32; // warpSize for gfx10xx or gfx11xx is 32 and the rest is 64
 
+            // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
+            dim3 threads(NB_X, NB_Y);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, NB_X, NB_Y, CONJ, V>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  x,
+                                  shiftx,
+                                  incx,
+                                  stridex,
+                                  y,
+                                  shifty,
+                                  incy,
+                                  stridey,
+                                  batch_count,
+                                  output);
+        }
+        else
+        {
+            static constexpr int NB_X
+                = 64; // warpSize for gfx10xx or gfx11xx is 32 and the rest is 64
+
+            // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
+            dim3 threads(NB_X, NB_Y);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, NB_X, NB_Y, CONJ, V>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  x,
+                                  shiftx,
+                                  incx,
+                                  stridex,
+                                  y,
+                                  shifty,
+                                  incy,
+                                  stridey,
+                                  batch_count,
+                                  output);
+        }
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
             RETURN_IF_HIP_ERROR(hipMemcpyAsync(&results[0],
