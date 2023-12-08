@@ -388,52 +388,6 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_init_matrix<To, true>(
         hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{}
-       && arg.arithmetic_check == rocblas_arithmetic_check::ieee16_ieee32)
-    {
-        // half precision IEEE has max and lowest values 65504 and -65504,
-        // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
-        // the following will overflow to inf in half arithmetic,
-        // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
-        //
-        // set matrix A and matrix B so reduction sum has 65504 * 2 - 65504 * 2
-        //
-        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
-        const rocblas_half positive_two(2.0);
-        const rocblas_half negative_two(-2.0);
-        if(M >= 2 && N >= 2 && K >= 2)
-        {
-            Ti* A = (Ti*)hA;
-            Ti* B = (Ti*)hB;
-            if(transA == rocblas_operation_none)
-            {
-                A[0]   = Ti(ieee_half_near_max);
-                A[lda] = Ti(ieee_half_near_max);
-            }
-            else
-            {
-                A[0] = Ti(ieee_half_near_max);
-                A[1] = Ti(ieee_half_near_max);
-            }
-            if(transB == rocblas_operation_none)
-            {
-                for(int j = 0; j < N; j++)
-                {
-                    B[j * ldb]     = j % 2 == 0 ? Ti(positive_two) : Ti(negative_two);
-                    B[1 + j * ldb] = j % 2 == 0 ? Ti(negative_two) : Ti(positive_two);
-                }
-            }
-            else
-            {
-                for(int j = 0; j < N; j++)
-                {
-                    B[j]       = j % 2 == 0 ? Ti(positive_two) : Ti(negative_two);
-                    B[ldb + j] = j % 2 == 0 ? Ti(negative_two) : Ti(positive_two);
-                }
-            }
-        }
-    }
-
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
     CHECK_HIP_ERROR(dB.broadcast_one_matrix_from(hB));

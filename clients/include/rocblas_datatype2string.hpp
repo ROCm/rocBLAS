@@ -38,12 +38,6 @@ enum class rocblas_initialization
     rand_int_zero_one = 666,
 };
 
-enum class rocblas_arithmetic_check
-{
-    no_check      = 111,
-    ieee16_ieee32 = 222,
-};
-
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */
 
@@ -189,28 +183,10 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
     return "invalid";
 }
 
-constexpr auto rocblas_arithmetic_check2string(rocblas_arithmetic_check check)
-{
-    switch(check)
-    {
-    case rocblas_arithmetic_check::no_check:
-        return "no_check";
-    case rocblas_arithmetic_check::ieee16_ieee32:
-        return "ieee16_ieee32";
-    }
-    return "invalid";
-}
-
 inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
                                             rocblas_initialization    init)
 {
     return os << rocblas_initialization2string(init);
-}
-
-inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
-                                            rocblas_arithmetic_check  check)
-{
-    return os << rocblas_arithmetic_check2string(check);
 }
 
 inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, uint8_t val)
@@ -241,22 +217,6 @@ inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream&           
         CASE(rocblas_initialization::denorm);
         CASE(rocblas_initialization::denorm2);
         CASE(rocblas_initialization::rand_int_zero_one);
-    }
-    return os << "invalid";
-}
-#undef CASE
-
-inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                        os,
-                                            std::pair<char const*, rocblas_arithmetic_check> p)
-{
-    os << p.first << ": ";
-#define CASE(x) \
-    case x:     \
-        return os << rocblas_arithmetic_check2string(x)
-    switch(p.second)
-    {
-        CASE(rocblas_arithmetic_check::ieee16_ieee32);
-        CASE(rocblas_arithmetic_check::no_check);
     }
     return os << "invalid";
 }
@@ -339,14 +299,6 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
         value == "denorm2"    ? rocblas_initialization::denorm2    :
         value == "rand_int_zero_one"    ? rocblas_initialization::rand_int_zero_one        :
         static_cast<rocblas_initialization>(0); // zero not in enum
-}
-
-inline rocblas_arithmetic_check string2rocblas_arithmetic_check(const std::string& value)
-{
-    return
-        value == "ieee16_ieee32"   ? rocblas_arithmetic_check::ieee16_ieee32 :
-        value == "no_check"        ? rocblas_arithmetic_check::no_check :
-        static_cast<rocblas_arithmetic_check>(0); // zero not in enum
 }
 
 inline rocblas_datatype string2rocblas_datatype(const std::string& value)

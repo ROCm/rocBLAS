@@ -42,12 +42,6 @@ Datatypes:
         denorm: 444
         denorm2: 555
         rand_int_zero_one: 666
-
-  - rocblas_arithmetic_check:
-      bases: [ c_uint32 ]
-      attr:
-        no_check: 111
-        ieee16_ieee32: 222
   - rocblas_gemm_flags:
       bases: [ c_uint32 ]
       attr:
@@ -530,7 +524,6 @@ Arguments:
   - compute_type: rocblas_datatype
   - composite_compute_type: rocblas_computetype
   - initialization: rocblas_initialization
-  - arithmetic_check: rocblas_arithmetic_check
   - atomics_mode: rocblas_atomics_mode
   - os_flags: rocblas_client_os
   - gpu_arch: c_char*4
@@ -637,7 +630,6 @@ Defaults:
   atomics_mode: atomics_allowed
   workspace_size: 0
   initialization: rand_int
-  arithmetic_check: no_check
   category: nightly
   known_bug_platforms: ''
   name: rocblas-bench

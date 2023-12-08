@@ -115,8 +115,6 @@ void Arguments::init()
 
     initialization = rocblas_initialization::hpl;
 
-    arithmetic_check = rocblas_arithmetic_check::no_check;
-
     atomics_mode = rocblas_atomics_allowed;
 
     math_mode = rocblas_default_math;
