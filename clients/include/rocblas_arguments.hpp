@@ -136,8 +136,6 @@ struct Arguments
 
     rocblas_initialization initialization;
 
-    rocblas_arithmetic_check arithmetic_check;
-
     rocblas_atomics_mode atomics_mode;
 
     rocblas_client_os os_flags;
@@ -237,16 +235,15 @@ struct Arguments
     OPER(c_type) SEP                 \
     OPER(d_type) SEP                 \
     OPER(compute_type) SEP           \
-    OPER(composite_compute_type) SEP       \
+    OPER(composite_compute_type) SEP \
     OPER(initialization) SEP         \
-    OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
     OPER(os_flags) SEP               \
     OPER(gpu_arch) SEP               \
     OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(math_mode) SEP              \
-    OPER(flush_malloc_size) SEP             \
+    OPER(flush_malloc_size) SEP      \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
     OPER(devices) SEP                \

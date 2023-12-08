@@ -2395,15 +2395,6 @@ Definitions:
 
 
 Tests:
-- name: gemm_arithmetic_check_ieee16_ieee32
-  category: quick
-  function:
-    gemm_ex: *hpa_half_precision
-  arithmetic_check: ieee16_ieee32
-  matrix_size:
-    - { M:     8, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8, transA: N, transB: N, alpha:  1, beta:  2 } #bad M
-    - { M:   256, N:   256, K:   256, lda:   256, ldb:   256, ldc:   256, ldd:   256, transA: N, transB: N, alpha:  1, beta:  2 } #bad M
-
 - name: gemm_xxx_bad_arg
   category: pre_checkin
   function:
