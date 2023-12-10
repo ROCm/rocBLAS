@@ -252,7 +252,7 @@ def get_mem_bandwidth_from_file(filename, arch):
         if(arch == 'gfx940' or arch == 'gfx941' or arch == '942'):
             return int(MCLK) / 1000 * int(memoryBusWidth) * 4
         else:
-            print("using memory bandwidth = memoryBusWidth * memoryClockRate * 2"
+            print("using memory bandwidth = memoryBusWidth * memoryClockRate * 2")
             return int(MCLK) / 1000 * int(memoryBusWidth) * 2
 
 
