@@ -604,7 +604,23 @@ class BandwidthComparison(RocBlasYamlComparison):
     def __init__(self, **kwargs):
         RocBlasYamlComparison.__init__(self, data_type='bandwidth', **kwargs)
 
-    def plot(self, run_configurations, axes):
+    def plot(self, run_configurations, figure, axes, cuda, compare):
+        def get_function_prefix(compute_type):
+            if '32_r' in compute_type:
+                return 's'
+            elif '64_r' in compute_type:
+                return 'd'
+            elif '32_c' in compute_type:
+                return 'c'
+            elif '64_c' in compute_type:
+                return 'z'
+            elif 'bf16_r' in compute_type:
+                return 'bf'
+            elif 'f16_r' in compute_type:
+                return 'h'
+            else:
+                print('Error - Cannot detect precision preFix: ' + compute_type)
+
         num_argument_sets = len(self.argument_sets)
         if num_argument_sets == 0:
             return
@@ -657,23 +673,15 @@ class BandwidthComparison(RocBlasYamlComparison):
 
         for group_label, run_configuration_group in grouped_run_configurations.items():
             for run_configuration in run_configuration_group:
-                # Reference: MI-100 theoretical memory bandwidth by default
-                tmb_MI100 = 1200
-                # Reference: radeon 7 theoretical memory bandwidth by default
-                tmb_radeon7 = 1000
+                # Reference: MI-200 theoretical memory bandwidth by default
+                tmb_MI200 = 1600
                 theoMax = 0
                 precisionBits = int(re.search(r'\d+', precision).group())
-                if(function == 'gemm' and precisionBits == 32): #xdlops
-                    theoMax = tmb_MI100 #scaling to appropriate precision
-                elif(function == 'trsm' or function == 'gemm'):  #TODO better logic to decide memory bound vs compute bound
-                    theoMax = tmb_MI100 #scaling to appropriate precision
-                elif(function == 'copy' and precisionBits == 32):
-                    theoMax = tmb_MI100
-                elif(function == 'swap' and precisionBits == 32):
-                    theoMax = tmb_MI100
+                if(function == 'gemm' and precisionBits == 32):
+                    theoMax = tmb_MI200
                 elif self.flops and self.mem:
                     try:
-                        theoMax = tmb_MI100
+                        theoMax = tmb_MI200
                     except:
                         print("flops and mem equations produce errors")
                 if theoMax:
@@ -682,7 +690,9 @@ class BandwidthComparison(RocBlasYamlComparison):
                     y_co = (theoMax, theoMax)
                     axes.plot(x_co, y_co, label = "Theoretical Peak Performance: "+str(theoMax)+"GB/s")
 
+        color=iter(cm.rainbow(np.linspace(0,1,len(y_scatter_by_group))))
         for group_label in y_scatter_by_group:
+            c = next(color)
             axes.scatter(
                     # x_bar_by_group[group_label],
                     test,
@@ -695,8 +705,8 @@ class BandwidthComparison(RocBlasYamlComparison):
                     # x_scatter_by_group[group_label],
                     test,
                     y_scatter_by_group[group_label],
-                    # 'k*',
-                    '-ok',
+                    color=c,
+                    label = get_function_prefix(precision) + function + ' Performance',#group_label,
                     )
 
         axes.xaxis.set_minor_locator(AutoMinorLocator())
