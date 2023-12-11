@@ -22,6 +22,8 @@
 
 cmake_minimum_required( VERSION 3.16.8 )
 
+# Build documentation
+option(BUILD_DOCS "Build documentation" OFF)
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
@@ -51,50 +53,7 @@ endif()
 # Main
 # ########################################################################
 
-# This finds the rocm-cmake project, and installs it if not found
-# rocm-cmake contains common cmake code for rocm projects to help setup and install
-set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM 0.7.3 CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
-if( NOT ROCM_FOUND )
-  set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
-  file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
-      ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip STATUS status LOG log)
-
-  list(GET status 0 status_code)
-  list(GET status 1 status_string)
-
-  if(NOT status_code EQUAL 0)
-    message(FATAL_ERROR "error: downloading
-    'https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip' failed
-    status_code: ${status_code}
-    status_string: ${status_string}
-    log: ${log}
-    ")
-  endif()
-
-  message(STATUS "downloading... done")
-
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzvf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
-  execute_process( COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${PROJECT_EXTERN_DIR}/rocm-cmake .
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
-  execute_process( COMMAND ${CMAKE_COMMAND} --build rocm-cmake-${rocm_cmake_tag} --target install
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR})
-
-  find_package( ROCM 0.7.3 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
-endif( )
-
-# rocm-cmake helpers
-include( ROCMSetupVersion )
-include( ROCMCreatePackage )
-include( ROCMInstallTargets )
-include( ROCMPackageConfigHelpers )
-include( ROCMInstallSymlinks )
-include( ROCMCheckTargetIds )
-include( ROCMHeaderWrapper )
-include( ROCMClients )
-
-
+include (dependencies)
 include (os-detection)
 get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
@@ -274,6 +233,11 @@ endif()
 if( BUILD_CLIENTS )
   add_subdirectory( clients )
 endif( )
+
+# Build docs
+if(BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
 
 # The following code is setting variables to control the behavior of CPack to generate our
 if( WIN32 )

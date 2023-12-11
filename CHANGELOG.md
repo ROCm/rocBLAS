@@ -9,6 +9,8 @@ Documentation for rocBLAS is available at
 
 * Level 1 and Level 1 Extension functions have additional ILP64 API for both C and FORTRAN (_64 name suffix) with int64_t function arguments.
 * Cache flush timing for gemm_ex.
+* Rename `.doxygen` and `.sphinx` folders to `doxygen` and `sphinx` folders, respectively.
+* CMake support for documentation.
 
 ## Changes
 
