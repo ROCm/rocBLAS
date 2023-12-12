@@ -30,7 +30,7 @@
 // The warpSize * 2 corresponds to the number of x-dimension threads per block optimized for better performance in the double_buffered_kernels.
 constexpr int rocblas_gemv_bx()
 {
-    return warpSize * 2;
+    return 64 * 2; // warpSize for gfx9xx: 64
 }
 
 // gemvt_sn is skinny n matrix optimizations
