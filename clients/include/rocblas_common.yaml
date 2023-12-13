@@ -530,7 +530,8 @@ Arguments:
   - api: rocblas_api
   - pad: c_uint32
   - math_mode: c_uint32
-  - flush_malloc_size: c_uint64
+  - flush_batch_count: c_uint64
+  - flush_memory_size: c_uint64
   - threads: c_uint16
   - streams: c_uint16
   - devices: c_uint8
@@ -609,7 +610,8 @@ Defaults:
   HMM: false
   pad: 4096
   math_mode: 0
-  flush_malloc_size: 0
+  flush_batch_count: 1
+  flush_memory_size: 0
   threads: 0
   streams: 0
   devices: 0

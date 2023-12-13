@@ -1493,7 +1493,8 @@ try
     bool        log_datatype        = false;
     bool        any_stride          = false;
     uint32_t    math_mode           = 0;
-    uint64_t    flush_malloc_size   = 0;
+    uint64_t    flush_batch_count   = 1;
+    uint64_t    flush_memory_size   = 0;
     bool        fortran             = false;
 
     arg.init(); // set all defaults
@@ -1737,9 +1738,29 @@ try
          value<uint32_t>(&arg.math_mode)->default_value(rocblas_default_math),
          "extended precision gemm math mode")
 
-        ("flush_malloc_size",
-         value<uint64_t>(&arg.flush_malloc_size)->default_value(0),
-         "Set to 2x cache size for cache flushing in timing code")
+        ("flush_batch_count",
+         value<uint64_t>(&arg.flush_batch_count)->default_value(1),
+         "number of copies of arrays to allocate for cache flushing in timing code. Functions"
+         " are called iters times in a timing loop. If the problem memory footprint is small"
+         " enough, then arrays will be cached. flush_batch_count can be used to prevent caching."
+         " For example, for sgemm with transA=transB=N:"
+         " problem_memory_footprint = (m*k + k*n + m*n) * sizeof(float)."
+         " To flush arrays before reuse set:"
+         " flush_batch_count >= 1 + cache_size / problem_memory_footprint"
+         " Note that in the calculation of flush_batch_count any padding from leading"
+         " dimensions is not loaded to cache and not included in the problem_memory_footprint."
+         " If you specify flush_batch_count you cannot also specify flush_memory_size")
+
+        ("flush_memory_size",
+         value<uint64_t>(&arg.flush_memory_size)->default_value(0),
+         "bytes of memory that will be occupied by arrays. Used only in timing code for cache flushing. Set to greater than"
+         " cache size so arrays are flushed from cache before they are reused. When the size of arrays (the problem_memory_footprint)"
+         " is smaller than flush_memory_size, then flush_batch_count copies of arrays are allocated where:"
+         " flush_batch_count = flush_memory_size / problem_memory_footprint."
+         " For sgemm with transA=transB=N"
+         " problem_memory_footprint = (m*k + k*n + m*n) * sizeof(float). Note that any padding from leading"
+         " dimensions is not loaded to cache and not included in the problem_memory_footprint."
+         " If you specify flush_memory_size you cannot also specify flush_batch_count")
 
         ("name_filter",
          value<std::string>(&name_filter),

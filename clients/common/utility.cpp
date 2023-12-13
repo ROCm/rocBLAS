@@ -438,3 +438,35 @@ void rocblas_parallel_initialize(int parallel_devices)
                      << " GB exceeds the max recommended memory " << max_memory
                      << " GB. Check library logic file sizes." << std::endl;
 }
+
+size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
+                                   size_t arg_flush_memory_size,
+                                   size_t cached_size)
+{
+    size_t default_arg_flush_batch_count = 1;
+    size_t default_arg_flush_memory_size = 0;
+    size_t flush_batch_count             = default_arg_flush_batch_count;
+
+    if(arg_flush_batch_count != default_arg_flush_batch_count
+       && arg_flush_memory_size != default_arg_flush_memory_size)
+    {
+        rocblas_cout << "rocBLAS WARNING: cannot set both flush_batch_count and flush_memory_size"
+                     << std::endl;
+        rocblas_cout << "rocBLAS WARNING: using flush_batch_count = " << arg_flush_batch_count
+                     << std::endl;
+        flush_batch_count = arg_flush_batch_count;
+    }
+    else if(arg_flush_batch_count != default_arg_flush_batch_count)
+    {
+        flush_batch_count = arg_flush_batch_count;
+        rocblas_cout << "flush_memory_size = ";
+        print_memory_size(flush_batch_count * cached_size);
+        rocblas_cout << std::endl;
+    }
+    else if(arg_flush_memory_size != default_arg_flush_memory_size)
+    {
+        flush_batch_count = 1 + (arg_flush_memory_size - 1) / cached_size;
+        rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
+    }
+    return flush_batch_count;
+}
