@@ -315,34 +315,45 @@ void testing_gemm_ex(const Arguments& arg)
         d_type = arg.c_type;
     }
 
-    // flush_malloc_size and flush_batch_count
+    // Information on flush_memory_size and flush_batch_count
     // - To time gemm_ex it is called number_hot_calls times.
     // - if the size of dA, dB, dC, dD are small enough they will be cached
     //   and reused number_hot_calls-1 times.
     // - This "hot-cache" timing will give higher performance than if the
     //   cache is flushed
-    // - arg.flush_malloc_size can be used to avoid caching of dA, dB, dC, dD
+    // - arg.flush_batch_count or arg.flush_memory_size can be used to avoid caching of dA, dB, dC, dD
+    // - if arg.flush_memory_size is specified, then flush_batch_count is calculated
+    // - only one of arg.flush_memory_size or arg.flush_batch_count can be used, not both
     // - Note that this is only used in timing code, not in testing code.
     // - The method is as outlined in
     //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
-    // - If you want to flush n bytes of cache, then set arg.flush_malloc_size = 2*n.
-    // - The number of copies of dA, dB, dC and dD that are allocated is
-    //   flush_batch_count = arg.flush_malloc_size / size_of(dA + dB + dC + dD)
-    // - In the number_hot_calls timing loop it cycles through the flush_batch_count copies
-    //   of dA, dB, dC, dD, and if arg.flush_malloc_size is large enouth they will be evicted
+    // - In the number_hot_calls timing loop it cycles through the arg.flush_batch_count copies
+    //   of dA, dB, dC, dD, and if flush_memory_size is large enough they will be evicted
     //   from cache before they are reused.
-    size_t stride_a          = lda * A_col;
-    size_t stride_b          = ldb * B_col;
-    size_t stride_c          = ldc * N;
-    size_t stride_d          = arg.outofplace ? ldd * N : 0;
+    // - The individual matrices are aligned on the same byte boundaries provided by hipMalloc.
+    rocblas_stride stride_a = size_t(lda) * A_col;
+    rocblas_stride stride_b = size_t(ldb) * B_col;
+    rocblas_stride stride_c = size_t(ldc) * N;
+    rocblas_stride stride_d = arg.outofplace ? size_t(ldd) * N : 0;
+
+    rocblas_stride aligned_stride_a = align_stride<Ti>(stride_a);
+    rocblas_stride aligned_stride_b = align_stride<Ti>(stride_b);
+    rocblas_stride aligned_stride_c = align_stride<To>(stride_c);
+    rocblas_stride aligned_stride_d = align_stride<To>(stride_d);
+
     size_t flush_batch_count = 1;
     if(arg.timing)
     {
-        size_t flush_malloc_size = arg.flush_malloc_size > 0 ? arg.flush_malloc_size : 1;
-        size_t a_b_c_d_size
-            = (stride_a + stride_b) * sizeof(Ti) + (stride_c + stride_d) * sizeof(To);
-        flush_batch_count = 1 + ((flush_malloc_size - 1) / a_b_c_d_size);
-        rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
+        size_t a_size = M * K * sizeof(Ti);
+        size_t b_size = K * N * sizeof(Ti);
+        size_t c_size = M * N * sizeof(To);
+        //      exclude d_size from cached_size calculation because
+        //      - for arg.outofplace == false : D == C
+        //      - for arg.outofplace == true  : D is write only
+        size_t a_b_c_cached_size = a_size + b_size + c_size;
+
+        flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
     }
 
     // Allocate host memory
@@ -356,13 +367,13 @@ void testing_gemm_ex(const Arguments& arg)
     CHECK_HIP_ERROR(hC.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, flush_batch_count);
-    device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, flush_batch_count);
-    device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, flush_batch_count);
+    device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, aligned_stride_a, flush_batch_count);
+    device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
+    device_strided_batch_matrix<To> dC(M, N, ldc, aligned_stride_c, flush_batch_count);
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
     device_strided_batch_matrix<To> dD_alloc
-        = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, flush_batch_count)
+        = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, aligned_stride_d, 1)
                            : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
     device_strided_batch_matrix<To>& dD = (arg.outofplace) ? dD_alloc : dC;
 
@@ -549,12 +560,24 @@ void testing_gemm_ex(const Arguments& arg)
         {
             int flush_index = (i + 1) % flush_batch_count;
             // clang-format off
-            rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
-                               dA[flush_index], arg.a_type, lda,
-                               dB[flush_index], arg.b_type, ldb, &h_beta_Tc,
-                               dC[flush_index], arg.c_type, ldc,
-                               dD[flush_index],     d_type, ldd,
-                               arg.compute_type, algo, solution_index, flags);
+            if(arg.outofplace)
+            {
+                rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                   dA[flush_index], arg.a_type, lda,
+                                   dB[flush_index], arg.b_type, ldb, &h_beta_Tc,
+                                   dC[flush_index], arg.c_type, ldc,
+                                   dD[          0],     d_type, ldd,
+                                   arg.compute_type, algo, solution_index, flags);
+            }
+            else
+            {
+                rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                   dA[flush_index], arg.a_type, lda,
+                                   dB[flush_index], arg.b_type, ldb, &h_beta_Tc,
+                                   dC[flush_index], arg.c_type, ldc,
+                                   dD[flush_index],     d_type, ldd,
+                                   arg.compute_type, algo, solution_index, flags);
+            }
             // clang-format on
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

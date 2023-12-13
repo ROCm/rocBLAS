@@ -566,3 +566,45 @@ void print_batched_matrix(const char*           name,
     }
     rocblas_cout << std::flush;
 }
+
+template <typename T>
+inline rocblas_stride align_stride(rocblas_stride stride)
+{
+    // hipMalloc aligns pointers on 256 byte boundaries (or a multiple of 256)
+    // this function is to align stride*sizeof(T) on 256 byte boundaries
+    size_t byte_alignment = 256;
+
+    if(byte_alignment % sizeof(T) == 0)
+    {
+        size_t type_alignment = byte_alignment / sizeof(T);
+        return ((stride - 1) / type_alignment + 1) * type_alignment;
+    }
+    else
+    {
+        return ((stride - 1) / byte_alignment + 1) * byte_alignment;
+    }
+}
+
+inline void print_memory_size(size_t memory_size)
+{
+    if(memory_size < 1024)
+    {
+        rocblas_cout << std::setprecision(0) << memory_size << " Bytes";
+    }
+    else if(memory_size < 1048576)
+    {
+        rocblas_cout << std::setprecision(3) << float(memory_size) / 1024.0f << " KB";
+    }
+    else if(memory_size < 1073741824)
+    {
+        rocblas_cout << std::setprecision(6) << float(memory_size) / 1048576.0f << " MB";
+    }
+    else
+    {
+        rocblas_cout << std::setprecision(9) << float(memory_size) / 1073741824.0f << " GB";
+    }
+}
+
+size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
+                                   size_t arg_flush_memory_size,
+                                   size_t cached_size);
