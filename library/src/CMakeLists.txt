@@ -671,7 +671,7 @@ foreach( file ${subdir_src64_list} )
   SET_SOURCE_FILES_PROPERTIES( ${file} PROPERTIES COMPILE_DEFINITIONS ROCBLAS_INTERNAL_ILP64 )
 endforeach()
 
-message(STATUS "*** NOTE: blas2/rocblas_ger_kernels.cpp is compiled with the verbose flag -v for QC purposes.")
+message(STATUS "** NOTE: blas2/rocblas_ger_kernels.cpp is compiled with the verbose flag -v for QC purposes.")
 SET_SOURCE_FILES_PROPERTIES( blas2/rocblas_ger_kernels.cpp PROPERTIES COMPILE_FLAGS "-v" )
 
 #if( WIN32 )

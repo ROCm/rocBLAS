@@ -46,7 +46,7 @@ endfunction( )
 # ########################################################################
 function( rocblas_library_settings lib_target_ )
 
-  message(STATUS "***** rocblas_library_settings: ${lib_target_}")
+  message(STATUS "** rocblas_library_settings: ${lib_target_}")
 
   target_include_directories( ${lib_target_} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/src>
@@ -157,6 +157,16 @@ set(rocblas_VERSION_COMMIT_ID "${GIT_HASH_ROCBLAS}")
 
 #set the Tensile commit hash
 set(tensile_VERSION_COMMIT_ID "${tensile_tag}")
+
+# log build commits
+message( STATUS "*** Building rocBLAS commit: ${rocblas_VERSION_COMMIT_ID}" )
+if (BUILD_WITH_TENSILE)
+  if (NOT Tensile_TEST_LOCAL_PATH)
+    message( STATUS "*** Building Tensile commit: ${tensile_tag}" )
+  else()
+    message( STATUS "*** Building Tensile path: ${Tensile_TEST_LOCAL_PATH}" )
+  endif()
+endif()
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in"
