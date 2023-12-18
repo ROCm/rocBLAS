@@ -62,11 +62,13 @@ def runTestCommand (platform, project, gfilter)
     String xnackVar = ""
 
     String gtestCommonEnv = "ROCBLAS_CLIENT_RAM_GB_LIMIT=95"
+    String checkNumericsEnv = "ROCBLAS_CHECK_NUMERICS=4"
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
         if (pullRequest.labels.contains("help wanted"))
         {
             gtestCommonEnv += " GTEST_LISTENER=PASS_LINE_IN_LOG"
+            checkNumericsEnv = "ROCBLAS_CHECK_NUMERICS=2"
         }
     }
 
@@ -84,7 +86,7 @@ def runTestCommand (platform, project, gfilter)
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} ROCBLAS_CHECK_NUMERICS=4 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                                  """
     }
     else
