@@ -251,7 +251,7 @@ void testing_spr2_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_spr2<T>(uplo, N, h_alpha, hx[b], incx, hy[b], incy, hAp_gold[b]);
+            ref_spr2<T>(uplo, N, h_alpha, hx[b], incx, hy[b], incy, hAp_gold[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

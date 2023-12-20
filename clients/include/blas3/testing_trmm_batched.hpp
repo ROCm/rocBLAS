@@ -650,7 +650,7 @@ void testing_trmm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[i], lda, hB[i], ldb);
+            ref_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[i], lda, hB[i], ldb);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

@@ -380,7 +380,7 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_ger<T, CONJ>(M, N, h_alpha, hx[b], incx, hy[b], incy, hA_gold[b], lda);
+            ref_ger<T, CONJ>(M, N, h_alpha, hx[b], incx, hy[b], incy, hA_gold[b], lda);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

@@ -153,7 +153,7 @@ void testing_dgmm(const Arguments& arg)
 
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
-        cblas_dgmm<T>(side, M, N, hA, lda, hx, incx, hC_gold, ldc);
+        ref_dgmm<T>(side, M, N, hA, lda, hx, incx, hC_gold, ldc);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // fecth from GPU

@@ -157,7 +157,7 @@ void testing_scal_ex(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_scal(N, h_alpha, (Tx*)hx_gold, incx);
+        ref_scal(N, h_alpha, (Tx*)hx_gold, incx);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

@@ -327,7 +327,7 @@ void testing_syrk(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_syrk<T>(uplo, transA, N, K, h_alpha[0], hA, lda, h_beta[0], hC_gold, ldc);
+        ref_syrk<T>(uplo, transA, N, K, h_alpha[0], hA, lda, h_beta[0], hC_gold, ldc);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

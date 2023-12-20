@@ -406,17 +406,17 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
 
     // Calculate hB = hA*hX;
     for(int b = 0; b < batch_count; b++)
-        cblas_trmm<T>(side,
-                      uplo,
-                      transA,
-                      diag,
-                      M,
-                      N,
-                      1.0 / alpha_h,
-                      hA + b * stride_A,
-                      lda,
-                      hB + b * stride_B,
-                      ldb);
+        ref_trmm<T>(side,
+                    uplo,
+                    transA,
+                    diag,
+                    M,
+                    N,
+                    1.0 / alpha_h,
+                    hA + b * stride_A,
+                    lda,
+                    hB + b * stride_B,
+                    ldb);
 
     hXorB_1.copy_from(hB);
     hXorB_2.copy_from(hB);
@@ -614,10 +614,8 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
 
             // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-            cblas_trmm<T>(
-                side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
-            cblas_trmm<T>(
-                side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_2[b], ldb);
+            ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
+            ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_2[b], ldb);
 
             // calculate vector-induced-norm 1 of matrix res
             max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1[b], hB[b]));
@@ -695,7 +693,7 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, cpuXorB[b], ldb);
+            ref_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, cpuXorB[b], ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

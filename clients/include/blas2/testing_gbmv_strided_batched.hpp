@@ -525,7 +525,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_gbmv<T>(
+            ref_gbmv<T>(
                 transA, M, N, KL, KU, h_alpha, hAb[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

@@ -123,7 +123,7 @@ void testing_copy_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_copy<T>(N, hx[b], incx, hy_gold[b], incy);
+            ref_copy<T>(N, hx[b], incx, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

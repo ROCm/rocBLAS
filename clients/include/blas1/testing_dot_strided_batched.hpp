@@ -252,8 +252,8 @@ void testing_dot_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; ++b)
         {
-            (CONJ ? cblas_dotc<T>
-                  : cblas_dot<T>)(N, hx[b], incx, hy_ptr + b * stride_y, incy, &cpu_result[b]);
+            (CONJ ? ref_dotc<T>
+                  : ref_dot<T>)(N, hx[b], incx, hy_ptr + b * stride_y, incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

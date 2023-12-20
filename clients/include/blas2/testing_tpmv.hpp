@@ -155,7 +155,7 @@ void testing_tpmv(const Arguments& arg)
         // CPU BLAS
         {
             cpu_time_used = get_time_us_no_sync();
-            cblas_tpmv<T>(uplo, transA, diag, N, hAp, hx, incx);
+            ref_tpmv<T>(uplo, transA, diag, N, hAp, hx, incx);
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 

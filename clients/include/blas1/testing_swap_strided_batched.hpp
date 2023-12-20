@@ -136,7 +136,7 @@ void testing_swap_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
         {
-            cblas_swap<T>(N, hx_gold[b], incx, hy_gold[b], incy);
+            ref_swap<T>(N, hx_gold[b], incx, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

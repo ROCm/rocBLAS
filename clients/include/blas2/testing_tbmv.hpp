@@ -159,7 +159,7 @@ void testing_tbmv(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hx_gold, incx);
+        ref_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hx_gold, incx);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU

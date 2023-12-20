@@ -180,7 +180,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     // Calculate hb = hA*hx;
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_trmv<T>(uplo, transA, diag, N, hA[b], N, hb[b], incx);
+        ref_trmv<T>(uplo, transA, diag, N, hA[b], N, hb[b], incx);
     }
 
     // helper function to convert Regular matrix `hA` to packed matrix `hAp`
@@ -217,7 +217,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_trmv<T>(uplo, transA, diag, N, hA[b], N, hx_or_b[b], incx);
+            ref_trmv<T>(uplo, transA, diag, N, hA[b], N, hx_or_b[b], incx);
         }
 
         //calculate norm 1 of res
@@ -271,7 +271,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_tpsv<T>(uplo, transA, diag, N, hAp[b], cpu_x_or_b[b], incx);
+                ref_tpsv<T>(uplo, transA, diag, N, hAp[b], cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

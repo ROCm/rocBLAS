@@ -172,7 +172,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
         // that it zeros out the second element of the rotm vector parameter
         memset(hparam_ptr, 0, 5 * sizeof(T));
 
-        cblas_rotmg<T>(
+        ref_rotmg<T>(
             hdata + b * 4, hdata + b * 4 + 1, hdata + b * 4 + 2, hdata + b * 4 + 3, hparam_ptr);
     }
 
@@ -198,7 +198,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
             for(size_t b = 0; b < batch_count; b++)
             {
-                cblas_rotm<T>(N, hx_gold[b], incx, hy_gold[b], incy, hparam[b]);
+                ref_rotm<T>(N, hx_gold[b], incx, hy_gold[b], incy, hparam[b]);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

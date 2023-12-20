@@ -438,7 +438,7 @@ void testing_gemm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(rocblas_int b = 0; b < batch_count; b++)
         {
-            cblas_gemm<T>(
+            ref_gemm<T>(
                 transA, transB, M, N, K, h_alpha, hA[b], lda, hB[b], ldb, h_beta, hC_gold[b], ldc);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

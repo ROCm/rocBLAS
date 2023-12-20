@@ -199,7 +199,7 @@ void testing_ger(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_ger<T, CONJ>(M, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
+        ref_ger<T, CONJ>(M, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

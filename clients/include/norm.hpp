@@ -21,8 +21,7 @@
  * ************************************************************************ */
 #pragma once
 
-#include "cblas.h"
-#include "lapack_utilities.hpp"
+#include "cblas_interface.hpp"
 #include "norm.hpp"
 #include "rocblas.h"
 #include "rocblas_vector.hpp"

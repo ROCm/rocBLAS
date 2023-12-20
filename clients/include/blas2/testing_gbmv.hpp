@@ -329,7 +329,7 @@ void testing_gbmv(const Arguments& arg)
         }
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_gbmv<T>(transA, M, N, KL, KU, h_alpha, hAb, lda, hx, incx, h_beta, hy_gold, incy);
+        ref_gbmv<T>(transA, M, N, KL, KU, h_alpha, hAb, lda, hx, incx, h_beta, hy_gold, incy);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

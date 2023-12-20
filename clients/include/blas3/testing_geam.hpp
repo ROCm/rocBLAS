@@ -348,18 +348,18 @@ void testing_geam(const Arguments& arg)
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_geam(transA,
-                   transB,
-                   M,
-                   N,
-                   (T*)h_alpha,
-                   (T*)hA,
-                   lda,
-                   (T*)h_beta,
-                   (T*)hB,
-                   ldb,
-                   (T*)hC_gold,
-                   ldc);
+        ref_geam(transA,
+                 transB,
+                 M,
+                 N,
+                 (T*)h_alpha,
+                 (T*)hA,
+                 lda,
+                 (T*)h_beta,
+                 (T*)hB,
+                 ldb,
+                 (T*)hC_gold,
+                 ldc);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -415,18 +415,18 @@ void testing_geam(const Arguments& arg)
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
                 // reference calculation
-                cblas_geam(transA,
-                           transB,
-                           M,
-                           N,
-                           (T*)h_alpha,
-                           (T*)hA_copy,
-                           lda,
-                           (T*)h_beta,
-                           (T*)hB,
-                           ldb,
-                           (T*)hC_gold,
-                           ldc);
+                ref_geam(transA,
+                         transB,
+                         M,
+                         N,
+                         (T*)h_alpha,
+                         (T*)hA_copy,
+                         lda,
+                         (T*)h_beta,
+                         (T*)hB,
+                         ldb,
+                         (T*)hC_gold,
+                         ldc);
 
                 if(arg.unit_check)
                 {
@@ -461,18 +461,18 @@ void testing_geam(const Arguments& arg)
                     hipMemcpy(hC, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
-                cblas_geam(transA,
-                           transB,
-                           M,
-                           N,
-                           (T*)h_alpha,
-                           (T*)hA_copy,
-                           lda,
-                           (T*)h_beta,
-                           (T*)hB_copy,
-                           ldb,
-                           (T*)hC_gold,
-                           ldc);
+                ref_geam(transA,
+                         transB,
+                         M,
+                         N,
+                         (T*)h_alpha,
+                         (T*)hA_copy,
+                         lda,
+                         (T*)h_beta,
+                         (T*)hB_copy,
+                         ldb,
+                         (T*)hC_gold,
+                         ldc);
 
                 if(arg.unit_check)
                 {

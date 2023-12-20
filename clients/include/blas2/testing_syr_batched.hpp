@@ -251,7 +251,7 @@ void testing_syr_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_syr<T>(uplo, N, h_alpha, hx[b], incx, hA_gold[b], lda);
+            ref_syr<T>(uplo, N, h_alpha, hx[b], incx, hA_gold[b], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

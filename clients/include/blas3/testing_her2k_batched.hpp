@@ -335,7 +335,7 @@ void testing_her2k_batched(const Arguments& arg)
     // clang-format on
 
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
-    auto herXX_ref_fn         = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
+    auto herXX_ref_fn         = TWOK ? ref_her2k<T> : ref_herkx<T>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);

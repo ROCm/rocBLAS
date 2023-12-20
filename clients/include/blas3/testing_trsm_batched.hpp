@@ -389,7 +389,7 @@ void testing_trsm_batched(const Arguments& arg)
     for(int b = 0; b < batch_count; b++)
     {
         // Calculate hB = hA*hX
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], M);
+        ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], M);
     }
 
     copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
@@ -542,7 +542,7 @@ void testing_trsm_batched(const Arguments& arg)
                         trsm_err_res_check<T>(err_host_batch, M, error_eps_multiplier, eps);
 
                     // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-                    cblas_trmm<T>(
+                    ref_trmm<T>(
                         side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
                     // calculate vector-induced-norm 1 of matrix res
                     double err_host_res_batch = matrix_norm_1<T>(M, N, hXorB_1[b], ldb, hB[b], M);
@@ -604,7 +604,7 @@ void testing_trsm_batched(const Arguments& arg)
                     if(arg.unit_check)
                         trsm_err_res_check<T>(err_device_batch, M, error_eps_multiplier, eps);
 
-                    cblas_trmm<T>(
+                    ref_trmm<T>(
                         side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
                     double err_device_res_batch = matrix_norm_1<T>(M, N, hXorB_1[b], ldb, hB[b], M);
 
@@ -676,7 +676,7 @@ void testing_trsm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hXorB_1[b], ldb);
+            ref_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hXorB_1[b], ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

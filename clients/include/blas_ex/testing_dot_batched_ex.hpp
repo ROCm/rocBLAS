@@ -279,8 +279,7 @@ void testing_dot_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
         {
-            (CONJ ? cblas_dotc<Tx>
-                  : cblas_dot<Tx>)(N, hx[b], incx, hy_ptr[b], incy, &cpu_result[b]);
+            (CONJ ? ref_dotc<Tx> : ref_dot<Tx>)(N, hx[b], incx, hy_ptr[b], incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

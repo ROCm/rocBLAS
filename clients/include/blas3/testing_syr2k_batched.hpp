@@ -451,23 +451,22 @@ void testing_syr2k_batched(const Arguments& arg)
         {
             if(TWOK)
             {
-                cblas_syr2k<T>(uplo,
-                               transA,
-                               N,
-                               K,
-                               h_alpha[0],
-                               hA[b],
-                               lda,
-                               hB[b],
-                               ldb,
-                               h_beta[0],
-                               hC_gold[b],
-                               ldc);
+                ref_syr2k<T>(uplo,
+                             transA,
+                             N,
+                             K,
+                             h_alpha[0],
+                             hA[b],
+                             lda,
+                             hB[b],
+                             ldb,
+                             h_beta[0],
+                             hC_gold[b],
+                             ldc);
             }
             else
             { // syrkx: B must equal A to use syrk as reference
-                cblas_syrk<T>(
-                    uplo, transA, N, K, h_alpha[0], hA[b], lda, h_beta[0], hC_gold[b], ldc);
+                ref_syrk<T>(uplo, transA, N, K, h_alpha[0], hA[b], lda, h_beta[0], hC_gold[b], ldc);
             }
         }
 

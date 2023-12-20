@@ -324,21 +324,20 @@ void testing_syr2k(const Arguments& arg)
 
         if(TWOK)
         {
-            cblas_syr2k<T>(
-                uplo, transA, N, K, h_alpha[0], hA, lda, hB, ldb, h_beta[0], hC_gold, ldc);
+            ref_syr2k<T>(uplo, transA, N, K, h_alpha[0], hA, lda, hB, ldb, h_beta[0], hC_gold, ldc);
         }
         else
         { // syrkx
-            cblas_syrk<T>(uplo,
-                          transA,
-                          N,
-                          K,
-                          h_alpha[0],
-                          hA,
-                          lda,
-                          h_beta[0],
-                          hC_gold,
-                          ldc); // B must == A to use syrk as reference
+            ref_syrk<T>(uplo,
+                        transA,
+                        N,
+                        K,
+                        h_alpha[0],
+                        hA,
+                        lda,
+                        h_beta[0],
+                        hC_gold,
+                        ldc); // B must == A to use syrk as reference
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

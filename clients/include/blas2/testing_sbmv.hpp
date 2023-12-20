@@ -236,7 +236,7 @@ void testing_sbmv(const Arguments& arg)
 
         // cpu ref
         cpu_time_used = get_time_us_no_sync();
-        cblas_sbmv<T>(uplo, N, K, alpha[0], hAb, lda, hx, incx, beta[0], hy_gold, incy);
+        ref_sbmv<T>(uplo, N, K, alpha[0], hAb, lda, hx, incx, beta[0], hy_gold, incy);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

@@ -286,8 +286,8 @@ void testing_axpy_ex(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        // cblas_axpy<Ta>(N, h_alpha, hx, incx, hy_gold, incy);
-        cblas_axpy<Tex>(N, h_alpha_ex, hx_ex, incx, hy_gold_ex, incy);
+        // ref_axpy<Ta>(N, h_alpha, hx, incx, hy_gold, incy);
+        ref_axpy<Tex>(N, h_alpha_ex, hx_ex, incx, hy_gold_ex, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

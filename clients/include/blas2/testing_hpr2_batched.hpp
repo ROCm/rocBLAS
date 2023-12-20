@@ -288,7 +288,7 @@ void testing_hpr2_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_hpr2<T>(uplo, N, h_alpha, hx[i], incx, hy[i], incy, hAp_gold[i]);
+            ref_hpr2<T>(uplo, N, h_alpha, hx[i], incx, hy[i], incy, hAp_gold[i]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

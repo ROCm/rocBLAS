@@ -145,7 +145,7 @@ void testing_asum(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_asum<T>(N, hx, incx, &cpu_result);
+        ref_asum<T>(N, hx, incx, &cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // abs_error for large N

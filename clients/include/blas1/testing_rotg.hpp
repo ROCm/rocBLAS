@@ -83,7 +83,7 @@ void testing_rotg(const Arguments& arg)
     host_vector<U> hc_gold = c;
     host_vector<T> hs_gold = s;
     cpu_time_used          = get_time_us_no_sync();
-    cblas_rotg<T, U>(ha_gold, hb_gold, hc_gold, hs_gold);
+    ref_rotg<T, U>(ha_gold, hb_gold, hc_gold, hs_gold);
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
     // Test rocblas_pointer_mode_host

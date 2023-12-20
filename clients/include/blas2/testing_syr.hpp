@@ -185,7 +185,7 @@ void testing_syr(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_syr<T>(uplo, N, h_alpha, hx, incx, hA_gold, lda);
+        ref_syr<T>(uplo, N, h_alpha, hx, incx, hA_gold, lda);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

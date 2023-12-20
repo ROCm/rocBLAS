@@ -183,7 +183,7 @@ void testing_trmv_strided_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
             for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
-                cblas_trmv<T>(uplo, transA, diag, N, hA[batch_index], lda, hx[batch_index], incx);
+                ref_trmv<T>(uplo, transA, diag, N, hA[batch_index], lda, hx[batch_index], incx);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }

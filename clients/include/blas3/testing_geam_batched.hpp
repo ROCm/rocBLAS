@@ -491,18 +491,18 @@ void testing_geam_batched(const Arguments& arg)
             auto hB_copy_p = hB_copy[b];
             auto hC_gold_p = hC_gold[b];
 
-            cblas_geam(transA,
-                       transB,
-                       M,
-                       N,
-                       (T*)h_alpha,
-                       (T*)hA_copy_p,
-                       lda,
-                       (T*)h_beta,
-                       (T*)hB_copy_p,
-                       ldb,
-                       (T*)hC_gold_p,
-                       ldc);
+            ref_geam(transA,
+                     transB,
+                     M,
+                     N,
+                     (T*)h_alpha,
+                     (T*)hA_copy_p,
+                     lda,
+                     (T*)h_beta,
+                     (T*)hB_copy_p,
+                     ldb,
+                     (T*)hC_gold_p,
+                     ldc);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
@@ -575,18 +575,18 @@ void testing_geam_batched(const Arguments& arg)
                     auto hB_copy_p = hB_copy[b];
                     auto hC_gold_p = hC_gold[b];
 
-                    cblas_geam(transA,
-                               transB,
-                               M,
-                               N,
-                               (T*)h_alpha,
-                               (T*)hA_copy_p,
-                               lda,
-                               (T*)h_beta,
-                               (T*)hB_copy_p,
-                               ldb,
-                               (T*)hC_gold_p,
-                               ldc);
+                    ref_geam(transA,
+                             transB,
+                             M,
+                             N,
+                             (T*)h_alpha,
+                             (T*)hA_copy_p,
+                             lda,
+                             (T*)h_beta,
+                             (T*)hB_copy_p,
+                             ldb,
+                             (T*)hC_gold_p,
+                             ldc);
                 }
 
                 if(arg.unit_check)
@@ -640,18 +640,18 @@ void testing_geam_batched(const Arguments& arg)
                     auto hB_copy_p = hB_copy[b];
                     auto hC_gold_p = hC_gold[b];
 
-                    cblas_geam(transA,
-                               transB,
-                               M,
-                               N,
-                               (T*)h_alpha,
-                               (T*)hA_copy_p,
-                               lda,
-                               (T*)h_beta,
-                               (T*)hB_copy_p,
-                               ldb,
-                               (T*)hC_gold_p,
-                               ldc);
+                    ref_geam(transA,
+                             transB,
+                             M,
+                             N,
+                             (T*)h_alpha,
+                             (T*)hA_copy_p,
+                             lda,
+                             (T*)h_beta,
+                             (T*)hB_copy_p,
+                             ldb,
+                             (T*)hC_gold_p,
+                             ldc);
                 }
 
                 if(arg.unit_check)

@@ -118,7 +118,7 @@ void testing_rotm(const Arguments& arg)
     // that it zeros out the second element of the rotm vector parameter
     memset(hparam.data(), 0, 5 * sizeof(T));
 
-    cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
+    ref_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
 
     // CPU BLAS reference data
     host_vector<T> hx_gold(N, incx);
@@ -167,7 +167,7 @@ void testing_rotm(const Arguments& arg)
             }
 
             cpu_time_used = get_time_us_no_sync();
-            cblas_rotm<T>(N, hx_gold, incx, hy_gold, incy, hparam);
+            ref_rotm<T>(N, hx_gold, incx, hy_gold, incy, hparam);
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
             if(arg.pointer_mode_host)

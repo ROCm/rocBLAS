@@ -156,7 +156,7 @@ void testing_tbsv(const Arguments& arg)
     // initialize "exact" answer hx
     hb = hx;
 
-    cblas_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hb, incx);
+    ref_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hb, incx);
     cpu_x_or_b = hb;
     hx_or_b    = hb;
 
@@ -188,7 +188,7 @@ void testing_tbsv(const Arguments& arg)
             trsm_err_res_check<T>(max_err, N, error_eps_multiplier, eps);
 
         // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-        cblas_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hx_or_b, incx);
+        ref_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hx_or_b, incx);
 
         // Calculate norm 1 of vector res
         max_err_res = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b, hb));
@@ -223,7 +223,7 @@ void testing_tbsv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         if(arg.norm_check)
-            cblas_tbsv<T>(uplo, transA, diag, N, K, hAb, lda, cpu_x_or_b, incx);
+            ref_tbsv<T>(uplo, transA, diag, N, K, hAb, lda, cpu_x_or_b, incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
