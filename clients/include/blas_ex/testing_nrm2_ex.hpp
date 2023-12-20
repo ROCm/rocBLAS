@@ -158,7 +158,7 @@ void testing_nrm2_ex(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_nrm2<Tx>(N, hx, incx, cpu_result);
+        ref_nrm2<Tx>(N, hx, incx, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         double abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];

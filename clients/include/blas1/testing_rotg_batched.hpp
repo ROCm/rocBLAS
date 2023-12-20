@@ -134,7 +134,7 @@ void testing_rotg_batched(const Arguments& arg)
     cpu_time_used = get_time_us_no_sync();
     for(size_t b = 0; b < batch_count; b++)
     {
-        cblas_rotg<T, U>(ha_gold[b], hb_gold[b], hc_gold[b], hs_gold[b]);
+        ref_rotg<T, U>(ha_gold[b], hb_gold[b], hc_gold[b], hs_gold[b]);
     }
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

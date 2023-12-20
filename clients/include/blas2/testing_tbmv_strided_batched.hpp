@@ -219,7 +219,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hx_gold[b], incx);
+            ref_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hx_gold[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

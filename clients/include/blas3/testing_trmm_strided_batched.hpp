@@ -749,7 +749,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[b], lda, hB[b], ldb);
+            ref_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[b], lda, hB[b], ldb);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

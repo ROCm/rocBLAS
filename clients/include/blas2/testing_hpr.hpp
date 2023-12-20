@@ -188,7 +188,7 @@ void testing_hpr(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_hpr<T>(uplo, N, h_alpha, hx, incx, hAp_gold);
+        ref_hpr<T>(uplo, N, h_alpha, hx, incx, hAp_gold);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU

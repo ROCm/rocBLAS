@@ -151,7 +151,7 @@ void testing_rot(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us_no_sync();
-        cblas_rot<T, T, U, V>(N, hx_gold, incx, hy_gold, incy, hc, hs);
+        ref_rot<T, T, U, V>(N, hx_gold, incx, hy_gold, incy, hc, hs);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

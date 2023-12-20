@@ -205,7 +205,7 @@ void testing_spr2(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_spr2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hAp_gold);
+        ref_spr2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hAp_gold);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU

@@ -196,7 +196,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     // Calculate hb = hA*hx;
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hb + stride_x * b, incx);
+        ref_trmv<T>(uplo, transA, diag, N, hA[b], lda, hb + stride_x * b, incx);
     }
 
     cpu_x_or_b.copy_from(hb);
@@ -290,7 +290,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                 trsm_err_res_check<T>(error_host, N, error_eps_multiplier, eps);
 
             for(int b = 0; b < batch_count; b++)
-                cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
+                ref_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
 
             auto error_host_res = vector_norm_1(N, incx, hx_or_b, hb);
             if(arg.unit_check)
@@ -307,7 +307,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                 trsm_err_res_check<T>(error_host, N, error_eps_multiplier, eps);
 
             for(int b = 0; b < batch_count; b++)
-                cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
+                ref_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
 
             auto error_device_res = vector_norm_1(N, incx, hx_or_b, hb);
             if(arg.unit_check)
@@ -365,7 +365,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_trsv<T>(uplo, transA, diag, N, hA[b], lda, cpu_x_or_b[b], incx);
+                ref_trsv<T>(uplo, transA, diag, N, hA[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

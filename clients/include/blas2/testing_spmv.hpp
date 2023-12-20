@@ -235,7 +235,7 @@ void testing_spmv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         // cpu reference
-        cblas_spmv<T>(uplo, N, alpha[0], hAp, hx, incx, beta[0], hy_gold, incy);
+        ref_spmv<T>(uplo, N, alpha[0], hAp, hx, incx, beta[0], hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

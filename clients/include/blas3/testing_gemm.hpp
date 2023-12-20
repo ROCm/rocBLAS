@@ -356,7 +356,7 @@ void testing_gemm(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
         }
 
-        cblas_gemm<T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
+        ref_gemm<T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
 
         if(arg.timing)
         {

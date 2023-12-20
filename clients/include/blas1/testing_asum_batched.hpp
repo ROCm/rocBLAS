@@ -168,7 +168,7 @@ void testing_asum_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
         {
-            cblas_asum<T>(N, hx[b], incx, cpu_result + b);
+            ref_asum<T>(N, hx[b], incx, cpu_result + b);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

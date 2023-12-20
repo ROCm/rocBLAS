@@ -397,7 +397,7 @@ void testing_herk_batched(const Arguments& arg)
         // cpu reference
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_herk<T>(uplo, transA, N, K, h_alpha[0], hA[b], lda, h_beta[0], hC_gold[b], ldc);
+            ref_herk<T>(uplo, transA, N, K, h_alpha[0], hA[b], lda, h_beta[0], hC_gold[b], ldc);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

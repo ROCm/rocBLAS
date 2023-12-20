@@ -175,7 +175,7 @@ void testing_rotmg_strided_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
             for(size_t b = 0; b < batch_count; b++)
             {
-                cblas_rotmg<T>(hd1_gold[b], hd2_gold[b], hx_gold[b], hy_gold[b], hparams_gold[b]);
+                ref_rotmg<T>(hd1_gold[b], hd2_gold[b], hx_gold[b], hy_gold[b], hparams_gold[b]);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

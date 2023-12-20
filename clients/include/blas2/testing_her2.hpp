@@ -208,7 +208,7 @@ void testing_her2(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_her2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
+        ref_her2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

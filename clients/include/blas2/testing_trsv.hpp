@@ -159,7 +159,7 @@ void testing_trsv(const Arguments& arg)
     hb = hx;
 
     // Calculate hb = hA*hx;
-    cblas_trmv<T>(uplo, transA, diag, N, hA, lda, hb, incx);
+    ref_trmv<T>(uplo, transA, diag, N, hA, lda, hb, incx);
     cpu_x_or_b = hb; // cpuXorB <- B
     hx_or_b    = hb;
 
@@ -222,7 +222,7 @@ void testing_trsv(const Arguments& arg)
                 trsm_err_res_check<T>(max_err_host, N, error_eps_multiplier, eps);
 
             // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-            cblas_trmv<T>(uplo, transA, diag, N, hA, lda, hx_or_b, incx);
+            ref_trmv<T>(uplo, transA, diag, N, hA, lda, hx_or_b, incx);
 
             // Calculate norm 1 of vector res
             auto max_err_host_res = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b, hb));
@@ -240,7 +240,7 @@ void testing_trsv(const Arguments& arg)
             if(arg.unit_check)
                 trsm_err_res_check<T>(max_err_dev, N, error_eps_multiplier, eps);
 
-            cblas_trmv<T>(uplo, transA, diag, N, hA, lda, hx_or_b, incx);
+            ref_trmv<T>(uplo, transA, diag, N, hA, lda, hx_or_b, incx);
             auto max_err_dev_res = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b, hb));
 
             if(arg.unit_check)
@@ -275,7 +275,7 @@ void testing_trsv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         if(arg.norm_check)
-            cblas_trsv<T>(uplo, transA, diag, N, hA, lda, cpu_x_or_b, incx);
+            ref_trsv<T>(uplo, transA, diag, N, hA, lda, cpu_x_or_b, incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

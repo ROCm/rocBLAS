@@ -246,7 +246,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
+    double rocblas_gflops, ref_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -281,7 +281,7 @@ void testing_syr_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_syr<T>(uplo, N, h_alpha, hx[b], incx, hA_gold[b], lda);
+            ref_syr<T>(uplo, N, h_alpha, hx[b], incx, hA_gold[b], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

@@ -184,7 +184,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
             for(rocblas_int b = 0; b < batch_count; ++b)
             {
-                cblas_tpmv<T>(uplo, transA, diag, N, hAp[b], hx[b], incx);
+                ref_tpmv<T>(uplo, transA, diag, N, hAp[b], hx[b], incx);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }

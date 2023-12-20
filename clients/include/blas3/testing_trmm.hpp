@@ -466,7 +466,7 @@ void testing_trmm(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, hB, ldb);
+        ref_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, hB, ldb);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy B matrix into C matrix

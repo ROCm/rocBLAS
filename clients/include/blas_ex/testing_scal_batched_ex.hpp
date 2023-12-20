@@ -188,7 +188,7 @@ void testing_scal_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
         {
-            cblas_scal(N, h_alpha, (Tx*)hx_gold[b], incx);
+            ref_scal(N, h_alpha, (Tx*)hx_gold[b], incx);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

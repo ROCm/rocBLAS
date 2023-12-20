@@ -704,25 +704,25 @@ void testing_geam_ex(const Arguments& arg)
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
 
-        auto cblas_geam_ex_fn = geam_ex_op == rocblas_geam_ex_operation_min_plus
-                                    ? cblas_geam_min_plus<T>
-                                    : cblas_geam_plus_min<T>;
+        auto ref_geam_ex_fn = geam_ex_op == rocblas_geam_ex_operation_min_plus
+                                  ? ref_geam_min_plus<T>
+                                  : ref_geam_plus_min<T>;
 
-        cblas_geam_ex_fn(transA,
-                         transB,
-                         M,
-                         N,
-                         K,
-                         h_alpha[0],
-                         (T*)hA,
-                         lda,
-                         (T*)hB,
-                         ldb,
-                         h_beta[0],
-                         (T*)hC,
-                         ldc,
-                         (T*)hD_gold,
-                         ldd);
+        ref_geam_ex_fn(transA,
+                       transB,
+                       M,
+                       N,
+                       K,
+                       h_alpha[0],
+                       (T*)hA,
+                       lda,
+                       (T*)hB,
+                       ldb,
+                       h_beta[0],
+                       (T*)hC,
+                       ldc,
+                       (T*)hD_gold,
+                       ldd);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -778,21 +778,21 @@ void testing_geam_ex(const Arguments& arg)
                     hipMemcpy(hD_1, dD_in_place, sizeof(T) * size_D, hipMemcpyDeviceToHost));
 
                 // reference calculation
-                cblas_geam_ex_fn(transA,
-                                 transB,
-                                 M,
-                                 N,
-                                 K,
-                                 h_alpha[0],
-                                 (T*)hA_copy,
-                                 lda,
-                                 (T*)hB_copy,
-                                 ldb,
-                                 h_beta[0],
-                                 (T*)hC,
-                                 ldc,
-                                 (T*)hD_gold,
-                                 ldd);
+                ref_geam_ex_fn(transA,
+                               transB,
+                               M,
+                               N,
+                               K,
+                               h_alpha[0],
+                               (T*)hA_copy,
+                               lda,
+                               (T*)hB_copy,
+                               ldb,
+                               h_beta[0],
+                               (T*)hC,
+                               ldc,
+                               (T*)hD_gold,
+                               ldd);
 
                 if(arg.unit_check)
                 {

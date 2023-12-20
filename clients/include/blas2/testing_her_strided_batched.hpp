@@ -278,7 +278,7 @@ void testing_her_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_her<T>(uplo, N, h_alpha, hx[i], incx, hA_gold[i], lda);
+            ref_her<T>(uplo, N, h_alpha, hx[i], incx, hA_gold[i], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

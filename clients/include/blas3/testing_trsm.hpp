@@ -274,7 +274,7 @@ void testing_trsm(const Arguments& arg)
     copy_matrix_with_different_leading_dimensions(hX, hB);
 
     // Calculate hB = hA*hX;
-    cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, M);
+    ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, M);
     copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
 
     // copy data from CPU to device
@@ -403,7 +403,7 @@ void testing_trsm(const Arguments& arg)
                     trsm_err_res_check<T>(err_host, M, error_eps_multiplier, eps);
 
                 // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-                cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
+                ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
                 double err_host_res = matrix_norm_1<T>(M, N, hXorB_1, ldb, hB, M);
 
                 if(arg.unit_check)
@@ -445,7 +445,7 @@ void testing_trsm(const Arguments& arg)
                 if(arg.unit_check)
                     trsm_err_res_check<T>(err_device, M, error_eps_multiplier, eps);
 
-                cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
+                ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
                 double err_device_res = matrix_norm_1<T>(M, N, hXorB_1, ldb, hB, M);
 
                 if(arg.unit_check)
@@ -487,7 +487,7 @@ void testing_trsm(const Arguments& arg)
         copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, hXorB_1, ldb);
+        ref_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, hXorB_1, ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

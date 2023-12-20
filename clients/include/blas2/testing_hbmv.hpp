@@ -247,7 +247,7 @@ void testing_hbmv(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_hbmv<T>(uplo, N, K, h_alpha, hAb, lda, hx, incx, h_beta, hy_gold, incy);
+        ref_hbmv<T>(uplo, N, K, h_alpha, hAb, lda, hx, incx, h_beta, hy_gold, incy);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

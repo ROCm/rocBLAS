@@ -281,11 +281,11 @@ void testing_symm_hemm(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         if(HERM)
         {
-            cblas_hemm<T>(side, uplo, M, N, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
+            ref_hemm<T>(side, uplo, M, N, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
         }
         else
         {
-            cblas_symm<T>(side, uplo, M, N, h_alpha[0], hA, lda, hB, ldb, h_beta[0], hC_gold, ldc);
+            ref_symm<T>(side, uplo, M, N, h_alpha[0], hA, lda, hB, ldb, h_beta[0], hC_gold, ldc);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

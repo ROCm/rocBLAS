@@ -239,7 +239,7 @@ void testing_hemv(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_hemv<T>(uplo, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
+        ref_hemv<T>(uplo, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

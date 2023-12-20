@@ -564,18 +564,18 @@ void testing_geam_strided_batched(const Arguments& arg)
 
         for(size_t b = 0; b < batch_count; b++)
         {
-            cblas_geam(transA,
-                       transB,
-                       M,
-                       N,
-                       (T*)h_alpha,
-                       hA[b],
-                       lda,
-                       (T*)h_beta,
-                       hB[b],
-                       ldb,
-                       hC_gold[b],
-                       ldc);
+            ref_geam(transA,
+                     transB,
+                     M,
+                     N,
+                     (T*)h_alpha,
+                     hA[b],
+                     lda,
+                     (T*)h_beta,
+                     hB[b],
+                     ldb,
+                     hC_gold[b],
+                     ldc);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
@@ -649,18 +649,18 @@ void testing_geam_strided_batched(const Arguments& arg)
                 // reference calculation
                 for(int b = 0; b < batch_count; b++)
                 {
-                    cblas_geam(transA,
-                               transB,
-                               M,
-                               N,
-                               (T*)h_alpha,
-                               hA_copy[b],
-                               lda,
-                               (T*)h_beta,
-                               hB_copy[b],
-                               ldb,
-                               hC_gold[b],
-                               ldc);
+                    ref_geam(transA,
+                             transB,
+                             M,
+                             N,
+                             (T*)h_alpha,
+                             hA_copy[b],
+                             lda,
+                             (T*)h_beta,
+                             hB_copy[b],
+                             ldb,
+                             hC_gold[b],
+                             ldc);
                 }
 
                 if(arg.unit_check)
@@ -713,18 +713,18 @@ void testing_geam_strided_batched(const Arguments& arg)
                 // reference calculation
                 for(int b = 0; b < batch_count; b++)
                 {
-                    cblas_geam(transA,
-                               transB,
-                               M,
-                               N,
-                               (T*)h_alpha,
-                               hA_copy[b],
-                               lda,
-                               (T*)h_beta,
-                               hB_copy[b],
-                               ldb,
-                               hC_gold[b],
-                               ldc);
+                    ref_geam(transA,
+                             transB,
+                             M,
+                             N,
+                             (T*)h_alpha,
+                             hA_copy[b],
+                             lda,
+                             (T*)h_beta,
+                             hB_copy[b],
+                             ldb,
+                             hC_gold[b],
+                             ldc);
                 }
 
                 if(arg.unit_check)

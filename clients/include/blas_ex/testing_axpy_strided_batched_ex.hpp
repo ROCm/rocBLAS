@@ -365,7 +365,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
                 // Compute the host solution.
                 for(int64_t b = 0; b < batch_count; ++b)
                 {
-                    cblas_axpy<Tex>(N, h_alpha_ex, hx_ex[b], incx, hy_ex[b], incy);
+                    ref_axpy<Tex>(N, h_alpha_ex, hx_ex[b], incx, hy_ex[b], incy);
                 }
                 cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

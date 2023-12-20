@@ -109,7 +109,7 @@ void testing_copy(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_copy<T>(N, hx, incx, hy_gold, incy);
+        ref_copy<T>(N, hx, incx, hy_gold, incy);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)

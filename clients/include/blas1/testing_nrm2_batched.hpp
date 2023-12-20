@@ -164,7 +164,7 @@ void testing_nrm2_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_nrm2<T>(N, hx[b], incx, cpu_result + b);
+            ref_nrm2<T>(N, hx[b], incx, cpu_result + b);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

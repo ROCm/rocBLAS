@@ -553,7 +553,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         // CPU BLAS
         for(rocblas_int b = 0; b < batch_count; b++)
         {
-            cblas_gemm<Ti, To_hpa>(
+            ref_gemm<Ti, To_hpa>(
                 transA,
                 transB,
                 M,

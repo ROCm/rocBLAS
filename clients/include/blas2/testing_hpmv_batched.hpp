@@ -361,7 +361,7 @@ void testing_hpmv_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_hpmv<T>(uplo, N, h_alpha, hAp[b], hx[b], incx, h_beta, hy_gold[b], incy);
+            ref_hpmv<T>(uplo, N, h_alpha, hAp[b], hx[b], incx, h_beta, hy_gold[b], incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

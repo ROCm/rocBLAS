@@ -508,7 +508,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
 
     // Calculate hB = hA*hX;
     for(int b = 0; b < batch_count; b++)
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
+        ref_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
 
     hXorB_1.copy_from(hB);
 
@@ -704,7 +704,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
                         trsm_err_res_check<T>(err_host_batch, M, error_eps_multiplier, eps);
 
                     // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-                    cblas_trmm<T>(
+                    ref_trmm<T>(
                         side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
                     double err_host_res_batch
                         = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1[b], hB[b]));
@@ -724,7 +724,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
                     if(arg.unit_check)
                         trsm_err_res_check<T>(err_device_batch, M, error_eps_multiplier, eps);
 
-                    cblas_trmm<T>(
+                    ref_trmm<T>(
                         side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
                     double err_device_res_batch
                         = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1[b], hB[b]));
@@ -797,7 +797,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hB[b], ldb);
+            ref_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hB[b], ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

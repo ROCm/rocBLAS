@@ -152,7 +152,7 @@ void testing_trmv(const Arguments& arg)
         // CPU BLAS
         {
             cpu_time_used = get_time_us_no_sync();
-            cblas_trmv<T>(uplo, transA, diag, N, hA, lda, hx, incx);
+            ref_trmv<T>(uplo, transA, diag, N, hA, lda, hx, incx);
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 

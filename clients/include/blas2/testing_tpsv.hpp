@@ -140,7 +140,7 @@ void testing_tpsv(const Arguments& arg)
     hb = hx;
 
     // Calculate hb = hA*hx;
-    cblas_trmv<T>(uplo, transA, diag, N, hA, N, hb, incx);
+    ref_trmv<T>(uplo, transA, diag, N, hA, N, hb, incx);
     cpu_x_or_b = hb; // cpuXorB <- B
     hx_or_b    = hb;
 
@@ -170,7 +170,7 @@ void testing_tpsv(const Arguments& arg)
         if(arg.unit_check)
             trsm_err_res_check(max_err, N, error_eps_multiplier, eps);
 
-        cblas_trmv<T>(uplo, transA, diag, N, hA, N, hx_or_b, incx);
+        ref_trmv<T>(uplo, transA, diag, N, hA, N, hx_or_b, incx);
         // hx_or_b contains A * (calculated X), so residual = A * (calculated x) - b
         //                                                  = hx_or_b - hb
         // res is the one norm of the scaled residual for each column
@@ -205,7 +205,7 @@ void testing_tpsv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         if(arg.norm_check)
-            cblas_tpsv<T>(uplo, transA, diag, N, hAp, cpu_x_or_b, incx);
+            ref_tpsv<T>(uplo, transA, diag, N, hAp, cpu_x_or_b, incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

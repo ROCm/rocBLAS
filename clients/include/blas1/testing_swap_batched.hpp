@@ -101,7 +101,7 @@ void testing_swap_batched(const Arguments& arg)
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
-    hx_gold.copy_from(hx); // swapped later by cblas_swap
+    hx_gold.copy_from(hx); // swapped later by ref_swap
     hy_gold.copy_from(hy);
 
     // Transfer data from CPU to device
@@ -127,7 +127,7 @@ void testing_swap_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
         {
-            cblas_swap<T>(N, hx_gold[b], incx, hy_gold[b], incy);
+            ref_swap<T>(N, hx_gold[b], incx, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

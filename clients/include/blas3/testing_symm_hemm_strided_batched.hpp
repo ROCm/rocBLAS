@@ -473,23 +473,23 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
         {
             if(HERM)
             {
-                cblas_hemm<T>(
+                ref_hemm<T>(
                     side, uplo, M, N, h_alpha, hA[b], lda, hB[b], ldb, h_beta, hC_gold[b], ldc);
             }
             else
             {
-                cblas_symm<T>(side,
-                              uplo,
-                              M,
-                              N,
-                              h_alpha[0],
-                              hA[b],
-                              lda,
-                              hB[b],
-                              ldb,
-                              h_beta[0],
-                              hC_gold[b],
-                              ldc);
+                ref_symm<T>(side,
+                            uplo,
+                            M,
+                            N,
+                            h_alpha[0],
+                            hA[b],
+                            lda,
+                            hB[b],
+                            ldb,
+                            h_beta[0],
+                            hC_gold[b],
+                            ldc);
             }
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

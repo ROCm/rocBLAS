@@ -253,7 +253,7 @@ void testing_dot_ex(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        (CONJ ? cblas_dotc<Tx> : cblas_dot<Tx>)(N, hx, incx, hy_ptr, incy, cpu_result);
+        (CONJ ? ref_dotc<Tx> : ref_dot<Tx>)(N, hx, incx, hy_ptr, incy, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // For large N, rocblas_half tends to diverge proportional to N

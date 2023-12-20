@@ -113,7 +113,7 @@ void testing_swap(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_swap<T>(N, hx_gold, incx, hy_gold, incy);
+        ref_swap<T>(N, hx_gold, incx, hy_gold, incy);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)

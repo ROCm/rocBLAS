@@ -58,7 +58,7 @@ namespace rocblas_iamax_iamin_ref
     }
 
     template <typename T>
-    void cblas_iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
+    void ref_iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
         int64_t minpos = -1;
         if(N > 0 && incx > 0)
@@ -79,7 +79,7 @@ namespace rocblas_iamax_iamin_ref
     }
 
     template <typename T>
-    void cblas_iamax_ensure_minimum_index(int64_t N, const T* X, int64_t incx, int64_t* result)
+    void ref_iamax_ensure_minimum_index(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
         int64_t maxpos = -1;
         if(N > 0 && incx > 0)
@@ -102,14 +102,14 @@ namespace rocblas_iamax_iamin_ref
     template <typename T>
     void iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
-        cblas_iamin(N, X, incx, result);
+        ref_iamin(N, X, incx, result);
         *result += 1;
     }
 
     template <typename T>
     void iamax(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
-        cblas_iamax_ensure_minimum_index(N, X, incx, result);
+        ref_iamax_ensure_minimum_index(N, X, incx, result);
         *result += 1;
     }
 

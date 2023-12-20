@@ -89,11 +89,11 @@ void testing_rotmg(const Arguments& arg)
             host_vector<T> hparams_gold = params;
 
             cpu_time_used = get_time_us_no_sync();
-            cblas_rotmg<T>(&hparams_gold[0],
-                           &hparams_gold[1],
-                           &hparams_gold[2],
-                           &hparams_gold[3],
-                           &hparams_gold[4]);
+            ref_rotmg<T>(&hparams_gold[0],
+                         &hparams_gold[1],
+                         &hparams_gold[2],
+                         &hparams_gold[3],
+                         &hparams_gold[4]);
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
             if(arg.pointer_mode_host)

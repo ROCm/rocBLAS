@@ -234,7 +234,7 @@ void testing_symv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         // cpu reference
-        cblas_symv<T>(uplo, N, alpha[0], hA, lda, hx, incx, beta[0], hy_gold, incy);
+        ref_symv<T>(uplo, N, alpha[0], hA, lda, hx, incx, beta[0], hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

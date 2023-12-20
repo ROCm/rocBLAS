@@ -234,7 +234,7 @@ void testing_spr_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_spr<T>(uplo, N, h_alpha, hx[i], incx, hAp_gold[i]);
+            ref_spr<T>(uplo, N, h_alpha, hx[i], incx, hAp_gold[i]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

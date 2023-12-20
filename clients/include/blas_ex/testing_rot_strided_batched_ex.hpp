@@ -291,7 +291,7 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
+            ref_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
