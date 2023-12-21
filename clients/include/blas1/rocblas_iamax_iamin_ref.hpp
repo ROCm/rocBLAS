@@ -22,95 +22,80 @@
 
 #pragma once
 
+#include "rocblas-types.h"
+#include "utility.hpp"
 namespace rocblas_iamax_iamin_ref
 {
     template <typename T>
-    T asum(T x)
+    inline real_t<T> iamax_iamin_abs(const T& x)
     {
-        return x < 0 ? -x : x;
+        return rocblas_abs(x);
     }
 
-    rocblas_half asum(rocblas_half x)
+    template <>
+    inline float iamax_iamin_abs(const rocblas_float_complex& c)
     {
-        return rocblas_half(asum(float(x)));
+        return rocblas_abs(c.real()) + rocblas_abs(c.imag());
     }
 
-    template <typename T>
-    bool lessthan(T x, T y)
+    template <>
+    inline double iamax_iamin_abs(const rocblas_double_complex& c)
     {
-        return x < y;
-    }
-
-    bool lessthan(rocblas_half x, rocblas_half y)
-    {
-        return float(x) < float(y);
+        return rocblas_abs(c.real()) + rocblas_abs(c.imag());
     }
 
     template <typename T>
-    bool greatherthan(T x, T y)
-    {
-        return x > y;
-    }
-
-    bool greatherthan(rocblas_half x, rocblas_half y)
-    {
-        return float(x) > float(y);
-    }
-
-    template <typename T>
-    void ref_iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
+    inline void local_iamin_ensure_min_index(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
         int64_t minpos = -1;
         if(N > 0 && incx > 0)
         {
-            auto min = asum(X[0]);
+            auto min = iamax_iamin_abs(X[0]);
             minpos   = 0;
             for(size_t i = 1; i < N; ++i)
             {
-                auto a = asum(X[i * incx]);
-                if(lessthan(a, min))
+                auto a = iamax_iamin_abs(X[i * incx]);
+                if(a < min)
                 {
                     min    = a;
                     minpos = i;
                 }
             }
         }
-        *result = minpos;
+        *result = minpos + 1; // change to Fortran 1 based indexing as in BLAS standard
     }
 
     template <typename T>
-    void ref_iamax_ensure_minimum_index(int64_t N, const T* X, int64_t incx, int64_t* result)
+    inline void local_iamax_ensure_min_index(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
         int64_t maxpos = -1;
         if(N > 0 && incx > 0)
         {
-            auto max = asum(X[0]);
+            auto max = iamax_iamin_abs(X[0]);
             maxpos   = 0;
             for(size_t i = 1; i < N; ++i)
             {
-                auto a = asum(X[i * incx]);
-                if(greatherthan(a, max))
+                auto a = iamax_iamin_abs(X[i * incx]);
+                if(a > max)
                 {
                     max    = a;
                     maxpos = i;
                 }
             }
         }
-        *result = maxpos;
+        *result = maxpos + 1; // change to Fortran 1 based indexing as in BLAS standard
     }
 
     template <typename T>
     void iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
-        ref_iamin(N, X, incx, result);
-        *result += 1;
+        local_iamin_ensure_min_index(N, X, incx, result);
     }
 
     template <typename T>
     void iamax(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
-        ref_iamax_ensure_minimum_index(N, X, incx, result);
-        *result += 1;
+        local_iamax_ensure_min_index(N, X, incx, result);
     }
 
 }
