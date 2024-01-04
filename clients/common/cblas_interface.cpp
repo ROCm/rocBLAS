@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -713,6 +713,46 @@ void ref_geam(rocblas_operation       transa,
     return ref_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
 }
 
+template <typename T, typename U>
+void cast_to_buffer(
+    rocblas_operation transA, int64_t m, int64_t k, int64_t lda, const T* A_t, host_vector<U>& A_u)
+{
+    size_t colsA = (transA == rocblas_operation_none ? k : m);
+    size_t rowsA = (transA == rocblas_operation_none ? m : k);
+
+    size_t sizeA = colsA * lda;
+
+    A_u.resize(sizeA);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(size_t i = 0; i < colsA; i++)
+    {
+        size_t   offset = i * lda;
+        const T* src    = A_t + offset;
+        U*       dst    = A_u + offset;
+        for(size_t j = 0; j < rowsA; j++)
+        {
+            *dst++ = static_cast<U>(*src++);
+        }
+    }
+}
+
+template <typename T, typename U>
+void cast_from_buffer(int64_t m, int64_t n, int64_t ldc, const host_vector<T>& C_t, U* C_u)
+{
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(size_t i = 0; i < n; i++)
+    {
+        size_t offset = i * ldc;
+        for(size_t j = 0; j < m; j++)
+            C_u[j + offset] = static_cast<U>(C_t[j + offset]);
+    }
+}
+
 // gemm
 template <>
 void ref_gemm<rocblas_bfloat16, float, float>(rocblas_operation                    transA,
@@ -733,15 +773,9 @@ void ref_gemm<rocblas_bfloat16, float, float>(rocblas_operation                 
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
-
-    host_vector<float> A_float(sizeA), B_float(sizeB);
-
-    for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = static_cast<float>(A[i]);
-    for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = static_cast<float>(B[i]);
+    host_vector<float> A_float, B_float;
+    cast_to_buffer(transA, m, k, lda, A, A_float);
+    cast_to_buffer(transB, k, n, ldb, B, B_float);
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -780,18 +814,10 @@ void ref_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation      
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
-    size_t sizeC = n * size_t(ldc);
-
-    host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
-
-    for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = static_cast<float>(A[i]);
-    for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = static_cast<float>(B[i]);
-    for(size_t i = 0; i < sizeC; i++)
-        C_float[i] = static_cast<float>(C[i]);
+    host_vector<float> A_float, B_float, C_float;
+    cast_to_buffer(transA, m, k, lda, A, A_float);
+    cast_to_buffer(transB, k, n, ldb, B, B_float);
+    cast_to_buffer(rocblas_operation_none, m, n, ldc, C, C_float);
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -810,8 +836,7 @@ void ref_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation      
                 C_float,
                 ldc);
 
-    for(size_t i = 0; i < sizeC; i++)
-        C[i] = static_cast<rocblas_bfloat16>(C_float[i]);
+    cast_from_buffer(m, n, ldc, C_float, C);
 }
 
 template <>
@@ -833,15 +858,9 @@ void ref_gemm<rocblas_half, float, float>(rocblas_operation                    t
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
-
-    host_vector<float> A_float(sizeA), B_float(sizeB);
-
-    for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = A[i];
-    for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = B[i];
+    host_vector<float> A_float, B_float;
+    cast_to_buffer(transA, m, k, lda, A, A_float);
+    cast_to_buffer(transB, k, n, ldb, B, B_float);
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -897,12 +916,9 @@ void ref_gemm<rocblas_half, rocblas_half, float>(rocblas_operation              
     }
     else
     {
-        for(size_t i = 0; i < sizeA; i++)
-            A_float[i] = A[i];
-        for(size_t i = 0; i < sizeB; i++)
-            B_float[i] = B[i];
-        for(size_t i = 0; i < sizeC; i++)
-            C_float[i] = C[i];
+        cast_to_buffer(transA, m, k, lda, A, A_float);
+        cast_to_buffer(transB, k, n, ldb, B, B_float);
+        cast_to_buffer(rocblas_operation_none, m, n, ldc, C, C_float);
     }
 
     // just directly cast, since transA, transB are integers in the enum
@@ -922,8 +938,7 @@ void ref_gemm<rocblas_half, rocblas_half, float>(rocblas_operation              
                 C_float,
                 ldc);
 
-    for(size_t i = 0; i < sizeC; i++)
-        C[i] = rocblas_half(C_float[i]);
+    cast_from_buffer(m, n, ldc, C_float, C);
 }
 
 template <>
@@ -947,18 +962,11 @@ void ref_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation       
     float alpha_float = alpha;
     float beta_float  = beta;
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
-    size_t sizeC = n * size_t(ldc);
+    host_vector<float> A_float, B_float, C_float;
 
-    host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
-
-    for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = A[i];
-    for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = B[i];
-    for(size_t i = 0; i < sizeC; i++)
-        C_float[i] = C[i];
+    cast_to_buffer(transA, m, k, lda, A, A_float);
+    cast_to_buffer(transB, k, n, ldb, B, B_float);
+    cast_to_buffer(rocblas_operation_none, m, n, ldc, C, C_float);
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -977,8 +985,7 @@ void ref_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation       
                 C_float,
                 ldc);
 
-    for(size_t i = 0; i < sizeC; i++)
-        C[i] = rocblas_half(C_float[i]);
+    cast_from_buffer(m, n, ldc, C_float, C);
 }
 
 template <>
@@ -1003,20 +1010,11 @@ void ref_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    tra
     // NOTE: This will not properly account for 32-bit integer overflow, however
     //       the result should be acceptable for testing.
 
-    size_t const sizeA = ((transA == rocblas_operation_none) ? k : m) * size_t(lda);
-    size_t const sizeB = ((transB == rocblas_operation_none) ? n : k) * size_t(ldb);
-    size_t const sizeC = n * size_t(ldc);
+    host_vector<double> A_double, B_double, C_double;
 
-    host_vector<double> A_double(sizeA);
-    host_vector<double> B_double(sizeB);
-    host_vector<double> C_double(sizeC);
-
-    for(size_t i = 0; i < sizeA; i++)
-        A_double[i] = static_cast<double>(A[i]);
-    for(size_t i = 0; i < sizeB; i++)
-        B_double[i] = static_cast<double>(B[i]);
-    for(size_t i = 0; i < sizeC; i++)
-        C_double[i] = static_cast<double>(C[i]);
+    cast_to_buffer(transA, m, k, lda, A, A_double);
+    cast_to_buffer(transB, k, n, ldb, B, B_double);
+    cast_to_buffer(rocblas_operation_none, m, n, ldc, C, C_double);
 
     // just directly cast, since transA, transB are integers in the enum
     cblas_dgemm(CblasColMajor,
@@ -1034,8 +1032,7 @@ void ref_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    tra
                 C_double,
                 ldc);
 
-    for(size_t i = 0; i < sizeC; i++)
-        C[i] = static_cast<int32_t>(C_double[i]);
+    cast_from_buffer(m, n, ldc, C_double, C);
 }
 
 //GEMMT
