@@ -35,3 +35,10 @@ from the system package manager. For example, on Ubuntu you can use the followin
 sudo apt-get update
 sudo apt-get install rocblas
 ```
+
+On Fedora, you can use the following code:
+
+```bash
+sudo dnf install rocblas
+sudo dnf install rocblas-devel
+```
