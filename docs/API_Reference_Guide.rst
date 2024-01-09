@@ -2121,7 +2121,7 @@ Graph Support for rocBLAS
 -------------------------
 
 Most of the rocBLAS functions can be captured into a graph node via Graph Management HIP APIs, except those listed in :ref:`Functions Unsupported with Graph Capture`.
-For a list of graph related HIP APIs, refer to `Graph Management HIP API <https://rocm.docs.amd.com/projects/HIP/en/latest/.doxygen/docBin/html/group___graph.html#graph-management>`_.
+For a list of graph related HIP APIs, refer to `Graph Management HIP API <https://rocm.docs.amd.com/projects/HIP/en/latest/doxygen/html/group___graph.html#graph-management>`_.
 
 .. code-block:: c++
 
