@@ -10,3 +10,6 @@ subtrees:
     - file: Programmers_Guide
     - file: Contributors_Guide
     - file: Acknowledgement
+  - caption: About
+    entries:
+    - file: license
