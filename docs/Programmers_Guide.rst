@@ -1432,7 +1432,7 @@ Expected output (note selected GEMM idx may differ):
 
 Where the far right values (``solution_index``) are the indices of the best performing kernels for those GEMMs in the rocBLAS kernel library. These indices can be directly used in future GEMM calls.
 
-See ``rocBLAS/samples/example_user_driven_tuning.cpp`` for sample code of directly using kernels via their indices.
+See ``rocBLAS/clients/samples/example_user_driven_tuning.cpp`` for sample code of directly using kernels via their indices.
 
 If the output is stored in a file, the results can be used to override default kernel selection with the kernels found, by setting the environment variable ``ROCBLAS_TENSILE_GEMM_OVERRIDE_PATH=<path>``, where ``<path>`` points to the stored file.
 
