@@ -15,23 +15,3 @@ ROCm installation and required platform dependencies, refer to the
 
 Documentation for rocBLAS is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
-
-To build documentation locally, use the following code:
-
-```bash
-cd docs
-
-pip3 install -r sphinx/requirements.txt
-
-python3 -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
-```
-
-## Install and build
-
-After you install the ROCm package repositories, you can download and install the `rocblas` package
-from the system package manager. For example, on Ubuntu you can use the following code:
-
-```bash
-sudo apt-get update
-sudo apt-get install rocblas
-```
