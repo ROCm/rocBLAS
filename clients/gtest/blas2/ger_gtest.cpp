@@ -100,7 +100,11 @@ namespace
                     name << '_' << arg.batch_count;
             }
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }

@@ -468,99 +468,99 @@ set(rocblas64_ex_source_no_tensile
 #     src64/blas3/rocblas_trtri_strided_batched.cpp
 # )
 
-# set( rocblas64_blas2_source
-#   src64/blas2/rocblas_gemv.cpp
-#   src64/blas2/rocblas_gemv_kernels.cpp
-#   src64/blas2/rocblas_gemv_batched.cpp
-#   src64/blas2/rocblas_gemv_strided_batched.cpp
-#   src64/blas2/rocblas_tpmv.cpp
-#   src64/blas2/rocblas_tpmv_kernels.cpp
-#   src64/blas2/rocblas_tpmv_batched.cpp
-#   src64/blas2/rocblas_tpmv_strided_batched.cpp
-#   src64/blas2/rocblas_gbmv.cpp
-#   src64/blas2/rocblas_gbmv_kernels.cpp
-#   src64/blas2/rocblas_gbmv_batched.cpp
-#   src64/blas2/rocblas_gbmv_strided_batched.cpp
-#   src64/blas2/rocblas_tbsv.cpp
-#   src64/blas2/rocblas_tbsv_kernels.cpp
-#   src64/blas2/rocblas_tbsv_batched.cpp
-#   src64/blas2/rocblas_tbsv_strided_batched.cpp
-#   src64/blas2/rocblas_trmv.cpp
-#   src64/blas2/rocblas_trmv_kernels.cpp
-#   src64/blas2/rocblas_trmv_batched.cpp
-#   src64/blas2/rocblas_trmv_strided_batched.cpp
-#   src64/blas2/rocblas_ger.cpp
-#   src64/blas2/rocblas_ger_kernels.cpp
-#   src64/blas2/rocblas_ger_batched.cpp
-#   src64/blas2/rocblas_ger_strided_batched.cpp
-#   src64/blas2/rocblas_hbmv.cpp
-#   src64/blas2/rocblas_hbmv_kernels.cpp
-#   src64/blas2/rocblas_hbmv_batched.cpp
-#   src64/blas2/rocblas_hbmv_strided_batched.cpp
-#   src64/blas2/rocblas_hemv.cpp
-#   src64/blas2/rocblas_hemv_symv_kernels.cpp
-#   src64/blas2/rocblas_hemv_batched.cpp
-#   src64/blas2/rocblas_hemv_strided_batched.cpp
-#   src64/blas2/rocblas_her.cpp
-#   src64/blas2/rocblas_her_kernels.cpp
-#   src64/blas2/rocblas_her_batched.cpp
-#   src64/blas2/rocblas_her_strided_batched.cpp
-#   src64/blas2/rocblas_her2.cpp
-#   src64/blas2/rocblas_her2_kernels.cpp
-#   src64/blas2/rocblas_her2_batched.cpp
-#   src64/blas2/rocblas_her2_strided_batched.cpp
-#   src64/blas2/rocblas_hpmv.cpp
-#   src64/blas2/rocblas_hpmv_kernels.cpp
-#   src64/blas2/rocblas_hpmv_batched.cpp
-#   src64/blas2/rocblas_hpmv_strided_batched.cpp
-#   src64/blas2/rocblas_hpr.cpp
-#   src64/blas2/rocblas_hpr_kernels.cpp
-#   src64/blas2/rocblas_hpr_batched.cpp
-#   src64/blas2/rocblas_hpr_strided_batched.cpp
-#   src64/blas2/rocblas_hpr2.cpp
-#   src64/blas2/rocblas_hpr2_kernels.cpp
-#   src64/blas2/rocblas_hpr2_batched.cpp
-#   src64/blas2/rocblas_hpr2_strided_batched.cpp
-#   src64/blas2/rocblas_spr.cpp
-#   src64/blas2/rocblas_spr_kernels.cpp
-#   src64/blas2/rocblas_spr_batched.cpp
-#   src64/blas2/rocblas_spr_strided_batched.cpp
-#   src64/blas2/rocblas_spr2.cpp
-#   src64/blas2/rocblas_spr2_kernels.cpp
-#   src64/blas2/rocblas_spr2_batched.cpp
-#   src64/blas2/rocblas_spr2_strided_batched.cpp
-#   src64/blas2/rocblas_syr.cpp
-#   src64/blas2/rocblas_syr_kernels.cpp
-#   src64/blas2/rocblas_syr_batched.cpp
-#   src64/blas2/rocblas_syr_strided_batched.cpp
-#   src64/blas2/rocblas_syr2.cpp
-#   src64/blas2/rocblas_syr2_kernels.cpp
-#   src64/blas2/rocblas_syr2_batched.cpp
-#   src64/blas2/rocblas_syr2_strided_batched.cpp
-#   src64/blas2/rocblas_tbmv.cpp
-#   src64/blas2/rocblas_tbmv_kernels.cpp
-#   src64/blas2/rocblas_tbmv_batched.cpp
-#   src64/blas2/rocblas_tbmv_strided_batched.cpp
-#   src64/blas2/rocblas_tpsv.cpp
-#   src64/blas2/rocblas_tpsv_kernels.cpp
-#   src64/blas2/rocblas_tpsv_batched.cpp
-#   src64/blas2/rocblas_tpsv_strided_batched.cpp
-#   src64/blas2/rocblas_sbmv.cpp
-#   src64/blas2/rocblas_sbmv_kernels.cpp
-#   src64/blas2/rocblas_sbmv_batched.cpp
-#   src64/blas2/rocblas_sbmv_strided_batched.cpp
-#   src64/blas2/rocblas_spmv.cpp
-#   src64/blas2/rocblas_spmv_kernels.cpp
-#   src64/blas2/rocblas_spmv_batched.cpp
-#   src64/blas2/rocblas_spmv_strided_batched.cpp
-#   src64/blas2/rocblas_symv.cpp
-#   src64/blas2/rocblas_symv_batched.cpp
-#   src64/blas2/rocblas_symv_strided_batched.cpp
-#   src64/blas2/rocblas_trsv.cpp
-#   src64/blas2/rocblas_trsv_kernels.cpp
-#   src64/blas2/rocblas_trsv_strided_batched.cpp
-#   src64/blas2/rocblas_trsv_batched.cpp
-# )
+set( rocblas64_blas2_source
+  #   src64/blas2/rocblas_gemv.cpp
+  #   src64/blas2/rocblas_gemv_kernels.cpp
+  #   src64/blas2/rocblas_gemv_batched.cpp
+  #   src64/blas2/rocblas_gemv_strided_batched.cpp
+  #   src64/blas2/rocblas_tpmv.cpp
+  #   src64/blas2/rocblas_tpmv_kernels.cpp
+  #   src64/blas2/rocblas_tpmv_batched.cpp
+  #   src64/blas2/rocblas_tpmv_strided_batched.cpp
+  #   src64/blas2/rocblas_gbmv.cpp
+  #   src64/blas2/rocblas_gbmv_kernels.cpp
+  #   src64/blas2/rocblas_gbmv_batched.cpp
+  #   src64/blas2/rocblas_gbmv_strided_batched.cpp
+  #   src64/blas2/rocblas_tbsv.cpp
+  #   src64/blas2/rocblas_tbsv_kernels.cpp
+  #   src64/blas2/rocblas_tbsv_batched.cpp
+  #   src64/blas2/rocblas_tbsv_strided_batched.cpp
+  #   src64/blas2/rocblas_trmv.cpp
+  #   src64/blas2/rocblas_trmv_kernels.cpp
+  #   src64/blas2/rocblas_trmv_batched.cpp
+  #   src64/blas2/rocblas_trmv_strided_batched.cpp
+  src64/blas2/rocblas_ger_64.cpp
+  src64/blas2/rocblas_ger_kernels_64.cpp
+  src64/blas2/rocblas_ger_batched_64.cpp
+  src64/blas2/rocblas_ger_strided_batched_64.cpp
+  #   src64/blas2/rocblas_hbmv.cpp
+  #   src64/blas2/rocblas_hbmv_kernels.cpp
+  #   src64/blas2/rocblas_hbmv_batched.cpp
+  #   src64/blas2/rocblas_hbmv_strided_batched.cpp
+  #   src64/blas2/rocblas_hemv.cpp
+  #   src64/blas2/rocblas_hemv_symv_kernels.cpp
+  #   src64/blas2/rocblas_hemv_batched.cpp
+  #   src64/blas2/rocblas_hemv_strided_batched.cpp
+  #   src64/blas2/rocblas_her.cpp
+  #   src64/blas2/rocblas_her_kernels.cpp
+  #   src64/blas2/rocblas_her_batched.cpp
+  #   src64/blas2/rocblas_her_strided_batched.cpp
+  #   src64/blas2/rocblas_her2.cpp
+  #   src64/blas2/rocblas_her2_kernels.cpp
+  #   src64/blas2/rocblas_her2_batched.cpp
+  #   src64/blas2/rocblas_her2_strided_batched.cpp
+  #   src64/blas2/rocblas_hpmv.cpp
+  #   src64/blas2/rocblas_hpmv_kernels.cpp
+  #   src64/blas2/rocblas_hpmv_batched.cpp
+  #   src64/blas2/rocblas_hpmv_strided_batched.cpp
+  #   src64/blas2/rocblas_hpr.cpp
+  #   src64/blas2/rocblas_hpr_kernels.cpp
+  #   src64/blas2/rocblas_hpr_batched.cpp
+  #   src64/blas2/rocblas_hpr_strided_batched.cpp
+  #   src64/blas2/rocblas_hpr2.cpp
+  #   src64/blas2/rocblas_hpr2_kernels.cpp
+  #   src64/blas2/rocblas_hpr2_batched.cpp
+  #   src64/blas2/rocblas_hpr2_strided_batched.cpp
+  #   src64/blas2/rocblas_spr.cpp
+  #   src64/blas2/rocblas_spr_kernels.cpp
+  #   src64/blas2/rocblas_spr_batched.cpp
+  #   src64/blas2/rocblas_spr_strided_batched.cpp
+  #   src64/blas2/rocblas_spr2.cpp
+  #   src64/blas2/rocblas_spr2_kernels.cpp
+  #   src64/blas2/rocblas_spr2_batched.cpp
+  #   src64/blas2/rocblas_spr2_strided_batched.cpp
+  #   src64/blas2/rocblas_syr.cpp
+  #   src64/blas2/rocblas_syr_kernels.cpp
+  #   src64/blas2/rocblas_syr_batched.cpp
+  #   src64/blas2/rocblas_syr_strided_batched.cpp
+  #   src64/blas2/rocblas_syr2.cpp
+  #   src64/blas2/rocblas_syr2_kernels.cpp
+  #   src64/blas2/rocblas_syr2_batched.cpp
+  #   src64/blas2/rocblas_syr2_strided_batched.cpp
+  #   src64/blas2/rocblas_tbmv.cpp
+  #   src64/blas2/rocblas_tbmv_kernels.cpp
+  #   src64/blas2/rocblas_tbmv_batched.cpp
+  #   src64/blas2/rocblas_tbmv_strided_batched.cpp
+  #   src64/blas2/rocblas_tpsv.cpp
+  #   src64/blas2/rocblas_tpsv_kernels.cpp
+  #   src64/blas2/rocblas_tpsv_batched.cpp
+  #   src64/blas2/rocblas_tpsv_strided_batched.cpp
+  #   src64/blas2/rocblas_sbmv.cpp
+  #   src64/blas2/rocblas_sbmv_kernels.cpp
+  #   src64/blas2/rocblas_sbmv_batched.cpp
+  #   src64/blas2/rocblas_sbmv_strided_batched.cpp
+  #   src64/blas2/rocblas_spmv.cpp
+  #   src64/blas2/rocblas_spmv_kernels.cpp
+  #   src64/blas2/rocblas_spmv_batched.cpp
+  #   src64/blas2/rocblas_spmv_strided_batched.cpp
+  #   src64/blas2/rocblas_symv.cpp
+  #   src64/blas2/rocblas_symv_batched.cpp
+  #   src64/blas2/rocblas_symv_strided_batched.cpp
+  #   src64/blas2/rocblas_trsv.cpp
+  #   src64/blas2/rocblas_trsv_kernels.cpp
+  #   src64/blas2/rocblas_trsv_strided_batched.cpp
+  #   src64/blas2/rocblas_trsv_batched.cpp
+)
 
 set( rocblas64_auxiliary_source
   # src64/handle.cpp

@@ -48,11 +48,6 @@ Definitions:
     - { alpha:  0,    alphai:  0,   beta:  0.5,   betai:  0 } # only incy used
     - { alpha:  1,    alphai:  0,   beta:  0.5,   betai:  0 }
 
-  - &c_pos_x2_overflow_int32
-    - [1073741825]
-  - &c_neg_x2_overflow_int32
-    - [-1073741825]
-
   - &size_t_index
     - { N: 65536 } # overflow packed index as int (n*(n+1)/2)
 

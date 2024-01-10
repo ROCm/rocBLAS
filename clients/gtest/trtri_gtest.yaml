@@ -48,11 +48,6 @@ Definitions:
     - { N: 737,   lda: 2921750 } # should take all paths in rocblas_trtri_large
     # - { N: 46976, lda: 46976 } # passed initial tests with increased timeout
 
-  - &c_pos_overflow_int32
-    - [4294967296]
-  - &c_pos_overflow_int32_2
-    - [4294967297]
-
 Tests:
 - name: trtri_bad_arg
   category: pre_checkin
@@ -76,7 +71,7 @@ Tests:
   N: [ 9, 736 ]
   lda: [ 2000 ]
   ldc: *c_pos_overflow_int32 # ldc, ldd used for internal api offset args
-  ldd: *c_pos_overflow_int32_2
+  ldd: *c_neg_overflow_int32
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
   api: INTERNAL

@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_ger.hpp"
+#include "rocblas_ger_64.hpp"
 
-#include "blas2/rocblas_ger_batched_imp.hpp"
+#include "blas2/rocblas_ger_imp.hpp"
 
-INST_GER_BATCHED_C_API(rocblas_int);
+INST_GER_C_API(int64_t);

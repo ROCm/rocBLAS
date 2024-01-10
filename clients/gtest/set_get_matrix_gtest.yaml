@@ -23,13 +23,7 @@ Definitions:
     - { M: 52441, N:     1, lda: 52441, ldb: 52441, ldc: 52441 }
     - { M:  4011, N:  4012, lda:  4014, ldb:  4015, ldc:  4016 }
 
-  - &c_pos_x2_overflow_int32
-    - [1073741825]
-  - &c_neg_x2_overflow_int32
-    - [-1073741825]
 
-  - &c_pos_x32_overflow_int32
-    - [67108865]
 
   - &small_N_size_t_ld
     - { M: 1, N: 3, lda: *c_pos_x2_overflow_int32, ldb: 1, ldc: 1 }
