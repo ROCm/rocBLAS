@@ -45,3 +45,7 @@ build*
 .\#*
 \#*\#
 *~
+
+# windows tools and deps
+.vs/
+vcpkg_installed/

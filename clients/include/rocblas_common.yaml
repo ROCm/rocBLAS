@@ -478,6 +478,23 @@ Definitions:
   - &c_scan_value
     - [-999]
 
+  # int64 API testing constants
+  - &c_pos_overflow_int32
+    - [4294967296]
+  - &c_neg_overflow_int32
+    - [-4294967296]
+
+  - &c_pos_x2_overflow_int32
+    - [1073741825]
+  - &c_neg_x2_overflow_int32
+   - [-1073741825]
+
+  - &c_pos_x32_overflow_int32
+    - [67108865]
+
+  - &c_grid_yz_require_passes
+   - [666666] # force looping over y/z chunks
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes

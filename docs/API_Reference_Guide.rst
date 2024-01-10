@@ -1262,6 +1262,8 @@ rocblas_Xger + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgerc_strided_batched
 
+The ger, geru, and gerc functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
 rocblas_Xsbmv + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

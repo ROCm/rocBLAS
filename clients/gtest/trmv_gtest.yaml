@@ -33,11 +33,6 @@ Definitions:
     - { N:  4011, lda: 4011, stride_a: 16088200 }
     - { N:  8000, lda: 8000, stride_a: 64000000 }
 
-  - &c_pos_x2_overflow_int32
-    - [ 1073741825 ]
-  - &c_neg_x2_overflow_int32
-    - [ -1073741825 ]
-
   - &size_t_index
     - { N:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341, incx: 1 }
 

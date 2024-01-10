@@ -30,11 +30,6 @@ Definitions:
     - { N:  1024 }
     - { N:  2000 }
 
-  - &c_pos_x2_overflow_int32
-    - [ 1073741825 ]
-  - &c_neg_x2_overflow_int32
-    - [ -1073741825 ]
-
   - &size_t_index
     - { N: 65536, incx: 1 }
     - { N: 3, incx: *c_pos_x2_overflow_int32 }

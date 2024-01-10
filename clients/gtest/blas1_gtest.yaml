@@ -34,16 +34,7 @@ Definitions:
     - { incx:  0, incy:  0 }
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
 
-  - &c_pos_overflow_int32
-    - [4294967296]
 
-  - &c_pos_x2_overflow_int32
-    - [1073741825]
-  - &c_neg_x2_overflow_int32
-   - [-1073741825]
-
-  - &c_grid_yz_require_passes
-   - [666666] # force looping over y/z chunks
 
   - &size_t_pos_x_range
     - { N: 4,          incx: *c_pos_x2_overflow_int32 } # small operation count, should overflow x
