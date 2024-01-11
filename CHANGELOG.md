@@ -1,23 +1,25 @@
 # Changelog for rocBLAS
 
-Documentation for rocBLAS is available at
+rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
 ## (Unreleased) rocBLAS 4.1.0
 
-## Additions
+### Additions
 
-* Level 1 and Level 1 Extension functions have additional ILP64 API for both C and FORTRAN (_64 name suffix) with int64_t function arguments.
-* Cache flush timing for gemm_ex.
+* Level 1 and Level 1 Extension functions have additional ILP64 API for both C and Fortran (`_64` name
+  suffix) with int64_t function arguments
+* Cache flush timing for `gemm_ex`
 
-## Changes
+### Changes
 
-* Some Level 2 function argument names have changed 'm' to 'n' to match legacy BLAS, there was no change in implementation.
-* Standardized the use of non-blocking streams for copying results from device to host.
+* Some Level 2 function argument names have changed `m` to `n` to match legacy BLAS; there is no
+  change in implementation
+* Standardized the use of non-blocking streams for copying results from device to host
 
-## Fixes
+### Fixes
 
-* Fixed host-pointer mode reductions for non-blocking streams.
+* Fixed host-pointer mode reductions for non-blocking streams
 
 ## rocBLAS 4.0.0 for ROCm 6.0
 
