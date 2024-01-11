@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1119,9 +1119,9 @@ int run_bench_test(bool               init,
     if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
 
         if(arg.lda < min_lda)
         {
@@ -1148,9 +1148,9 @@ int run_bench_test(bool               init,
     else if(!strcmp(function, "gemm_strided_batched"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
         if(arg.lda < min_lda)
         {
             rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
@@ -1166,8 +1166,8 @@ int run_bench_test(bool               init,
             rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
-        rocblas_int min_stride_c = arg.ldc * arg.N;
-        rocblas_int min_stride_d = arg.ldd * arg.N;
+        rocblas_stride min_stride_c = arg.ldc * arg.N;
+        rocblas_stride min_stride_d = arg.ldd * arg.N;
         if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
@@ -1185,10 +1185,10 @@ int run_bench_test(bool               init,
     if(!strcmp(function, "gemm_ex") || !strcmp(function, "gemm_batched_ex"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
-        rocblas_int min_ldd = arg.M;
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
+        int64_t min_ldd = arg.M;
 
         if(arg.lda < min_lda)
         {
@@ -1221,10 +1221,10 @@ int run_bench_test(bool               init,
     else if(!strcmp(function, "gemm_ex3") || !strcmp(function, "gemm_batched_ex3"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
-        rocblas_int min_ldd = arg.M;
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
+        int64_t min_ldd = arg.M;
 
         if(arg.lda < min_lda)
         {
@@ -1257,10 +1257,10 @@ int run_bench_test(bool               init,
     else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
-        rocblas_int min_ldd = arg.M;
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
+        int64_t min_ldd = arg.M;
         if(arg.lda < min_lda)
         {
             rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
@@ -1281,8 +1281,8 @@ int run_bench_test(bool               init,
             rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
-        rocblas_int min_stride_c = arg.ldc * arg.N;
-        rocblas_int min_stride_d = arg.ldd * arg.N;
+        rocblas_stride min_stride_c = arg.ldc * arg.N;
+        rocblas_stride min_stride_d = arg.ldd * arg.N;
         if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
@@ -1301,10 +1301,10 @@ int run_bench_test(bool               init,
     else if(!strcmp(function, "gemm_strided_batched_ex3"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
-        rocblas_int min_ldd = arg.M;
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
+        int64_t min_ldd = arg.M;
         if(arg.lda < min_lda)
         {
             rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
@@ -1325,8 +1325,8 @@ int run_bench_test(bool               init,
             rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
-        rocblas_int min_stride_c = arg.ldc * arg.N;
-        rocblas_int min_stride_d = arg.ldd * arg.N;
+        rocblas_stride min_stride_c = arg.ldc * arg.N;
+        rocblas_stride min_stride_d = arg.ldd * arg.N;
         if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
