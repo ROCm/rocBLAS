@@ -35,6 +35,13 @@ rocBLAS can be installed on SLES using:
     sudo dnf upgrade
     sudo dnf install rocblas
 
+rocBLAS can be installed on Fedora using:
+
+::
+
+    sudo dnf install rocblas
+    sudo dnf install rocblas-devel
+
 Once installed, rocBLAS can be used just like any other library with a C API.
 The rocblas.h header file must be included in the user code to make calls
 into rocBLAS, and the rocBLAS shared library will become link-time and run-time
