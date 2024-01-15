@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -233,6 +233,7 @@ void testing_dot_strided_batched(const Arguments& arg)
         {
             // GPU BLAS, rocblas_pointer_mode_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_dot_strided_batched_fn,
                        (handle,
@@ -246,6 +247,33 @@ void testing_dot_strided_batched(const Arguments& arg)
                         batch_count,
                         d_rocblas_result));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result));
+                host_vector<T> rocblas_result_device_copy(batch_count);
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_dot_strided_batched_fn,
+                               (handle,
+                                N,
+                                dx,
+                                incx,
+                                stride_x,
+                                dy_ptr,
+                                incy,
+                                stride_y,
+                                batch_count,
+                                d_rocblas_result));
+
+                    CHECK_HIP_ERROR(rocblas_result_device_copy.transfer_from(d_rocblas_result));
+
+                    unit_check_general<T>(
+                        1, 1, 1, 1, rocblas_result_device, rocblas_result_device_copy, batch_count);
+                    return;
+                }
+            }
         }
 
         // CPU BLAS

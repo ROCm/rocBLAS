@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -180,6 +180,7 @@ struct Arguments
     bool outofplace;
     bool HMM; // xnack+
     bool graph_test;
+    bool repeatability_check;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -264,8 +265,8 @@ struct Arguments
     OPER(c_noalias_d) SEP            \
     OPER(outofplace) SEP             \
     OPER(HMM) SEP                    \
-    OPER(graph_test)
-
+    OPER(graph_test) SEP             \
+    OPER(repeatability_check)
     // clang-format on
 
     // Validate input format.
