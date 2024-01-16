@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -505,7 +505,7 @@ void testing_gemm_ex(const Arguments& arg)
             hB,
             ldb,
             h_beta_Tc,
-            hD_gold,
+            (To_hpa*)hD_gold,
             ldd,
             alt ? (alt_round ? rocblas_bfloat16::rocblas_truncate_t::rocblas_round_near_zero
                              : rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate)
