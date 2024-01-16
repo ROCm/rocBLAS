@@ -713,6 +713,173 @@ void ref_geam(rocblas_operation       transa,
     return ref_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
 }
 
+// gemm
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              float                                alpha,
+              const float*                         A,
+              int64_t                              lda,
+              const float*                         B,
+              int64_t                              ldb,
+              float                                beta,
+              float*                               C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    cblas_sgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                beta,
+                C,
+                ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              double                               alpha,
+              const float*                         A,
+              int64_t                              lda,
+              const float*                         B,
+              int64_t                              ldb,
+              double                               beta,
+              float*                               C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    cblas_sgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                float(alpha),
+                A,
+                lda,
+                B,
+                ldb,
+                float(beta),
+                C,
+                ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              double                               alpha,
+              const double*                        A,
+              int64_t                              lda,
+              const double*                        B,
+              int64_t                              ldb,
+              double                               beta,
+              double*                              C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    cblas_dgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                beta,
+                C,
+                ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              rocblas_float_complex                alpha,
+              const rocblas_float_complex*         A,
+              int64_t                              lda,
+              const rocblas_float_complex*         B,
+              int64_t                              ldb,
+              rocblas_float_complex                beta,
+              rocblas_float_complex*               C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    cblas_cgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                &alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                &beta,
+                C,
+                ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              rocblas_double_complex               alpha,
+              const rocblas_double_complex*        A,
+              int64_t                              lda,
+              const rocblas_double_complex*        B,
+              int64_t                              ldb,
+              rocblas_double_complex               beta,
+              rocblas_double_complex*              C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    cblas_zgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                &alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                &beta,
+                C,
+                ldc);
+}
+
 template <typename T, typename U>
 void cast_to_buffer(
     rocblas_operation transA, int64_t m, int64_t k, int64_t lda, const T* A_t, host_vector<U>& A_u)

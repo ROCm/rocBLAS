@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1819,6 +1819,7 @@ void ref_geam(rocblas_operation transa,
               int64_t           ldc);
 
 // gemm
+
 template <typename TiA,
           typename TiB,
           typename To,
@@ -1927,7 +1928,7 @@ inline void f8_to_cblas_sgemm(rocblas_operation transA,
         C[i] = To(C_float[i]);
 }
 
-template <typename Ti, typename To = Ti, typename Tc>
+template <typename Ti, typename To, typename Tc>
 void ref_gemm(rocblas_operation                    transA,
               rocblas_operation                    transB,
               int64_t                              m,
@@ -1939,175 +1940,10 @@ void ref_gemm(rocblas_operation                    transA,
               const Ti*                            B,
               int64_t                              ldb,
               Tc                                   beta,
-              std::add_pointer_t<To>               C,
+              To*                                  C,
               int64_t                              ldc,
               rocblas_bfloat16::rocblas_truncate_t round
               = rocblas_bfloat16::rocblas_truncate_t::rocblas_round_near_even);
-
-template <>
-inline void ref_gemm(rocblas_operation                    transA,
-                     rocblas_operation                    transB,
-                     int64_t                              m,
-                     int64_t                              n,
-                     int64_t                              k,
-                     float                                alpha,
-                     const float*                         A,
-                     int64_t                              lda,
-                     const float*                         B,
-                     int64_t                              ldb,
-                     float                                beta,
-                     float*                               C,
-                     int64_t                              ldc,
-                     rocblas_bfloat16::rocblas_truncate_t round)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    cblas_sgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A,
-                lda,
-                B,
-                ldb,
-                beta,
-                C,
-                ldc);
-}
-
-template <>
-inline void ref_gemm(rocblas_operation                    transA,
-                     rocblas_operation                    transB,
-                     int64_t                              m,
-                     int64_t                              n,
-                     int64_t                              k,
-                     double                               alpha,
-                     const float*                         A,
-                     int64_t                              lda,
-                     const float*                         B,
-                     int64_t                              ldb,
-                     double                               beta,
-                     float*                               C,
-                     int64_t                              ldc,
-                     rocblas_bfloat16::rocblas_truncate_t round)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    cblas_sgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                float(alpha),
-                A,
-                lda,
-                B,
-                ldb,
-                float(beta),
-                C,
-                ldc);
-}
-
-template <>
-inline void ref_gemm(rocblas_operation                    transA,
-                     rocblas_operation                    transB,
-                     int64_t                              m,
-                     int64_t                              n,
-                     int64_t                              k,
-                     double                               alpha,
-                     const double*                        A,
-                     int64_t                              lda,
-                     const double*                        B,
-                     int64_t                              ldb,
-                     double                               beta,
-                     double*                              C,
-                     int64_t                              ldc,
-                     rocblas_bfloat16::rocblas_truncate_t round)
-{
-    cblas_dgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A,
-                lda,
-                B,
-                ldb,
-                beta,
-                C,
-                ldc);
-}
-
-template <>
-inline void ref_gemm(rocblas_operation                    transA,
-                     rocblas_operation                    transB,
-                     int64_t                              m,
-                     int64_t                              n,
-                     int64_t                              k,
-                     rocblas_float_complex                alpha,
-                     const rocblas_float_complex*         A,
-                     int64_t                              lda,
-                     const rocblas_float_complex*         B,
-                     int64_t                              ldb,
-                     rocblas_float_complex                beta,
-                     rocblas_float_complex*               C,
-                     int64_t                              ldc,
-                     rocblas_bfloat16::rocblas_truncate_t round)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    cblas_cgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                &alpha,
-                A,
-                lda,
-                B,
-                ldb,
-                &beta,
-                C,
-                ldc);
-}
-
-template <>
-inline void ref_gemm(rocblas_operation                    transA,
-                     rocblas_operation                    transB,
-                     int64_t                              m,
-                     int64_t                              n,
-                     int64_t                              k,
-                     rocblas_double_complex               alpha,
-                     const rocblas_double_complex*        A,
-                     int64_t                              lda,
-                     const rocblas_double_complex*        B,
-                     int64_t                              ldb,
-                     rocblas_double_complex               beta,
-                     rocblas_double_complex*              C,
-                     int64_t                              ldc,
-                     rocblas_bfloat16::rocblas_truncate_t round)
-{
-    cblas_zgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                &alpha,
-                A,
-                lda,
-                B,
-                ldb,
-                &beta,
-                C,
-                ldc);
-}
 
 //GEMMT
 template <typename T>
