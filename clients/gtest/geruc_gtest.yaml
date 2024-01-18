@@ -287,7 +287,7 @@ Tests:
   batch_count: [ 5 ]
 
 - name: geruc_64
-  category: pre_checkin
+  category: stress
   arguments:
     - { M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, stride_x: 1, stride_y: 1,  batch_count: 1 }
     - { M: 1, N: 2147483649, lda: 1, incx: 1, incy: 1, stride_x: 1, stride_y: 1,  batch_count: 1 }

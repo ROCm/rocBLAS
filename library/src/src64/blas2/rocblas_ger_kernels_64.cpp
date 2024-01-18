@@ -73,7 +73,7 @@ rocblas_status rocblas_internal_ger_launcher_64(rocblas_handle handle,
 
                 shiftx += offsetx;
 
-                auto shiftA = lda_64 * n_base + m_base;
+                auto shiftA = lda_64 * n_base + m_base + offsetA;
 
                 rocblas_status status = rocblas_internal_ger_launcher<CONJ, T>(handle,
                                                                                m,
