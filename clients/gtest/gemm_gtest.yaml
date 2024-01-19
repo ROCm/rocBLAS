@@ -3830,7 +3830,7 @@ Tests:
     - gemm_ex: *single_double_precisions_complex
   matrix_size:
     - { M:  960, N: 1024, K: 1024 }
-  pointer_mode_host: false
+  pointer_mode_device: false
   transA: N
   transB: N
   alpha_beta: *alpha_beta_range
