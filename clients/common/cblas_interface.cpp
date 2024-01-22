@@ -717,7 +717,185 @@ void cblas_geam(rocblas_operation       transa,
     return cblas_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
 }
 
-// gemm
+// legacy BLAS implementation
+// gemm for dim and leading dims < 130 so no int64 multiplies
+void small_sgemm(rocblas_operation transA,
+                 rocblas_operation transB,
+                 int               m,
+                 int               n,
+                 int               k,
+                 float             alpha,
+                 const float*      A,
+                 int               lda,
+                 const float*      B,
+                 int               ldb,
+                 float             beta,
+                 float*            C,
+                 int               ldc)
+{
+    bool notTA = (transA == rocblas_operation_none);
+    bool notTB = (transB == rocblas_operation_none);
+
+    if(!m or !n or (alpha == 0.0f or !k) && (beta == 1.0f))
+        return;
+
+    if(alpha == 0.0f)
+    {
+        if(beta == 0.0f)
+        {
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    C[j * ldc + i] = 0.0f;
+                }
+            }
+        }
+        else
+        {
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    C[j * ldc + i] *= beta;
+                }
+            }
+        }
+        return;
+    }
+
+    if(notTB)
+    {
+        if(notTA)
+        {
+            // C = alpha*A*B + beta*C.
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                if(beta == 0.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] = 0.0f;
+                    }
+                }
+                else if(beta != 1.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] *= beta;
+                    }
+                }
+
+                for(int l = 0; l < k; ++l)
+                {
+                    float temp = alpha * B[j * ldb + l];
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] += temp * A[l * lda + i];
+                    }
+                }
+            }
+        }
+        else
+        {
+            // C = alpha*A**T*B + beta*C
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    float temp = 0.0f;
+                    for(int l = 0; l < k; ++l)
+                    {
+                        temp += A[i * lda + l] * B[j * ldb + l];
+                    }
+                    if(beta == 0.0f)
+                    {
+                        C[j * ldc + i] = alpha * temp;
+                    }
+                    else
+                    {
+                        C[j * ldc + i] = alpha * temp + beta * C[j * ldc + i];
+                    }
+                }
+            }
+        }
+    }
+    else // TB
+    {
+        if(notTA)
+        {
+            //  C = alpha*A*B**T + beta*C
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                if(beta == 0.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] = 0.0f;
+                    }
+                }
+                else if(beta != 1.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] = beta * C[j * ldc + i];
+                    }
+                }
+
+                for(int l = 0; l < k; ++l)
+                {
+                    float temp = alpha * B[l * ldb + j];
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] += temp * A[l * lda + i];
+                    }
+                }
+            }
+        }
+        else
+        {
+            // C = alpha*A**T*B**T + beta*C
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    float temp = 0.0f;
+                    for(int l = 0; l < k; ++l)
+                    {
+                        temp += A[i * lda + l] * B[l * ldb + j];
+                    }
+
+                    if(beta == 0.0f)
+                    {
+                        C[j * ldc + i] = alpha * temp;
+                    }
+                    else
+                    {
+                        C[j * ldc + i] = alpha * temp + beta * C[j * ldc + i];
+                    }
+                }
+            }
+        }
+    }
+}
 
 template <>
 void ref_gemm(rocblas_operation                    transA,
@@ -735,22 +913,31 @@ void ref_gemm(rocblas_operation                    transA,
               int64_t                              ldc,
               rocblas_bfloat16::rocblas_truncate_t round)
 {
-    // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    cblas_sgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A,
-                lda,
-                B,
-                ldb,
-                beta,
-                C,
-                ldc);
+
+    static constexpr int64_t small = 129;
+    if(m > small || n > small || k > small || lda > small || ldb > small || ldc > small)
+    {
+        // just directly cast, since transA, transB enum values match CBLAS
+        cblas_sgemm(CblasColMajor,
+                    CBLAS_TRANSPOSE(transA),
+                    CBLAS_TRANSPOSE(transB),
+                    m,
+                    n,
+                    k,
+                    alpha,
+                    A,
+                    lda,
+                    B,
+                    ldb,
+                    beta,
+                    C,
+                    ldc);
+    }
+    else
+    {
+        small_sgemm(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
 }
 
 template <>
@@ -769,22 +956,7 @@ void ref_gemm(rocblas_operation                    transA,
               int64_t                              ldc,
               rocblas_bfloat16::rocblas_truncate_t round)
 {
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    cblas_sgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                float(alpha),
-                A,
-                lda,
-                B,
-                ldb,
-                float(beta),
-                C,
-                ldc);
+    ref_gemm(transA, transB, m, n, k, float(alpha), A, lda, B, ldb, float(beta), C, ldc);
 }
 
 template <>
@@ -954,22 +1126,25 @@ void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation               
     for(size_t i = 0; i < sizeB; i++)
         B_float[i] = static_cast<float>(B[i]);
 
+    ref_gemm(
+        transA, transB, m, n, k, alpha, A_float.data(), lda, B_float.data(), ldb, beta, C, ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C,
+    //             ldc);
 }
 
 template <>
@@ -1005,22 +1180,36 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(
     for(size_t i = 0; i < sizeC; i++)
         C_float[i] = static_cast<float>(C[i]);
 
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             alpha,
+             A_float.data(),
+             lda,
+             B_float.data(),
+             ldb,
+             beta,
+             C_float.data(),
+             ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C_float,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C_float,
+    //             ldc);
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = static_cast<rocblas_bfloat16>(C_float[i]);
@@ -1055,22 +1244,25 @@ void cblas_gemm<rocblas_half, float, float>(rocblas_operation                   
     for(size_t i = 0; i < sizeB; i++)
         B_float[i] = B[i];
 
+    ref_gemm(
+        transA, transB, m, n, k, alpha, A_float.data(), lda, B_float.data(), ldb, beta, C, ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C,
+    //             ldc);
 }
 
 template <>
@@ -1117,22 +1309,36 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation            
             C_float[i] = C[i];
     }
 
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             alpha,
+             A_float.data(),
+             lda,
+             B_float.data(),
+             ldb,
+             beta,
+             C_float.data(),
+             ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C_float,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C_float,
+    //             ldc);
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = rocblas_half(C_float[i]);
@@ -1173,22 +1379,36 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(
     for(size_t i = 0; i < sizeC; i++)
         C_float[i] = C[i];
 
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             alpha_float,
+             A_float.data(),
+             lda,
+             B_float.data(),
+             ldb,
+             beta_float,
+             C_float.data(),
+             ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha_float,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta_float,
-                C_float,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha_float,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta_float,
+    //             C_float,
+    //             ldc);
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = rocblas_half(C_float[i]);
