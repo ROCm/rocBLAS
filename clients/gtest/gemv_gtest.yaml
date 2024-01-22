@@ -642,4 +642,23 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 5 ]
   graph_test: true
+
+- name: gemv_repeatability_check
+  category: pre_checkin
+  function:
+    - gemv
+    - gemv_batched
+    - gemv_strided_batched
+  precision: *single_double_precisions_complex_real
+  initialization: hpl
+  transA: [ N, T]
+  matrix_size:
+        - { M: 10496, N: 10496, lda: 204620, incx: 1, incy: 1 }
+        - { M: 8192, N: 4, lda: 8192, incx: 262177, incy: 1 }
+  alpha: [ 1.0 ]
+  atomics_mode: 0
+  batch_count: [ 5 ]
+  stride_scale: 1
+  pointer_mode_host: false
+  repeatability_check: true
 ...
