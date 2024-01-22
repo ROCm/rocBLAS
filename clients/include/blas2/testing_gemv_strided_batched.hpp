@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -487,6 +487,37 @@ void testing_gemv_strided_batched(const Arguments& arg)
                                                                 stride_y,
                                                                 batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_vector<To> hy_copy(dim_y, incy, stride_y, batch_count);
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+                    CHECK_ROCBLAS_ERROR(rocblas_gemv_strided_batched_fn(handle,
+                                                                        transA,
+                                                                        M,
+                                                                        N,
+                                                                        d_alpha,
+                                                                        dA,
+                                                                        lda,
+                                                                        stride_a,
+                                                                        dx,
+                                                                        incx,
+                                                                        stride_x,
+                                                                        d_beta,
+                                                                        dy,
+                                                                        incy,
+                                                                        stride_y,
+                                                                        batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+
+                    unit_check_general<To>(1, dim_y, incy, stride_y, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

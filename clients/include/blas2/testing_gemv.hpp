@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -287,6 +287,24 @@ void testing_gemv(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_gemv_fn(
                 handle, transA, M, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<T> hy_copy(dim_y, incy);
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+
+                    CHECK_ROCBLAS_ERROR(rocblas_gemv_fn(
+                        handle, transA, M, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, dim_y, incy, hy, hy_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
