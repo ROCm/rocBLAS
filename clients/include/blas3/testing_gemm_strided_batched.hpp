@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -429,6 +429,40 @@ void testing_gemm_strided_batched(const Arguments& arg)
                                                                 ldc,
                                                                 stride_c,
                                                                 batch_count));
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_matrix<T> hC_copy(M, N, ldc, stride_c, batch_count);
+                CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+
+                    CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_fn(handle,
+                                                                        transA,
+                                                                        transB,
+                                                                        M,
+                                                                        N,
+                                                                        K,
+                                                                        d_alpha,
+                                                                        dA,
+                                                                        lda,
+                                                                        stride_a,
+                                                                        dB,
+                                                                        ldb,
+                                                                        stride_b,
+                                                                        d_beta,
+                                                                        dC,
+                                                                        ldc,
+                                                                        stride_c,
+                                                                        batch_count));
+
+                    CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
+                    unit_check_general<T>(M, N, ldc, stride_c, hC, hC_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
