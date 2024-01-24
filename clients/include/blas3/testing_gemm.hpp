@@ -341,6 +341,36 @@ void testing_gemm(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hC_1_copy(M, N, ldc);
+                CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+
+                    CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(handle,
+                                                        transA,
+                                                        transB,
+                                                        M,
+                                                        N,
+                                                        K,
+                                                        d_alpha,
+                                                        dA,
+                                                        lda,
+                                                        dB,
+                                                        ldb,
+                                                        d_beta,
+                                                        dC,
+                                                        ldc));
+
+                    CHECK_HIP_ERROR(hC_1_copy.transfer_from(dC));
+
+                    unit_check_general<T>(M, N, ldc, hC_1, hC_1_copy);
+                }
+                return;
+            }
         }
 
         // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
