@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -679,59 +679,64 @@ namespace
             else if(xnack == "xnack-")
                 skip_xnack = "xnack+";
 
-            const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
-            if(env)
-            {
-                path = env;
-            }
-            else
-            {
-                path = ROCBLAS_LIB_PATH;
+            static std::string base_path;
+            static int         determine_tensile_base_path = [&] {
+                const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
+                if(env)
+                {
+                    base_path = env;
+                }
+                else
+                {
+                    base_path = ROCBLAS_LIB_PATH;
 
-                // Find the location of librocblas.dll/.so
-                // Fall back on hard-coded path if static library or not found
+                    // Find the location of librocblas.dll/.so
+                    // Fall back on hard-coded path if static library or not found
 
 #ifndef ROCBLAS_STATIC_LIB
 #ifdef WIN32
-                // wchar_t wpath[MAX_PATH + 1] = {0};
-                // if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
-                // {
-                //     std::wstring          wspath(wpath);
-                //     std::string           tmp(wspath.begin(), wspath.end());
+                    // wchar_t wpath[MAX_PATH + 1] = {0};
+                    // if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
+                    // {
+                    //     std::wstring          wspath(wpath);
+                    //     std::string           tmp(wspath.begin(), wspath.end());
 
-                std::vector<TCHAR> dll_path(MAX_PATH + 1);
-                if(GetModuleFileNameA(
-                       GetModuleHandleA("rocblas.dll"), dll_path.data(), MAX_PATH + 1))
-                {
-                    std::string           tmp(dll_path.begin(), dll_path.end());
-                    std::filesystem::path exepath = tmp;
-                    if(exepath.has_filename())
+                    std::vector<TCHAR> dll_path(MAX_PATH + 1);
+                    if(GetModuleFileNameA(
+                           GetModuleHandleA("rocblas.dll"), dll_path.data(), MAX_PATH + 1))
                     {
-                        path = exepath.remove_filename().string();
+                        std::string           tmp(dll_path.begin(), dll_path.end());
+                        std::filesystem::path exepath = tmp;
+                        if(exepath.has_filename())
+                        {
+                            base_path = exepath.remove_filename().string();
+                        }
                     }
-                }
 #else
-                dl_iterate_phdr(rocblas_dl_iterate_phdr_callback, NULL);
-                if(rocblas_so_path.size())
-                    path = std::string{dirname(&rocblas_so_path[0])};
+                    dl_iterate_phdr(rocblas_dl_iterate_phdr_callback, NULL);
+                    if(rocblas_so_path.size())
+                        base_path = std::string{dirname(&rocblas_so_path[0])};
 #endif
 #endif // ifndef ROCBLAS_STATIC_LIB
 
-                // Find the location of the libraries
-                if(TestPath(path + "/../../Tensile/library"))
-                    path += "/../../Tensile/library";
-                else if(TestPath(path + "/library"))
-                    path += "/library";
-                else if(TestPath(path + "/../rocblas/library"))
-                    // For ASAN packaging, library file directory will be lib/asan
-                    // so need to prefix ../ to set search path to lib/rocblas/library
-                    path += "/../rocblas/library";
-                else
-                    path += "/rocblas/library";
+                    // Find the location of the libraries
+                    if(TestPath(base_path + "/../../Tensile/library"))
+                        base_path += "/../../Tensile/library";
+                    else if(TestPath(base_path + "/library"))
+                        base_path += "/library";
+                    else if(TestPath(base_path + "/../rocblas/library"))
+                        // For ASAN packaging, library file directory will be lib/asan
+                        // so need to prefix ../ to set search base_path to lib/rocblas/library
+                        base_path += "/../rocblas/library";
+                    else
+                        base_path += "/rocblas/library";
+                }
+                return 0;
+            }();
 
-                if(TestPath(path + "/" + processor))
-                    path += "/" + processor;
-            }
+            path = base_path;
+            if(TestPath(path + "/" + processor))
+                path += "/" + processor;
 
 #ifdef TENSILE_YAML
             tensileLibraryPath = path + "/TensileLibrary_lazy_" + processor + ".yaml";
