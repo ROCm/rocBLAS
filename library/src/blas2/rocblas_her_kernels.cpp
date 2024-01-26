@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,14 @@
 #include "handle.hpp"
 #include "rocblas_her.hpp"
 
-template <rocblas_int DIM_X, typename T, typename U>
+template <int DIM_X, typename T, typename U>
 ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        is_upper,
                                                 rocblas_int n,
                                                 U           alpha,
                                                 const T* __restrict__ x,
-                                                rocblas_int incx,
+                                                int64_t incx,
                                                 T* __restrict__ A,
-                                                rocblas_int lda)
+                                                int64_t lda)
 {
     int32_t tx  = threadIdx.x;
     int32_t col = blockIdx.x;
@@ -48,7 +48,7 @@ ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        is_upper,
     if(is_upper)
     {
         //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
-        //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
+        //If n > DIM_X, then the threads are reused and the multiplied values will be accumulated with matrix A.
         int32_t i = 0;
         for(; tx + i < col; i += DIM_X)
         {
@@ -69,7 +69,7 @@ ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        is_upper,
             A[i - 1] = std::real(A[i - 1]) + std::real(x[col * int64_t(incx)] * res_x);
         }
         //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
-        //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
+        //If n > DIM_X, then the threads are reused and the multiplied values will be accumulated with matrix A.
         for(; tx + i < n; i += DIM_X)
         {
             A[i] += res_x * x[(tx + i) * int64_t(incx)];
@@ -84,10 +84,10 @@ rocblas_her_kernel(bool           is_upper,
                    TScal          alpha_device_host,
                    TConstPtr      xa,
                    rocblas_stride shift_x,
-                   rocblas_int    incx,
+                   int64_t        incx,
                    rocblas_stride stride_x,
                    TPtr           Aa,
-                   rocblas_int    lda,
+                   int64_t        lda,
                    rocblas_stride shift_A,
                    rocblas_stride stride_A)
 {
@@ -108,20 +108,20 @@ rocblas_her_kernel(bool           is_upper,
  * Where T is the base type (rocblas_float_complex or rocblas_double_complex)
  * and U is the scalar type (float or double)
  */
-template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_her_template(rocblas_handle handle,
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_her_launcher(rocblas_handle handle,
                                     rocblas_fill   uplo,
-                                    rocblas_int    n,
+                                    API_INT        n,
                                     TScal          alpha,
                                     TConstPtr      x,
                                     rocblas_stride offset_x,
-                                    rocblas_int    incx,
+                                    int64_t        incx,
                                     rocblas_stride stride_x,
                                     TPtr           A,
-                                    rocblas_int    lda,
                                     rocblas_stride offset_A,
+                                    int64_t        lda,
                                     rocblas_stride stride_A,
-                                    rocblas_int    batch_count)
+                                    API_INT        batch_count)
 {
     // Quick return if possible. Not Argument error
     if(!n || !batch_count)
@@ -158,16 +158,16 @@ template <typename T, typename U>
 rocblas_status rocblas_her_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
                                           rocblas_fill   uplo,
-                                          rocblas_int    n,
+                                          int64_t        n,
                                           T              A,
                                           rocblas_stride offset_a,
-                                          rocblas_int    lda,
+                                          int64_t        lda,
                                           rocblas_stride stride_a,
                                           U              x,
                                           rocblas_stride offset_x,
-                                          rocblas_int    inc_x,
+                                          int64_t        inc_x,
                                           rocblas_stride stride_x,
-                                          rocblas_int    batch_count,
+                                          int64_t        batch_count,
                                           const int      check_numerics,
                                           bool           is_input)
 {
@@ -210,61 +210,64 @@ rocblas_status rocblas_her_check_numerics(const char*    function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *her*.cpp
 
-// clang-format off
-
-#ifdef INSTANTIATE_HER_TEMPLATE
-#error INSTANTIATE_HER_TEMPLATE  already defined
+#ifdef INST_HER_LAUNCHER
+#error INST_HER_LAUNCHER  already defined
 #endif
 
-#define INSTANTIATE_HER_TEMPLATE(Tscal_,  TConstPtr_,  TPtr_)             \
-template rocblas_status rocblas_her_template<Tscal_,  TConstPtr_,  TPtr_> \
-                                   (rocblas_handle handle,                \
-                                    rocblas_fill   uplo,                  \
-                                    rocblas_int    n,                     \
-                                    Tscal_         alpha,                 \
-                                    TConstPtr_     x,                     \
-                                    rocblas_stride offset_x,              \
-                                    rocblas_int    incx,                  \
-                                    rocblas_stride stride_x,              \
-                                    TPtr_          A,                     \
-                                    rocblas_int    lda,                   \
-                                    rocblas_stride offset_A,              \
-                                    rocblas_stride stride_A,              \
-                                    rocblas_int    batch_count);
+#define INST_HER_LAUNCHER(TI_, Tscal_, TConstPtr_, TPtr_)                         \
+    template rocblas_status rocblas_her_launcher<TI_, Tscal_, TConstPtr_, TPtr_>( \
+        rocblas_handle handle,                                                    \
+        rocblas_fill   uplo,                                                      \
+        TI_            n,                                                         \
+        Tscal_         alpha,                                                     \
+        TConstPtr_     x,                                                         \
+        rocblas_stride offset_x,                                                  \
+        int64_t        incx,                                                      \
+        rocblas_stride stride_x,                                                  \
+        TPtr_          A,                                                         \
+        int64_t        lda,                                                       \
+        rocblas_stride offset_A,                                                  \
+        rocblas_stride stride_A,                                                  \
+        TI_            batch_count);
 
-INSTANTIATE_HER_TEMPLATE(float const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_HER_TEMPLATE(double const*, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_HER_TEMPLATE(float const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_HER_TEMPLATE(double const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INST_HER_LAUNCHER(rocblas_int, float const*, rocblas_float_complex const*, rocblas_float_complex*)
+INST_HER_LAUNCHER(rocblas_int,
+                  double const*,
+                  rocblas_double_complex const*,
+                  rocblas_double_complex*)
+INST_HER_LAUNCHER(rocblas_int,
+                  float const*,
+                  rocblas_float_complex const* const*,
+                  rocblas_float_complex* const*)
+INST_HER_LAUNCHER(rocblas_int,
+                  double const*,
+                  rocblas_double_complex const* const*,
+                  rocblas_double_complex* const*)
 
-#undef INSTANTIATE_HER_TEMPLATE
+#undef INST_HER_LAUNCHER
 
-#ifdef INSTANTIATE_HER_NUMERICS
-#error INSTANTIATE_HER_NUMERICS already defined
+#ifdef INST_HER_NUMERICS
+#error INST_HER_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_HER_NUMERICS(T_,  U_)                                 \
-template rocblas_status rocblas_her_check_numerics<T_,  U_>               \
-                                         (const char*    function_name,   \
-                                          rocblas_handle handle,          \
-                                          rocblas_fill   uplo,            \
-                                          rocblas_int    n,               \
-                                          T_             A,               \
-                                          rocblas_stride offset_a,        \
-                                          rocblas_int    lda,             \
-                                          rocblas_stride stride_a,        \
-                                          U_             x,               \
-                                          rocblas_stride offset_x,        \
-                                          rocblas_int    inc_x,           \
-                                          rocblas_stride stride_x,        \
-                                          rocblas_int    batch_count,     \
-                                          const int      check_numerics,  \
-                                          bool           is_input);
+#define INST_HER_NUMERICS(T_, U_)                                                             \
+    template rocblas_status rocblas_her_check_numerics<T_, U_>(const char*    function_name,  \
+                                                               rocblas_handle handle,         \
+                                                               rocblas_fill   uplo,           \
+                                                               int64_t        n,              \
+                                                               T_             A,              \
+                                                               rocblas_stride offset_a,       \
+                                                               int64_t        lda,            \
+                                                               rocblas_stride stride_a,       \
+                                                               U_             x,              \
+                                                               rocblas_stride offset_x,       \
+                                                               int64_t        inc_x,          \
+                                                               rocblas_stride stride_x,       \
+                                                               int64_t        batch_count,    \
+                                                               const int      check_numerics, \
+                                                               bool           is_input);
 
-INSTANTIATE_HER_NUMERICS(rocblas_float_complex*, rocblas_float_complex const*);
-INSTANTIATE_HER_NUMERICS(rocblas_double_complex*, rocblas_double_complex const*);
-INSTANTIATE_HER_NUMERICS(rocblas_float_complex* const*, rocblas_float_complex const* const*);
-INSTANTIATE_HER_NUMERICS(rocblas_double_complex* const*, rocblas_double_complex const* const*);
-
-#undef INSTANTIATE_HER_NUMERICS
-// clang-format on
+INST_HER_NUMERICS(rocblas_float_complex*, rocblas_float_complex const*);
+INST_HER_NUMERICS(rocblas_double_complex*, rocblas_double_complex const*);
+INST_HER_NUMERICS(rocblas_float_complex* const*, rocblas_float_complex const* const*);
+INST_HER_NUMERICS(rocblas_double_complex* const*, rocblas_double_complex const* const*);

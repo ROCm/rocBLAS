@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -730,71 +730,6 @@ rocblas_status rocblas_zhemv_strided_batched_fortran(rocblas_handle             
                                                      rocblas_int                   incy,
                                                      rocblas_stride                stride_y,
                                                      rocblas_int                   batch_count);
-
-// her
-rocblas_status rocblas_cher_fortran(rocblas_handle               handle,
-                                    rocblas_fill                 uplo,
-                                    rocblas_int                  n,
-                                    const float*                 alpha,
-                                    const rocblas_float_complex* x,
-                                    rocblas_int                  incx,
-                                    rocblas_float_complex*       A,
-                                    rocblas_int                  lda);
-
-rocblas_status rocblas_zher_fortran(rocblas_handle                handle,
-                                    rocblas_fill                  uplo,
-                                    rocblas_int                   n,
-                                    const double*                 alpha,
-                                    const rocblas_double_complex* x,
-                                    rocblas_int                   incx,
-                                    rocblas_double_complex*       A,
-                                    rocblas_int                   lda);
-
-// her_batched
-rocblas_status rocblas_cher_batched_fortran(rocblas_handle                     handle,
-                                            rocblas_fill                       uplo,
-                                            rocblas_int                        n,
-                                            const float*                       alpha,
-                                            const rocblas_float_complex* const x[],
-                                            rocblas_int                        incx,
-                                            rocblas_float_complex* const       A[],
-                                            rocblas_int                        lda,
-                                            rocblas_int                        batch_count);
-
-rocblas_status rocblas_zher_batched_fortran(rocblas_handle                      handle,
-                                            rocblas_fill                        uplo,
-                                            rocblas_int                         n,
-                                            const double*                       alpha,
-                                            const rocblas_double_complex* const x[],
-                                            rocblas_int                         incx,
-                                            rocblas_double_complex* const       A[],
-                                            rocblas_int                         lda,
-                                            rocblas_int                         batch_count);
-
-// her_strided_batched
-rocblas_status rocblas_cher_strided_batched_fortran(rocblas_handle               handle,
-                                                    rocblas_fill                 uplo,
-                                                    rocblas_int                  n,
-                                                    const float*                 alpha,
-                                                    const rocblas_float_complex* x,
-                                                    rocblas_int                  incx,
-                                                    rocblas_stride               stride_x,
-                                                    rocblas_float_complex*       A,
-                                                    rocblas_int                  lda,
-                                                    rocblas_stride               stride_A,
-                                                    rocblas_int                  batch_count);
-
-rocblas_status rocblas_zher_strided_batched_fortran(rocblas_handle                handle,
-                                                    rocblas_fill                  uplo,
-                                                    rocblas_int                   n,
-                                                    const double*                 alpha,
-                                                    const rocblas_double_complex* x,
-                                                    rocblas_int                   incx,
-                                                    rocblas_stride                stride_x,
-                                                    rocblas_double_complex*       A,
-                                                    rocblas_int                   lda,
-                                                    rocblas_stride                stride_A,
-                                                    rocblas_int                   batch_count);
 
 // her2
 rocblas_status rocblas_cher2_fortran(rocblas_handle               handle,

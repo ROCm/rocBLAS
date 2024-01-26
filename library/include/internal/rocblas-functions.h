@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -5655,6 +5655,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher(rocblas_handle                handle,
                                            rocblas_int                   incx,
                                            rocblas_double_complex*       A,
                                            rocblas_int                   lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher_64(rocblas_handle               handle,
+                                              rocblas_fill                 uplo,
+                                              int64_t                      n,
+                                              const float*                 alpha,
+                                              const rocblas_float_complex* x,
+                                              int64_t                      incx,
+                                              rocblas_float_complex*       A,
+                                              int64_t                      lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zher_64(rocblas_handle                handle,
+                                              rocblas_fill                  uplo,
+                                              int64_t                       n,
+                                              const double*                 alpha,
+                                              const rocblas_double_complex* x,
+                                              int64_t                       incx,
+                                              rocblas_double_complex*       A,
+                                              int64_t                       lda);
 //! @}
 
 /*! @{
@@ -5725,6 +5743,26 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher_batched(rocblas_handle               
                                                    rocblas_double_complex* const       A[],
                                                    rocblas_int                         lda,
                                                    rocblas_int                         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher_batched_64(rocblas_handle                     handle,
+                                                      rocblas_fill                       uplo,
+                                                      int64_t                            n,
+                                                      const float*                       alpha,
+                                                      const rocblas_float_complex* const x[],
+                                                      int64_t                            incx,
+                                                      rocblas_float_complex* const       A[],
+                                                      int64_t                            lda,
+                                                      int64_t batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zher_batched_64(rocblas_handle                      handle,
+                                                      rocblas_fill                        uplo,
+                                                      int64_t                             n,
+                                                      const double*                       alpha,
+                                                      const rocblas_double_complex* const x[],
+                                                      int64_t                             incx,
+                                                      rocblas_double_complex* const       A[],
+                                                      int64_t                             lda,
+                                                      int64_t batch_count);
 //! @}
 
 /*! @{
@@ -5805,6 +5843,30 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher_strided_batched(rocblas_handle       
                                                            rocblas_int                   lda,
                                                            rocblas_stride                stride_A,
                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher_strided_batched_64(rocblas_handle               handle,
+                                                              rocblas_fill                 uplo,
+                                                              int64_t                      n,
+                                                              const float*                 alpha,
+                                                              const rocblas_float_complex* x,
+                                                              int64_t                      incx,
+                                                              rocblas_stride               stride_x,
+                                                              rocblas_float_complex*       A,
+                                                              int64_t                      lda,
+                                                              rocblas_stride               stride_A,
+                                                              int64_t batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zher_strided_batched_64(rocblas_handle                handle,
+                                                              rocblas_fill                  uplo,
+                                                              int64_t                       n,
+                                                              const double*                 alpha,
+                                                              const rocblas_double_complex* x,
+                                                              int64_t                       incx,
+                                                              rocblas_stride          stride_x,
+                                                              rocblas_double_complex* A,
+                                                              int64_t                 lda,
+                                                              rocblas_stride          stride_A,
+                                                              int64_t                 batch_count);
 //! @}
 
 /*! @{

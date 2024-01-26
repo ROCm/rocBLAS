@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1886,8 +1886,19 @@ static rocblas_status (*rocblas_her)(rocblas_handle   handle,
                                      T*               A,
                                      rocblas_int      lda);
 
-MAP2CF(rocblas_her, rocblas_float_complex, rocblas_cher);
-MAP2CF(rocblas_her, rocblas_double_complex, rocblas_zher);
+// her_64
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_her_64)(rocblas_handle   handle,
+                                        rocblas_fill     uplo,
+                                        int64_t          n,
+                                        const real_t<T>* alpha,
+                                        const T*         x,
+                                        int64_t          incx,
+                                        T*               A,
+                                        int64_t          lda);
+
+MAP2CF_D64(rocblas_her, rocblas_float_complex, rocblas_cher);
+MAP2CF_D64(rocblas_her, rocblas_double_complex, rocblas_zher);
 
 // her_batched
 template <typename T, bool FORTRAN = false>
@@ -1901,8 +1912,20 @@ static rocblas_status (*rocblas_her_batched)(rocblas_handle   handle,
                                              rocblas_int      lda,
                                              rocblas_int      batch_count);
 
-MAP2CF(rocblas_her_batched, rocblas_float_complex, rocblas_cher_batched);
-MAP2CF(rocblas_her_batched, rocblas_double_complex, rocblas_zher_batched);
+// her_batched_64
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_her_batched_64)(rocblas_handle   handle,
+                                                rocblas_fill     uplo,
+                                                int64_t          n,
+                                                const real_t<T>* alpha,
+                                                const T* const   x[],
+                                                int64_t          incx,
+                                                T* const         A[],
+                                                int64_t          lda,
+                                                int64_t          batch_count);
+
+MAP2CF_D64(rocblas_her_batched, rocblas_float_complex, rocblas_cher_batched);
+MAP2CF_D64(rocblas_her_batched, rocblas_double_complex, rocblas_zher_batched);
 
 // her_strided_batched
 template <typename T, bool FORTRAN = false>
@@ -1918,8 +1941,22 @@ static rocblas_status (*rocblas_her_strided_batched)(rocblas_handle   handle,
                                                      rocblas_stride   stride_A,
                                                      rocblas_int      batch_count);
 
-MAP2CF(rocblas_her_strided_batched, rocblas_float_complex, rocblas_cher_strided_batched);
-MAP2CF(rocblas_her_strided_batched, rocblas_double_complex, rocblas_zher_strided_batched);
+// her_strided_batched_64
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_her_strided_batched_64)(rocblas_handle   handle,
+                                                        rocblas_fill     uplo,
+                                                        int64_t          n,
+                                                        const real_t<T>* alpha,
+                                                        const T*         x,
+                                                        int64_t          incx,
+                                                        rocblas_stride   stride_x,
+                                                        T*               A,
+                                                        int64_t          lda,
+                                                        rocblas_stride   stride_A,
+                                                        int64_t          batch_count);
+
+MAP2CF_D64(rocblas_her_strided_batched, rocblas_float_complex, rocblas_cher_strided_batched);
+MAP2CF_D64(rocblas_her_strided_batched, rocblas_double_complex, rocblas_zher_strided_batched);
 
 // her2
 template <typename T, bool FORTRAN = false>

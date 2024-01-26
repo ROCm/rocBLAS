@@ -60,7 +60,7 @@ Tests:
   - her_bad_arg: *single_double_precisions_complex
   - her_batched_bad_arg: *single_double_precisions_complex
   - her_strided_batched_bad_arg: *single_double_precisions_complex
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: her_arg_check
   category: quick
@@ -259,6 +259,23 @@ Tests:
   alpha_beta: *alpha_range_small
   gpu_arch: '90a'
   os_flags: LINUX
+
+- name: her_64
+  category: stress
+  arguments:
+    - { N: 2, lda: 2147483649, incx: 1, batch_count: 1 }
+    - { N: 2, lda: 2, incx: 2147483649, batch_count: 1 }
+    - { N: 2, lda: 2, stride_a: 2, incx: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  stride_scale: [ 1 ]
+  alpha_beta: *alpha_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - her: *single_precision_complex
+    - her_batched: *single_precision_complex
+    - her_strided_batched: *single_precision_complex
 
 - name: her_graph_test
   category: pre_checkin

@@ -1635,13 +1635,19 @@ rocblas_Xher + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zher
 
+The her functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_cher_batched
    :outline:
 .. doxygenfunction:: rocblas_zher_batched
 
+The her_batched functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_cher_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zher_strided_batched
+
+The her_strided_batched functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
 
 rocblas_Xher2 + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
