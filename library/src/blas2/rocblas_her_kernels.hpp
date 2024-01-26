@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,22 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_her.hpp"
 
-#include "blas2/rocblas_her_imp.hpp"
+#pragma once
 
-INST_HER_C_API(rocblas_int);
+#include "handle.hpp"
+
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_her_launcher(rocblas_handle handle,
+                                    rocblas_fill   uplo,
+                                    API_INT        n,
+                                    TScal          alpha,
+                                    TConstPtr      x,
+                                    rocblas_stride offset_x,
+                                    int64_t        incx,
+                                    rocblas_stride stride_x,
+                                    TPtr           A,
+                                    rocblas_stride offset_A,
+                                    int64_t        lda,
+                                    rocblas_stride stride_A,
+                                    API_INT        batch_count);
