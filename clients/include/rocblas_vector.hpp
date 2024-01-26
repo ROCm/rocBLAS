@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,14 @@
 
 #include "d_vector.hpp"
 
-#include "device_batch_vector.hpp"
-#include "device_strided_batch_vector.hpp"
-#include "device_vector.hpp"
-
 #include "host_batch_vector.hpp"
 #include "host_pinned_vector.hpp"
 #include "host_strided_batch_vector.hpp"
 #include "host_vector.hpp"
+
+#include "device_batch_vector.hpp"
+#include "device_strided_batch_vector.hpp"
+#include "device_vector.hpp"
 
 #include "rocblas_init.hpp"
 
