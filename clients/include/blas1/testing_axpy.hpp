@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -126,13 +126,9 @@ void testing_axpy(const Arguments& arg)
     host_vector<T> hy_gold(N, incy);
 
     // Allocate device memory
-    device_vector<T> dx(N, incx, HMM);
-    device_vector<T> dy(N, incy, HMM);
     device_vector<T> d_alpha(1, 1, HMM);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
@@ -143,20 +139,26 @@ void testing_axpy(const Arguments& arg)
     // BLAS
     hy_gold = hy;
 
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy.transfer_from(hy));
-
     double cpu_time_used;
-    double rocblas_error_1 = 0.0;
-    double rocblas_error_2 = 0.0;
+    double rocblas_error_host   = 0.0;
+    double rocblas_error_device = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        device_vector<T> dx(N, incx, HMM);
+        device_vector<T> dy(N, incy, HMM);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+        CHECK_HIP_ERROR(dy.transfer_from(hy));
+
         if(arg.pointer_mode_host)
         {
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
-
             // ROCBLAS pointer mode host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -204,8 +206,6 @@ void testing_axpy(const Arguments& arg)
             handle.post_test(arg);
         }
 
-        // check host mode results
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
@@ -222,7 +222,7 @@ void testing_axpy(const Arguments& arg)
 
             if(arg.norm_check)
             {
-                rocblas_error_1 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
+                rocblas_error_host = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
             }
         }
 
@@ -238,7 +238,7 @@ void testing_axpy(const Arguments& arg)
 
             if(arg.norm_check)
             {
-                rocblas_error_2 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
+                rocblas_error_device = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
             }
         }
     }
@@ -249,6 +249,50 @@ void testing_axpy(const Arguments& arg)
         int    number_cold_calls = arg.cold_iters;
         int    total_calls       = number_cold_calls + arg.iters;
 
+        // Information on flush_memory_size and flush_batch_count
+        // - To time axpy it is called number_hot_calls times.
+        // - if the size of dx and dy are small enough they will be cached
+        //   and reused number_hot_calls-1 times.
+        // - This "hot-cache" timing will give higher performance than if the
+        //   cache is flushed
+        // - arg.flush_batch_count or arg.flush_memory_size can be used to avoid caching of dx and dy
+        // - if arg.flush_memory_size is specified, then flush_batch_count is calculated
+        // - only one of arg.flush_memory_size or arg.flush_batch_count can be used, not both
+        // - Note that this is only used in timing code, not in testing code.
+        // - The method is as outlined in
+        //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
+        // - In the number_hot_calls timing loop it cycles through the arg.flush_batch_count copies
+        //   of dx_rot_buff and dy_rot_buff, and if flush_memory_size is large enough they will be evicted
+        //   from cache before they are reused.
+        // - The individual vectors in the dx_rot_buff and dy_rot_buff rotating buffers are aligned on the
+        //   same byte boundaries provided by hipMalloc.
+        size_t stride_x         = N * (incx >= 0 ? incx : -incx);
+        size_t stride_y         = N * (incy >= 0 ? incy : -incy);
+        stride_x                = stride_x == 0 ? 1 : stride_x;
+        stride_y                = stride_y == 0 ? 1 : stride_y;
+        size_t aligned_stride_x = align_stride<T>(stride_x);
+        size_t aligned_stride_y = align_stride<T>(stride_y);
+
+        size_t flush_batch_count = 1;
+        if(arg.timing)
+        {
+            size_t x_size          = N * sizeof(T);
+            size_t y_size          = N * sizeof(T);
+            size_t x_y_cached_size = x_size + y_size;
+
+            flush_batch_count = calculate_flush_batch_count(
+                arg.flush_batch_count, arg.flush_memory_size, x_y_cached_size);
+        }
+
+        // allocate device rotating buffer arrays
+        device_strided_batch_vector<T> dx_rot_buff(
+            N, incx, aligned_stride_x, flush_batch_count, HMM);
+        device_strided_batch_vector<T> dy_rot_buff(
+            N, incy, aligned_stride_y, flush_batch_count, HMM);
+
+        CHECK_HIP_ERROR(dx_rot_buff.broadcast_one_vector_from(hx));
+        CHECK_HIP_ERROR(dy_rot_buff.broadcast_one_vector_from(hy));
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
@@ -258,7 +302,15 @@ void testing_axpy(const Arguments& arg)
             if(iter == number_cold_calls)
                 gpu_time_used = get_time_us_sync(stream);
 
-            DAPI_DISPATCH(rocblas_axpy_fn, (handle, N, &h_alpha, dx, incx, dy, incy));
+            int flush_index = (iter + 1) % flush_batch_count;
+            DAPI_DISPATCH(rocblas_axpy_fn,
+                          (handle,
+                           N,
+                           &h_alpha,
+                           dx_rot_buff[flush_index],
+                           incx,
+                           dy_rot_buff[flush_index],
+                           incy));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -269,7 +321,7 @@ void testing_axpy(const Arguments& arg)
                                                                   axpy_gflop_count<T>(N),
                                                                   axpy_gbyte_count<T>(N),
                                                                   cpu_time_used,
-                                                                  rocblas_error_1,
-                                                                  rocblas_error_2);
+                                                                  rocblas_error_host,
+                                                                  rocblas_error_device);
     }
 }
