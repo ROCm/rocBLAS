@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,15 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_spr_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_spr_batched_fn
         = arg.api == FORTRAN ? rocblas_spr_batched<T, true> : rocblas_spr_batched<T, false>;
+    auto rocblas_spr_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_spr_batched_64<T, true>
+                                                           : rocblas_spr_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -49,9 +38,10 @@ void testing_spr_batched_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         rocblas_fill uplo        = rocblas_fill_upper;
-        rocblas_int  N           = 100;
-        rocblas_int  incx        = 1;
-        rocblas_int  batch_count = 2;
+        int64_t      N           = 100;
+        int64_t      N_64        = int64_t(std::numeric_limits<int32_t>::max()) + 1;
+        int64_t      incx        = 1;
+        int64_t      batch_count = 2;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -70,50 +60,54 @@ void testing_spr_batched_bad_arg(const Arguments& arg)
 
         // Allocate device memory
         device_batch_vector<T> dx(N, incx, batch_count);
-        device_batch_matrix<T> dAp_1(1, rocblas_packed_matrix_size(N), 1, batch_count);
+        device_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, batch_count);
 
         // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dAp_1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dAp.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(nullptr, uplo, N, alpha, dx, incx, dAp_1, batch_count),
-            rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_spr_batched_fn,
+                    (nullptr, uplo, N, alpha, dx, incx, dAp, batch_count));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(
-                handle, rocblas_fill_full, N, alpha, dx, incx, dAp_1, batch_count),
-            rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_spr_batched_fn,
+                    (handle, rocblas_fill_full, N, alpha, dx, incx, dAp, batch_count));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(handle, uplo, N, nullptr, dx, incx, dAp_1, batch_count),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_spr_batched_fn,
+                    (handle, uplo, N, nullptr, dx, incx, dAp, batch_count));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_spr_batched_fn(handle, uplo, N, alpha, nullptr, incx, dAp_1, batch_count),
-                rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_spr_batched_fn,
+                        (handle, uplo, N, alpha, nullptr, incx, dAp, batch_count));
 
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_spr_batched_fn(handle, uplo, N, alpha, dx, incx, nullptr, batch_count),
-                rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_spr_batched_fn,
+                        (handle, uplo, N, alpha, dx, incx, nullptr, batch_count));
         }
 
         // N==0 all pointers may be null
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(handle, uplo, 0, nullptr, nullptr, incx, nullptr, batch_count),
-            rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_spr_batched_fn,
+                    (handle, uplo, 0, nullptr, nullptr, incx, nullptr, batch_count));
 
         // batch_count==0 all pointers may be null
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(handle, uplo, N, nullptr, nullptr, incx, nullptr, 0),
-            rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_spr_batched_fn,
+                    (handle, uplo, N, nullptr, nullptr, incx, nullptr, 0));
 
         // alpha==0 all pointers may be null
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_spr_batched_fn,
+                    (handle, uplo, N, zero, nullptr, incx, nullptr, batch_count));
+
+        // 64-bit API return invalid_size for too large of N
         EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(handle, uplo, N, zero, nullptr, incx, nullptr, batch_count),
-            rocblas_status_success);
+            rocblas_spr_batched_fn_64(handle, uplo, N_64, alpha, dx, incx, dAp, batch_count),
+            rocblas_status_invalid_size);
     }
 }
 
@@ -122,12 +116,14 @@ void testing_spr_batched(const Arguments& arg)
 {
     auto rocblas_spr_batched_fn
         = arg.api == FORTRAN ? rocblas_spr_batched<T, true> : rocblas_spr_batched<T, false>;
+    auto rocblas_spr_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_spr_batched_64<T, true>
+                                                           : rocblas_spr_batched_64<T, false>;
 
-    rocblas_int  N           = arg.N;
-    rocblas_int  incx        = arg.incx;
+    int64_t      N           = arg.N;
+    int64_t      incx        = arg.incx;
     T            h_alpha     = arg.get_alpha<T>();
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
-    rocblas_int  batch_count = arg.batch_count;
+    int64_t      batch_count = arg.batch_count;
 
     rocblas_local_handle handle{arg};
 
@@ -135,41 +131,37 @@ void testing_spr_batched(const Arguments& arg)
     bool invalid_size = N < 0 || !incx || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spr_batched_fn(handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count),
-            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_spr_batched_fn,
+                    (handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count));
         return;
     }
 
     size_t size_A = rocblas_packed_matrix_size(N);
 
-    // Naming: `h` is in CPU (host) memory(eg hAp_1), `d` is in GPU (device) memory (eg dAp_1).
+    // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
     host_batch_matrix<T> hA(N, N, N, batch_count);
-    host_batch_matrix<T> hAp_1(1, size_A, 1, batch_count);
-    host_batch_matrix<T> hAp_2(1, size_A, 1, batch_count);
+    host_batch_matrix<T> hAp(1, size_A, 1, batch_count);
     host_batch_matrix<T> hAp_gold(1, size_A, 1, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
     host_vector<T>       halpha(1);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hAp_1.memcheck());
-    CHECK_HIP_ERROR(hAp_2.memcheck());
+    CHECK_HIP_ERROR(hAp.memcheck());
     CHECK_HIP_ERROR(hAp_gold.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
 
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_batch_matrix<T> dAp_1(1, size_A, 1, batch_count);
-    device_batch_matrix<T> dAp_2(1, size_A, 1, batch_count);
+    device_batch_matrix<T> dAp(1, size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_vector<T>       d_alpha(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAp_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dAp_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
@@ -179,118 +171,139 @@ void testing_spr_batched(const Arguments& arg)
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // Helper function to convert regular matrix `hA` to packed matrix `hAp`
-    regular_to_packed(uplo == rocblas_fill_upper, hA, hAp_1, N);
+    regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
 
-    hAp_2.copy_from(hAp_1);
-    hAp_gold.copy_from(hAp_1);
+    hAp_gold.copy_from(hAp);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dAp_1.transfer_from(hAp_1));
+    CHECK_HIP_ERROR(dAp.transfer_from(hAp));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double cpu_time_used;
+    double rocblas_error_host, rocblas_error_device;
 
     if(arg.unit_check || arg.norm_check)
     {
-        // copy data from CPU to device
-        CHECK_HIP_ERROR(dAp_2.transfer_from(hAp_1));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_spr_batched_fn,
+                       (handle,
+                        uplo,
+                        N,
+                        &h_alpha,
+                        dx.ptr_on_device(),
+                        incx,
+                        dAp.ptr_on_device(),
+                        batch_count));
+            handle.post_test(arg);
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_spr_batched_fn(handle,
-                                                   uplo,
-                                                   N,
-                                                   &h_alpha,
-                                                   dx.ptr_on_device(),
-                                                   incx,
-                                                   dAp_1.ptr_on_device(),
-                                                   batch_count));
-        handle.post_test(arg);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hAp.transfer_from(dAp));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_spr_batched_fn(handle,
-                                                   uplo,
-                                                   N,
-                                                   d_alpha,
-                                                   dx.ptr_on_device(),
-                                                   incx,
-                                                   dAp_2.ptr_on_device(),
-                                                   batch_count));
-        handle.post_test(arg);
+            if(arg.pointer_mode_device)
+                CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int b = 0; b < batch_count; b++)
+        for(int64_t b = 0; b < batch_count; b++)
         {
             ref_spr<T>(uplo, N, h_alpha, hx[b], incx, hAp_gold[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hAp_1.transfer_from(dAp_1));
-        CHECK_HIP_ERROR(hAp_2.transfer_from(dAp_2));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<T,
-                              rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+            if(arg.unit_check)
             {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, 1, hAp_gold, hAp_1, batch_count, tol);
-                near_check_general<T>(1, size_A, 1, hAp_gold, hAp_2, batch_count, tol);
+                if(std::is_same_v<
+                       T,
+                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+                {
+                    const double tol = N * sum_error_tolerance<T>;
+                    near_check_general<T>(1, size_A, 1, hAp_gold, hAp, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(1, size_A, 1, hAp_gold, hAp, batch_count);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                unit_check_general<T>(1, size_A, 1, hAp_gold, hAp_1, batch_count);
-                unit_check_general<T>(1, size_A, 1, hAp_gold, hAp_2, batch_count);
+                rocblas_error_host
+                    = norm_check_general<T>('F', 1, size_A, 1, hAp_gold, hAp, batch_count);
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1
-                = norm_check_general<T>('F', 1, size_A, 1, hAp_gold, hAp_1, batch_count);
-            rocblas_error_2
-                = norm_check_general<T>('F', 1, size_A, 1, hAp_gold, hAp_2, batch_count);
+            // copy data from CPU to device
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_spr_batched_fn,
+                       (handle,
+                        uplo,
+                        N,
+                        d_alpha,
+                        dx.ptr_on_device(),
+                        incx,
+                        dAp.ptr_on_device(),
+                        batch_count));
+            handle.post_test(arg);
+
+            CHECK_HIP_ERROR(hAp.transfer_from(dAp));
+
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<
+                       T,
+                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+                {
+                    const double tol = N * sum_error_tolerance<T>;
+                    near_check_general<T>(1, size_A, 1, hAp_gold, hAp, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(1, size_A, 1, hAp_gold, hAp, batch_count);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_device
+                    = norm_check_general<T>('F', 1, size_A, 1, hAp_gold, hAp, batch_count);
+            }
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_spr_batched_fn(handle,
-                                   uplo,
-                                   N,
-                                   &h_alpha,
-                                   dx.ptr_on_device(),
-                                   incx,
-                                   dAp_1.ptr_on_device(),
-                                   batch_count);
-        }
-
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_spr_batched_fn(handle,
-                                   uplo,
-                                   N,
-                                   &h_alpha,
-                                   dx.ptr_on_device(),
-                                   incx,
-                                   dAp_1.ptr_on_device(),
-                                   batch_count);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_spr_batched_fn,
+                          (handle,
+                           uplo,
+                           N,
+                           &h_alpha,
+                           dx.ptr_on_device(),
+                           incx,
+                           dAp.ptr_on_device(),
+                           batch_count));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -302,7 +315,7 @@ void testing_spr_batched(const Arguments& arg)
             spr_gflop_count<T>(N),
             spr_gbyte_count<T>(N),
             cpu_time_used,
-            rocblas_error_1,
-            rocblas_error_2);
+            rocblas_error_host,
+            rocblas_error_device);
     }
 }
