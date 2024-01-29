@@ -1339,10 +1339,19 @@ static rocblas_status (*rocblas_spr)(rocblas_handle handle,
                                      rocblas_int    incx,
                                      T*             AP);
 
-MAP2CF(rocblas_spr, float, rocblas_sspr);
-MAP2CF(rocblas_spr, double, rocblas_dspr);
-MAP2CF(rocblas_spr, rocblas_float_complex, rocblas_cspr);
-MAP2CF(rocblas_spr, rocblas_double_complex, rocblas_zspr);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_spr_64)(rocblas_handle handle,
+                                        rocblas_fill   uplo,
+                                        int64_t        n,
+                                        const T*       alpha,
+                                        const T*       x,
+                                        int64_t        incx,
+                                        T*             AP);
+
+MAP2CF_D64(rocblas_spr, float, rocblas_sspr);
+MAP2CF_D64(rocblas_spr, double, rocblas_dspr);
+MAP2CF_D64(rocblas_spr, rocblas_float_complex, rocblas_cspr);
+MAP2CF_D64(rocblas_spr, rocblas_double_complex, rocblas_zspr);
 
 // spr_batched
 template <typename T, bool FORTRAN = false>
@@ -1355,10 +1364,20 @@ static rocblas_status (*rocblas_spr_batched)(rocblas_handle handle,
                                              T* const       AP[],
                                              rocblas_int    batch_count);
 
-MAP2CF(rocblas_spr_batched, float, rocblas_sspr_batched);
-MAP2CF(rocblas_spr_batched, double, rocblas_dspr_batched);
-MAP2CF(rocblas_spr_batched, rocblas_float_complex, rocblas_cspr_batched);
-MAP2CF(rocblas_spr_batched, rocblas_double_complex, rocblas_zspr_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_spr_batched_64)(rocblas_handle handle,
+                                                rocblas_fill   uplo,
+                                                int64_t        n,
+                                                const T*       alpha,
+                                                const T* const x[],
+                                                int64_t        incx,
+                                                T* const       AP[],
+                                                int64_t        batch_count);
+
+MAP2CF_D64(rocblas_spr_batched, float, rocblas_sspr_batched);
+MAP2CF_D64(rocblas_spr_batched, double, rocblas_dspr_batched);
+MAP2CF_D64(rocblas_spr_batched, rocblas_float_complex, rocblas_cspr_batched);
+MAP2CF_D64(rocblas_spr_batched, rocblas_double_complex, rocblas_zspr_batched);
 
 // spr_strided_batched
 template <typename T, bool FORTRAN = false>
@@ -1373,10 +1392,22 @@ static rocblas_status (*rocblas_spr_strided_batched)(rocblas_handle handle,
                                                      rocblas_stride stride_A,
                                                      rocblas_int    batch_count);
 
-MAP2CF(rocblas_spr_strided_batched, float, rocblas_sspr_strided_batched);
-MAP2CF(rocblas_spr_strided_batched, double, rocblas_dspr_strided_batched);
-MAP2CF(rocblas_spr_strided_batched, rocblas_float_complex, rocblas_cspr_strided_batched);
-MAP2CF(rocblas_spr_strided_batched, rocblas_double_complex, rocblas_zspr_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_spr_strided_batched_64)(rocblas_handle handle,
+                                                        rocblas_fill   uplo,
+                                                        int64_t        n,
+                                                        const T*       alpha,
+                                                        const T*       x,
+                                                        int64_t        incx,
+                                                        rocblas_stride stride_x,
+                                                        T*             AP,
+                                                        rocblas_stride stride_A,
+                                                        int64_t        batch_count);
+
+MAP2CF_D64(rocblas_spr_strided_batched, float, rocblas_sspr_strided_batched);
+MAP2CF_D64(rocblas_spr_strided_batched, double, rocblas_dspr_strided_batched);
+MAP2CF_D64(rocblas_spr_strided_batched, rocblas_float_complex, rocblas_cspr_strided_batched);
+MAP2CF_D64(rocblas_spr_strided_batched, rocblas_double_complex, rocblas_zspr_strided_batched);
 
 // spr2
 template <typename T, bool FORTRAN = false>

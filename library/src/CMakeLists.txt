@@ -521,10 +521,10 @@ set( rocblas64_blas2_source
   #   src64/blas2/rocblas_hpr2_kernels.cpp
   #   src64/blas2/rocblas_hpr2_batched.cpp
   #   src64/blas2/rocblas_hpr2_strided_batched.cpp
-  #   src64/blas2/rocblas_spr.cpp
-  #   src64/blas2/rocblas_spr_kernels.cpp
-  #   src64/blas2/rocblas_spr_batched.cpp
-  #   src64/blas2/rocblas_spr_strided_batched.cpp
+    src64/blas2/rocblas_spr_64.cpp
+    src64/blas2/rocblas_spr_kernels_64.cpp
+    src64/blas2/rocblas_spr_batched_64.cpp
+    src64/blas2/rocblas_spr_strided_batched_64.cpp
   #   src64/blas2/rocblas_spr2.cpp
   #   src64/blas2/rocblas_spr2_kernels.cpp
   #   src64/blas2/rocblas_spr2_batched.cpp

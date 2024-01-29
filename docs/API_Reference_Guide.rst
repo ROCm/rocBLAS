@@ -1309,6 +1309,8 @@ rocblas_Xspr + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zspr
 
+The spr functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sspr_batched
    :outline:
 .. doxygenfunction:: rocblas_dspr_batched
@@ -1317,6 +1319,8 @@ rocblas_Xspr + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zspr_batched
 
+The spr_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sspr_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dspr_strided_batched
@@ -1324,6 +1328,8 @@ rocblas_Xspr + batched, strided_batched
 .. doxygenfunction:: rocblas_cspr_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zspr_strided_batched
+
+The spr_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xspr2 + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

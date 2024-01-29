@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,21 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "blas2/rocblas_spr_strided_batched_imp.hpp"
-#include "rocblas_spr.hpp"
 
-INST_SPR_STRIDED_BATCHED_C_API(rocblas_int);
+#pragma once
+
+#include "handle.hpp"
+
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_spr_launcher_64(rocblas_handle handle,
+                                                rocblas_fill   uplo,
+                                                API_INT        n,
+                                                TScal const*   alpha,
+                                                TConstPtr      x,
+                                                rocblas_stride offset_x,
+                                                int64_t        incx,
+                                                rocblas_stride stride_x,
+                                                TPtr           AP,
+                                                rocblas_stride offset_A,
+                                                rocblas_stride stride_A,
+                                                int64_t        batch_count);
