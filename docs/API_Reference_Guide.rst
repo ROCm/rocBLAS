@@ -1290,13 +1290,19 @@ rocblas_Xspmv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dspmv
 
+The spmv functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sspmv_batched
    :outline:
 .. doxygenfunction:: rocblas_dspmv_batched
 
+The spmv_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sspmv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dspmv_strided_batched
+
+The spmv_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xspr + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

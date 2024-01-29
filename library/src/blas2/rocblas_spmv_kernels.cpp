@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,10 +36,10 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
                                          T           alpha,
                                          const T* __restrict__ AP,
                                          const T* __restrict__ x,
-                                         rocblas_int incx,
-                                         T           beta,
+                                         int64_t incx,
+                                         T       beta,
                                          T* __restrict__ y,
-                                         rocblas_int incy)
+                                         int64_t incy)
 {
     rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -48,7 +48,7 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
         rocblas_int ind = blockIdx.x * DIM_X + thread_id;
         if(thread_id < DIM_X && ind < n)
         {
-            y[ind * int64_t(incy)] = beta ? (beta * y[ind * int64_t(incy)]) : 0;
+            y[ind * incy] = beta ? (beta * y[ind * incy]) : 0;
         }
         return;
     }
@@ -81,7 +81,7 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
             size_t index = is_upper ? ((ind_y * (size_t(ind_y) + 1)) / 2) + ind_x
                                     : ((ind_y * (2 * size_t(n) - ind_y + 1)) / 2) + (ind_x - ind_y);
 
-            res_A += AP[index] * x[col * int64_t(incx)];
+            res_A += AP[index] * x[col * incx];
         }
     }
 
@@ -99,8 +99,8 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
         }
 
-        y[ind * int64_t(incy)] = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * int64_t(incy)])
-                                      : alpha * sdata[thread_id];
+        y[ind * incy]
+            = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * incy]) : alpha * sdata[thread_id];
     }
 }
 
@@ -114,18 +114,18 @@ rocblas_spmv_kernel(bool           is_upper,
                     TScal          alpha_device_host,
                     rocblas_stride stride_alpha,
                     TConstPtr __restrict__ APa,
-                    rocblas_stride shifta,
-                    rocblas_stride strideA,
+                    rocblas_stride shift_AP,
+                    rocblas_stride stride_AP,
                     TConstPtr __restrict__ xa,
-                    rocblas_stride shiftx,
-                    rocblas_int    incx,
-                    rocblas_stride stridex,
+                    rocblas_stride shift_x,
+                    int64_t        incx,
+                    rocblas_stride stride_x,
                     TScal          beta_device_host,
                     rocblas_stride stride_beta,
                     TPtr __restrict__ ya,
-                    rocblas_stride shifty,
-                    rocblas_int    incy,
-                    rocblas_stride stridey)
+                    rocblas_stride shift_y,
+                    int64_t        incy,
+                    rocblas_stride stride_y)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -136,34 +136,34 @@ rocblas_spmv_kernel(bool           is_upper,
     if(!alpha && beta == 1)
         return;
 
-    auto AP = cond_load_ptr_batch(alpha, APa, blockIdx.y, shifta, strideA);
-    auto x  = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+    auto AP = cond_load_ptr_batch(alpha, APa, blockIdx.y, shift_AP, stride_AP);
+    auto x  = cond_load_ptr_batch(alpha, xa, blockIdx.y, shift_x, stride_x);
 
-    auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+    auto y = load_ptr_batch(ya, blockIdx.y, shift_y, stride_y);
 
     rocblas_spmv_kernel_calc<DIM_X, DIM_Y>(is_upper, n, alpha, AP, x, incx, beta, y, incy);
 }
 
-template <typename T, typename U, typename V, typename W>
-rocblas_status rocblas_spmv_template(rocblas_handle handle,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    n,
-                                     const V*       alpha,
-                                     rocblas_stride stride_alpha,
-                                     const U*       A,
-                                     rocblas_stride offseta,
-                                     rocblas_stride strideA,
-                                     const U*       x,
-                                     rocblas_stride offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     const V*       beta,
-                                     rocblas_stride stride_beta,
-                                     W*             y,
-                                     rocblas_stride offsety,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey,
-                                     rocblas_int    batch_count)
+template <typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_spmv_launcher(rocblas_handle handle,
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              TScal          alpha,
+                                              rocblas_stride stride_alpha,
+                                              TConstPtr      AP,
+                                              rocblas_stride offset_AP,
+                                              rocblas_stride stride_AP,
+                                              TConstPtr      x,
+                                              rocblas_stride offset_x,
+                                              int64_t        incx,
+                                              rocblas_stride stride_x,
+                                              TScal          beta,
+                                              rocblas_stride stride_beta,
+                                              TPtr           y,
+                                              rocblas_stride offset_y,
+                                              int64_t        incy,
+                                              rocblas_stride stride_y,
+                                              rocblas_int    batch_count)
 {
     //quick return
     if(!n || !batch_count)
@@ -172,8 +172,8 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
+    auto shift_x = incx < 0 ? offset_x - incx * (n - 1) : offset_x;
+    auto shift_y = incy < 0 ? offset_y - incy * (n - 1) : offset_y;
 
     static constexpr int spmv_DIM_X = 64;
     static constexpr int spmv_DIM_Y = 16;
@@ -192,19 +192,19 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
                               n,
                               alpha,
                               stride_alpha,
-                              A,
-                              offseta,
-                              strideA,
+                              AP,
+                              offset_AP,
+                              stride_AP,
                               x,
-                              shiftx,
+                              shift_x,
                               incx,
-                              stridex,
+                              stride_x,
                               beta,
                               stride_beta,
                               y,
-                              shifty,
+                              shift_y,
                               incy,
-                              stridey);
+                              stride_y);
     }
     else
     {
@@ -221,41 +221,41 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
                               n,
                               *alpha,
                               stride_alpha,
-                              A,
-                              offseta,
-                              strideA,
+                              AP,
+                              offset_AP,
+                              stride_AP,
                               x,
-                              shiftx,
+                              shift_x,
                               incx,
-                              stridex,
+                              stride_x,
                               *beta,
                               stride_beta,
                               y,
-                              shifty,
+                              shift_y,
                               incy,
-                              stridey);
+                              stride_y);
     }
 
     return rocblas_status_success;
 }
 
-//TODO :-Add rocblas_check_numerics_sp_matrix_template for checking Matrix `A` which is a Symmetric Packed Matrix
+//TODO :-Add rocblas_check_numerics_sp_matrix_template for checking Matrix `AP` which is a Symmetric Packed Matrix
 template <typename T, typename U>
 rocblas_status rocblas_spmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
-                                           T              A,
-                                           rocblas_stride offset_a,
-                                           rocblas_stride stride_a,
+                                           int64_t        n,
+                                           T              AP,
+                                           rocblas_stride offset_AP,
+                                           rocblas_stride stride_AP,
                                            T              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input)
 {
@@ -290,64 +290,61 @@ rocblas_status rocblas_spmv_check_numerics(const char*    function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *spmv*.cpp
 
-// clang-format off
-
-#ifdef INSTANTIATE_SPMV_TEMPLATE
-#error INSTANTIATE_SPMV_TEMPLATE already defined
+#ifdef INSTANTIATE_SPMV_LAUNCHER
+#error INSTANTIATE_SPMV_LAUNCHER already defined
 #endif
 
-#define INSTANTIATE_SPMV_TEMPLATE(T_, U_, V_, W_)                     \
-template rocblas_status rocblas_spmv_template<T_, U_, V_, W_>         \
-                                    (rocblas_handle handle,           \
-                                     rocblas_fill   uplo,             \
-                                     rocblas_int    n,                \
-                                     V_ const*       alpha,           \
-                                     rocblas_stride stride_alpha,     \
-                                     U_ const*       A,               \
-                                     rocblas_stride offseta,          \
-                                     rocblas_stride strideA,          \
-                                     U_ const*       x,               \
-                                     rocblas_stride offsetx,          \
-                                     rocblas_int    incx,             \
-                                     rocblas_stride stridex,          \
-                                     V_ const*       beta,            \
-                                     rocblas_stride stride_beta,      \
-                                     W_*             y,               \
-                                     rocblas_stride offsety,          \
-                                     rocblas_int    incy,             \
-                                     rocblas_stride stridey,          \
-                                     rocblas_int    batch_count);
+#define INSTANTIATE_SPMV_LAUNCHER(TScal_, TConstPtr_, TPtr_)                           \
+    template rocblas_status rocblas_internal_spmv_launcher<TScal_, TConstPtr_, TPtr_>( \
+        rocblas_handle handle,                                                         \
+        rocblas_fill   uplo,                                                           \
+        rocblas_int    n,                                                              \
+        TScal_         alpha,                                                          \
+        rocblas_stride stride_alpha,                                                   \
+        TConstPtr_     AP,                                                             \
+        rocblas_stride offset_AP,                                                      \
+        rocblas_stride stride_AP,                                                      \
+        TConstPtr_     x,                                                              \
+        rocblas_stride offset_x,                                                       \
+        int64_t        incx,                                                           \
+        rocblas_stride stride_x,                                                       \
+        TScal_         beta,                                                           \
+        rocblas_stride stride_beta,                                                    \
+        TPtr_          y,                                                              \
+        rocblas_stride offset_y,                                                       \
+        int64_t        incy,                                                           \
+        rocblas_stride stride_y,                                                       \
+        rocblas_int    batch_count);
 
-INSTANTIATE_SPMV_TEMPLATE(float, float, float, float)
-INSTANTIATE_SPMV_TEMPLATE(double, double, double, double)
-INSTANTIATE_SPMV_TEMPLATE(float, float const*, float, float* const)
-INSTANTIATE_SPMV_TEMPLATE(double, double const*, double, double* const)
+INSTANTIATE_SPMV_LAUNCHER(float const*, float const*, float*)
+INSTANTIATE_SPMV_LAUNCHER(double const*, double const*, double*)
+INSTANTIATE_SPMV_LAUNCHER(float const*, float const* const*, float* const*)
+INSTANTIATE_SPMV_LAUNCHER(double const*, double const* const*, double* const*)
 
-#undef INSTANTIATE_SPMV_TEMPLATE
+#undef INSTANTIATE_SPMV_LAUNCHER
 
 #ifdef INSTANTIATE_SPMV_NUMERICS
 #error INSTANTIATE_SPMV_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_SPMV_NUMERICS(T_, U_)                                   \
-template rocblas_status rocblas_spmv_check_numerics<T_, U_>                 \
-                                          (const char*    function_name,    \
-                                           rocblas_handle handle,           \
-                                           rocblas_int    n,                \
-                                           T_             A,                \
-                                           rocblas_stride    offset_a,         \
-                                           rocblas_stride stride_a,         \
-                                           T_             x,                \
-                                           rocblas_stride    offset_x,         \
-                                           rocblas_int    inc_x,            \
-                                           rocblas_stride stride_x,         \
-                                           U_             y,                \
-                                           rocblas_stride    offset_y,         \
-                                           rocblas_int    inc_y,            \
-                                           rocblas_stride stride_y,         \
-                                           rocblas_int    batch_count,      \
-                                           const int      check_numerics,   \
-                                           bool           is_input);
+#define INSTANTIATE_SPMV_NUMERICS(T_, U_)                                                      \
+    template rocblas_status rocblas_spmv_check_numerics<T_, U_>(const char*    function_name,  \
+                                                                rocblas_handle handle,         \
+                                                                int64_t        n,              \
+                                                                T_             AP,             \
+                                                                rocblas_stride offset_AP,      \
+                                                                rocblas_stride stride_AP,      \
+                                                                T_             x,              \
+                                                                rocblas_stride offset_x,       \
+                                                                int64_t        inc_x,          \
+                                                                rocblas_stride stride_x,       \
+                                                                U_             y,              \
+                                                                rocblas_stride offset_y,       \
+                                                                int64_t        inc_y,          \
+                                                                rocblas_stride stride_y,       \
+                                                                int64_t        batch_count,    \
+                                                                const int      check_numerics, \
+                                                                bool           is_input);
 
 INSTANTIATE_SPMV_NUMERICS(float const*, float*)
 INSTANTIATE_SPMV_NUMERICS(double const*, double*)
@@ -355,5 +352,3 @@ INSTANTIATE_SPMV_NUMERICS(float const* const*, float* const*)
 INSTANTIATE_SPMV_NUMERICS(double const* const*, double* const*)
 
 #undef INSTANTIATE_SPMV_NUMERICS
-
-// clang-format on
