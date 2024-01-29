@@ -60,7 +60,7 @@ Tests:
   category: pre_checkin
   function: spmv_bad_arg
   precision: *single_precision
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: spmv_arg_check
   category: quick
@@ -132,6 +132,23 @@ Tests:
   pointer_mode_device: false
   os_flags: LINUX
   gpu_arch: ['90a']
+
+- name: spmv_64
+  category: stress
+  arguments:
+    - { N: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+    - { N: 2, incx: 1, incy: -2147483649, batch_count: 1 }
+    - { N: 2, stride_a: 4, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  stride_scale: [ 1 ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - spmv: *single_precision
+    - spmv_batched: *single_precision
+    - spmv_strided_batched: *single_precision
 
   # batched
 - name: spmv_batched_bad
