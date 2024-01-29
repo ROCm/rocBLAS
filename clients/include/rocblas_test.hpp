@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,9 @@ typedef long long ssize_t; /* x64 only supported */
 
 #ifdef GOOGLE_TEST
 
+// improve mismatched status reporting
+testing::AssertionResult status_match(rocblas_status expected, rocblas_status status);
+
 // Extra macro so that macro arguments get expanded before calling Google Test
 #define CHECK_HIP_ERROR2(ERROR) ASSERT_EQ(ERROR, hipSuccess)
 #define CHECK_HIP_ERROR(ERROR) CHECK_HIP_ERROR2(ERROR)
@@ -75,22 +78,22 @@ typedef long long ssize_t; /* x64 only supported */
 // This wraps the rocBLAS call with catch_signals_and_exceptions_as_failures().
 // By placing it at the rocBLAS call site, memory resources are less likely to
 // be leaked in the event of a caught signal.
-#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)                 \
-    do                                                        \
-    {                                                         \
-        volatile bool signal_or_exception = true;             \
-        /* Use status__ in case STATUS contains "status" */   \
-        rocblas_status status__;                              \
-        catch_signals_and_exceptions_as_failures([&] {        \
-            status__            = (STATUS);                   \
-            signal_or_exception = false;                      \
-        });                                                   \
-        if(signal_or_exception)                               \
-            return;                                           \
-        { /* localize status for ASSERT_EQ message */         \
-            rocblas_status status_ = status__;                \
-            ASSERT_EQ(status_, EXPECT); /* prints "status" */ \
-        }                                                     \
+#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)               \
+    do                                                      \
+    {                                                       \
+        volatile bool signal_or_exception = true;           \
+        /* Use status__ in case STATUS contains "status" */ \
+        rocblas_status status__;                            \
+        catch_signals_and_exceptions_as_failures([&] {      \
+            status__            = (STATUS);                 \
+            signal_or_exception = false;                    \
+        });                                                 \
+        if(signal_or_exception)                             \
+            return;                                         \
+        { /* localize status for ASSERT_EQ message */       \
+            rocblas_status status_ = status__;              \
+            ASSERT_TRUE(status_match(EXPECT, status_));     \
+        }                                                   \
     } while(0)
 
 #define CHECK_ALLOC_QUERY(STATUS)                                  \
