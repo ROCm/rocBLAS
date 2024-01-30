@@ -1,15 +1,36 @@
-# Anywhere {branch} is used, the branch name will be substituted.
-# These comments will also be removed.
+defaults:
+  numbered: False
 root: index
 subtrees:
-  - numbered: False
-    entries:
-    - file: Linux_Install_Guide
-    - file: Windows_Install_Guide
-    - file: API_Reference_Guide
-    - file: Programmers_Guide
-    - file: Contributors_Guide
-    - file: Acknowledgement
-  - caption: About
-    entries:
-    - file: license
+- entries:
+  - file: install/install.rst
+    subtrees:
+    - entries:
+      - file: install/Linux_Install_Guide
+      - file: install/Windows_Install_Guide
+  - file: how-to/how-to.rst
+    title: How To
+    subtrees:
+    - entries:
+      - file: how-to/what-is-rocblas.rst
+      - file: how-to/Programmers_Guide.rst
+      - file: how-to/Contributors_Guide.rst
+  - file: reference/API_Reference-Guide.rst
+    title: API Reference
+    subtrees:
+    - entries:
+      - file: reference/datatypes.rst
+      - file: reference/enumerations.rst
+      - file: reference/helper-functions.rst
+      - file: reference/level-1.rst
+      - file: reference/level-2.rst
+      - file: reference/level-3.rst
+      - file: reference/extension.rst
+      - file: reference/beta-features.rst
+      - file: reference/memory-alloc.rst
+      - file: reference/logging.rst
+      - file: reference/deprecations.rst
+      - file: reference/references.rst
+      - file: reference/acknowledge.rst
+  - file: license.rst
+
