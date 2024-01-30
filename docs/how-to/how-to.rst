@@ -2,10 +2,12 @@
   :description: rocBLAS documentation and API reference library
   :keywords: rocBLAS, ROCm, API, Linear Algebra, documentation
 
-.. _license:
+.. _how-to:
 
 *****************
-License
+What is rocBLAS?
 *****************
 
-.. include:: ../LICENSE.md
+  * :ref:`what-is-rocblas`
+  * :ref:`programmers-guide`
+  * :ref:`contributing-to`

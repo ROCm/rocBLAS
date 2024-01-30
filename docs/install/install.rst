@@ -2,10 +2,13 @@
   :description: rocBLAS documentation and API reference library
   :keywords: rocBLAS, ROCm, API, Linear Algebra, documentation
 
-.. _license:
+.. _rocblas-install:
 
 *****************
-License
+Installation
 *****************
 
-.. include:: ../LICENSE.md
+The *Installation Guide* offers two approaches to build and install the rocBLAS library:
+
+  * :ref:`linux-install`
+  * :ref:`windows-install`
