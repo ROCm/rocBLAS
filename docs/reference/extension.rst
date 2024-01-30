@@ -1,0 +1,135 @@
+.. meta::
+  :description: rocBLAS documentation and API reference library
+  :keywords: rocBLAS, ROCm, API, Linear Algebra, documentation
+
+.. _extension:
+
+********************************************************************
+rocBLAS Extension
+********************************************************************
+
+
+Level-1 Extension functions support the ILP64 API.  For more information on these `_64` functions, refer to section :ref:`ILP64 API`.
+
+rocblas_axpy_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_axpy_ex
+.. doxygenfunction:: rocblas_axpy_batched_ex
+.. doxygenfunction:: rocblas_axpy_strided_batched_ex
+
+axpy_ex, axpy_batched_ex, and axpy_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
+rocblas_dot_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_dot_ex
+.. doxygenfunction:: rocblas_dot_batched_ex
+.. doxygenfunction:: rocblas_dot_strided_batched_ex
+
+dot_ex, dot_batched_ex, and dot_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
+rocblas_dotc_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_dotc_ex
+.. doxygenfunction:: rocblas_dotc_batched_ex
+.. doxygenfunction:: rocblas_dotc_strided_batched_ex
+
+dotc_ex, dotc_batched_ex, and dotc_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
+rocblas_nrm2_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_nrm2_ex
+.. doxygenfunction:: rocblas_nrm2_batched_ex
+.. doxygenfunction:: rocblas_nrm2_strided_batched_ex
+
+nrm2_ex, nrm2_batched_ex, and nrm2_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
+rocblas_rot_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_rot_ex
+.. doxygenfunction:: rocblas_rot_batched_ex
+.. doxygenfunction:: rocblas_rot_strided_batched_ex
+
+rot_ex, rot_batched_ex, and rot_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
+rocblas_scal_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_scal_ex
+.. doxygenfunction:: rocblas_scal_batched_ex
+.. doxygenfunction:: rocblas_scal_strided_batched_ex
+
+scal_ex, scal_batched_ex, and scal_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
+
+rocblas_gemm_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_gemm_ex
+.. doxygenfunction:: rocblas_gemm_batched_ex
+.. doxygenfunction:: rocblas_gemm_strided_batched_ex
+
+rocblas_trsm_ex + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_trsm_ex
+.. doxygenfunction:: rocblas_trsm_batched_ex
+.. doxygenfunction:: rocblas_trsm_strided_batched_ex
+
+rocblas_Xgeam + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_sgeam
+   :outline:
+.. doxygenfunction:: rocblas_dgeam
+   :outline:
+.. doxygenfunction:: rocblas_cgeam
+   :outline:
+.. doxygenfunction:: rocblas_zgeam
+
+.. doxygenfunction:: rocblas_sgeam_batched
+   :outline:
+.. doxygenfunction:: rocblas_dgeam_batched
+   :outline:
+.. doxygenfunction:: rocblas_cgeam_batched
+   :outline:
+.. doxygenfunction:: rocblas_zgeam_batched
+
+.. doxygenfunction:: rocblas_sgeam_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_dgeam_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_cgeam_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_zgeam_strided_batched
+
+
+rocblas_Xdgmm + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_sdgmm
+   :outline:
+.. doxygenfunction:: rocblas_ddgmm
+   :outline:
+.. doxygenfunction:: rocblas_cdgmm
+   :outline:
+.. doxygenfunction:: rocblas_zdgmm
+
+.. doxygenfunction:: rocblas_sdgmm_batched
+   :outline:
+.. doxygenfunction:: rocblas_ddgmm_batched
+   :outline:
+.. doxygenfunction:: rocblas_cdgmm_batched
+   :outline:
+.. doxygenfunction:: rocblas_zdgmm_batched
+
+.. doxygenfunction:: rocblas_sdgmm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_ddgmm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_cdgmm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_zdgmm_strided_batched
