@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,24 +27,24 @@
 #include "handle.hpp"
 #include "rocblas.h"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_syr2_arg_check(rocblas_handle handle,
                                              rocblas_fill   uplo,
-                                             rocblas_int    n,
+                                             API_INT        n,
                                              TScal          alpha,
                                              TConstPtr      x,
                                              rocblas_stride offset_x,
-                                             rocblas_int    incx,
+                                             API_INT        incx,
                                              rocblas_stride stride_x,
                                              TConstPtr      y,
                                              rocblas_stride offset_y,
-                                             rocblas_int    incy,
+                                             API_INT        incy,
                                              rocblas_stride stride_y,
                                              TPtr           A,
-                                             rocblas_int    lda,
+                                             API_INT        lda,
                                              rocblas_stride offset_A,
                                              rocblas_stride stride_A,
-                                             rocblas_int    batch_count)
+                                             API_INT        batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -68,6 +68,25 @@ inline rocblas_status rocblas_syr2_arg_check(rocblas_handle handle,
 
     return rocblas_status_continue;
 }
+
+template <typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_syr2_launcher(rocblas_handle handle,
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              TScal          alpha,
+                                              TConstPtr      x,
+                                              rocblas_stride offset_x,
+                                              int64_t        incx,
+                                              rocblas_stride stride_x,
+                                              TConstPtr      y,
+                                              rocblas_stride offset_y,
+                                              int64_t        incy,
+                                              rocblas_stride stride_y,
+                                              TPtr           A,
+                                              int64_t        lda,
+                                              rocblas_stride offset_A,
+                                              rocblas_stride stride_A,
+                                              rocblas_int    batch_count);
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
