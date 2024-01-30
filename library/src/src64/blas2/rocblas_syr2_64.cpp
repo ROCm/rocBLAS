@@ -19,7 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_syr2.hpp"
+#include "rocblas_syr2_64.hpp"
+
 #include "blas2/rocblas_syr2_imp.hpp"
 
-INST_SYR2_C_API(rocblas_int);
+INST_SYR2_C_API(int64_t);
