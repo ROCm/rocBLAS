@@ -34,25 +34,48 @@ library/src/blas[1,2,3]
 
 Source code for Level 1, 2, and 3 BLAS functions in `.cpp` and `.hpp` files.
 
-- The `.cpp` files contain
+- The `*.cpp` files contain
 
-  - External C functions that call templated functions with an `_impl` extension
+  - External C functions that call or instantiate templated functions with an `_impl` extension
   - The `_impl` functions have argument checking and logging, and they in turn call functions with a `_template` extension
 
-- The `_kernels.cpp` files contain
+- The `*_imp.hpp` files contain
+  - `_template` functions that may be exported to rocSOLVER and usually call the `_launcher` functions
+  - API implementations that can be instantiated in two ways: once for the original APIs with integer args using rocblas_int and
+again for the ILP64 API with integer arguments as int64_t.
 
-  - `_template` functions that set up the workgroup and call HIP launch to run `_kernel` functions
+- The `*_kernels.cpp` files contain
+  - `_launcher` functions that invoke or launch kernels with ROCBLAS_LAUNCH_KERNEL or related macros
   - `_kernel` functions that run on the device
-
-library/src/blas3/Tensile
-'''''''''''''''''''''''''
-
-Code for calling Tensile from rocBLAS, and YAML files with Tensile tuning configurations
 
 library/src/blas_ex
 ''''''''''''''''''''
 
 Source code for mixed precision BLAS
+
+library/src/src64
+'''''''''''''''''
+
+This directory contains the ILP64 source code for Level 1, 2, and 3 BLAS and mixed precision functions in blas_ex.
+Files should normally end with _64 before the file type extension (e.g. _64.cpp).
+The API integers are int64_t instead of rocblas_int.
+Function behaviour is kept identical at the higher level detail by instantiable macros and C++ templates.  Only at the kernel dispatch level does the code diverge by
+providing a _64 version for which invocation is controlled by the ROCBLAS_API macro.
+The directory structure mirrors the level organization used for the parent directory library/src.
+
+device kernel code
+''''''''''''''''''
+
+Most BLAS device functions (kernels) are C++ templated functions based on data type.  In C++ host code any duplicate instantiations of templates can be handled by the linker
+and the duplicates will be ignored.  LLVM device code instantiations, however, are not handled in this way; therefore we must avoid duplicate instantiations in multiple code units.
+Thus kernel templates should only be provided as C++ template prototypes in the include files unless they must be instantiated.  We should try to instantiate all forms in a single
+unit (e.g. a .cpp file) and expose a launcher C++ interface to invoke the device calls, where possible.  This is especially important for ILP64 implementations where we want to
+reuse the LP64 instantiations without any duplication to avoid bloating the library size.
+
+library/src/blas3/Tensile
+'''''''''''''''''''''''''
+
+Code for calling Tensile from rocBLAS, and YAML files with Tensile tuning configurations
 
 library/src/include
 '''''''''''''''''''
@@ -64,6 +87,8 @@ Internal include files for:
 - Logging
 - Numerical checking
 - Utility code
+
+
 
 
 The `clients` Directory
@@ -84,7 +109,10 @@ Code for client rocblas-benchmark. This client is used to benchmark rocBLAS func
 clients/include
 '''''''''''''''
 
-Code for testing and benchmarking individual rocBLAS functions, and utility code for testing
+Code for testing and benchmarking individual rocBLAS functions, and utility code for testing.
+Test harness functions are templated by data type and are defined in separate files for each function form: non-batched, batched, strided_batched.
+When a function also supports the ILP64 API then both forms can be tested by the same template and is controlled the Arguments api member variable.
+This follows the pattern for FORTRAN API testing and includes FORTRAN_64 for the ILP64 form.
 
 clients/common
 ''''''''''''''
@@ -1356,7 +1384,7 @@ The user can copy and change the above command. For example, to change the datat
 
    ./rocblas-bench -f gemm -r f64_r --transposeA N --transposeB N -m 2048 -n 2048 -k 2048 --alpha 1 --lda 2048 --ldb 2048 --beta 0 --ldc 2048
 
-
+To measure performance on the ILP64 API functions, when they exist, add the argument ``--api 1`` rather than changing the function name set in ``-f``.
 Logging affects performance, so only use it to log the command to copy and change, then run the command without logging to measure performance.
 
 Note that rocblas-bench also has the flag ``-v 1`` for correctness checks.
@@ -1524,7 +1552,8 @@ Additionally a template function for bad argument handling tests should be creat
   }
 
 These ``bad_arg`` test function templates should be used to set arguments programmatically where it is simpler than the yaml approach, for example to pass NULL pointers.
-It is expected that member variable values in the Arguments parameter will not be utilized with the common exception of ``arg.fortran`` which can drive selection of C and FORTRAN API bad argument tests.
+It is expected that member variable values in the Arguments parameter will not be utilized with the common exception of ``api`` member variable of Arguments which can drive selection of C, FORTRAN,
+C_64, or FORTRAN_64 API bad argument tests.
 
 All functions should be generalized with template parameters as much as possible,
 to avoid copy-and-paste code.
@@ -1538,6 +1567,12 @@ In this function, use the following macros and functions to check results:
    EXPECT_ROCBLAS_STATUS       Verifies that a rocBLAS call returns a certain status
    unit_check_general          Check that two answers agree (see unit.hpp)
    near_check_general          Check that two answers are close (see near.hpp)
+
+.. code-block::
+
+   DAPI_CHECK                  Verifies either LP64 or ILP64 function form returns success (based on Arguments member variable api)
+   DAPI_EXPECT                 Verifies either LP64 or ILP64 function form returns a certain status
+   DAPI_DISPATCH               Invoke either LP64 or ILP64 function form
 
 In addition, you can use Google Test Macros such as the below, as long as they are
 guarded by ``#ifdef GOOGLE_TEST``\ :
