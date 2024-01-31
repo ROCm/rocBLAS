@@ -530,13 +530,19 @@ rocblas_Xhpr + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhpr
 
+The hpr functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_chpr_batched
    :outline:
 .. doxygenfunction:: rocblas_zhpr_batched
 
+The hpr_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_chpr_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhpr_strided_batched
+
+The hpr_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xhpr2 + batched, strided_batched
 ========================================
