@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_hpr.hpp"
+#include "rocblas_hpr_64.hpp"
 
-#include "blas2/rocblas_hpr_batched_imp.hpp"
+#include "blas2/rocblas_hpr_strided_batched_imp.hpp"
 
-INST_HPR_BATCHED_C_API(rocblas_int);
+INST_HPR_STRIDED_BATCHED_C_API(int64_t);
