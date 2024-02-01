@@ -19,8 +19,25 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_hpr2.hpp"
 
-#include "blas2/rocblas_hpr2_imp.hpp"
+#pragma once
 
-INST_HPR2_C_API(rocblas_int);
+#include "handle.hpp"
+
+template <typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_hpr2_launcher_64(rocblas_handle handle,
+                                                 rocblas_fill   uplo,
+                                                 int64_t        n,
+                                                 TScal          alpha,
+                                                 TConstPtr      x,
+                                                 rocblas_stride offset_x,
+                                                 int64_t        incx,
+                                                 rocblas_stride stride_x,
+                                                 TConstPtr      y,
+                                                 rocblas_stride offset_y,
+                                                 int64_t        incy,
+                                                 rocblas_stride stride_y,
+                                                 TPtr           AP,
+                                                 rocblas_stride offset_A,
+                                                 rocblas_stride stride_A,
+                                                 int64_t        batch_count);

@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_hpr2.hpp"
+#include "rocblas_hpr2_64.hpp"
 
 #include "blas2/rocblas_hpr2_imp.hpp"
 
-INST_HPR2_C_API(rocblas_int);
+INST_HPR2_C_API(int64_t);
