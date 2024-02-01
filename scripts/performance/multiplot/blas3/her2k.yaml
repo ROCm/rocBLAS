@@ -21,12 +21,14 @@ Definitions:
     - {N: 8192, K: 8192, lda: 8192, ldb: 8192, ldc: 8192 }
 
 Tests:
-  - name: her2k
-    function: her2k
-    precision: *single_double_precisions_complex
-    uplo: L
-    transA: N
-    alpha: 1
-    beta: 1
-    matrix_size: *sizes
+- name: her2k
+  function: her2k
+  precision: *single_double_precisions_complex
+  uplo: L
+  transA: N
+  alpha: 1
+  beta: 1
+  matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...

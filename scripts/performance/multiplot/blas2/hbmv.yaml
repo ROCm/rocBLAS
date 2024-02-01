@@ -28,4 +28,6 @@ Tests:
   kl: 512
   ku: 512
   matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...

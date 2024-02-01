@@ -27,4 +27,6 @@ Tests:
   kl: 256
   ku: 256
   matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...
