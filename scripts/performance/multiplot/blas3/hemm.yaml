@@ -23,12 +23,14 @@ Definitions:
 
 
 Tests:
-  - name: hemm
-    function: hemm
-    precision: *single_double_precisions_complex
-    side: L
-    uplo: L
-    alpha: 1
-    beta: 1
-    matrix_size: *sizes
+- name: hemm
+  function: hemm
+  precision: *single_double_precisions_complex
+  side: L
+  uplo: L
+  alpha: 1
+  beta: 1
+  matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...

@@ -24,4 +24,6 @@ Tests:
   alpha: 1
   incx: 1
   matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...

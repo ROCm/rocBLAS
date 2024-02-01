@@ -25,4 +25,5 @@ Tests:
     incx: 1
     incy: 1
     matrix_size: *sizes
+#   flush_memory_size: 4000000000
 ...

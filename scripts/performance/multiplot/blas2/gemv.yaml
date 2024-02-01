@@ -15,14 +15,16 @@ Definitions:
     - {M: 20480, N: 20480, lda: 20480 }
 
 Tests:
-  - name: gemv
-    category: bench
-    function: gemv
-    precision: *single_double_precisions_complex_real
-    transA: N
-    alpha: 1
-    beta: 1
-    incx: 1
-    incy: 1
-    matrix_size: *sizes
+- name: gemv
+  category: bench
+  function: gemv
+  precision: *single_double_precisions_complex_real
+  transA: N
+  alpha: 1
+  beta: 1
+  incx: 1
+  incy: 1
+  matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...

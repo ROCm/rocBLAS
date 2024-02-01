@@ -21,14 +21,16 @@ Definitions:
     - {M: 8192, N: 8192, lda: 8192, ldb: 8192, ldc: 8192 }
 
 Tests:
-  - name: trmm
-    function: trmm
-    precision: *single_double_precisions_complex_real
-    side: L
-    uplo: L
-    transA: N
-    diag: N
-    alpha: 1
-    beta: 1
-    matrix_size: *sizes
+- name: trmm
+  function: trmm
+  precision: *single_double_precisions_complex_real
+  side: L
+  uplo: L
+  transA: N
+  diag: N
+  alpha: 1
+  beta: 1
+  matrix_size: *sizes
+  iters: 500
+  cold_iters: 500
 ...
