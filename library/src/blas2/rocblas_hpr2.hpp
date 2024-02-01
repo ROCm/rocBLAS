@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,23 +25,23 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_hpr2_arg_check(rocblas_handle handle,
                                              rocblas_fill   uplo,
-                                             rocblas_int    n,
+                                             API_INT        n,
                                              TScal          alpha,
                                              TConstPtr      x,
                                              rocblas_stride offset_x,
-                                             rocblas_int    incx,
+                                             API_INT        incx,
                                              rocblas_stride stride_x,
                                              TConstPtr      y,
                                              rocblas_stride offset_y,
-                                             rocblas_int    incy,
+                                             API_INT        incy,
                                              rocblas_stride stride_y,
                                              TPtr           AP,
                                              rocblas_stride offset_A,
                                              rocblas_stride stride_A,
-                                             rocblas_int    batch_count)
+                                             API_INT        batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -73,39 +73,39 @@ inline rocblas_status rocblas_hpr2_arg_check(rocblas_handle handle,
  * Where T is the base type (rocblas_float_complex or rocblas_double_complex)
  */
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_hpr2_template(rocblas_handle handle,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    n,
-                                     TScal          alpha,
-                                     TConstPtr      x,
-                                     rocblas_stride offset_x,
-                                     rocblas_int    incx,
-                                     rocblas_stride stride_x,
-                                     TConstPtr      y,
-                                     rocblas_stride offset_y,
-                                     rocblas_int    incy,
-                                     rocblas_stride stride_y,
-                                     TPtr           AP,
-                                     rocblas_stride offset_A,
-                                     rocblas_stride stride_A,
-                                     rocblas_int    batch_count);
+rocblas_status rocblas_internal_hpr2_launcher(rocblas_handle handle,
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              TScal          alpha,
+                                              TConstPtr      x,
+                                              rocblas_stride offset_x,
+                                              int64_t        incx,
+                                              rocblas_stride stride_x,
+                                              TConstPtr      y,
+                                              rocblas_stride offset_y,
+                                              int64_t        incy,
+                                              rocblas_stride stride_y,
+                                              TPtr           AP,
+                                              rocblas_stride offset_A,
+                                              rocblas_stride stride_A,
+                                              rocblas_int    batch_count);
 
 //TODO :-Add rocblas_check_numerics_hp_matrix_template for checking Matrix `AP` which is a Hermitian Packed Matrix
 template <typename T, typename U>
 rocblas_status rocblas_hpr2_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              A,
                                            rocblas_stride offset_a,
                                            rocblas_stride stride_a,
                                            U              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);

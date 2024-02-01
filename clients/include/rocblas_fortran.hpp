@@ -889,65 +889,6 @@ rocblas_status rocblas_zhpmv_strided_batched_fortran(rocblas_handle             
                                                      rocblas_stride                stride_y,
                                                      rocblas_int                   batch_count);
 
-// hpr2
-rocblas_status rocblas_chpr2_fortran(rocblas_handle               handle,
-                                     rocblas_fill                 uplo,
-                                     rocblas_int                  n,
-                                     const rocblas_float_complex* alpha,
-                                     const rocblas_float_complex* x,
-                                     rocblas_int                  incx,
-                                     const rocblas_float_complex* y,
-                                     rocblas_int                  incy,
-                                     rocblas_float_complex*       AP);
-
-rocblas_status rocblas_zhpr2_fortran(rocblas_handle                handle,
-                                     rocblas_fill                  uplo,
-                                     rocblas_int                   n,
-                                     const rocblas_double_complex* alpha,
-                                     const rocblas_double_complex* x,
-                                     rocblas_int                   incx,
-                                     const rocblas_double_complex* y,
-                                     rocblas_int                   incy,
-                                     rocblas_double_complex*       AP);
-
-// hpr2_batched
-rocblas_status rocblas_chpr2_batched_fortran(rocblas_handle                     handle,
-                                             rocblas_fill                       uplo,
-                                             rocblas_int                        n,
-                                             const rocblas_float_complex*       alpha,
-                                             const rocblas_float_complex* const x[],
-                                             rocblas_int                        incx,
-                                             const rocblas_float_complex* const y[],
-                                             rocblas_int                        incy,
-                                             rocblas_float_complex* const       AP[],
-                                             rocblas_int                        batch_count);
-
-rocblas_status rocblas_zhpr2_batched_fortran(rocblas_handle                      handle,
-                                             rocblas_fill                        uplo,
-                                             rocblas_int                         n,
-                                             const rocblas_double_complex*       alpha,
-                                             const rocblas_double_complex* const x[],
-                                             rocblas_int                         incx,
-                                             const rocblas_double_complex* const y[],
-                                             rocblas_int                         incy,
-                                             rocblas_double_complex* const       AP[],
-                                             rocblas_int                         batch_count);
-
-// hpr2_strided_batched
-rocblas_status rocblas_chpr2_strided_batched_fortran(rocblas_handle               handle,
-                                                     rocblas_fill                 uplo,
-                                                     rocblas_int                  n,
-                                                     const rocblas_float_complex* alpha,
-                                                     const rocblas_float_complex* x,
-                                                     rocblas_int                  incx,
-                                                     rocblas_stride               stride_x,
-                                                     const rocblas_float_complex* y,
-                                                     rocblas_int                  incy,
-                                                     rocblas_stride               stride_y,
-                                                     rocblas_float_complex*       AP,
-                                                     rocblas_stride               stride_A,
-                                                     rocblas_int                  batch_count);
-
 rocblas_status rocblas_zhpr2_strided_batched_fortran(rocblas_handle                handle,
                                                      rocblas_fill                  uplo,
                                                      rocblas_int                   n,
