@@ -12247,6 +12247,47 @@ module rocblas
         end function rocblas_dspr2
     end interface
 
+    ! spr2_64
+    interface
+        function rocblas_sspr2_64(handle, uplo, n, alpha, x, incx, &
+                               y, incy, AP) &
+            bind(c, name='rocblas_sspr2_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr2_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            type(c_ptr), value :: AP
+        end function rocblas_sspr2_64
+    end interface
+
+    interface
+        function rocblas_dspr2_64(handle, uplo, n, alpha, x, incx, &
+                               y, incy, AP) &
+            bind(c, name='rocblas_dspr2_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr2_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            type(c_ptr), value :: AP
+        end function rocblas_dspr2_64
+    end interface
+
     ! spr2_batched
     interface
         function rocblas_sspr2_batched(handle, uplo, n, alpha, x, incx, &
@@ -12288,6 +12329,49 @@ module rocblas
             type(c_ptr), value :: AP
             integer(c_int), value :: batch_count
         end function rocblas_dspr2_batched
+    end interface
+
+    ! spr2_batched_64
+    interface
+        function rocblas_sspr2_batched_64(handle, uplo, n, alpha, x, incx, &
+                                       y, incy, AP, batch_count) &
+            bind(c, name='rocblas_sspr2_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr2_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            type(c_ptr), value :: AP
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_sspr2_batched_64
+    end interface
+
+    interface
+        function rocblas_dspr2_batched_64(handle, uplo, n, alpha, x, incx, &
+                                       y, incy, AP, batch_count) &
+            bind(c, name='rocblas_dspr2_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr2_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            type(c_ptr), value :: AP
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dspr2_batched_64
     end interface
 
     ! spr2_strided_batched
@@ -12337,6 +12421,55 @@ module rocblas
             integer(c_int64_t), value :: stride_AP
             integer(c_int), value :: batch_count
         end function rocblas_dspr2_strided_batched
+    end interface
+
+    ! spr2_strided_batched_64
+    interface
+        function rocblas_sspr2_strided_batched_64(handle, uplo, n, alpha, x, incx, stride_x, &
+                                               y, incy, stride_y, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_sspr2_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr2_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            type(c_ptr), value :: AP
+            integer(c_int64_t), value :: stride_AP
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_sspr2_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dspr2_strided_batched_64(handle, uplo, n, alpha, x, incx, stride_x, &
+                                               y, incy, stride_y, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_dspr2_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr2_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            type(c_ptr), value :: AP
+            integer(c_int64_t), value :: stride_AP
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dspr2_strided_batched_64
     end interface
 
     ! syr

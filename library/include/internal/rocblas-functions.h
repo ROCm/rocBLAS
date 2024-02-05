@@ -11104,6 +11104,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
                                             const double*  y,
                                             rocblas_int    incy,
                                             double*        AP);
+
+// spr2_64
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_64(rocblas_handle handle,
+                                               rocblas_fill   uplo,
+                                               int64_t        n,
+                                               const float*   alpha,
+                                               const float*   x,
+                                               int64_t        incx,
+                                               const float*   y,
+                                               int64_t        incy,
+                                               float*         AP);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr2_64(rocblas_handle handle,
+                                               rocblas_fill   uplo,
+                                               int64_t        n,
+                                               const double*  alpha,
+                                               const double*  x,
+                                               int64_t        incx,
+                                               const double*  y,
+                                               int64_t        incy,
+                                               double*        AP);
 //! @}
 
 /*! @{
@@ -11196,6 +11217,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
                                                     rocblas_int         incy,
                                                     double* const       AP[],
                                                     rocblas_int         batch_count);
+
+// spr2_batched_64
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_batched_64(rocblas_handle     handle,
+                                                       rocblas_fill       uplo,
+                                                       int64_t            n,
+                                                       const float*       alpha,
+                                                       const float* const x[],
+                                                       int64_t            incx,
+                                                       const float* const y[],
+                                                       int64_t            incy,
+                                                       float* const       AP[],
+                                                       int64_t            batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched_64(rocblas_handle      handle,
+                                                       rocblas_fill        uplo,
+                                                       int64_t             n,
+                                                       const double*       alpha,
+                                                       const double* const x[],
+                                                       int64_t             incx,
+                                                       const double* const y[],
+                                                       int64_t             incy,
+                                                       double* const       AP[],
+                                                       int64_t             batch_count);
 //! @}
 
 /*! @{
@@ -11303,6 +11347,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_strided_batched(rocblas_handle handl
                                                             double*        AP,
                                                             rocblas_stride stride_A,
                                                             rocblas_int    batch_count);
+
+// spr_strided_batched_64
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_strided_batched_64(rocblas_handle handle,
+                                                               rocblas_fill   uplo,
+                                                               int64_t        n,
+                                                               const float*   alpha,
+                                                               const float*   x,
+                                                               int64_t        incx,
+                                                               rocblas_stride stride_x,
+                                                               const float*   y,
+                                                               int64_t        incy,
+                                                               rocblas_stride stride_y,
+                                                               float*         AP,
+                                                               rocblas_stride stride_A,
+                                                               int64_t        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr2_strided_batched_64(rocblas_handle handle,
+                                                               rocblas_fill   uplo,
+                                                               int64_t        n,
+                                                               const double*  alpha,
+                                                               const double*  x,
+                                                               int64_t        incx,
+                                                               rocblas_stride stride_x,
+                                                               const double*  y,
+                                                               int64_t        incy,
+                                                               rocblas_stride stride_y,
+                                                               double*        AP,
+                                                               rocblas_stride stride_A,
+                                                               int64_t        batch_count);
+
 //! @}
 
 /*! @{

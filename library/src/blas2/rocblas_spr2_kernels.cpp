@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,35 @@
 #include "handle.hpp"
 #include "rocblas_spr2.hpp"
 
-template <typename T>
+template <int DIM_X, int DIM_Y, int N_TX, typename T>
 __device__ void rocblas_spr2_kernel_calc(bool        is_upper,
                                          rocblas_int n,
                                          T           alpha,
                                          const T*    x,
-                                         rocblas_int incx,
+                                         int64_t     incx,
                                          const T*    y,
-                                         rocblas_int incy,
+                                         int64_t     incy,
                                          T*          AP)
 {
-    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
+    rocblas_int tx = (blockIdx.x * DIM_X * N_TX) + threadIdx.x;
+    rocblas_int ty = blockIdx.y * DIM_Y + threadIdx.y;
 
     int index = is_upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
 
-    if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
-        AP[index] += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
+#pragma unroll
+    for(int i = 0; i < N_TX; i++, tx += DIM_X, index += DIM_X)
+    {
+        if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
+            AP[index] += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
+    }
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TStruct, typename TConstPtr, typename TPtr>
+template <rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          int         N_TX,
+          typename TStruct,
+          typename TConstPtr,
+          typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_spr2_kernel(bool           host_ptr_mode,
                     bool           is_upper,
@@ -51,25 +60,25 @@ rocblas_spr2_kernel(bool           host_ptr_mode,
                     TStruct        alpha_device_host,
                     TConstPtr      xa,
                     rocblas_stride shift_x,
-                    rocblas_int    incx,
+                    int64_t        incx,
                     rocblas_stride stride_x,
                     TConstPtr      ya,
                     rocblas_stride shift_y,
-                    rocblas_int    incy,
+                    int64_t        incy,
                     rocblas_stride stride_y,
                     TPtr           APa,
-                    rocblas_stride shift_A,
-                    rocblas_stride stride_A)
+                    rocblas_stride shift_AP,
+                    rocblas_stride stride_AP)
 {
     auto alpha = host_ptr_mode ? alpha_device_host.value : load_scalar(alpha_device_host.ptr);
     if(!alpha)
         return;
 
-    auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_A, stride_A);
+    auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_AP, stride_AP);
     const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
     const auto* y  = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
 
-    rocblas_spr2_kernel_calc(is_upper, n, alpha, x, incx, y, incy, AP);
+    rocblas_spr2_kernel_calc<DIM_X, DIM_Y, N_TX>(is_upper, n, alpha, x, incx, y, incy, AP);
 }
 
 /**
@@ -79,22 +88,22 @@ rocblas_spr2_kernel(bool           host_ptr_mode,
  * Where T is the bast type (float or double)
  */
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_spr2_template(rocblas_handle handle,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    n,
-                                     TScal const*   alpha,
-                                     TConstPtr      x,
-                                     rocblas_stride offset_x,
-                                     rocblas_int    incx,
-                                     rocblas_stride stride_x,
-                                     TConstPtr      y,
-                                     rocblas_stride offset_y,
-                                     rocblas_int    incy,
-                                     rocblas_stride stride_y,
-                                     TPtr           AP,
-                                     rocblas_stride offset_A,
-                                     rocblas_stride stride_A,
-                                     rocblas_int    batch_count)
+rocblas_status rocblas_internal_spr2_launcher(rocblas_handle handle,
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              TScal const*   alpha,
+                                              TConstPtr      x,
+                                              rocblas_stride offset_x,
+                                              int64_t        incx,
+                                              rocblas_stride stride_x,
+                                              TConstPtr      y,
+                                              rocblas_stride offset_y,
+                                              int64_t        incy,
+                                              rocblas_stride stride_y,
+                                              TPtr           AP,
+                                              rocblas_stride offset_AP,
+                                              rocblas_stride stride_AP,
+                                              rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(!n || !batch_count)
@@ -104,10 +113,15 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
     ptrdiff_t shift_y = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
 
+    //Identifying the precision to have an appropriate optimization
+    static constexpr bool is_float = std::is_same_v<TScal, float>;
+
     static constexpr int SPR2_DIM_X = 128;
     static constexpr int SPR2_DIM_Y = 8;
-    rocblas_int          blocksX    = (n - 1) / SPR2_DIM_X + 1;
-    rocblas_int          blocksY    = (n - 1) / SPR2_DIM_Y + 1;
+    static constexpr int N_TX       = is_float ? 2 : 1; // x items per x thread
+
+    rocblas_int blocksX = (n - 1) / (SPR2_DIM_X * N_TX) + 1;
+    rocblas_int blocksY = (n - 1) / SPR2_DIM_Y + 1;
 
     dim3 spr2_grid(blocksX, blocksY, batch_count);
     dim3 spr2_threads(SPR2_DIM_X, SPR2_DIM_Y);
@@ -115,7 +129,7 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
     bool                            host_mode = handle->pointer_mode == rocblas_pointer_mode_host;
     rocblas_internal_val_ptr<TScal> alpha_device_host(host_mode, alpha);
 
-    ROCBLAS_LAUNCH_KERNEL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>),
+    ROCBLAS_LAUNCH_KERNEL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y, N_TX>),
                           spr2_grid,
                           spr2_threads,
                           0,
@@ -133,8 +147,8 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
                           incy,
                           stride_y,
                           AP,
-                          offset_A,
-                          stride_A);
+                          offset_AP,
+                          stride_AP);
 
     return rocblas_status_success;
 }
@@ -143,19 +157,19 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
 template <typename T, typename U>
 rocblas_status rocblas_spr2_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              A,
                                            rocblas_stride offset_a,
                                            rocblas_stride stride_a,
                                            U              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input)
 {
@@ -190,35 +204,33 @@ rocblas_status rocblas_spr2_check_numerics(const char*    function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *spr2*.cpp
 
-// clang-format off
-
 #ifdef INSTANTIATE_SPR2_TEMPLATE
 #error INSTANTIATE_SPR2_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SPR2_TEMPLATE(TScal_, TConstPtr_, TPtr_)             \
-template rocblas_status rocblas_spr2_template<TScal_, TConstPtr_, TPtr_> \
-                                    (rocblas_handle handle,              \
-                                     rocblas_fill   uplo,                \
-                                     rocblas_int    n,                   \
-                                     TScal_ const * alpha,               \
-                                     TConstPtr_      x,                  \
-                                     rocblas_stride    offset_x,            \
-                                     rocblas_int    incx,                \
-                                     rocblas_stride stride_x,            \
-                                     TConstPtr_      y,                  \
-                                     rocblas_stride    offset_y,            \
-                                     rocblas_int    incy,                \
-                                     rocblas_stride stride_y,            \
-                                     TPtr_           AP,                 \
-                                     rocblas_stride    offset_A,            \
-                                     rocblas_stride stride_A,            \
-                                     rocblas_int    batch_count);
+#define INSTANTIATE_SPR2_TEMPLATE(TScal_, TConstPtr_, TPtr_)                           \
+    template rocblas_status rocblas_internal_spr2_launcher<TScal_, TConstPtr_, TPtr_>( \
+        rocblas_handle handle,                                                         \
+        rocblas_fill   uplo,                                                           \
+        rocblas_int    n,                                                              \
+        TScal_ const*  alpha,                                                          \
+        TConstPtr_     x,                                                              \
+        rocblas_stride offset_x,                                                       \
+        int64_t        incx,                                                           \
+        rocblas_stride stride_x,                                                       \
+        TConstPtr_     y,                                                              \
+        rocblas_stride offset_y,                                                       \
+        int64_t        incy,                                                           \
+        rocblas_stride stride_y,                                                       \
+        TPtr_          AP,                                                             \
+        rocblas_stride offset_AP,                                                      \
+        rocblas_stride stride_AP,                                                      \
+        rocblas_int    batch_count);
 
-INSTANTIATE_SPR2_TEMPLATE(float , float const*, float*)
-INSTANTIATE_SPR2_TEMPLATE(double , double const*, double*)
-INSTANTIATE_SPR2_TEMPLATE(float , float const* const*, float* const*)
-INSTANTIATE_SPR2_TEMPLATE(double , double const* const*, double* const*)
+INSTANTIATE_SPR2_TEMPLATE(float, float const*, float*)
+INSTANTIATE_SPR2_TEMPLATE(double, double const*, double*)
+INSTANTIATE_SPR2_TEMPLATE(float, float const* const*, float* const*)
+INSTANTIATE_SPR2_TEMPLATE(double, double const* const*, double* const*)
 
 #undef INSTANTIATE_SPR2_TEMPLATE
 
@@ -226,25 +238,24 @@ INSTANTIATE_SPR2_TEMPLATE(double , double const* const*, double* const*)
 #error INSTANTIATE_SPR2_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_SPR2_NUMERICS(T_, U_)                                 \
-template rocblas_status rocblas_spr2_check_numerics<T_, U_>               \
-                                          (const char*    function_name,  \
-                                           rocblas_handle handle,         \
-                                           rocblas_int    n,              \
-                                           T_             A,              \
-                                           rocblas_stride    offset_a,       \
-                                           rocblas_stride stride_a,       \
-                                           U_             x,              \
-                                           rocblas_stride    offset_x,       \
-                                           rocblas_int    inc_x,          \
-                                           rocblas_stride stride_x,       \
-                                           U_             y,              \
-                                           rocblas_stride    offset_y,       \
-                                           rocblas_int    inc_y,          \
-                                           rocblas_stride stride_y,       \
-                                           rocblas_int    batch_count,    \
-                                           const int      check_numerics, \
-                                           bool           is_input);
+#define INSTANTIATE_SPR2_NUMERICS(T_, U_)                                                      \
+    template rocblas_status rocblas_spr2_check_numerics<T_, U_>(const char*    function_name,  \
+                                                                rocblas_handle handle,         \
+                                                                int64_t        n,              \
+                                                                T_             A,              \
+                                                                rocblas_stride offset_AP,      \
+                                                                rocblas_stride stride_AP,      \
+                                                                U_             x,              \
+                                                                rocblas_stride offset_x,       \
+                                                                int64_t        inc_x,          \
+                                                                rocblas_stride stride_x,       \
+                                                                U_             y,              \
+                                                                rocblas_stride offset_y,       \
+                                                                int64_t        inc_y,          \
+                                                                rocblas_stride stride_y,       \
+                                                                int64_t        batch_count,    \
+                                                                const int      check_numerics, \
+                                                                bool           is_input);
 
 INSTANTIATE_SPR2_NUMERICS(float*, float const*)
 INSTANTIATE_SPR2_NUMERICS(double*, double const*)
@@ -252,5 +263,3 @@ INSTANTIATE_SPR2_NUMERICS(float* const*, float const* const*)
 INSTANTIATE_SPR2_NUMERICS(double* const*, double const* const*)
 
 #undef INSTANTIATE_SPR2_NUMERICS
-
-// clang-format on
