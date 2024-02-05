@@ -101,6 +101,22 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha: [ 1.0 ]
 
+- name: spr2_64
+  category: stress
+  arguments:
+    - { N: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+    - { N: 2, incx: 1, incy: -2147483649,  batch_count: 1 }
+    - { N: 2, stride_a: 2, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  stride_scale: [ 1 ]
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - spr2: *single_precision
+    - spr2_batched: *single_precision
+    - spr2_strided_batched: *single_precision
+
 # batched
 - name: spr2_batched_fortran
   category: quick
