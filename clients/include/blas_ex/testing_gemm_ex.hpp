@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "frequency_monitor.hpp"
+
 #include "../../library/src/include/handle.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -555,6 +557,7 @@ void testing_gemm_ex(const Arguments& arg)
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        freq_monitor->start();
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
@@ -581,6 +584,7 @@ void testing_gemm_ex(const Arguments& arg)
             // clang-format on
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        freq_monitor->stop();
 
         ArgumentModel<e_transA,
                       e_transB,
@@ -600,6 +604,11 @@ void testing_gemm_ex(const Arguments& arg)
                           gemm_gflop_count<Tc>(M, N, K),
                           ArgumentLogging::NA_value,
                           cpu_time_used,
-                          rocblas_error);
+                          rocblas_error,
+                          ArgumentLogging::NA_value,
+                          ArgumentLogging::NA_value,
+                          ArgumentLogging::NA_value,
+                          freq_monitor->getAverageFrequency(),
+                          freq_monitor->getMedianFrequency());
     }
 }
