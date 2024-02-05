@@ -39,6 +39,8 @@
 #include <string>
 #include <type_traits>
 
+#include "frequency_monitor.hpp"
+
 // aux
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_matrix_async.hpp"
@@ -1877,6 +1879,8 @@ try
         throw std::invalid_argument("Invalid Device ID");
     if(device_id >= 0)
         set_device(device_id);
+
+    freq_monitor->set_device_id(device_id);
 
     if(datafile)
         return rocblas_bench_datafile(filter, name_filter, any_stride);

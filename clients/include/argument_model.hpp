@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,9 @@ public:
                   double                    norm1,
                   double                    norm2,
                   double                    norm3,
-                  double                    norm4)
+                  double                    norm4,
+                  double                    avgfreq,
+                  double                    medianfreq)
     {
         constexpr bool has_batch_count = has(e_batch_count);
         rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
@@ -74,6 +76,19 @@ public:
         // per/us to per/sec *10^6
         double rocblas_gflops = gflops * batch_count / gpu_us * 1e6;
         double rocblas_GBps   = gbytes * batch_count / gpu_us * 1e6;
+
+        static const char* env = getenv("ROCBLAS_BENCH_FREQ");
+        if(env && avgfreq != ArgumentLogging::NA_value)
+        {
+            name_line << ",average frequency";
+            val_line << ", " << avgfreq;
+        }
+
+        if(env && medianfreq != ArgumentLogging::NA_value)
+        {
+            name_line << ",median frequency";
+            val_line << ", " << medianfreq;
+        }
 
         // append performance fields
         if(gflops != ArgumentLogging::NA_value)
@@ -137,12 +152,14 @@ public:
                   const Arguments&          arg,
                   double                    gpu_us,
                   double                    gflops,
-                  double                    gpu_bytes = ArgumentLogging::NA_value,
-                  double                    cpu_us    = ArgumentLogging::NA_value,
-                  double                    norm1     = ArgumentLogging::NA_value,
-                  double                    norm2     = ArgumentLogging::NA_value,
-                  double                    norm3     = ArgumentLogging::NA_value,
-                  double                    norm4     = ArgumentLogging::NA_value)
+                  double                    gpu_bytes  = ArgumentLogging::NA_value,
+                  double                    cpu_us     = ArgumentLogging::NA_value,
+                  double                    norm1      = ArgumentLogging::NA_value,
+                  double                    norm2      = ArgumentLogging::NA_value,
+                  double                    norm3      = ArgumentLogging::NA_value,
+                  double                    norm4      = ArgumentLogging::NA_value,
+                  double                    avgfreq    = ArgumentLogging::NA_value,
+                  double                    medianfreq = ArgumentLogging::NA_value)
     {
         if(arg.iters < 1)
             return; // warmup test only
@@ -224,7 +241,9 @@ public:
                      norm1,
                      norm2,
                      norm3,
-                     norm4);
+                     norm4,
+                     avgfreq,
+                     medianfreq);
 
         str << name_list << "\n" << value_list << std::endl;
     }

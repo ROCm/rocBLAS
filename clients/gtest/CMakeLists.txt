@@ -223,3 +223,17 @@ add_dependencies( rocblas-test rocblas-test-data rocblas-common )
 
 rocm_install(TARGETS rocblas-test COMPONENT tests)
 rocm_install(FILES ${ROCBLAS_TEST_DATA} DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT tests)
+
+if (NOT WIN32)
+    find_package(ROCmSMI QUIET)
+    if(NOT ROCmSMI_FOUND)
+        set(CMAKE_MODULE_PATH ${ROCBLAS_LIBRARY_DIR}/clients/cmake)
+        find_package(ROCmSMI REQUIRED)
+    endif()
+endif()
+# list( APPEND COMMON_LINK_LIBS rocm_smi)
+
+if(NOT WIN32)
+    # target_link_libraries(rocblas-bench PRIVATE TensileHost rocm_smi)
+    target_link_libraries( rocblas-test PRIVATE rocm_smi )
+endif()
