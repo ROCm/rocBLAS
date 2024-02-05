@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,21 +27,21 @@
 #include "handle.hpp"
 #include "rocblas.h"
 
-template <typename T, typename U, typename V, typename W>
+template <typename API_INT, typename T, typename U, typename V, typename W>
 inline rocblas_status rocblas_syr_arg_check(rocblas_handle handle,
                                             rocblas_fill   uplo,
-                                            rocblas_int    n,
+                                            API_INT        n,
                                             U              alpha,
                                             rocblas_stride stride_alpha,
                                             V              x,
                                             rocblas_stride offsetx,
-                                            rocblas_int    incx,
+                                            API_INT        incx,
                                             rocblas_stride stridex,
                                             W              A,
                                             rocblas_stride offseta,
-                                            rocblas_int    lda,
+                                            API_INT        lda,
                                             rocblas_stride strideA,
-                                            rocblas_int    batch_count)
+                                            API_INT        batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -69,6 +69,22 @@ inline rocblas_status rocblas_syr_arg_check(rocblas_handle handle,
 }
 
 template <typename T, typename U, typename V, typename W>
+rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
+                                             rocblas_fill   uplo,
+                                             rocblas_int    n,
+                                             U              alpha,
+                                             rocblas_stride stride_alpha,
+                                             V              x,
+                                             rocblas_stride offsetx,
+                                             int64_t        incx,
+                                             rocblas_stride stridex,
+                                             W              A,
+                                             rocblas_stride offseta,
+                                             int64_t        lda,
+                                             rocblas_stride strideA,
+                                             rocblas_int    batch_count);
+
+template <typename T, typename U, typename V, typename W>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_syr_template(rocblas_handle handle,
                                   rocblas_fill   uplo,
@@ -76,29 +92,44 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                   U              alpha,
                                   rocblas_stride stride_alpha,
                                   V              x,
-                                  rocblas_stride offsetx,
-                                  rocblas_int    incx,
-                                  rocblas_stride stridex,
+                                  rocblas_stride offset_x,
+                                  int64_t        incx,
+                                  rocblas_stride stride_x,
                                   W              A,
-                                  rocblas_stride offseta,
-                                  rocblas_int    lda,
-                                  rocblas_stride strideA,
-                                  rocblas_int    batch_count);
+                                  rocblas_stride offset_A,
+                                  int64_t        lda,
+                                  rocblas_stride stride_A,
+                                  rocblas_int    batch_count)
+{
+    return rocblas_internal_syr_launcher<T>(handle,
+                                            uplo,
+                                            n,
+                                            alpha,
+                                            stride_alpha,
+                                            x,
+                                            offset_x,
+                                            incx,
+                                            stride_x,
+                                            A,
+                                            offset_A,
+                                            lda,
+                                            stride_A,
+                                            batch_count);
+}
 
-//TODO :-Add rocblas_check_numerics_sy_matrix_template for checking Matrix `A` which is a Symmetric Matrix
 template <typename T, typename U>
 rocblas_status rocblas_syr_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
                                           rocblas_fill   uplo,
-                                          rocblas_int    n,
+                                          int64_t        n,
                                           T              A,
                                           rocblas_stride offset_a,
-                                          rocblas_int    lda,
+                                          int64_t        lda,
                                           rocblas_stride stride_a,
                                           U              x,
                                           rocblas_stride offset_x,
-                                          rocblas_int    inc_x,
+                                          int64_t        inc_x,
                                           rocblas_stride stride_x,
-                                          rocblas_int    batch_count,
+                                          int64_t        batch_count,
                                           const int      check_numerics,
                                           bool           is_input);

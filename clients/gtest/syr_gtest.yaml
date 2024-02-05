@@ -54,7 +54,7 @@ Tests:
   - syr_bad_arg: *single_precision
   - syr_batched_bad_arg: *single_precision
   - syr_strided_batched_bad_arg: *single_precision
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: syr_arg_check
   category: quick
@@ -124,6 +124,24 @@ Tests:
   alpha_beta: *alpha_range_small
   gpu_arch: '90a'
   os_flags: LINUX
+
+- name: syr_64
+  category: stress
+  arguments:
+    - { N: 2, lda: 2147483649, incx: 1, batch_count: 1 }
+    - { N: 2, lda: 2, incx: 2147483649, batch_count: 1 }
+    - { N: 2, lda: 2, incx: -2147483649, batch_count: 1 }
+    - { N: 2, lda: 2, stride_a: 2, incx: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  stride_scale: [ 1 ]
+  alpha_beta: *alpha_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - syr:  *single_precision
+    - syr_batched:  *single_precision
+    - syr_strided_batched:  *single_precision
 
 # batched
 - name: syr_batched_fortran
