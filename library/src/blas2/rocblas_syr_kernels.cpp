@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,10 +19,6 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-
-#include "check_numerics_vector.hpp"
-#include "handle.hpp"
-#include "rocblas.h"
 #include "rocblas_syr.hpp"
 
 template <bool UPPER, rocblas_int DIM_X, typename T, typename U, typename V, typename W>
@@ -36,15 +32,15 @@ rocblas_syr_kernel_inc1(rocblas_int    n,
                         rocblas_stride stridex,
                         W              Aa,
                         rocblas_stride shiftA,
-                        rocblas_int    lda,
-                        rocblas_stride strideA)
+                        int64_t        lda,
+                        rocblas_stride stride_A)
 {
     auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(!alpha)
         return;
 
     const auto* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
-    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, strideA);
+    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, stride_A);
 
     size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
     if(i >= area)
@@ -64,7 +60,7 @@ rocblas_syr_kernel_inc1(rocblas_int    n,
         ty         = maxIdx - ty;
     }
 
-    A[tx + size_t(lda) * ty] += alpha * x[tx] * x[ty];
+    A[tx + lda * ty] += alpha * x[tx] * x[ty];
 
     // original algorithm run over rectangular space
     // if(uplo == rocblas_fill_lower ? tx < n && ty <= tx : ty < n && tx <= ty)
@@ -79,19 +75,19 @@ rocblas_syr_kernel(rocblas_int    n,
                    rocblas_stride stride_alpha,
                    V              xa,
                    rocblas_stride shiftx,
-                   rocblas_int    incx,
+                   int64_t        incx,
                    rocblas_stride stridex,
                    W              Aa,
                    rocblas_stride shiftA,
-                   rocblas_int    lda,
-                   rocblas_stride strideA)
+                   int64_t        lda,
+                   rocblas_stride stride_A)
 {
     auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(!alpha)
         return;
 
     const auto* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
-    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, strideA);
+    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, stride_A);
 
     size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
     if(i >= area)
@@ -111,25 +107,24 @@ rocblas_syr_kernel(rocblas_int    n,
         ty         = maxIdx - ty;
     }
 
-    A[tx + size_t(lda) * ty] += alpha * x[tx * int64_t(incx)] * x[ty * int64_t(incx)];
+    A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
 }
 
 template <typename T, typename U, typename V, typename W>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_syr_template(rocblas_handle handle,
-                                  rocblas_fill   uplo,
-                                  rocblas_int    n,
-                                  U              alpha,
-                                  rocblas_stride stride_alpha,
-                                  V              x,
-                                  rocblas_stride offsetx,
-                                  rocblas_int    incx,
-                                  rocblas_stride stridex,
-                                  W              A,
-                                  rocblas_stride offseta,
-                                  rocblas_int    lda,
-                                  rocblas_stride strideA,
-                                  rocblas_int    batch_count)
+rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
+                                             rocblas_fill   uplo,
+                                             rocblas_int    n,
+                                             U              alpha,
+                                             rocblas_stride stride_alpha,
+                                             V              x,
+                                             rocblas_stride offsetx,
+                                             int64_t        incx,
+                                             rocblas_stride stridex,
+                                             W              A,
+                                             rocblas_stride offset_A,
+                                             int64_t        lda,
+                                             rocblas_stride stride_A,
+                                             rocblas_int    batch_count)
 {
     // Quick return
     if(!n || batch_count == 0)
@@ -167,9 +162,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       shiftx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<true, SYR_DIM_X, T>),
                                       syr_grid,
@@ -185,9 +180,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       incx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
         }
         else
         {
@@ -205,9 +200,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       shiftx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<false, SYR_DIM_X, T>),
                                       syr_grid,
@@ -223,9 +218,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       incx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
         }
     }
     else // host pointer mode
@@ -246,9 +241,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       shiftx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<true, SYR_DIM_X, T>),
                                       syr_grid,
@@ -264,9 +259,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       incx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
         }
         else
         {
@@ -284,9 +279,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       shiftx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<false, SYR_DIM_X, T>),
                                       syr_grid,
@@ -302,9 +297,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       incx,
                                       stridex,
                                       A,
-                                      offseta,
+                                      offset_A,
                                       lda,
-                                      strideA);
+                                      stride_A);
         }
     }
     return rocblas_status_success;
@@ -314,16 +309,16 @@ template <typename T, typename U>
 rocblas_status rocblas_syr_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
                                           rocblas_fill   uplo,
-                                          rocblas_int    n,
+                                          int64_t        n,
                                           T              A,
                                           rocblas_stride offset_a,
-                                          rocblas_int    lda,
+                                          int64_t        lda,
                                           rocblas_stride stride_a,
                                           U              x,
                                           rocblas_stride offset_x,
-                                          rocblas_int    inc_x,
+                                          int64_t        inc_x,
                                           rocblas_stride stride_x,
-                                          rocblas_int    batch_count,
+                                          int64_t        batch_count,
                                           const int      check_numerics,
                                           bool           is_input)
 {
@@ -365,63 +360,70 @@ rocblas_status rocblas_syr_check_numerics(const char*    function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *syr*.cpp
 
-// clang-format off
-
-#ifdef INSTANTIATE_SYR_TEMPLATE
-#error INSTANTIATE_SYR_TEMPLATE already defined
+#ifdef INSTANTIATE_SYR_LAUNCHER
+#error INSTANTIATE_SYR_LAUNCHER already defined
 #endif
 
-#define INSTANTIATE_SYR_TEMPLATE(T_, U_, V_, W_)                                       \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syr_template \
-                                 <T_, U_, V_, W_>                                      \
-                                 (rocblas_handle handle,                               \
-                                  rocblas_fill   uplo,                                 \
-                                  rocblas_int    n,                                    \
-                                  U_              alpha,                               \
-                                  rocblas_stride stride_alpha,                         \
-                                  V_              x,                                   \
-                                  rocblas_stride    offsetx,                              \
-                                  rocblas_int    incx,                                 \
-                                  rocblas_stride stridex,                              \
-                                  W_              A,                                   \
-                                  rocblas_stride    offseta,                              \
-                                  rocblas_int    lda,                                  \
-                                  rocblas_stride strideA,                              \
-                                  rocblas_int    batch_count);
+#define INSTANTIATE_SYR_LAUNCHER(T_, U_, V_, W_)                                   \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                       \
+        rocblas_internal_syr_launcher<T_, U_, V_, W_>(rocblas_handle handle,       \
+                                                      rocblas_fill   uplo,         \
+                                                      rocblas_int    n,            \
+                                                      U_             alpha,        \
+                                                      rocblas_stride stride_alpha, \
+                                                      V_             x,            \
+                                                      rocblas_stride offsetx,      \
+                                                      int64_t        incx,         \
+                                                      rocblas_stride stridex,      \
+                                                      W_             A,            \
+                                                      rocblas_stride offset_A,     \
+                                                      int64_t        lda,          \
+                                                      rocblas_stride stride_A,     \
+                                                      rocblas_int    batch_count);
 
-INSTANTIATE_SYR_TEMPLATE(float, float const*, float const*, float*);
-INSTANTIATE_SYR_TEMPLATE(double, double const*, double const*, double*);
-INSTANTIATE_SYR_TEMPLATE(rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*);
-INSTANTIATE_SYR_TEMPLATE(rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*);
-INSTANTIATE_SYR_TEMPLATE(float, float const*, float const* const*, float* const*);
-INSTANTIATE_SYR_TEMPLATE(double, double const*, double const* const*, double* const*);
-INSTANTIATE_SYR_TEMPLATE(rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*);
-INSTANTIATE_SYR_TEMPLATE(rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*);
+INSTANTIATE_SYR_LAUNCHER(float, float const*, float const*, float*);
+INSTANTIATE_SYR_LAUNCHER(double, double const*, double const*, double*);
+INSTANTIATE_SYR_LAUNCHER(rocblas_float_complex,
+                         rocblas_float_complex const*,
+                         rocblas_float_complex const*,
+                         rocblas_float_complex*);
+INSTANTIATE_SYR_LAUNCHER(rocblas_double_complex,
+                         rocblas_double_complex const*,
+                         rocblas_double_complex const*,
+                         rocblas_double_complex*);
+INSTANTIATE_SYR_LAUNCHER(float, float const*, float const* const*, float* const*);
+INSTANTIATE_SYR_LAUNCHER(double, double const*, double const* const*, double* const*);
+INSTANTIATE_SYR_LAUNCHER(rocblas_float_complex,
+                         rocblas_float_complex const*,
+                         rocblas_float_complex const* const*,
+                         rocblas_float_complex* const*);
+INSTANTIATE_SYR_LAUNCHER(rocblas_double_complex,
+                         rocblas_double_complex const*,
+                         rocblas_double_complex const* const*,
+                         rocblas_double_complex* const*);
 
-#undef INSTANTIATE_SYR_TEMPLATE
+#undef INSTANTIATE_SYR_LAUNCHER
 
 #ifdef INSTANTIATE_SYR_NUMERICS
 #error INSTANTIATE_SYR_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_SYR_NUMERICS(T_, U_)                                 \
-template rocblas_status rocblas_syr_check_numerics                       \
-                                         <T_, U_>                        \
-                                         (const char*    function_name,  \
-                                          rocblas_handle handle,         \
-                                          rocblas_fill   uplo,           \
-                                          rocblas_int    n,              \
-                                          T_              A,             \
-                                          rocblas_stride    offset_a,       \
-                                          rocblas_int    lda,            \
-                                          rocblas_stride stride_a,       \
-                                          U_              x,             \
-                                          rocblas_stride    offset_x,       \
-                                          rocblas_int    inc_x,          \
-                                          rocblas_stride stride_x,       \
-                                          rocblas_int    batch_count,    \
-                                          const int      check_numerics, \
-                                          bool           is_input);
+#define INSTANTIATE_SYR_NUMERICS(T_, U_)                                                      \
+    template rocblas_status rocblas_syr_check_numerics<T_, U_>(const char*    function_name,  \
+                                                               rocblas_handle handle,         \
+                                                               rocblas_fill   uplo,           \
+                                                               int64_t        n,              \
+                                                               T_             A,              \
+                                                               rocblas_stride offset_a,       \
+                                                               int64_t        lda,            \
+                                                               rocblas_stride stride_a,       \
+                                                               U_             x,              \
+                                                               rocblas_stride offset_x,       \
+                                                               int64_t        inc_x,          \
+                                                               rocblas_stride stride_x,       \
+                                                               int64_t        batch_count,    \
+                                                               const int      check_numerics, \
+                                                               bool           is_input);
 
 INSTANTIATE_SYR_NUMERICS(float*, float const*);
 INSTANTIATE_SYR_NUMERICS(double*, double const*);
@@ -433,5 +435,3 @@ INSTANTIATE_SYR_NUMERICS(rocblas_float_complex* const*, rocblas_float_complex co
 INSTANTIATE_SYR_NUMERICS(rocblas_double_complex* const*, rocblas_double_complex const* const*);
 
 #undef INSTANTIATE_SYR_NUMERICS
-
-// clang-format on
