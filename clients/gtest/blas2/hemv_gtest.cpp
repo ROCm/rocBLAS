@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,7 +92,11 @@ namespace
             if(HEMV_TYPE == HEMV_STRIDED_BATCHED || HEMV_TYPE == HEMV_BATCHED)
                 name << '_' << arg.batch_count;
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }

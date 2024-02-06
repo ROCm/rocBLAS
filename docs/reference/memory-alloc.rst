@@ -116,10 +116,10 @@ The following computational functions use temporary device memory.
 +------------------------------------------------+------------------------------------------------------+
 
 
-For temporary device memory, rocBLAS uses a per-handle memory allocation with out-of-band management. 
-The temporary device memory is stored in the handle. This allows for recycling temporary device memory 
-across multiple computational kernels that use the same handle. Each handle has a single stream, and 
-kernels execute in order in the stream, with each kernel completing before the next kernel in the 
+For temporary device memory, rocBLAS uses a per-handle memory allocation with out-of-band management.
+The temporary device memory is stored in the handle. This allows for recycling temporary device memory
+across multiple computational kernels that use the same handle. Each handle has a single stream, and
+kernels execute in order in the stream, with each kernel completing before the next kernel in the
 stream starts. There are 4 schemes for temporary device memory:
 
 #. **rocBLAS_managed**: This is the default scheme. If there is not enough memory in the handle, computational functions allocate the memory they require. Note that any memory allocated persists in the handle, so it is available for later computational functions that use the handle.

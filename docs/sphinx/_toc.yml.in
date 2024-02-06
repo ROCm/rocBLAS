@@ -2,7 +2,7 @@ defaults:
   numbered: False
 root: index
 subtrees:
-- entries: 
+- entries:
   - file: install/install.rst
     subtrees:
     - entries:

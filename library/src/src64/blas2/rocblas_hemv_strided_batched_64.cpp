@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
-#include "blas2/rocblas_symv_imp.hpp"
+#include "blas2/rocblas_hemv_strided_batched_imp.hpp"
+#include "rocblas_hemv_symv_64.hpp"
 
-INST_SYMV_C_API(rocblas_int);
+INST_HEMV_STRIDED_BATCHED_C_API(int64_t);

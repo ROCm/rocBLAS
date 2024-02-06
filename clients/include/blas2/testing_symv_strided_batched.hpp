@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,17 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_symv_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_symv_strided_batched_fn = arg.api == FORTRAN
-                                               ? rocblas_symv_strided_batched<T, true>
-                                               : rocblas_symv_strided_batched<T, false>;
+    auto rocblas_symv_strided_batched_fn    = arg.api == FORTRAN
+                                                  ? rocblas_symv_strided_batched<T, true>
+                                                  : rocblas_symv_strided_batched<T, false>;
+    auto rocblas_symv_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                  ? rocblas_symv_strided_batched_64<T, true>
+                                                  : rocblas_symv_strided_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -50,11 +40,11 @@ void testing_symv_strided_batched_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         rocblas_fill uplo        = rocblas_fill_upper;
-        rocblas_int  N           = 100;
-        rocblas_int  incx        = 1;
-        rocblas_int  incy        = 1;
-        rocblas_int  lda         = 100;
-        rocblas_int  batch_count = 2;
+        int64_t      N           = 100;
+        int64_t      incx        = 1;
+        int64_t      incy        = 1;
+        int64_t      lda         = 100;
+        int64_t      batch_count = 2;
 
         device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
@@ -91,213 +81,249 @@ void testing_symv_strided_batched_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(nullptr,
-                                                              uplo,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              strideA,
-                                                              dx,
-                                                              incx,
-                                                              stridex,
-                                                              beta,
-                                                              dy,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_symv_strided_batched_fn,
+                    (nullptr,
+                     uplo,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     dx,
+                     incx,
+                     stridex,
+                     beta,
+                     dy,
+                     incy,
+                     stridey,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              rocblas_fill_full,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              strideA,
-                                                              dx,
-                                                              incx,
-                                                              stridex,
-                                                              beta,
-                                                              dy,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     rocblas_fill_full,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     dx,
+                     incx,
+                     stridex,
+                     beta,
+                     dy,
+                     incy,
+                     stridey,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              N,
-                                                              nullptr,
-                                                              dA,
-                                                              lda,
-                                                              strideA,
-                                                              dx,
-                                                              incx,
-                                                              stridex,
-                                                              beta,
-                                                              dy,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     N,
+                     nullptr,
+                     dA,
+                     lda,
+                     strideA,
+                     dx,
+                     incx,
+                     stridex,
+                     beta,
+                     dy,
+                     incy,
+                     stridey,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              strideA,
-                                                              dx,
-                                                              incx,
-                                                              stridex,
-                                                              nullptr,
-                                                              dy,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     dx,
+                     incx,
+                     stridex,
+                     nullptr,
+                     dy,
+                     incy,
+                     stridey,
+                     batch_count));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                                  uplo,
-                                                                  N,
-                                                                  alpha,
-                                                                  nullptr,
-                                                                  lda,
-                                                                  strideA,
-                                                                  dx,
-                                                                  incx,
-                                                                  stridex,
-                                                                  beta,
-                                                                  dy,
-                                                                  incy,
-                                                                  stridey,
-                                                                  batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_symv_strided_batched_fn,
+                        (handle,
+                         uplo,
+                         N,
+                         alpha,
+                         nullptr,
+                         lda,
+                         strideA,
+                         dx,
+                         incx,
+                         stridex,
+                         beta,
+                         dy,
+                         incy,
+                         stridey,
+                         batch_count));
 
-            EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                                  uplo,
-                                                                  N,
-                                                                  alpha,
-                                                                  dA,
-                                                                  lda,
-                                                                  strideA,
-                                                                  nullptr,
-                                                                  incx,
-                                                                  stridex,
-                                                                  beta,
-                                                                  dy,
-                                                                  incy,
-                                                                  stridey,
-                                                                  batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_symv_strided_batched_fn,
+                        (handle,
+                         uplo,
+                         N,
+                         alpha,
+                         dA,
+                         lda,
+                         strideA,
+                         nullptr,
+                         incx,
+                         stridex,
+                         beta,
+                         dy,
+                         incy,
+                         stridey,
+                         batch_count));
 
-            EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                                  uplo,
-                                                                  N,
-                                                                  alpha,
-                                                                  dA,
-                                                                  lda,
-                                                                  strideA,
-                                                                  dx,
-                                                                  incx,
-                                                                  stridex,
-                                                                  beta,
-                                                                  nullptr,
-                                                                  incy,
-                                                                  stridey,
-                                                                  batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_symv_strided_batched_fn,
+                        (handle,
+                         uplo,
+                         N,
+                         alpha,
+                         dA,
+                         lda,
+                         strideA,
+                         dx,
+                         incx,
+                         stridex,
+                         beta,
+                         nullptr,
+                         incy,
+                         stridey,
+                         batch_count));
         }
 
         // If N==0, then all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              0,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              strideA,
-                                                              nullptr,
-                                                              incx,
-                                                              stridex,
-                                                              nullptr,
-                                                              nullptr,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     0,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     strideA,
+                     nullptr,
+                     incx,
+                     stridex,
+                     nullptr,
+                     nullptr,
+                     incy,
+                     stridey,
+                     batch_count));
 
         // If alpha==0, then A and x may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              N,
-                                                              zero,
-                                                              nullptr,
-                                                              lda,
-                                                              strideA,
-                                                              nullptr,
-                                                              incx,
-                                                              stridex,
-                                                              beta,
-                                                              dy,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     N,
+                     zero,
+                     nullptr,
+                     lda,
+                     strideA,
+                     nullptr,
+                     incx,
+                     stridex,
+                     beta,
+                     dy,
+                     incy,
+                     stridey,
+                     batch_count));
 
         // If alpha==0 && beta==1, then A, x and y may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              N,
-                                                              zero,
-                                                              nullptr,
-                                                              lda,
-                                                              strideA,
-                                                              nullptr,
-                                                              incx,
-                                                              stridex,
-                                                              one,
-                                                              nullptr,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     N,
+                     zero,
+                     nullptr,
+                     lda,
+                     strideA,
+                     nullptr,
+                     incx,
+                     stridex,
+                     one,
+                     nullptr,
+                     incy,
+                     stridey,
+                     batch_count));
 
         // If batch_count==0, then all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              N,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              strideA,
-                                                              nullptr,
-                                                              incx,
-                                                              stridex,
-                                                              nullptr,
-                                                              nullptr,
-                                                              incy,
-                                                              stridey,
-                                                              0),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     N,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     strideA,
+                     nullptr,
+                     incx,
+                     stridex,
+                     nullptr,
+                     nullptr,
+                     incy,
+                     stridey,
+                     0));
+
+        if(arg.api & c_API_64)
+        {
+            int64_t n_large = 2147483649;
+            DAPI_EXPECT(rocblas_status_invalid_size,
+                        rocblas_symv_strided_batched_fn,
+                        (handle,
+                         uplo,
+                         n_large,
+                         alpha,
+                         dA,
+                         lda,
+                         strideA,
+                         dx,
+                         incx,
+                         stridex,
+                         beta,
+                         dy,
+                         incy,
+                         stridey,
+                         batch_count));
+        }
     }
 }
 
 template <typename T>
 void testing_symv_strided_batched(const Arguments& arg)
 {
-    auto rocblas_symv_strided_batched_fn = arg.api == FORTRAN
-                                               ? rocblas_symv_strided_batched<T, true>
-                                               : rocblas_symv_strided_batched<T, false>;
+    auto rocblas_symv_strided_batched_fn    = arg.api == FORTRAN
+                                                  ? rocblas_symv_strided_batched<T, true>
+                                                  : rocblas_symv_strided_batched<T, false>;
+    auto rocblas_symv_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                  ? rocblas_symv_strided_batched_64<T, true>
+                                                  : rocblas_symv_strided_batched_64<T, false>;
 
-    rocblas_int N    = arg.N;
-    rocblas_int lda  = arg.lda;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
+    int64_t N    = arg.N;
+    int64_t lda  = arg.lda;
+    int64_t incx = arg.incx;
+    int64_t incy = arg.incy;
 
     host_vector<T> alpha(1);
     host_vector<T> beta(1);
@@ -305,7 +331,7 @@ void testing_symv_strided_batched(const Arguments& arg)
     beta[0]  = arg.get_beta<T>();
 
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
-    rocblas_int  batch_count = arg.batch_count;
+    int64_t      batch_count = arg.batch_count;
 
     rocblas_stride strideA  = size_t(lda) * N;
     size_t         abs_incx = incx >= 0 ? incx : -incx;
@@ -319,22 +345,23 @@ void testing_symv_strided_batched(const Arguments& arg)
     bool invalid_size = N < 0 || lda < 1 || lda < N || !incx || !incy || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              N,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              strideA,
-                                                              nullptr,
-                                                              incx,
-                                                              stridex,
-                                                              nullptr,
-                                                              nullptr,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_symv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     N,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     strideA,
+                     nullptr,
+                     incx,
+                     stridex,
+                     nullptr,
+                     nullptr,
+                     incy,
+                     stridey,
+                     batch_count));
 
         return;
     }
@@ -380,7 +407,7 @@ void testing_symv_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dy.transfer_from(hy));
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
     double h_error, d_error;
 
     if(arg.unit_check || arg.norm_check)
@@ -391,21 +418,22 @@ void testing_symv_strided_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_symv_strided_batched_fn(handle,
-                                                                uplo,
-                                                                N,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                dx,
-                                                                incx,
-                                                                stridex,
-                                                                beta,
-                                                                dy,
-                                                                incy,
-                                                                stridey,
-                                                                batch_count));
+            DAPI_CHECK(rocblas_symv_strided_batched_fn,
+                       (handle,
+                        uplo,
+                        N,
+                        alpha,
+                        dA,
+                        lda,
+                        strideA,
+                        dx,
+                        incx,
+                        stridex,
+                        beta,
+                        dy,
+                        incy,
+                        stridey,
+                        batch_count));
             handle.post_test(arg);
 
             // copy output from device to CPU
@@ -422,28 +450,29 @@ void testing_symv_strided_batched(const Arguments& arg)
             dy.transfer_from(hy_gold);
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_symv_strided_batched_fn(handle,
-                                                                uplo,
-                                                                N,
-                                                                d_alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                dx,
-                                                                incx,
-                                                                stridex,
-                                                                d_beta,
-                                                                dy,
-                                                                incy,
-                                                                stridey,
-                                                                batch_count));
+            DAPI_CHECK(rocblas_symv_strided_batched_fn,
+                       (handle,
+                        uplo,
+                        N,
+                        d_alpha,
+                        dA,
+                        lda,
+                        strideA,
+                        dx,
+                        incx,
+                        stridex,
+                        d_beta,
+                        dy,
+                        incy,
+                        stridey,
+                        batch_count));
             handle.post_test(arg);
         }
 
         // cpu reference
         cpu_time_used = get_time_us_no_sync();
 
-        for(int b = 0; b < batch_count; b++)
+        for(int64_t b = 0; b < batch_count; b++)
         {
             ref_symv<T>(uplo, N, alpha[0], hA[b], lda, hx[b], incx, beta[0], hy_gold[b], incy);
         }
@@ -500,49 +529,34 @@ void testing_symv_strided_batched(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            CHECK_ROCBLAS_ERROR(rocblas_symv_strided_batched_fn(handle,
-                                                                uplo,
-                                                                N,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                dx,
-                                                                incx,
-                                                                stridex,
-                                                                beta,
-                                                                dy,
-                                                                incy,
-                                                                stridey,
-                                                                batch_count));
-        }
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_symv_strided_batched_fn(handle,
-                                                                uplo,
-                                                                N,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                dx,
-                                                                incx,
-                                                                stridex,
-                                                                beta,
-                                                                dy,
-                                                                incy,
-                                                                stridey,
-                                                                batch_count));
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_symv_strided_batched_fn,
+                          (handle,
+                           uplo,
+                           N,
+                           alpha,
+                           dA,
+                           lda,
+                           strideA,
+                           dx,
+                           incx,
+                           stridex,
+                           beta,
+                           dy,
+                           incy,
+                           stridey,
+                           batch_count));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
