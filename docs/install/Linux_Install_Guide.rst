@@ -57,8 +57,8 @@ The library file ``librocblas.so`` is installed in ``/opt/rocm/lib``.
 Building and Installing rocBLAS
 ===================================
 
-For most users, building from source is not necessary, as rocBLAS can be used after installing 
-the prebuilt packages as described above. However, you can use following instructions to build 
+For most users, building from source is not necessary, as rocBLAS can be used after installing
+the prebuilt packages as described above. However, you can use following instructions to build
 rocBLAS from source if necessary.
 
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,61 @@
 
 #pragma once
 
-#include "check_numerics_vector.hpp"
 #include "handle.hpp"
+
+constexpr int rocblas_hemv_DIM_X()
+{
+    return 64;
+}
+
+/*! \brief rocblas_internal_hemv_kernel_workspace_size
+    workspace buffer for column reductions: number of blocks * cols * batch_count
+
+    @param[in]
+    outputType To*
+        Type of output values
+    @param[in]
+    n rocblas_int
+        Number of columns
+    @param[in]
+    batch_count rocblas_int
+        Number of batches
+    ********************************************************************/
+template <typename T>
+size_t rocblas_internal_hemv_symv_kernel_workspace_size_launcher(int64_t n, int64_t batch_count = 1)
+{
+    auto blocks = (n - 1) / int64_t(rocblas_hemv_DIM_X()) + 1;
+    return sizeof(T) * blocks * n * batch_count;
+}
 
 template <typename To>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t
-    rocblas_internal_hemv_symv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1);
+    rocblas_internal_hemv_symv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
+{
+    return rocblas_internal_hemv_symv_kernel_workspace_size_launcher<To>(n, batch_count);
+}
 
-template <typename T, typename U, typename V, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_hemv_symv_arg_check(rocblas_handle handle,
                                                   rocblas_fill   uplo,
-                                                  rocblas_int    n,
-                                                  const V*       alpha,
+                                                  API_INT        n,
+                                                  TScal          alpha,
                                                   rocblas_stride stride_alpha,
-                                                  const U*       A,
+                                                  TConstPtr      A,
                                                   rocblas_stride offseta,
-                                                  rocblas_int    lda,
+                                                  API_INT        lda,
                                                   rocblas_stride strideA,
-                                                  const U*       x,
+                                                  TConstPtr      x,
                                                   rocblas_stride offsetx,
-                                                  rocblas_int    incx,
+                                                  API_INT        incx,
                                                   rocblas_stride stridex,
-                                                  const V*       beta,
+                                                  TScal          beta,
                                                   rocblas_stride stride_beta,
-                                                  const TPtr*    y,
+                                                  TPtr           y,
                                                   rocblas_stride offsety,
-                                                  rocblas_int    incy,
+                                                  API_INT        incy,
                                                   rocblas_stride stridey,
-                                                  rocblas_int    batch_count)
+                                                  API_INT        batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -180,39 +207,39 @@ template <typename T, typename U>
 rocblas_status rocblas_hemv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_fill   uplo,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              A,
                                            rocblas_stride offset_a,
-                                           rocblas_int    lda,
+                                           int64_t        lda,
                                            rocblas_stride stride_a,
                                            T              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);
 template <typename T, typename U>
 rocblas_status rocblas_symv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_fill   uplo,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              A,
                                            rocblas_stride offset_a,
-                                           rocblas_int    lda,
+                                           int64_t        lda,
                                            rocblas_stride stride_a,
                                            T              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);

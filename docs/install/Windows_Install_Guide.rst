@@ -25,7 +25,7 @@ Installing Prebuilt Packages
 rocBLAS can be installed on Windows 11 or Windows 10 using the AMD HIP SDK installer.
 
 The simplest way to use rocBLAS in your code would be using CMake for which you would add the SDK installation location to your
-``CMAKE_PREFIX_PATH`` in your CMake configure step. 
+``CMAKE_PREFIX_PATH`` in your CMake configure step.
 
 .. note::
    You must use quotes as the path contains a space.
@@ -51,9 +51,9 @@ into rocBLAS, and the rocBLAS import library and dynamic link library will becom
 dependencies for your application.
 
 .. note::
-   An additional runtime dependency beyond the dynamic link library (``.dll``) file is the entire ``rocblas/`` 
+   An additional runtime dependency beyond the dynamic link library (``.dll``) file is the entire ``rocblas/``
    subdirectory found in the HIP SDK bin folder. This must be kept in the same directory as the ``rocblas.dll``
-   or can be located elsewhere if setting the environment variable ``ROCBLAS_TENSILE_LIBPATH`` to the 
+   or can be located elsewhere if setting the environment variable ``ROCBLAS_TENSILE_LIBPATH`` to the
    non-standard location. The contents are read at execution time much like additional DLL files.
 
 Once installed, find ``rocblas.h`` in the HIP SDK ``\\include\\rocblas``

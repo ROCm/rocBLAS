@@ -11,7 +11,7 @@ What is rocBLAS
 Introduction
 ============
 
-rocBLAS is the AMD library for Basic Linear Algebra Subprograms (BLAS) on the :doc:`ROCm platform <rocm:index>`. 
+rocBLAS is the AMD library for Basic Linear Algebra Subprograms (BLAS) on the :doc:`ROCm platform <rocm:index>`.
 It is implemented in the :doc:`HIP programming language <hip:index>` and optimized for AMD GPUs.
 
 The aim of rocBLAS is to provide:
@@ -70,7 +70,7 @@ Error handling is by returning a ``rocblas_status``. Functions conform to the le
 Rules for obtaining rocBLAS API from legacy BLAS functions
 ----------------------------------------------------------
 
-1. The legacy BLAS routine name is changed to lowercase and prefixed by ``rocblas_<function>``. 
+1. The legacy BLAS routine name is changed to lowercase and prefixed by ``rocblas_<function>``.
    For example the legacy BLAS routine ``SSCAL`` which scales a vector by a constant value, is replaced with ``rocblas_sscal``.
 
 2. A first argument ``rocblas_handle`` handle is added to all rocBLAS functions.
@@ -187,7 +187,7 @@ If you need row-major and 0-based indexing (used in C language arrays), download
 Look at the CBLAS functions that provide a thin interface to legacy BLAS. They convert from row-major, 0 based, to column-major, 1
 based. This is done by swapping the order of function arguments. It is not necessary to transpose matrices.
 
-.. _pointer-mode: 
+.. _pointer-mode:
 
 Pointer Mode
 ------------
@@ -245,13 +245,13 @@ function is synchronous. Logging requires system calls, and the program
 must wait for them to complete before executing the next instruction.
 See the Logging section for more information.
 
-.. note:: 
+.. note::
    The default is no logging.
 
 If the CPU needs to allocate device memory, it must wait until memory allocation is complete before
 executing the next instruction. For more detailed information, refer to sections :ref:`Device Memory Allocation Usage` and :ref:`Device Memory allocation in detail`.
 
-.. note:: 
+.. note::
    Memory can be pre-allocated. This will make the function asynchronous, as it removes the need for the function to allocate memory.
 
 The following functions copy a scalar result from GPU to CPU if
@@ -260,7 +260,7 @@ The following functions copy a scalar result from GPU to CPU if
 This makes the function synchronous, as the program must wait
 for the copy before executing the next instruction. See :ref:`pointer-mode` for more information.
 
-.. note:: 
+.. note::
    Set ``rocblas_pointer_mode == rocblas_pointer_mode_device`` makes the function asynchronous by keeping the result on the GPU.
 
 The order of operations with logging, device memory allocation, and return of a scalar
