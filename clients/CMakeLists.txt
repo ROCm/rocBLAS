@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -215,3 +215,17 @@ rocm_install(
   DESTINATION "${CMAKE_INSTALL_BINDIR}"
   COMPONENT clients-common
 )
+
+# Find the package ROCmSMI
+if(NOT WIN32)
+    if(BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
+      find_package(ROCmSMI REQUIRED)
+    endif()
+endif()
+
+if(NOT WIN32)
+    if(BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
+      target_link_libraries( rocblas-test PRIVATE rocm_smi )
+      target_link_libraries( rocblas-bench PRIVATE rocm_smi )
+    endif()
+endif()

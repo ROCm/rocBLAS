@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -165,18 +165,4 @@ add_subdirectory ( ./perf_script )
 rocm_install(TARGETS rocblas-bench COMPONENT benchmarks)
 if( BUILD_WITH_TENSILE )
   rocm_install(TARGETS rocblas-gemm-tune COMPONENT benchmarks)
-endif()
-
-if (NOT WIN32)
-    find_package(ROCmSMI QUIET)
-    if(NOT ROCmSMI_FOUND)
-        set(CMAKE_MODULE_PATH ${ROCBLAS_LIBRARY_DIR}/clients/cmake)
-        find_package(ROCmSMI REQUIRED)
-    endif()
-endif()
-# list( APPEND COMMON_LINK_LIBS rocm_smi)
-
-if(NOT WIN32)
-    # target_link_libraries(rocblas-bench PRIVATE TensileHost rocm_smi)
-    target_link_libraries( rocblas-bench PRIVATE rocm_smi )
 endif()
