@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,7 +80,7 @@ namespace
 
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                  << '_' << (char)std::toupper(arg.transA) << '_' << (char)std::toupper(arg.diag)
-                 << '_' << arg.M << '_' << arg.K << '_' << arg.lda;
+                 << '_' << arg.N << '_' << arg.K << '_' << arg.lda;
 
             if(TBMV_TYPE == TBMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;
@@ -90,10 +90,14 @@ namespace
             if(TBMV_TYPE == TBMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_x;
 
-            if(TBMV_TYPE == TBMV_BATCHED || TBMV_TYPE == TBMV_STRIDED_BATCHED)
+            if(TBMV_TYPE != TBMV)
                 name << '_' << arg.batch_count;
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }
