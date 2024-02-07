@@ -1,0 +1,140 @@
+---
+include: ../../../../clients/include/rocblas_common.yaml
+
+Definitions:
+  - &m_equals_n_range
+    - { scan: [32..992..32], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }
+
+  - &qmcpack_matrix_size_range
+    - { M:    15, N:    35, lda:   16, stride_a:     1024 }
+    - { M:    32, N:  1536, lda:   32, stride_a:    49152 }
+
+  - &sm_mn_matrix_size_range
+    # m && n <= 32 && batch_count >= 256 (gfx90a only) watch for overlap with qmcpack
+    - { M:    3 , N:    32, lda:    3, stride_a:       96 }
+    - { M:    24, N:    24, lda:   24, stride_a:     1024 }
+
+  - &double_buffered_loads_size_range
+    # (n %128 == 0 && m==n)
+    - { M:  1024, N:  1024, lda:  1024, stride_a:   1048576 }
+
+  - &large_matrix_size_range
+    - { M:  4011, N:  4011,  lda: 4011,  stride_a: 16088200 }
+    - { M:  8000, N:  8000,  lda: 8000,  stride_a: 64000000 }
+
+  # - &very_large_matrix_size_range
+  #   - { M:  16010, N: 16010, lda: 16010, stride_a: 256320100 }
+  #   - { M:  25020, N: 25020, lda: 25020, stride_a: 625000400 }
+
+Tests:
+  - name: gemv_bench_const_n
+    category: bench
+    function: gemv
+    precision: *single_precision
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    N: 32
+    M: 32..480..32
+    lda: 480 # TODO: easy way to increment lda in lockstep with M?
+    iters: 20
+
+  - name: gemv_bench_const_m
+    category: bench
+    function: gemv
+    precision: *single_precision
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    N: 32..480..32
+    M: 32
+    lda: 32
+    iters: 20
+
+  - name: gemv_bench_m_equals_n
+    category: bench
+    function: gemv
+    precision: *single_precision
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *m_equals_n_range
+    iters: 20
+
+  - name: gemv_batched_and_strided_batched_qmcpack
+    category: bench
+    function:
+          - gemv_batched
+          - gemv_strided_batched
+    precision: *single_double_precisions_complex_real
+    transA: [ N, T ]
+    alpha: 1
+    beta: 1
+    incx: 1
+    incy: 1
+    matrix_size: *qmcpack_matrix_size_range
+    iters: 20
+    batch_count: [ 100 ] #, 1000 ]
+
+  - name: gemv_batched_and_strided_batched_sm_mn
+    category: bench
+    function:
+          - gemv_batched
+          - gemv_strided_batched
+    precision: *single_double_precisions_complex_real
+    transA: [ N, T ]
+    alpha: 1
+    beta: 1
+    incx: 1
+    incy: 1
+    matrix_size: *sm_mn_matrix_size_range
+    iters: 20
+    batch_count: [ 256 ]
+
+  # - name: gemv_batched_and_strided_batched_large_matrix
+  #   category: bench
+  #   function:
+  #         - gemv_batched
+  #         - gemv_strided_batched
+  #   precision: *single_double_precisions_complex_real
+  #   transA: [ N, T ]
+  #   alpha: 1
+  #   beta: 1
+  #   incx: 1
+  #   incy: 1
+  #   matrix_size: *large_matrix_size_range
+  #   iters: 20
+  #   batch_count: [ 3 ]
+
+  # - name: gemv_batched_and_strided_batched_very_large_matrix
+  #   category: bench
+  #   function:
+  #         - gemv_batched
+  #         - gemv_strided_batched
+  #   precision: *single_double_precisions_complex_real
+  #   transA: [ N, T ]
+  #   alpha: 1
+  #   beta: 1
+  #   incx: 1
+  #   incy: 1
+  #   matrix_size: *very_large_matrix_size_range
+  #   iters: 20
+  #   batch_count: [ 3 ]
+
+  - name: gemv_bench_const_n_complex
+    category: bench
+    function: gemv
+    precision: *single_precision_complex
+    transA: [ N ]
+    alpha: 2
+    alphai: 3
+    incx: 1
+    incy: 1
+    N: 32
+    M: 32..256..32
+    lda: 256
+    iters: 10
+...

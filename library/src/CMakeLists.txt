@@ -497,10 +497,10 @@ set( rocblas64_blas2_source
   #   src64/blas2/rocblas_hbmv_kernels.cpp
   #   src64/blas2/rocblas_hbmv_batched.cpp
   #   src64/blas2/rocblas_hbmv_strided_batched.cpp
-    src64/blas2/rocblas_hemv_64.cpp
-    src64/blas2/rocblas_hemv_symv_kernels_64.cpp
-    src64/blas2/rocblas_hemv_batched_64.cpp
-    src64/blas2/rocblas_hemv_strided_batched_64.cpp
+  src64/blas2/rocblas_hemv_64.cpp
+  src64/blas2/rocblas_hemv_symv_kernels_64.cpp
+  src64/blas2/rocblas_hemv_batched_64.cpp
+  src64/blas2/rocblas_hemv_strided_batched_64.cpp
   src64/blas2/rocblas_her_64.cpp
   src64/blas2/rocblas_her_kernels_64.cpp
   src64/blas2/rocblas_her_batched_64.cpp
@@ -533,14 +533,14 @@ set( rocblas64_blas2_source
   src64/blas2/rocblas_syr2_kernels_64.cpp
   src64/blas2/rocblas_syr2_batched_64.cpp
   src64/blas2/rocblas_syr2_strided_batched_64.cpp
+  src64/blas2/rocblas_tbmv_64.cpp
+  src64/blas2/rocblas_tbmv_kernels_64.cpp
+  src64/blas2/rocblas_tbmv_batched_64.cpp
+  src64/blas2/rocblas_tbmv_strided_batched_64.cpp
   src64/blas2/rocblas_syr_64.cpp
   src64/blas2/rocblas_syr_kernels_64.cpp
   src64/blas2/rocblas_syr_batched_64.cpp
   src64/blas2/rocblas_syr_strided_batched_64.cpp
-  #   src64/blas2/rocblas_tbmv.cpp
-  #   src64/blas2/rocblas_tbmv_kernels.cpp
-  #   src64/blas2/rocblas_tbmv_batched.cpp
-  #   src64/blas2/rocblas_tbmv_strided_batched.cpp
   #   src64/blas2/rocblas_tpsv.cpp
   #   src64/blas2/rocblas_tpsv_kernels.cpp
   #   src64/blas2/rocblas_tpsv_batched.cpp
