@@ -19,8 +19,26 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_hpmv.hpp"
+#pragma once
 
-#include "blas2/rocblas_hpmv_batched_imp.hpp"
+#include "handle.hpp"
+#include "rocblas.h"
 
-INST_HPMV_BATCHED_C_API(rocblas_int);
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_hpmv_launcher_64(rocblas_handle handle,
+                                        rocblas_fill   uplo,
+                                        API_INT        n,
+                                        TScal          alpha,
+                                        TConstPtr      AP,
+                                        rocblas_stride offseta,
+                                        rocblas_stride strideA,
+                                        TConstPtr      x,
+                                        rocblas_stride offsetx,
+                                        int64_t        incx,
+                                        rocblas_stride stridex,
+                                        TScal          beta,
+                                        TPtr           y,
+                                        rocblas_stride offsety,
+                                        int64_t        incy,
+                                        rocblas_stride stridey,
+                                        API_INT        batch_count);

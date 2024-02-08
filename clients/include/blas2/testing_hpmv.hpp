@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,14 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_hpmv_bad_arg(const Arguments& arg)
 {
     auto rocblas_hpmv_fn = arg.api == FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+    auto rocblas_hpmv_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_hpmv_64<T, true> : rocblas_hpmv_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -50,9 +38,9 @@ void testing_hpmv_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         const rocblas_fill uplo = rocblas_fill_upper;
-        const rocblas_int  N    = 100;
-        const rocblas_int  incx = 1;
-        const rocblas_int  incy = 1;
+        const int64_t      N    = 100;
+        const int64_t      incx = 1;
+        const int64_t      incy = 1;
 
         device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
@@ -85,52 +73,56 @@ void testing_hpmv_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(nullptr, uplo, N, alpha, dAp, dx, incx, beta, dy, incy),
-            rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_hpmv_fn,
+                    (nullptr, uplo, N, alpha, dAp, dx, incx, beta, dy, incy));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(handle, rocblas_fill_full, N, alpha, dAp, dx, incx, beta, dy, incy),
-            rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_hpmv_fn,
+                    (handle, rocblas_fill_full, N, alpha, dAp, dx, incx, beta, dy, incy));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(handle, uplo, N, nullptr, dAp, dx, incx, beta, dy, incy),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_hpmv_fn,
+                    (handle, uplo, N, nullptr, dAp, dx, incx, beta, dy, incy));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(handle, uplo, N, alpha, dAp, dx, incx, nullptr, dy, incy),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_hpmv_fn,
+                    (handle, uplo, N, alpha, dAp, dx, incx, nullptr, dy, incy));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_hpmv_fn(handle, uplo, N, alpha, nullptr, dx, incx, beta, dy, incy),
-                rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_hpmv_fn,
+                        (handle, uplo, N, alpha, nullptr, dx, incx, beta, dy, incy));
 
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_hpmv_fn(handle, uplo, N, alpha, dAp, nullptr, incx, beta, dy, incy),
-                rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_hpmv_fn,
+                        (handle, uplo, N, alpha, dAp, nullptr, incx, beta, dy, incy));
 
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_hpmv_fn(handle, uplo, N, alpha, dAp, dx, incx, beta, nullptr, incy),
-                rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_hpmv_fn,
+                        (handle, uplo, N, alpha, dAp, dx, incx, beta, nullptr, incy));
         }
 
         // If N==0, all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(
-                handle, uplo, 0, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
-            rocblas_status_success);
+        DAPI_CHECK(rocblas_hpmv_fn,
+                   (handle, uplo, 0, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy));
 
         // If alpha==0, then A and x may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(handle, uplo, N, zero, nullptr, nullptr, incx, beta, dy, incy),
-            rocblas_status_success);
+        DAPI_CHECK(rocblas_hpmv_fn,
+                   (handle, uplo, N, zero, nullptr, nullptr, incx, beta, dy, incy));
 
         // If alpha==0 && beta==1, then A, x and y may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(handle, uplo, N, zero, nullptr, nullptr, incx, one, nullptr, incy),
-            rocblas_status_success);
+        DAPI_CHECK(rocblas_hpmv_fn,
+                   (handle, uplo, N, zero, nullptr, nullptr, incx, one, nullptr, incy));
+
+        if(arg.api & c_API_64)
+        {
+            int64_t n_over_int32 = 2147483649;
+            DAPI_EXPECT(rocblas_status_invalid_size,
+                        rocblas_hpmv_fn,
+                        (handle, uplo, n_over_int32, alpha, dAp, dx, incx, beta, dy, incy));
+        }
     }
 }
 
@@ -138,10 +130,12 @@ template <typename T>
 void testing_hpmv(const Arguments& arg)
 {
     auto rocblas_hpmv_fn = arg.api == FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+    auto rocblas_hpmv_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_hpmv_64<T, true> : rocblas_hpmv_64<T, false>;
 
-    rocblas_int          N       = arg.N;
-    rocblas_int          incx    = arg.incx;
-    rocblas_int          incy    = arg.incy;
+    int64_t              N       = arg.N;
+    int64_t              incx    = arg.incx;
+    int64_t              incy    = arg.incy;
     T                    h_alpha = arg.get_alpha<T>();
     T                    h_beta  = arg.get_beta<T>();
     rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
@@ -150,10 +144,9 @@ void testing_hpmv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N < 0 || !incx || !incy)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv_fn(
-                handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_hpmv_fn,
+                    (handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy));
 
         return;
     }
@@ -205,7 +198,7 @@ void testing_hpmv(const Arguments& arg)
     CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
     CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
     double error_host = 0.0, error_device = 0.0;
 
     /* =====================================================================
@@ -217,8 +210,8 @@ void testing_hpmv(const Arguments& arg)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(
-                rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy, incy));
+            DAPI_CHECK(rocblas_hpmv_fn,
+                       (handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy, incy));
             handle.post_test(arg);
 
             CHECK_HIP_ERROR(hy.transfer_from(dy));
@@ -229,8 +222,8 @@ void testing_hpmv(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(
-                rocblas_hpmv_fn(handle, uplo, N, d_alpha, dAp, dx, incx, d_beta, dy, incy));
+            DAPI_CHECK(rocblas_hpmv_fn,
+                       (handle, uplo, N, d_alpha, dAp, dx, incx, d_beta, dy, incy));
             handle.post_test(arg);
         }
 
@@ -269,22 +262,22 @@ void testing_hpmv(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy, incy);
-        }
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy, incy);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_hpmv_fn,
+                          (handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy, incy));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
