@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_hpmv.hpp"
+#include "rocblas_hpmv_64.hpp"
 
-#include "blas2/rocblas_hpmv_batched_imp.hpp"
+#include "blas2/rocblas_hpmv_imp.hpp"
 
-INST_HPMV_BATCHED_C_API(rocblas_int);
+INST_HPMV_C_API(int64_t);

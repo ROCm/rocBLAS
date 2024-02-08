@@ -8203,6 +8203,49 @@ module rocblas
         end function rocblas_zhpmv
     end interface
 
+    ! hpmv_64
+    interface
+        function rocblas_chpmv_64(handle, uplo, n, alpha, AP, &
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_chpmv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpmv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: AP
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_chpmv_64
+    end interface
+
+    interface
+        function rocblas_zhpmv_64(handle, uplo, n, alpha, AP, &
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zhpmv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpmv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: AP
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_zhpmv_64
+    end interface
+
     ! hpmv_batched
     interface
         function rocblas_chpmv_batched(handle, uplo, n, alpha, AP, &
@@ -8246,6 +8289,51 @@ module rocblas
             integer(c_int), value :: incy
             integer(c_int), value :: batch_count
         end function rocblas_zhpmv_batched
+    end interface
+
+    ! hpmv_batched_64
+    interface
+        function rocblas_chpmv_batched_64(handle, uplo, n, alpha, AP, &
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_chpmv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpmv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: AP
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_chpmv_batched_64
+    end interface
+
+    interface
+        function rocblas_zhpmv_batched_64(handle, uplo, n, alpha, AP, &
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zhpmv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpmv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: AP
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zhpmv_batched_64
     end interface
 
     ! hpmv_strided_batched
@@ -8297,6 +8385,57 @@ module rocblas
             integer(c_int64_t), value :: stride_y
             integer(c_int), value :: batch_count
         end function rocblas_zhpmv_strided_batched
+    end interface
+
+    ! hpmv_strided_batched_64
+    interface
+        function rocblas_chpmv_strided_batched_64(handle, uplo, n, alpha, AP, stride_AP, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_chpmv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpmv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: AP
+            integer(c_int64_t), value :: stride_AP
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_chpmv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zhpmv_strided_batched_64(handle, uplo, n, alpha, AP, stride_AP, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zhpmv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpmv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: AP
+            integer(c_int64_t), value :: stride_AP
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zhpmv_strided_batched_64
     end interface
 
     ! hpr
