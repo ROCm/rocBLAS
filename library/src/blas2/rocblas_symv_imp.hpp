@@ -120,7 +120,7 @@ namespace
             return arg_status;
 
         //allocating the workspace identical to hemv
-        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size_launcher<T>(n);
+        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size<T>(n);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 

@@ -160,8 +160,7 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        size_t dev_bytes
-            = rocblas_internal_hemv_symv_kernel_workspace_size_launcher<T>(n, batch_count);
+        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size<T>(n, batch_count);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 

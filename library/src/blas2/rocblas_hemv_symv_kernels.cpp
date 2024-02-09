@@ -84,6 +84,20 @@
 #include "rocblas_hemv_symv.hpp"
 #include "rocblas_level2_threshold.hpp"
 
+constexpr int rocblas_hemv_DIM_X()
+{
+    return 64;
+}
+
+template <typename To>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t
+    rocblas_internal_hemv_symv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count)
+{
+    // No support for int64_t n-sizes yet in hemv/symv
+    auto blocks = (n - 1) / rocblas_hemv_DIM_X() + 1;
+    return sizeof(To) * blocks * n * batch_count;
+}
+
 /** helper for complex support */
 template <typename T>
 ROCBLAS_KERNEL_ILF void hemv_zero_imaginary(T&)
@@ -3730,6 +3744,17 @@ rocblas_status rocblas_symv_check_numerics(const char*    function_name,
 // template parameters in the files *hemv*.cpp and *symv*.cpp
 
 // clang-format off
+
+#define INSTANTIATE_HEMV_WORKSPACE(To_)                                                                \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_hemv_symv_kernel_workspace_size<To_> \
+                        (rocblas_int n, rocblas_int batch_count);
+
+INSTANTIATE_HEMV_WORKSPACE(float)
+INSTANTIATE_HEMV_WORKSPACE(double)
+INSTANTIATE_HEMV_WORKSPACE(rocblas_float_complex)
+INSTANTIATE_HEMV_WORKSPACE(rocblas_double_complex)
+
+#undef INSTANTIATE_HEMV_WORKSPACE
 
 #ifdef INSTANTIATE_HEMV_TEMPLATE
 #error INSTANTIATE_HEMV_TEMPLATE already defined
