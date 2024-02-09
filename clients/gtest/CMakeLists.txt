@@ -153,33 +153,10 @@ target_include_directories( rocblas-test
 if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
 endif( )
-target_link_libraries( rocblas-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas )
+target_link_libraries( rocblas-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas hip::host hip::device )
 
-if( CUDA_FOUND )
-  target_include_directories( rocblas-test
-    PRIVATE
-      $<BUILD_INTERFACE:${CUDA_INCLUDE_DIRS}>
-      $<BUILD_INTERFACE:${hip_INCLUDE_DIRS}>
-    )
-  target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_NVCC__ )
-  target_link_libraries( rocblas-test PRIVATE ${CUDA_LIBRARIES} )
-else( )
-  # auto set in hip_common.h
-  #target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-test PRIVATE hip::host hip::device )
-endif( )
-
-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # GCC or hip-clang needs specific flag to turn on f16c intrinsics
-  target_compile_options( rocblas-test PRIVATE -mf16c )
-endif( )
-
-target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
-
-target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
-# target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
 if (NOT WIN32)
-  list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+  list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs" )
   if (NOT BUILD_FORTRAN_CLIENTS)
     list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
   endif()
@@ -187,6 +164,15 @@ else()
   list( APPEND COMMON_LINK_LIBS "libomp")
 endif()
 target_link_libraries( rocblas-test PRIVATE ${COMMON_LINK_LIBS} )
+
+if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # GCC or hip-clang needs specific flag to turn on f16c intrinsics
+  target_compile_options( rocblas-test PRIVATE -mf16c )
+endif( )
+target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
+
+target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
+
 
 if (WIN32)
   # for now adding in all .dll as dependency chain is not cmake based on win32

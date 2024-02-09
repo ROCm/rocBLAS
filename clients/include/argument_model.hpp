@@ -35,6 +35,9 @@ bool ArgumentModel_get_log_function_name();
 void ArgumentModel_set_log_datatype(bool d);
 bool ArgumentModel_get_log_datatype();
 
+void ArgumentModel_log_frequencies(rocblas_internal_ostream& name_line,
+                                   rocblas_internal_ostream& val_line);
+
 // ArgumentModel template has a variadic list of argument enums
 template <rocblas_argument... Args>
 class ArgumentModel
@@ -61,10 +64,11 @@ public:
                   double                    norm1,
                   double                    norm2,
                   double                    norm3,
-                  double                    norm4,
-                  double                    avgfreq,
-                  double                    medianfreq)
+                  double                    norm4)
     {
+        // requires enablement for frequency logging
+        ArgumentModel_log_frequencies(name_line, val_line);
+
         constexpr bool has_batch_count = has(e_batch_count);
         rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
         rocblas_int    hot_calls       = arg.iters < 1 ? 1 : arg.iters;
@@ -74,31 +78,21 @@ public:
             gpu_us /= hot_calls;
 
         // per/us to per/sec *10^6
-        double rocblas_gflops = gflops * batch_count / gpu_us * 1e6;
-        double rocblas_GBps   = gbytes * batch_count / gpu_us * 1e6;
-
-        static const char* env = getenv("ROCBLAS_BENCH_FREQ");
-        if(env && avgfreq != ArgumentLogging::NA_value)
-        {
-            name_line << ",average frequency";
-            val_line << ", " << avgfreq;
-        }
-
-        if(env && medianfreq != ArgumentLogging::NA_value)
-        {
-            name_line << ",median frequency";
-            val_line << ", " << medianfreq;
-        }
+        const double c_per_usec_to_per_sec = 1e6;
 
         // append performance fields
         if(gflops != ArgumentLogging::NA_value)
         {
+            double rocblas_gflops = gflops * batch_count / gpu_us * c_per_usec_to_per_sec;
+
             name_line << ",rocblas-Gflops";
             val_line << ", " << rocblas_gflops;
         }
 
         if(gbytes != ArgumentLogging::NA_value)
         {
+            double rocblas_GBps = gbytes * batch_count / gpu_us * c_per_usec_to_per_sec;
+
             // GB/s not usually reported for non-memory bound functions
             name_line << ",rocblas-GB/s";
             val_line << ", " << rocblas_GBps;
@@ -113,7 +107,7 @@ public:
             {
                 if(gflops != ArgumentLogging::NA_value)
                 {
-                    double cblas_gflops = gflops * batch_count / cpu_us * 1e6;
+                    double cblas_gflops = gflops * batch_count / cpu_us * c_per_usec_to_per_sec;
                     name_line << ",CPU-Gflops";
                     val_line << "," << cblas_gflops;
                 }
@@ -152,14 +146,12 @@ public:
                   const Arguments&          arg,
                   double                    gpu_us,
                   double                    gflops,
-                  double                    gpu_bytes  = ArgumentLogging::NA_value,
-                  double                    cpu_us     = ArgumentLogging::NA_value,
-                  double                    norm1      = ArgumentLogging::NA_value,
-                  double                    norm2      = ArgumentLogging::NA_value,
-                  double                    norm3      = ArgumentLogging::NA_value,
-                  double                    norm4      = ArgumentLogging::NA_value,
-                  double                    avgfreq    = ArgumentLogging::NA_value,
-                  double                    medianfreq = ArgumentLogging::NA_value)
+                  double                    gpu_bytes = ArgumentLogging::NA_value,
+                  double                    cpu_us    = ArgumentLogging::NA_value,
+                  double                    norm1     = ArgumentLogging::NA_value,
+                  double                    norm2     = ArgumentLogging::NA_value,
+                  double                    norm3     = ArgumentLogging::NA_value,
+                  double                    norm4     = ArgumentLogging::NA_value)
     {
         if(arg.iters < 1)
             return; // warmup test only
@@ -241,9 +233,7 @@ public:
                      norm1,
                      norm2,
                      norm3,
-                     norm4,
-                     avgfreq,
-                     medianfreq);
+                     norm4);
 
         str << name_list << "\n" << value_list << std::endl;
     }
