@@ -19,8 +19,24 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#pragma once
 
-#include "rocblas_tpmv.hpp"
-#include "blas2/rocblas_tpmv_imp.hpp"
+#include "handle.hpp"
+#include "rocblas.h"
 
-INST_TPMV_C_API(rocblas_int);
+template <typename TConstPtr, typename TPtr, typename TWork>
+rocblas_status rocblas_internal_tpmv_launcher_64(rocblas_handle    handle,
+                                                 rocblas_fill      uplo,
+                                                 rocblas_operation transa,
+                                                 rocblas_diagonal  diag,
+                                                 int64_t           n_64,
+                                                 TConstPtr         AP,
+                                                 rocblas_stride    offset_AP,
+                                                 rocblas_stride    stride_AP,
+                                                 TPtr              x,
+                                                 rocblas_stride    offset_x,
+                                                 int64_t           incx_64,
+                                                 rocblas_stride    stride_x,
+                                                 TWork             workspace,
+                                                 rocblas_stride    stride_w,
+                                                 int64_t           batch_count_64);
