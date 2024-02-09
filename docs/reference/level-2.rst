@@ -378,6 +378,8 @@ rocblas_Xtpmv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztpmv
 
+The tpmv functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_stpmv_batched
    :outline:
 .. doxygenfunction:: rocblas_dtpmv_batched
@@ -386,6 +388,8 @@ rocblas_Xtpmv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztpmv_batched
 
+The tpmv_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_stpmv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dtpmv_strided_batched
@@ -393,6 +397,8 @@ rocblas_Xtpmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ctpmv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztpmv_strided_batched
+
+The tpmv_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xtpsv + batched, strided_batched
 ========================================

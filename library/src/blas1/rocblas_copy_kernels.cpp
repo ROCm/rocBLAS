@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -149,23 +149,43 @@ INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB,
 
 // internal template calls
 
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, float*, float*)
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, double*, double*)
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, rocblas_float_complex*, rocblas_float_complex*)
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, rocblas_double_complex*, rocblas_double_complex*)
-
 INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, float*, float* const*)
 INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, double*, double* const*)
 INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, rocblas_float_complex*, rocblas_float_complex* const*)
 INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, rocblas_double_complex*, rocblas_double_complex* const*)
 
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, float* const*, float* const*)
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB, double* const*, double* const*)
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB,
-                          rocblas_float_complex* const*,
-                          rocblas_float_complex* const*)
-INSTANTIATE_COPY_LAUNCHER(ROCBLAS_COPY_NB,
-                          rocblas_double_complex* const*,
-                          rocblas_double_complex* const*)
-
 #undef INSTANTIATE_COPY_LAUNCHER
+
+#ifdef INSTANTIATE_COPY_LAUNCHER_64
+#error INSTANTIATE_COPY_LAUNCHER_64 already defined
+#endif
+
+#define INSTANTIATE_COPY_LAUNCHER_64(NB_, T_, U_)                                 \
+    template rocblas_status rocblas_internal_copy_launcher<int64_t, NB_, T_, U_>( \
+        rocblas_handle handle,                                                    \
+        int64_t        n,                                                         \
+        T_             x,                                                         \
+        rocblas_stride offsetx,                                                   \
+        int64_t        incx,                                                      \
+        rocblas_stride stridex,                                                   \
+        U_             y,                                                         \
+        rocblas_stride offsety,                                                   \
+        int64_t        incy,                                                      \
+        rocblas_stride stridey,                                                   \
+        int64_t        batch_count);
+
+// internal template calls
+
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, float*, float*)
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, double*, double*)
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, rocblas_float_complex*, rocblas_float_complex*)
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, rocblas_double_complex*, rocblas_double_complex*)
+
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, float*, float* const*)
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, double*, double* const*)
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB, rocblas_float_complex*, rocblas_float_complex* const*)
+INSTANTIATE_COPY_LAUNCHER_64(ROCBLAS_COPY_NB,
+                             rocblas_double_complex*,
+                             rocblas_double_complex* const*)
+
+#undef INSTANTIATE_COPY_LAUNCHER_64

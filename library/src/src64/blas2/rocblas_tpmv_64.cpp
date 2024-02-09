@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "rocblas_tpmv_64.hpp"
 
-#include "rocblas_tpmv.hpp"
 #include "blas2/rocblas_tpmv_imp.hpp"
 
-INST_TPMV_C_API(rocblas_int);
+INST_TPMV_C_API(int64_t);
