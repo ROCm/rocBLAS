@@ -24,11 +24,6 @@
 
 #include "handle.hpp"
 
-constexpr int rocblas_hemv_DIM_X()
-{
-    return 64;
-}
-
 /*! \brief rocblas_internal_hemv_kernel_workspace_size
     workspace buffer for column reductions: number of blocks * cols * batch_count
 
@@ -42,19 +37,9 @@ constexpr int rocblas_hemv_DIM_X()
     batch_count rocblas_int
         Number of batches
     ********************************************************************/
-template <typename T>
-size_t rocblas_internal_hemv_symv_kernel_workspace_size_launcher(int64_t n, int64_t batch_count = 1)
-{
-    auto blocks = (n - 1) / int64_t(rocblas_hemv_DIM_X()) + 1;
-    return sizeof(T) * blocks * n * batch_count;
-}
-
 template <typename To>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t
-    rocblas_internal_hemv_symv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
-{
-    return rocblas_internal_hemv_symv_kernel_workspace_size_launcher<To>(n, batch_count);
-}
+    rocblas_internal_hemv_symv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1);
 
 template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_hemv_symv_arg_check(rocblas_handle handle,
