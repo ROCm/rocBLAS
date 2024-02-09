@@ -1880,7 +1880,8 @@ try
     if(device_id >= 0)
         set_device(device_id);
 
-    freq_monitor->set_device_id(device_id);
+    FrequencyMonitor& freq_monitor = getFrequencyMonitor();
+    freq_monitor.set_device_id(device_id);
 
     if(datafile)
         return rocblas_bench_datafile(filter, name_filter, any_stride);
@@ -1934,13 +1935,17 @@ try
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
 
+    int status;
     if(!parallel_devices)
     {
         std::string name_filter = "";
-        return run_bench_test(true, arg, filter, name_filter, any_stride);
+        status                  = run_bench_test(true, arg, filter, name_filter, any_stride);
     }
     else
-        return run_bench_gpu_test(parallel_devices, arg, filter, any_stride);
+        status = run_bench_gpu_test(parallel_devices, arg, filter, any_stride);
+
+    freeFrequencyMonitor();
+    return status;
 }
 catch(const std::invalid_argument& exp)
 {

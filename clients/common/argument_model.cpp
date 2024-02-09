@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2021-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2021-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,9 @@
  * ************************************************************************ */
 
 #include "argument_model.hpp"
+#include "frequency_monitor.hpp"
 
 // this should have been a member variable but due to the complex variadic template this singleton allows global control
-
 static bool log_function_name = false;
 
 void ArgumentModel_set_log_function_name(bool f)
@@ -46,4 +46,25 @@ void ArgumentModel_set_log_datatype(bool d)
 bool ArgumentModel_get_log_datatype()
 {
     return log_datatype;
+}
+
+void ArgumentModel_log_frequencies(rocblas_internal_ostream& name_line,
+                                   rocblas_internal_ostream& val_line)
+{
+
+    FrequencyMonitor& frequency_monitor = getFrequencyMonitor();
+    if(frequency_monitor.enabled())
+    {
+        name_line << ",avg-freq";
+        val_line << "," << frequency_monitor.getAverageSYSCLK();
+
+        name_line << ",median-freq";
+        val_line << "," << frequency_monitor.getMedianSYSCLK();
+
+        name_line << ",avg-MCLK";
+        val_line << "," << frequency_monitor.getAverageMEMCLK();
+
+        name_line << ",median-MCLK";
+        val_line << "," << frequency_monitor.getMedianMEMCLK();
+    }
 }

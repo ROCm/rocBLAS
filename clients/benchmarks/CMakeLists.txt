@@ -78,39 +78,23 @@ if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
 endif()
 
-target_link_libraries( rocblas-bench PRIVATE ${BLAS_LIBRARY} roc::rocblas )
+target_link_libraries( rocblas-bench PRIVATE ${BLAS_LIBRARY} roc::rocblas hip::host hip::device )
 if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas-gemm-tune PRIVATE ${BLAS_LIBRARY} roc::rocblas )
+  target_link_libraries( rocblas-gemm-tune PRIVATE ${BLAS_LIBRARY} roc::rocblas hip::host hip::device )
 endif()
 
-if( CUDA_FOUND )
-  target_include_directories( rocblas-bench
-    PRIVATE
-      $<BUILD_INTERFACE:${CUDA_INCLUDE_DIRS}>
-      $<BUILD_INTERFACE:${hip_INCLUDE_DIRS}>
-    )
-  if( BUILD_WITH_TENSILE )
-    target_include_directories( rocblas-gemm-tune
-      PRIVATE
-        $<BUILD_INTERFACE:${CUDA_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${hip_INCLUDE_DIRS}>
-      )
+if (NOT WIN32)
+  list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs" )
+  if (NOT BUILD_FORTRAN_CLIENTS)
+    list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
   endif()
-  target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_NVCC__ )
-  if( BUILD_WITH_TENSILE )
-    target_compile_definitions( rocblas-gemm-tune PRIVATE __HIP_PLATFORM_NVCC__ )
-  endif()
-  target_link_libraries( rocblas-bench PRIVATE ${CUDA_LIBRARIES} )
-  if( BUILD_WITH_TENSILE )
-    target_link_libraries( rocblas-gemm-tune PRIVATE ${CUDA_LIBRARIES} )
-  endif()
-else( )
-  # auto set in hip_common.h
-  #target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-bench PRIVATE hip::host hip::device )
-  if( BUILD_WITH_TENSILE )
-    target_link_libraries( rocblas-gemm-tune PRIVATE hip::host hip::device )
-  endif()
+else()
+  list( APPEND COMMON_LINK_LIBS "libomp")
+endif()
+
+target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
+if( BUILD_WITH_TENSILE )
+  target_link_libraries( rocblas-gemm-tune PRIVATE ${COMMON_LINK_LIBS} )
 endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -119,6 +103,11 @@ if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if( BUILD_WITH_TENSILE )
     target_compile_options( rocblas-gemm-tune PRIVATE -mf16c )
   endif()
+endif()
+
+target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
+if( BUILD_WITH_TENSILE )
+  target_compile_options(rocblas-gemm-tune PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 endif()
 
 target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} )
@@ -132,23 +121,6 @@ if ( NOT BUILD_FORTRAN_CLIENTS )
   endif()
 endif()
 
-target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
-if( BUILD_WITH_TENSILE )
-  target_compile_options(rocblas-gemm-tune PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
-endif()
-# target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
-if (NOT WIN32)
-  list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
-  if (NOT BUILD_FORTRAN_CLIENTS)
-    list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
-  endif()
-else()
-  list( APPEND COMMON_LINK_LIBS "libomp")
-endif()
-target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
-if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas-gemm-tune PRIVATE ${COMMON_LINK_LIBS} )
-endif()
 
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging")
 if( BUILD_WITH_TENSILE )
