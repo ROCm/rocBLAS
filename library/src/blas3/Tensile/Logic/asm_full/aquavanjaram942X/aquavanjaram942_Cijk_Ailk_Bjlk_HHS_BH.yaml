@@ -16268,7 +16268,7 @@
     UnrollMajorLDSA: false
     UnrollMajorLDSB: false
     UnrollMemFence: false
-    Use64bShadowLimit: false
+    Use64bShadowLimit: true
     UseInstOffsetForGRO: 0
     UseSgprForGRO: -1
     Valid: true
@@ -16553,7 +16553,7 @@
     UnrollMajorLDSA: false
     UnrollMajorLDSB: false
     UnrollMemFence: false
-    Use64bShadowLimit: false
+    Use64bShadowLimit: true
     UseInstOffsetForGRO: 0
     UseSgprForGRO: -1
     Valid: true
@@ -16838,7 +16838,7 @@
     UnrollMajorLDSA: false
     UnrollMajorLDSB: false
     UnrollMemFence: false
-    Use64bShadowLimit: false
+    Use64bShadowLimit: true
     UseInstOffsetForGRO: 0
     UseSgprForGRO: -1
     Valid: true
