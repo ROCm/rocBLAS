@@ -228,6 +228,22 @@ void testing_symv(const Arguments& arg)
             DAPI_CHECK(rocblas_symv_fn,
                        (handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                // copy output from device to CPU
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+                host_vector<T> hy_copy(N, incy);
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    dy.transfer_from(hy_gold);
+                    CHECK_ROCBLAS_ERROR(rocblas_symv_fn(
+                        handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, hy, hy_copy);
+                }
+                return;
+            }
         }
 
         cpu_time_used = get_time_us_no_sync();

@@ -377,6 +377,34 @@ void testing_symv_batched(const Arguments& arg)
                         incy,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+
+                host_batch_vector<T> hy_copy(N, incy, batch_count);
+                // copy output from device to CPU
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    dy.transfer_from(hy_gold);
+                    CHECK_ROCBLAS_ERROR(rocblas_symv_batched_fn(handle,
+                                                                uplo,
+                                                                N,
+                                                                d_alpha,
+                                                                dA.ptr_on_device(),
+                                                                lda,
+                                                                dx.ptr_on_device(),
+                                                                incx,
+                                                                d_beta,
+                                                                dy.ptr_on_device(),
+                                                                incy,
+                                                                batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         cpu_time_used = get_time_us_no_sync();

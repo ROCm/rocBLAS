@@ -467,6 +467,38 @@ void testing_symv_strided_batched(const Arguments& arg)
                         stridey,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                // copy output from device to CPU
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                host_strided_batch_vector<T> hy_copy(N, incy, stridey, batch_count);
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    dy.transfer_from(hy_gold);
+                    CHECK_ROCBLAS_ERROR(rocblas_symv_strided_batched_fn(handle,
+                                                                        uplo,
+                                                                        N,
+                                                                        d_alpha,
+                                                                        dA,
+                                                                        lda,
+                                                                        strideA,
+                                                                        dx,
+                                                                        incx,
+                                                                        stridex,
+                                                                        d_beta,
+                                                                        dy,
+                                                                        incy,
+                                                                        stridey,
+                                                                        batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+
+                    unit_check_general<T>(1, N, incy, stridey, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // cpu reference
