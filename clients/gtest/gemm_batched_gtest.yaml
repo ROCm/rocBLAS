@@ -620,8 +620,8 @@ Tests:
 - name: gemm_batched_large_complex
   category: pre_checkin
   function:
-    gemm_batched: *single_double_precisions_complex
-    gemm_batched_ex: *single_double_precisions_complex
+    - gemm_batched: *single_double_precisions_complex
+    - gemm_batched_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   pointer_mode_host: false
   transA_transB: *transA_transB_range
@@ -771,14 +771,15 @@ Tests:
   function:
     - gemm_batched: *half_single_precisions
     - gemm_batched: *complex_precisions
-  matrix_size: *gemm_internal_matrix_size
+    - gemm_batched_ex: *half_single_double_precisions
+  matrix_size: *deepbench_vec
   initialization: hpl
   transA: [N , T]
   transB: [N, T]
   alpha_beta: *alpha_beta_range
   atomics_mode: 0
   iters: 5
-  batch_count: [ 3 ]
+  batch_count: [ 2 ]
   pointer_mode_host: false
   repeatability_check: true
 ...

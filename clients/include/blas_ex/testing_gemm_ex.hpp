@@ -445,7 +445,31 @@ void testing_gemm_ex(const Arguments& arg)
                                                dD[0],     d_type, ldd,
                                                arg.compute_type, algo, solution_index, flags));
         // clang-format on
+        if(arg.repeatability_check)
+        {
+            // fetch device mode GPU results
+            CHECK_HIP_ERROR(hD.transfer_one_matrix_from(dD));
 
+            host_matrix<To> hD_copy(M, N, ldd);
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+                // clang-format off
+                CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
+                                               dA[0], arg.a_type, lda,
+                                               dB[0], arg.b_type, ldb, d_beta_Tc,
+                                               dC[0], arg.c_type, ldc,
+                                               dD[0],     d_type, ldd,
+                                               arg.compute_type, algo, solution_index, flags));
+                // clang-format on
+                // fetch device mode GPU results
+                CHECK_HIP_ERROR(hD_copy.transfer_one_matrix_from(dD));
+
+                unit_check_general<To>(M, N, ldd, hD, hD_copy);
+            }
+            return;
+        }
         // copy C matrix into D matrix
         copy_matrix_with_different_leading_dimensions(hC, hD_gold);
 
