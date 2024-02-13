@@ -942,13 +942,15 @@ Tests:
   category: pre_checkin
   function:
     - gemm_strided_batched: *half_single_double_precisions_complex_real
-  matrix_size: *gemm_internal_matrix_size
+    - gemm_strided_batched_ex: *half_single_double_precisions_complex_real
+  matrix_size:
+    - { M:   784, N:    64, K:   192, lda:   784, ldb:   192, ldc:   784, ldd:   784, stride_a:   150528, stride_b:        0, stride_c:    50176, stride_d:    50176 }
   initialization: hpl
   transA: [N , T]
   transB: [N, T]
   alpha_beta: *alpha_beta_range
   atomics_mode: 0
-  batch_count: [ 3 ]
+  batch_count: [ 2 ]
   iters: 5
   pointer_mode_host: false
   repeatability_check: true

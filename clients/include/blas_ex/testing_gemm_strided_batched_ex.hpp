@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -537,6 +537,48 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                flags));
 
         CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
+
+        if(arg.repeatability_check)
+        {
+            host_strided_batch_matrix<To> hD_2_copy(M, N, ldd, stride_d, batch_count);
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dC.transfer_from(hC));
+                CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
+                                                                       transA,
+                                                                       transB,
+                                                                       M,
+                                                                       N,
+                                                                       K,
+                                                                       d_alpha_Tc,
+                                                                       dA,
+                                                                       arg.a_type,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       dB,
+                                                                       arg.b_type,
+                                                                       ldb,
+                                                                       stride_b,
+                                                                       d_beta_Tc,
+                                                                       dC,
+                                                                       arg.c_type,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       dDref,
+                                                                       d_type,
+                                                                       ldd,
+                                                                       stride_d,
+                                                                       batch_count,
+                                                                       arg.compute_type,
+                                                                       algo,
+                                                                       solution_index,
+                                                                       flags));
+                CHECK_HIP_ERROR(hD_2_copy.transfer_from(dDref));
+                unit_check_general<To>(M, N, ldd, stride_d, hD_2, hD_2_copy, batch_count);
+            }
+            return;
+        }
 
         // copy C matrix into D matrix
         copy_matrix_with_different_leading_dimensions(hC, hD_gold);

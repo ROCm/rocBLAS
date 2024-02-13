@@ -3852,12 +3852,12 @@ Tests:
   gpu_arch: '90a'
   os_flags: LINUX
 
-
 - name: gemm_repeatability_check
   category: pre_checkin
   function:
     - gemm: *half_single_double_precisions
-  matrix_size: *deepbench_sizes_small_m_n
+  matrix_size:
+    - { M:     9, N:    16, K: 23040, lda: 23040, ldb: 23040, ldc:     9, ldd:     9 }
   transA_transB: *transA_transB_range
   alpha_beta: *complex_alpha_beta_range
   initialization: hpl
@@ -3865,6 +3865,23 @@ Tests:
   iters: 5
   pointer_mode_host: false
   repeatability_check: true
+
+- name: gemm_ex_repeatability_check
+  category: pre_checkin
+  function:
+    - gemm_ex: *hpa_half_precision
+  matrix_size:
+    - { M: 128 , N: 128 , K: 300000 }
+  transA: N
+  transB: N
+  alpha: 0.001
+  beta: 1
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  pointer_mode_host: false
+  repeatability_check: true
+
 
 # Commented out as the category known_bug has currently no good purpose
 # This is category known_bug until the sizes are supported by Tensile,
