@@ -19,6 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "blas2/rocblas_sbmv_strided_batched_imp.hpp"
+#include "rocblas_sbmv_64.hpp"
 
-INST_SBMV_STRIDED_BATCHED_C_API(rocblas_int);
+#include "blas2/rocblas_sbmv_batched_imp.hpp"
+
+INST_SBMV_BATCHED_C_API(int64_t);

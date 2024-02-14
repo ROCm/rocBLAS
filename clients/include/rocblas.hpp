@@ -2954,8 +2954,22 @@ static rocblas_status (*rocblas_sbmv)(rocblas_handle handle,
                                       T*             y,
                                       rocblas_int    incy);
 
-MAP2CF(rocblas_sbmv, float, rocblas_ssbmv);
-MAP2CF(rocblas_sbmv, double, rocblas_dsbmv);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_sbmv_64)(rocblas_handle handle,
+                                         rocblas_fill   uplo,
+                                         int64_t        n,
+                                         int64_t        k,
+                                         const T*       alpha,
+                                         const T*       A,
+                                         int64_t        lda,
+                                         const T*       x,
+                                         int64_t        incx,
+                                         const T*       beta,
+                                         T*             y,
+                                         int64_t        incy);
+
+MAP2CF_D64(rocblas_sbmv, float, rocblas_ssbmv);
+MAP2CF_D64(rocblas_sbmv, double, rocblas_dsbmv);
 
 // sbmv_batched
 template <typename T, bool FORTRAN = false>
@@ -2973,8 +2987,23 @@ static rocblas_status (*rocblas_sbmv_batched)(rocblas_handle handle,
                                               rocblas_int    incy,
                                               rocblas_int    batch_count);
 
-MAP2CF(rocblas_sbmv_batched, float, rocblas_ssbmv_batched);
-MAP2CF(rocblas_sbmv_batched, double, rocblas_dsbmv_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_sbmv_batched_64)(rocblas_handle handle,
+                                                 rocblas_fill   uplo,
+                                                 int64_t        n,
+                                                 int64_t        k,
+                                                 const T*       alpha,
+                                                 const T* const A[],
+                                                 int64_t        lda,
+                                                 const T* const x[],
+                                                 int64_t        incx,
+                                                 const T*       beta,
+                                                 T* const       y[],
+                                                 int64_t        incy,
+                                                 int64_t        batch_count);
+
+MAP2CF_D64(rocblas_sbmv_batched, float, rocblas_ssbmv_batched);
+MAP2CF_D64(rocblas_sbmv_batched, double, rocblas_dsbmv_batched);
 
 // sbmv_strided_batched
 template <typename T, bool FORTRAN = false>
@@ -2995,8 +3024,26 @@ static rocblas_status (*rocblas_sbmv_strided_batched)(rocblas_handle handle,
                                                       rocblas_stride stride_y,
                                                       rocblas_int    batch_count);
 
-MAP2CF(rocblas_sbmv_strided_batched, float, rocblas_ssbmv_strided_batched);
-MAP2CF(rocblas_sbmv_strided_batched, double, rocblas_dsbmv_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_sbmv_strided_batched_64)(rocblas_handle handle,
+                                                         rocblas_fill   uplo,
+                                                         int64_t        n,
+                                                         int64_t        k,
+                                                         const T*       alpha,
+                                                         const T*       A,
+                                                         int64_t        lda,
+                                                         rocblas_stride stride_a,
+                                                         const T*       x,
+                                                         int64_t        incx,
+                                                         rocblas_stride stride_x,
+                                                         const T*       beta,
+                                                         T*             y,
+                                                         int64_t        incy,
+                                                         rocblas_stride stride_y,
+                                                         int64_t        batch_count);
+
+MAP2CF_D64(rocblas_sbmv_strided_batched, float, rocblas_ssbmv_strided_batched);
+MAP2CF_D64(rocblas_sbmv_strided_batched, double, rocblas_dsbmv_strided_batched);
 
 // symv
 template <typename T, bool FORTRAN = false>
