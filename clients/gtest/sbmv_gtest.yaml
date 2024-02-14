@@ -69,7 +69,7 @@ Tests:
   - sbmv_batched_bad_arg
   - sbmv_strided_batched_bad_arg
   precision: *single_precision
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: sbmv_arg_check
   category: quick
@@ -136,6 +136,24 @@ Tests:
   pointer_mode_device: false
   os_flags: LINUX
   gpu_arch: ['90a']
+
+- name: sbmv_64
+  category: stress
+  arguments:
+    - { N: 2, lda: 2147483649, K: 2, incx: 2, incy: 1, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, incx: 1, incy: -2147483649, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, stride_a: 4, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  stride_scale: [ 1 ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - sbmv: *single_precision
+    - sbmv_batched: *single_precision
+    - sbmv_strided_batched: *single_precision
 
   # batched
 
