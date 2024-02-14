@@ -151,6 +151,7 @@ def runPackageCommand(platform, project)
         def cleanCommand = """#!/usr/bin/env bash
                                 set -x
                                 cd ${project.paths.project_build_prefix}/build/
+                                find -name '*.o.d' -delete
                                 find -name '*.o' -delete
                                 find -type d -name '*build_tmp*' -exec rm -rf {} +
                                 find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
