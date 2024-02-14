@@ -518,13 +518,22 @@ rocblas_Xhbmv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhbmv
 
+The hbmv functions support the _64 interface. Parameters `n` and `k` larger than int32_t max value are not currently supported.
+Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_chbmv_batched
    :outline:
 .. doxygenfunction:: rocblas_zhbmv_batched
 
+The hbmv_batched functions support the _64 interface. Parameters `n` and `k` larger than int32_t max value are not currently supported.
+Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_chbmv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhbmv_strided_batched
+
+The hbmv_strided_batched functions support the _64 interface. Parameters `n` and `k` larger than int32_t max value are not currently supported.
+Refer to section :ref:`ILP64 API`.
 
 rocblas_Xhpmv + batched, strided_batched
 ========================================

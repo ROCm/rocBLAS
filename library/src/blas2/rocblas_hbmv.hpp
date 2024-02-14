@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,26 +25,26 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
-template <typename U, typename V, typename W>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_hbmv_arg_check(rocblas_handle handle,
                                              rocblas_fill   uplo,
-                                             rocblas_int    n,
-                                             rocblas_int    k,
-                                             U              alpha,
-                                             V              A,
+                                             API_INT        n,
+                                             API_INT        k,
+                                             TScal          alpha,
+                                             TConstPtr      A,
                                              rocblas_stride offseta,
-                                             rocblas_int    lda,
+                                             API_INT        lda,
                                              rocblas_stride strideA,
-                                             V              x,
+                                             TConstPtr      x,
                                              rocblas_stride offsetx,
-                                             rocblas_int    incx,
+                                             API_INT        incx,
                                              rocblas_stride stridex,
-                                             U              beta,
-                                             W              y,
+                                             TScal          beta,
+                                             TPtr           y,
                                              rocblas_stride offsety,
-                                             rocblas_int    incy,
+                                             API_INT        incy,
                                              rocblas_stride stridey,
-                                             rocblas_int    batch_count)
+                                             API_INT        batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -72,49 +72,49 @@ inline rocblas_status rocblas_hbmv_arg_check(rocblas_handle handle,
 }
 
 /**
-  *  U is always: const T* (either host or device)
-  *  V is either: const T* OR const T* const*
-  *  W is either:       T* OR       T* const*
+  *  TScal is always: const T* (either host or device)
+  *  TConstPtr is either: const T* OR const T* const*
+  *  TPtr is either:       T* OR       T* const*
   */
-template <typename U, typename V, typename W>
-rocblas_status rocblas_hbmv_template(rocblas_handle handle,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    n,
-                                     rocblas_int    k,
-                                     U              alpha,
-                                     V              A,
-                                     rocblas_stride offseta,
-                                     rocblas_int    lda,
-                                     rocblas_stride strideA,
-                                     V              x,
-                                     rocblas_stride offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     U              beta,
-                                     W              y,
-                                     rocblas_stride offsety,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey,
-                                     rocblas_int    batch_count);
+template <typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_hbmv_launcher(rocblas_handle handle,
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              rocblas_int    k,
+                                              TScal          alpha,
+                                              TConstPtr      A,
+                                              rocblas_stride offseta,
+                                              int64_t        lda,
+                                              rocblas_stride strideA,
+                                              TConstPtr      x,
+                                              rocblas_stride offsetx,
+                                              int64_t        incx,
+                                              rocblas_stride stridex,
+                                              TScal          beta,
+                                              TPtr           y,
+                                              rocblas_stride offsety,
+                                              int64_t        incy,
+                                              rocblas_stride stridey,
+                                              rocblas_int    batch_count);
 
 //TODO :-Add rocblas_check_numerics_hb_matrix_template for checking Matrix `A` which is a Hermitian Band matrix
 template <typename T, typename U>
 rocblas_status rocblas_hbmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
-                                           rocblas_int    k,
+                                           int64_t        n,
+                                           int64_t        k,
                                            T              A,
                                            rocblas_stride offset_a,
-                                           rocblas_int    lda,
+                                           int64_t        lda,
                                            rocblas_stride stride_a,
                                            T              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);
