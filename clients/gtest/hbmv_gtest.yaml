@@ -82,7 +82,7 @@ Tests:
   - hbmv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   uplo: N
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: hbmv_arg_check
   category: quick
@@ -166,6 +166,24 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
+
+- name: hbmv_64
+  category: pre_checkin # Move to stress before merge
+  arguments:
+    - { N: 2, lda: 2147483649, K: 2, incx: 2, incy: 1, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, incx: 1, incy: -2147483649, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, stride_a: 4, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  stride_scale: [ 1 ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - hbmv: *single_precision_complex
+    - hbmv_batched: *single_precision_complex
+    - hbmv_strided_batched: *single_precision_complex
 
 # hbmv_batched
 - name: hbmv_batched_NaN
