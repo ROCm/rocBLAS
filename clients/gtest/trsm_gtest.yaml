@@ -368,7 +368,6 @@ Tests:
   alpha: 1
   user_allocated_workspace: [0, 20000000]
   HMM: true
-  gpu_arch: '9??' #TODO: temporary until HMM fix for navi
 
 - name: trsm_medium
   category: pre_checkin
