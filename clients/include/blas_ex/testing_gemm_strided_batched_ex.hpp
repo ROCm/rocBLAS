@@ -24,6 +24,7 @@
 
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "frequency_monitor.hpp"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -693,6 +694,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         int         number_hot_calls = arg.iters;
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        FrequencyMonitor& freq_monitor = getFrequencyMonitor();
+        freq_monitor.start();
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
@@ -727,6 +730,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                flags);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        freq_monitor.stop();
 
         ArgumentModel<e_transA,
                       e_transB,
