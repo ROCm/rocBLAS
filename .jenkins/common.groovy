@@ -27,7 +27,13 @@ def runCompileCommand(platform, project, jobName)
         if (env.CHANGE_TARGET == "develop" && !pullRequest.labels.contains("bug"))
         {
             // requires at command execution time ${auxiliary.gfxTargetParser()} to set gfx_var variable
-            dynamicOptions = ' -a \$gfx_arch'
+            dynamicOptions = dynamicOptions + ' -a \$gfx_arch'
+        }
+
+        if (env.CHANGE_TARGET == "develop" && pullRequest.labels.contains("ci:static-libraries"))
+        {
+            // test PR as static pipeline may be infrequent
+            dynamicOptions = dynamicOptions + ' --static'
         }
     }
 

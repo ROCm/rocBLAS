@@ -67,7 +67,7 @@ extern "C" void rocblas_shutdown();
 #include <libgen.h>
 #include <link.h>
 #include <unistd.h>
-#define ROCBLAS_LIB_PATH "/opt/rocm/lib/rocblas"
+#define ROCBLAS_LIB_PATH "/opt/rocm/lib"
 #endif
 
 #if __has_include(<filesystem>)
@@ -97,6 +97,45 @@ namespace
         return 0;
     }
 #endif
+
+    std::string rocblas_exepath()
+    {
+#ifdef WIN32
+        std::vector<TCHAR> result(MAX_PATH + 1);
+        // Ensure result is large enough to accommodate the path
+        DWORD length = 0;
+        for(;;)
+        {
+            length = GetModuleFileNameA(nullptr, result.data(), result.size());
+            if(length < result.size() - 1)
+            {
+                result.resize(length + 1);
+                break;
+            }
+            result.resize(result.size() * 2);
+        }
+
+        fs::path exepath(result.begin(), result.end());
+        exepath = exepath.remove_filename();
+        // Add trailing "/" to exepath if required
+        exepath += exepath.empty() ? "" : "/";
+        return exepath.string();
+#else
+        std::string pathstr;
+        char*       path = realpath("/proc/self/exe", 0);
+        if(path)
+        {
+            char* p = strrchr(path, '/');
+            if(p)
+            {
+                p[1]    = 0;
+                pathstr = path;
+            }
+            free(path);
+        }
+        return pathstr;
+#endif
+    }
 
     /******************************************************
      * Map a rocBLAS type to a corresponding Tensile type *
@@ -694,6 +733,7 @@ namespace
                     // Fall back on hard-coded path if static library or not found
 
 #ifndef ROCBLAS_STATIC_LIB
+
 #ifdef WIN32
                     // wchar_t wpath[MAX_PATH + 1] = {0};
                     // if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
@@ -717,9 +757,8 @@ namespace
                     if(rocblas_so_path.size())
                         base_path = std::string{dirname(&rocblas_so_path[0])};
 #endif
-#endif // ifndef ROCBLAS_STATIC_LIB
 
-                    // Find the location of the libraries
+                    // Find the location of the Tensile libraries relative to shared library
                     if(TestPath(base_path + "/../../Tensile/library"))
                         base_path += "/../../Tensile/library";
                     else if(TestPath(base_path + "/library"))
@@ -730,6 +769,22 @@ namespace
                         base_path += "/../rocblas/library";
                     else
                         base_path += "/rocblas/library";
+
+#else
+                    // First location relative to standard static library install, then relative to current executable
+                    if(TestPath(base_path + "/rocblas/library"))
+                        base_path += "/rocblas/library";
+                    else
+                    {
+                        std::string exe_path = rocblas_exepath();
+                        if(TestPath(exe_path + "rocblas/library"))
+                            base_path = exe_path + "rocblas/library";
+                        else if(TestPath(exe_path + "../../Tensile/library"))
+                            base_path = exe_path + "../../Tensile/library";
+                        else
+                            base_path += "/rocblas/library";
+                    }
+#endif // ROCBLAS_STATIC_LIB
                 }
                 return 0;
             }();

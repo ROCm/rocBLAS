@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,20 @@
 
 #ifndef ROCBLAS_MACROS_H
 #define ROCBLAS_MACROS_H
+
+#ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
+#ifndef ROCBLAS_DEPRECATED_MSG
+#ifndef _MSC_VER
+#define ROCBLAS_DEPRECATED_MSG(MSG) __attribute__((deprecated(#MSG)))
+#else
+#define ROCBLAS_DEPRECATED_MSG(MSG) __declspec(deprecated(#MSG))
+#endif
+#endif
+#else
+#ifndef ROCBLAS_DEPRECATED_MSG
+#define ROCBLAS_DEPRECATED_MSG(MSG)
+#endif
+#endif
 
 /*
    ROCBLAS_VA_OPT_PRAGMA(pragma, ...) creates a _Pragma with stringized pragma

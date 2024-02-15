@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,10 @@
 
 #ifndef ROCBLAS_AUXILIARY_H
 #define ROCBLAS_AUXILIARY_H
-#include "rocblas-export.h"
-#include "rocblas-types.h"
 
-#ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
-#ifndef ROCBLAS_DEPRECATED_MSG
-#ifndef _MSC_VER
-#define ROCBLAS_DEPRECATED_MSG(MSG) __attribute__((deprecated(#MSG)))
-#else
-#define ROCBLAS_DEPRECATED_MSG(MSG) __declspec(deprecated(#MSG))
-#endif
-#endif
-#else
-#ifndef ROCBLAS_DEPRECATED_MSG
-#define ROCBLAS_DEPRECATED_MSG(MSG)
-#endif
-#endif
+#include "rocblas-export.h"
+#include "rocblas-macros.h"
+#include "rocblas-types.h"
 
 /*!\file
  * \brief rocblas-auxiliary.h provides auxilary functions in rocblas
@@ -83,9 +71,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_pointer_mode(rocblas_handle        han
  *  By default, this is set to `rocblas_atomics_allowed`.
  */
 ROCBLAS_DEPRECATED_MSG(
-    " Atomic operations in rocBLAS will be turned off by default in future releases."
-    "The default will be set to 'rocblas_atomics_not_allowed' and users can enable using "
-    "rocblas_set_atomics_mode(). ")
+    "Atomic operations in rocBLAS will be turned off by default in future releases."
+    "The default mode will be set to rocblas_atomics_not_allowed but users can enable "
+    "using rocblas_set_atomics_mode. ")
 ROCBLAS_EXPORT rocblas_status rocblas_set_atomics_mode(rocblas_handle       handle,
                                                        rocblas_atomics_mode atomics_mode);
 
