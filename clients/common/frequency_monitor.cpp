@@ -151,7 +151,7 @@ public:
     {
         assertNotActive();
         if(enabled() && data.empty())
-            throw std::runtime_error("No data points collected!");
+            return 0.0;
 
         double averageFrequency = static_cast<double>(sum / data.size());
         return averageFrequency * cHzToMHz;
@@ -163,7 +163,7 @@ public:
 
         double median = 0.0;
         if(enabled() && data.empty())
-            throw std::runtime_error("No data points collected!");
+            return 0.0;
 
         size_t num_datapoints = data.size();
         if(num_datapoints)
