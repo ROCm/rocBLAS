@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -177,6 +177,34 @@ void testing_dgmm_batched(const Arguments& arg)
                                                     batch_count));
         handle.post_test(arg);
 
+        // fetch GPU results
+        CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+        if(arg.repeatability_check)
+        {
+            host_batch_matrix<T> hC_copy(M, N, ldc, batch_count);
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_ROCBLAS_ERROR(rocblas_dgmm_batched_fn(handle,
+                                                            side,
+                                                            M,
+                                                            N,
+                                                            dA.ptr_on_device(),
+                                                            lda,
+                                                            dx.ptr_on_device(),
+                                                            incx,
+                                                            dC.ptr_on_device(),
+                                                            ldc,
+                                                            batch_count));
+
+                CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
+                unit_check_general<T>(M, N, ldc, hC, hC_copy, batch_count);
+            }
+
+            return;
+        }
+
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
 
@@ -184,9 +212,6 @@ void testing_dgmm_batched(const Arguments& arg)
             ref_dgmm<T>(side, M, N, hA[b], lda, hx[b], incx, hC_gold[b], ldc);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
-        // fetch GPU results
-        CHECK_HIP_ERROR(hC.transfer_from(dC));
 
         if(arg.unit_check)
         {

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -151,13 +151,28 @@ void testing_dgmm(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, dC, ldc));
         handle.post_test(arg);
 
+        // fecth from GPU
+        CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+        if(arg.repeatability_check)
+        {
+            host_matrix<T> hC_copy(M, N, ldc);
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, dC, ldc));
+
+                CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
+                unit_check_general<T>(M, N, ldc, hC, hC_copy);
+            }
+            return;
+        }
+
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
         ref_dgmm<T>(side, M, N, hA, lda, hx, incx, hC_gold, ldc);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
-        // fecth from GPU
-        CHECK_HIP_ERROR(hC.transfer_from(dC));
 
         if(arg.unit_check)
         {
