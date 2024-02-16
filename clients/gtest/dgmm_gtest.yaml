@@ -204,4 +204,22 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 2 ]
   graph_test: true
+
+- name: dgmm_repeatability_check
+  category: pre_checkin
+  function:
+    - dgmm
+    - dgmm_batched
+    - dgmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L]
+  matrix_size:
+    - {M:     3, N:    33, lda:    35, incx:     2, ldc:    35 }
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  atomics_mode : 0
+  initialization: hpl
+  pointer_mode_host: false
+  iters : 5
+  repeatability_check: true
 ...
