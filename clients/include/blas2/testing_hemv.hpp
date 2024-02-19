@@ -236,6 +236,26 @@ void testing_hemv(const Arguments& arg)
             DAPI_CHECK(rocblas_hemv_fn,
                        (handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<T> hy_copy(N, incy);
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+
+                    DAPI_CHECK(rocblas_hemv_fn,
+                               (handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+
+                    // copy output from device to CPU
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, hy, hy_copy);
+                }
+
+                return;
+            }
         }
 
         // CPU BLAS

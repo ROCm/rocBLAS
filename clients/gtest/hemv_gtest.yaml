@@ -300,4 +300,23 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: hemv_repeatability_check
+  category: pre_checkin
+  function:
+    - hemv
+    - hemv_batched
+    - hemv_strided_batched
+  precision: *single_double_precisions_complex
+  initialization: hpl
+  uplo: [ U, L ]
+  matrix_size:
+    - { N:  4011, lda: 4011 }
+  alpha_beta: *alpha_beta_range_small
+  atomics_mode: 0
+  batch_count: [ 2 ]
+  iters: 5
+  stride_scale: 1
+  pointer_mode_host: false
+  repeatability_check: true
 ...
