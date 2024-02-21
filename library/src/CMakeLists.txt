@@ -481,10 +481,10 @@ set( rocblas64_blas2_source
   #   src64/blas2/rocblas_gbmv_kernels.cpp
   #   src64/blas2/rocblas_gbmv_batched.cpp
   #   src64/blas2/rocblas_gbmv_strided_batched.cpp
-  #   src64/blas2/rocblas_tbsv.cpp
-  #   src64/blas2/rocblas_tbsv_kernels.cpp
-  #   src64/blas2/rocblas_tbsv_batched.cpp
-  #   src64/blas2/rocblas_tbsv_strided_batched.cpp
+  src64/blas2/rocblas_tbsv_64.cpp
+  src64/blas2/rocblas_tbsv_kernels_64.cpp
+  src64/blas2/rocblas_tbsv_batched_64.cpp
+  src64/blas2/rocblas_tbsv_strided_batched_64.cpp
   #   src64/blas2/rocblas_trmv.cpp
   #   src64/blas2/rocblas_trmv_kernels.cpp
   #   src64/blas2/rocblas_trmv_batched.cpp

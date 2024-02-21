@@ -1,5 +1,5 @@
 /* ************************************************************************
-* Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+* Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@
 
 // L2 NB
 #define ROCBLAS_TPMV_NB 512
+#define ROCBLAS_TBSV_NB 512
 #define ROCBLAS_SDCTRSV_NB 64
 #define ROCBLAS_ZTRSV_NB 32
 

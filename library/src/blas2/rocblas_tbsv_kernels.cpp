@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +26,17 @@
 
 template <bool UPPER, bool TRANS>
 ROCBLAS_KERNEL_ILF inline size_t rocblas_banded_matrix_index(
-    rocblas_int n, rocblas_int lda, rocblas_int k, rocblas_int row, rocblas_int col)
+    rocblas_int n, int64_t lda, rocblas_int k, rocblas_int row, rocblas_int col)
 {
-    return UPPER
-               ? (TRANS ? ((row * size_t(lda) + col + (k - row)))
-                        : (col * size_t(lda) + row + (k - col)))
-               : (TRANS ? ((row * size_t(lda) + (col - row))) : (col * size_t(lda) + (row - col)));
+    return UPPER ? (TRANS ? ((row * lda + col + (k - row))) : (col * lda + row + (k - col)))
+                 : (TRANS ? ((row * lda + (col - row))) : (col * lda + (row - col)));
 }
 
 // Uses forward substitution to solve Ax = b. Used for a non-transposed lower-triangular matrix
 // or a transposed upper-triangular matrix.
 template <bool CONJ, bool TRANS, rocblas_int BLK_SIZE, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
-    bool is_unit_diag, int n, int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
+    bool is_unit_diag, int n, int k, const T* A, int64_t lda, T* x, int64_t incx)
 {
     __shared__ T xshared[BLK_SIZE];
     int          tx = threadIdx.x;
@@ -48,7 +46,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
     {
         // cache x into shared memory
         if(tx + i < n)
-            xshared[tx] = x[(tx + i) * int64_t(incx)];
+            xshared[tx] = x[(tx + i) * incx];
 
         __syncthreads();
 
@@ -122,7 +120,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
 // or a transposed lower-triangular matrix.
 template <bool CONJ, bool TRANS, rocblas_int BLK_SIZE, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
-    bool is_unit_diag, int n, int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
+    bool is_unit_diag, int n, int k, const T* A, int64_t lda, T* x, int64_t incx)
 {
     __shared__ T xshared[BLK_SIZE];
     int          tx = threadIdx.x;
@@ -132,7 +130,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
     {
         // cache x into shared memory
         if(tx + i >= 0)
-            xshared[tx] = x[(tx + i) * int64_t(incx)];
+            xshared[tx] = x[(tx + i) * incx];
 
         __syncthreads();
 
@@ -191,12 +189,12 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
                     val += (CONJ ? conj(A[indexA]) : A[indexA]) * xshared[p];
             }
 
-            x[(tx + j) * int64_t(incx)] -= val;
+            x[(tx + j) * incx] -= val;
         }
 
         // store solved part back to global memory
         if(tx + i >= 0)
-            x[(tx + i) * int64_t(incx)] = xshared[tx];
+            x[(tx + i) * incx] = xshared[tx];
 
         __syncthreads();
     }
@@ -205,7 +203,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
 /**
      *  Calls forwards/backwards substitution kernels with appropriate arguments.
      *  Note the attribute here - apparently this is needed for group sizes > 256.
-     *  Currently BLK_SIZE is set to 512, so this is required or else we get
+     *  Currently BLK_SIZE is set to so this is required or else we get
      *  incorrect behaviour.
      *
      *  To optimize we can probably use multiple kernels (a substitution kernel and a
@@ -220,11 +218,11 @@ rocblas_tbsv_kernel(rocblas_operation transA,
                     rocblas_int       k,
                     TConstPtr         Aa,
                     rocblas_stride    shift_A,
-                    rocblas_int       lda,
+                    int64_t           lda,
                     rocblas_stride    stride_A,
                     TPtr              xa,
                     rocblas_stride    shift_x,
-                    rocblas_int       incx,
+                    int64_t           incx,
                     rocblas_stride    stride_x)
 {
     const auto* A = load_ptr_batch(Aa, blockIdx.x, shift_A, stride_A);
@@ -247,22 +245,22 @@ rocblas_tbsv_kernel(rocblas_operation transA,
             is_unit_diag, n, k, A, lda, x, incx);
 }
 
-template <rocblas_int BLOCK, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_tbsv_template(rocblas_handle    handle,
-                                     rocblas_fill      uplo,
-                                     rocblas_operation transA,
-                                     rocblas_diagonal  diag,
-                                     rocblas_int       n,
-                                     rocblas_int       k,
-                                     TConstPtr         A,
-                                     rocblas_stride    offset_A,
-                                     rocblas_int       lda,
-                                     rocblas_stride    stride_A,
-                                     TPtr              x,
-                                     rocblas_stride    offset_x,
-                                     rocblas_int       incx,
-                                     rocblas_stride    stride_x,
-                                     rocblas_int       batch_count)
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_tbsv_launcher(rocblas_handle    handle,
+                                              rocblas_fill      uplo,
+                                              rocblas_operation transA,
+                                              rocblas_diagonal  diag,
+                                              rocblas_int       n,
+                                              rocblas_int       k,
+                                              TConstPtr         A,
+                                              rocblas_stride    offset_A,
+                                              int64_t           lda,
+                                              rocblas_stride    stride_A,
+                                              TPtr              x,
+                                              rocblas_stride    offset_x,
+                                              int64_t           incx,
+                                              rocblas_stride    stride_x,
+                                              rocblas_int       batch_count)
 {
     if(batch_count == 0 || n == 0)
         return rocblas_status_success;
@@ -271,15 +269,20 @@ rocblas_status rocblas_tbsv_template(rocblas_handle    handle,
     // cppcheck-suppress unreadVariable
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-    ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
+    ptrdiff_t shift_x = incx < 0 ? offset_x - incx * (n - 1) : offset_x;
     ptrdiff_t shift_A = offset_A;
 
+    static constexpr rocblas_int NB = ROCBLAS_TBSV_NB;
+
+    //Currently NB=512 and it should be NB > 256 as this is required or else we get incorrect behaviour.
+    static_assert(NB > 256);
+
     dim3 grid(batch_count);
-    dim3 threads(BLOCK);
+    dim3 threads(NB);
 
     if(transA == rocblas_operation_conjugate_transpose)
     {
-        ROCBLAS_LAUNCH_KERNEL((rocblas_tbsv_kernel<true, BLOCK>),
+        ROCBLAS_LAUNCH_KERNEL((rocblas_tbsv_kernel<true, NB>),
                               grid,
                               threads,
                               0,
@@ -300,7 +303,7 @@ rocblas_status rocblas_tbsv_template(rocblas_handle    handle,
     }
     else
     {
-        ROCBLAS_LAUNCH_KERNEL((rocblas_tbsv_kernel<false, BLOCK>),
+        ROCBLAS_LAUNCH_KERNEL((rocblas_tbsv_kernel<false, NB>),
                               grid,
                               threads,
                               0,
@@ -327,16 +330,16 @@ rocblas_status rocblas_tbsv_template(rocblas_handle    handle,
 template <typename T, typename U>
 rocblas_status rocblas_tbsv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              A,
-                                           rocblas_stride offset_a,
-                                           rocblas_int    lda,
-                                           rocblas_stride stride_a,
+                                           rocblas_stride offset_A,
+                                           int64_t        lda,
+                                           rocblas_stride stride_A,
                                            U              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        incx,
                                            rocblas_stride stride_x,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input)
 {
@@ -346,7 +349,7 @@ rocblas_status rocblas_tbsv_check_numerics(const char*    function_name,
                                                           n,
                                                           x,
                                                           offset_x,
-                                                          inc_x,
+                                                          incx,
                                                           stride_x,
                                                           batch_count,
                                                           check_numerics,
@@ -364,8 +367,8 @@ rocblas_status rocblas_tbsv_check_numerics(const char*    function_name,
 #error INSTANTIATE_TBSV_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_TBSV_TEMPLATE(BLOCK_, TConstPtr_, TPtr_)             \
-template rocblas_status rocblas_tbsv_template<BLOCK_, TConstPtr_, TPtr_> \
+#define INSTANTIATE_TBSV_TEMPLATE(TConstPtr_, TPtr_)             \
+template rocblas_status rocblas_internal_tbsv_launcher<TConstPtr_, TPtr_> \
                                     (rocblas_handle    handle,           \
                                      rocblas_fill      uplo,             \
                                      rocblas_operation transA,           \
@@ -374,22 +377,22 @@ template rocblas_status rocblas_tbsv_template<BLOCK_, TConstPtr_, TPtr_> \
                                      rocblas_int       k,                \
                                      TConstPtr_        A,                \
                                      rocblas_stride       offset_A,         \
-                                     rocblas_int       lda,              \
+                                     int64_t       lda,              \
                                      rocblas_stride    stride_A,         \
                                      TPtr_             x,                \
                                      rocblas_stride       offset_x,         \
-                                     rocblas_int       incx,             \
+                                     int64_t       incx,             \
                                      rocblas_stride    stride_x,         \
                                      rocblas_int       batch_count);
 
-INSTANTIATE_TBSV_TEMPLATE(512, float const*, float*)
-INSTANTIATE_TBSV_TEMPLATE(512, double const*, double*)
-INSTANTIATE_TBSV_TEMPLATE(512, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_TBSV_TEMPLATE(512, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_TBSV_TEMPLATE(512, float const* const*, float* const*)
-INSTANTIATE_TBSV_TEMPLATE(512, double const* const*, double* const*)
-INSTANTIATE_TBSV_TEMPLATE(512, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_TBSV_TEMPLATE(512, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_TBSV_TEMPLATE(float const*, float*)
+INSTANTIATE_TBSV_TEMPLATE(double const*, double*)
+INSTANTIATE_TBSV_TEMPLATE(rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_TBSV_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_TBSV_TEMPLATE(float const* const*, float* const*)
+INSTANTIATE_TBSV_TEMPLATE(double const* const*, double* const*)
+INSTANTIATE_TBSV_TEMPLATE(rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_TBSV_TEMPLATE(rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_TBSV_TEMPLATE
 
@@ -401,16 +404,16 @@ INSTANTIATE_TBSV_TEMPLATE(512, rocblas_double_complex const* const*, rocblas_dou
 template rocblas_status rocblas_tbsv_check_numerics<T_, U_>               \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
-                                           rocblas_int    n,              \
+                                           int64_t    n,              \
                                            T_             A,              \
-                                           rocblas_stride    offset_a,       \
-                                           rocblas_int    lda,            \
-                                           rocblas_stride stride_a,       \
+                                           rocblas_stride    offset_A,       \
+                                           int64_t    lda,            \
+                                           rocblas_stride stride_A,       \
                                            U_             x,              \
                                            rocblas_stride    offset_x,       \
-                                           rocblas_int    inc_x,          \
+                                           int64_t    incx,          \
                                            rocblas_stride stride_x,       \
-                                           rocblas_int    batch_count,    \
+                                           int64_t    batch_count,    \
                                            const int      check_numerics, \
                                            bool           is_input);
 

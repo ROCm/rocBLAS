@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,7 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
@@ -43,17 +31,21 @@ void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
                                                ? rocblas_tbsv_strided_batched<T, true>
                                                : rocblas_tbsv_strided_batched<T, false>;
 
-    const rocblas_int       N                 = 100;
-    const rocblas_int       K                 = 5;
-    const rocblas_int       lda               = 100;
+    auto rocblas_tbsv_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                  ? rocblas_tbsv_strided_batched_64<T, true>
+                                                  : rocblas_tbsv_strided_batched_64<T, false>;
+
+    const int64_t           N                 = 100;
+    const int64_t           K                 = 5;
+    const int64_t           lda               = 100;
+    const int64_t           incx              = 1;
+    const int64_t           banded_matrix_row = K + 1;
+    const int64_t           batch_count       = 5;
     const rocblas_stride    stride_a          = size_t(N) * lda;
-    const rocblas_int       incx              = 1;
     const rocblas_stride    stride_x          = size_t(N) * incx;
-    const rocblas_int       batch_count       = 5;
     const rocblas_operation transA            = rocblas_operation_none;
     const rocblas_fill      uplo              = rocblas_fill_lower;
     const rocblas_diagonal  diag              = rocblas_diagonal_non_unit;
-    const rocblas_int       banded_matrix_row = K + 1;
     rocblas_local_handle    handle{arg};
 
     // Allocate device memory
@@ -67,53 +59,58 @@ void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
-    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched_fn(handle,
-                                                          rocblas_fill_full,
-                                                          transA,
-                                                          diag,
-                                                          N,
-                                                          K,
-                                                          dA,
-                                                          lda,
-                                                          stride_a,
-                                                          dx,
-                                                          incx,
-                                                          stride_x,
-                                                          batch_count),
-                          rocblas_status_invalid_value);
+    DAPI_EXPECT(
+        rocblas_status_invalid_handle,
+        rocblas_tbsv_strided_batched_fn,
+        (nullptr, uplo, transA, diag, N, K, dA, lda, stride_a, dx, incx, stride_x, batch_count));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          diag,
-                                                          N,
-                                                          K,
-                                                          nullptr,
-                                                          lda,
-                                                          stride_a,
-                                                          dx,
-                                                          incx,
-                                                          stride_x,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          diag,
-                                                          N,
-                                                          K,
-                                                          dA,
-                                                          lda,
-                                                          stride_a,
-                                                          nullptr,
-                                                          incx,
-                                                          stride_x,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_tbsv_strided_batched_fn(
-            nullptr, uplo, transA, diag, N, K, dA, lda, stride_a, dx, incx, stride_x, batch_count),
-        rocblas_status_invalid_handle);
+    DAPI_EXPECT(rocblas_status_invalid_value,
+                rocblas_tbsv_strided_batched_fn,
+                (handle,
+                 rocblas_fill_full,
+                 transA,
+                 diag,
+                 N,
+                 K,
+                 dA,
+                 lda,
+                 stride_a,
+                 dx,
+                 incx,
+                 stride_x,
+                 batch_count));
+
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_tbsv_strided_batched_fn,
+                (handle,
+                 uplo,
+                 transA,
+                 diag,
+                 N,
+                 K,
+                 nullptr,
+                 lda,
+                 stride_a,
+                 dx,
+                 incx,
+                 stride_x,
+                 batch_count));
+
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_tbsv_strided_batched_fn,
+                (handle,
+                 uplo,
+                 transA,
+                 diag,
+                 N,
+                 K,
+                 dA,
+                 lda,
+                 stride_a,
+                 nullptr,
+                 incx,
+                 stride_x,
+                 batch_count));
 }
 
 template <typename T>
@@ -123,17 +120,21 @@ void testing_tbsv_strided_batched(const Arguments& arg)
                                                ? rocblas_tbsv_strided_batched<T, true>
                                                : rocblas_tbsv_strided_batched<T, false>;
 
-    rocblas_int       N                 = arg.N;
-    rocblas_int       K                 = arg.K;
-    rocblas_int       lda               = arg.lda;
-    rocblas_int       incx              = arg.incx;
+    auto rocblas_tbsv_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                  ? rocblas_tbsv_strided_batched_64<T, true>
+                                                  : rocblas_tbsv_strided_batched_64<T, false>;
+
+    int64_t           N                 = arg.N;
+    int64_t           K                 = arg.K;
+    int64_t           lda               = arg.lda;
+    int64_t           incx              = arg.incx;
+    const int64_t     banded_matrix_row = K + 1;
+    int64_t           batch_count       = arg.batch_count;
     char              char_uplo         = arg.uplo;
     char              char_transA       = arg.transA;
     char              char_diag         = arg.diag;
-    rocblas_int       stride_a          = arg.stride_a;
-    rocblas_int       stride_x          = arg.stride_x;
-    rocblas_int       batch_count       = arg.batch_count;
-    const rocblas_int banded_matrix_row = K + 1;
+    rocblas_stride    stride_a          = arg.stride_a;
+    rocblas_stride    stride_x          = arg.stride_x;
     rocblas_fill      uplo              = char2rocblas_fill(char_uplo);
     rocblas_operation transA            = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag              = char2rocblas_diagonal(char_diag);
@@ -145,21 +146,21 @@ void testing_tbsv_strided_batched(const Arguments& arg)
     bool invalid_size = N < 0 || K < 0 || lda < banded_matrix_row || !incx || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched_fn(handle,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              N,
-                                                              K,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              incx,
-                                                              stride_x,
-                                                              batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_tbsv_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     transA,
+                     diag,
+                     N,
+                     K,
+                     nullptr,
+                     lda,
+                     stride_a,
+                     nullptr,
+                     incx,
+                     stride_x,
+                     batch_count));
         return;
     }
 
@@ -220,9 +221,8 @@ void testing_tbsv_strided_batched(const Arguments& arg)
     cpu_x_or_b.copy_from(hb);
     hx_or_b.copy_from(hb);
 
-    double max_err     = 0.0;
-    double max_err_res = 0.0;
-    double gpu_time_used, cpu_time_used;
+    double max_err                 = 0.0;
+    double max_err_res             = 0.0;
     double error_eps_multiplier    = 40.0;
     double residual_eps_multiplier = 40.0;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -233,19 +233,21 @@ void testing_tbsv_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
 
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_tbsv_strided_batched_fn(handle,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            N,
-                                                            K,
-                                                            dAb,
-                                                            lda,
-                                                            stride_a,
-                                                            dx_or_b,
-                                                            incx,
-                                                            stride_x,
-                                                            batch_count));
+
+        DAPI_CHECK(rocblas_tbsv_strided_batched_fn,
+                   (handle,
+                    uplo,
+                    transA,
+                    diag,
+                    N,
+                    K,
+                    dAb,
+                    lda,
+                    stride_a,
+                    dx_or_b,
+                    incx,
+                    stride_x,
+                    batch_count));
         handle.post_test(arg);
 
         CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
@@ -258,7 +260,7 @@ void testing_tbsv_strided_batched(const Arguments& arg)
             trsm_err_res_check<T>(max_err, N, error_eps_multiplier, eps);
 
         // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-        for(int b = 0; b < batch_count; b++)
+        for(size_t b = 0; b < batch_count; b++)
         {
             ref_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hx_or_b[b], incx);
         }
@@ -271,56 +273,46 @@ void testing_tbsv_strided_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        // GPU rocBLAS
-        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
-
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-
-        for(int i = 0; i < number_cold_calls; i++)
-            rocblas_tbsv_strided_batched_fn(handle,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            N,
-                                            K,
-                                            dAb,
-                                            lda,
-                                            stride_a,
-                                            dx_or_b,
-                                            incx,
-                                            stride_x,
-                                            batch_count);
+        double gpu_time_used, cpu_time_used = 0.0;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int i = 0; i < number_hot_calls; i++)
-            rocblas_tbsv_strided_batched_fn(handle,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            N,
-                                            K,
-                                            dAb,
-                                            lda,
-                                            stride_a,
-                                            dx_or_b,
-                                            incx,
-                                            stride_x,
-                                            batch_count);
+        for(int iter = 0; iter < total_calls; iter++)
+        {
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+            DAPI_DISPATCH(rocblas_tbsv_strided_batched_fn,
+                          (handle,
+                           uplo,
+                           transA,
+                           diag,
+                           N,
+                           K,
+                           dAb,
+                           lda,
+                           stride_a,
+                           dx_or_b,
+                           incx,
+                           stride_x,
+                           batch_count));
+        }
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used; // in microseconds
 
-        // CPU cblas
-        cpu_time_used = get_time_us_no_sync();
+        if(arg.unit_check || arg.norm_check)
+        {
+            // CPU cblas
+            cpu_time_used = get_time_us_no_sync();
 
-        if(arg.norm_check)
-            for(int b = 0; b < batch_count; b++)
-                ref_tbsv<T>(uplo, transA, diag, N, K, hAb[b], lda, cpu_x_or_b[b], incx);
+            if(arg.norm_check)
+                for(size_t b = 0; b < batch_count; b++)
+                    ref_tbsv<T>(uplo, transA, diag, N, K, hAb[b], lda, cpu_x_or_b[b], incx);
 
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+        }
 
         ArgumentModel<e_uplo,
                       e_transA,
