@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -335,6 +335,22 @@ void testing_her2k(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_herXX_fn(
                 handle, uplo, transA, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hC_copy(N, N, ldc);
+                CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+                    CHECK_ROCBLAS_ERROR(rocblas_herXX_fn(
+                        handle, uplo, transA, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
+                    CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
+                    unit_check_general<T>(N, N, ldc, hC, hC_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
