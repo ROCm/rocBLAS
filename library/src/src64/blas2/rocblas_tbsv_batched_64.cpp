@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "blas2/rocblas_tbsv_imp.hpp"
 
-INST_TBSV_C_API(rocblas_int);
+#include "blas2/rocblas_tbsv_batched_imp.hpp"
+#include "rocblas_tbsv_64.hpp"
+
+INST_TBSV_BATCHED_C_API(int64_t);

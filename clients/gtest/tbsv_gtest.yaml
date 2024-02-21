@@ -77,7 +77,7 @@ Tests:
   uplo: [ L ]
   transA: [ N ]
   diag: [ N ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: tbsv_fortran
   category: quick
@@ -108,6 +108,23 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
 
+- name: tbsv_64
+  category: stress
+  arguments:
+    - { N: 2, lda: 2, K: 2, incx: 2147483649, batch_count: 1 }
+    - { N: 2, lda: 2, K: 2, incx: -2147483649, batch_count: 1 }
+    - { N: 2, lda: 2147483649, K: 2, incx: 1, batch_count: 1 }
+    - { N: 2, stride_a: 4, stride_x: 2, incx: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ L ]
+  transA: [  N, T ]
+  diag: [ N ]
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - tbsv: *single_precision
+    - tbsv_batched: *single_precision
+    - tbsv_strided_batched: *single_precision
+
 # tbsv_batched
 - name: tbsv_batched_bad_arg
   category: pre_checkin
@@ -116,7 +133,7 @@ Tests:
   uplo: [ L ]
   transA: [ N ]
   diag: [ N ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: tbsv_batched_fortran
   category: quick
@@ -159,7 +176,7 @@ Tests:
   uplo: [ L ]
   transA: [ N ]
   diag: [ N ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: tbsv_strided_batched_fortran
   category: quick
