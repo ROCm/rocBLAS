@@ -206,4 +206,24 @@ Tests:
   alpha_beta: *alpha_beta_range
   graph_test: true
 
+
+- name: herk_repeatability_check
+  category: pre_checkin
+  function:
+    - herk
+    - herk_batched
+    - herk_strided_batched
+  precision: *single_double_precisions_complex
+  initialization: hpl
+  uplo: [ U , L ]
+  transA: [ N , C  ]
+  matrix_size:
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
+  batch_count: [ 2 ]
+  stride_scale: 1
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  iters: 5
+  atomics_mode: 0
+  repeatability_check: true
 ...
