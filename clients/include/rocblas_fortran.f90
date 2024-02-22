@@ -11745,6 +11745,87 @@ contains
                           AP, x, incx)
     end function rocblas_ztpsv_fortran
 
+    ! tpsv_64
+    function rocblas_stpsv_64_fortran(handle, uplo, transA, diag, n, &
+                                   AP, x, incx) &
+        bind(c, name='rocblas_stpsv_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_stpsv_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        rocblas_stpsv_64_fortran = &
+            rocblas_stpsv_64(handle, uplo, transA, diag, n, &
+                          AP, x, incx)
+    end function rocblas_stpsv_64_fortran
+
+    function rocblas_dtpsv_64_fortran(handle, uplo, transA, diag, n, &
+                                   AP, x, incx) &
+        bind(c, name='rocblas_dtpsv_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtpsv_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        rocblas_dtpsv_64_fortran = &
+            rocblas_dtpsv_64(handle, uplo, transA, diag, n, &
+                          AP, x, incx)
+    end function rocblas_dtpsv_64_fortran
+
+    function rocblas_ctpsv_64_fortran(handle, uplo, transA, diag, n, &
+                                   AP, x, incx) &
+        bind(c, name='rocblas_ctpsv_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctpsv_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        rocblas_ctpsv_64_fortran = &
+            rocblas_ctpsv_64(handle, uplo, transA, diag, n, &
+                          AP, x, incx)
+    end function rocblas_ctpsv_64_fortran
+
+    function rocblas_ztpsv_64_fortran(handle, uplo, transA, diag, n, &
+                                   AP, x, incx) &
+        bind(c, name='rocblas_ztpsv_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztpsv_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        rocblas_ztpsv_64_fortran = &
+            rocblas_ztpsv_64(handle, uplo, transA, diag, n, &
+                          AP, x, incx)
+    end function rocblas_ztpsv_64_fortran
+
     ! tpsv_batched
     function rocblas_stpsv_batched_fortran(handle, uplo, transA, diag, n, &
                                            AP, x, incx, batch_count) &
@@ -11829,6 +11910,91 @@ contains
             rocblas_ztpsv_batched(handle, uplo, transA, diag, n, &
                                   AP, x, incx, batch_count)
     end function rocblas_ztpsv_batched_fortran
+
+    ! tpsv_batched_64
+    function rocblas_stpsv_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                           AP, x, incx, batch_count) &
+        bind(c, name='rocblas_stpsv_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_stpsv_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: batch_count
+        rocblas_stpsv_batched_64_fortran = &
+            rocblas_stpsv_batched_64(handle, uplo, transA, diag, n, &
+                                  AP, x, incx, batch_count)
+    end function rocblas_stpsv_batched_64_fortran
+
+    function rocblas_dtpsv_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                           AP, x, incx, batch_count) &
+        bind(c, name='rocblas_dtpsv_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtpsv_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: batch_count
+        rocblas_dtpsv_batched_64_fortran = &
+            rocblas_dtpsv_batched_64(handle, uplo, transA, diag, n, &
+                                  AP, x, incx, batch_count)
+    end function rocblas_dtpsv_batched_64_fortran
+
+    function rocblas_ctpsv_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                           AP, x, incx, batch_count) &
+        bind(c, name='rocblas_ctpsv_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctpsv_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: batch_count
+        rocblas_ctpsv_batched_64_fortran = &
+            rocblas_ctpsv_batched_64(handle, uplo, transA, diag, n, &
+                                  AP, x, incx, batch_count)
+    end function rocblas_ctpsv_batched_64_fortran
+
+    function rocblas_ztpsv_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                           AP, x, incx, batch_count) &
+        bind(c, name='rocblas_ztpsv_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztpsv_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: batch_count
+        rocblas_ztpsv_batched_64_fortran = &
+            rocblas_ztpsv_batched_64(handle, uplo, transA, diag, n, &
+                                  AP, x, incx, batch_count)
+    end function rocblas_ztpsv_batched_64_fortran
 
     ! tpsv_strided_batched
     function rocblas_stpsv_strided_batched_fortran(handle, uplo, transA, diag, n, &
@@ -11922,6 +12088,99 @@ contains
             rocblas_ztpsv_strided_batched(handle, uplo, transA, diag, n, &
                                           AP, stride_AP, x, incx, stride_x, batch_count)
     end function rocblas_ztpsv_strided_batched_fortran
+
+    ! tpsv_strided_batched_64
+    function rocblas_stpsv_strided_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                                   AP, stride_AP, x, incx, stride_x, batch_count) &
+        bind(c, name='rocblas_stpsv_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_stpsv_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        integer(c_int64_t), value :: stride_AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        integer(c_int64_t), value :: batch_count
+        rocblas_stpsv_strided_batched_64_fortran = &
+            rocblas_stpsv_strided_batched_64(handle, uplo, transA, diag, n, &
+                                          AP, stride_AP, x, incx, stride_x, batch_count)
+    end function rocblas_stpsv_strided_batched_64_fortran
+
+    function rocblas_dtpsv_strided_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                                   AP, stride_AP, x, incx, stride_x, batch_count) &
+        bind(c, name='rocblas_dtpsv_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtpsv_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        integer(c_int64_t), value :: stride_AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        integer(c_int64_t), value :: batch_count
+        rocblas_dtpsv_strided_batched_64_fortran = &
+            rocblas_dtpsv_strided_batched_64(handle, uplo, transA, diag, n, &
+                                          AP, stride_AP, x, incx, stride_x, batch_count)
+    end function rocblas_dtpsv_strided_batched_64_fortran
+
+    function rocblas_ctpsv_strided_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                                   AP, stride_AP, x, incx, stride_x, batch_count) &
+        bind(c, name='rocblas_ctpsv_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctpsv_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        integer(c_int64_t), value :: stride_AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        integer(c_int64_t), value :: batch_count
+        rocblas_ctpsv_strided_batched_64_fortran = &
+            rocblas_ctpsv_strided_batched_64(handle, uplo, transA, diag, n, &
+                                          AP, stride_AP, x, incx, stride_x, batch_count)
+    end function rocblas_ctpsv_strided_batched_64_fortran
+
+    function rocblas_ztpsv_strided_batched_64_fortran(handle, uplo, transA, diag, n, &
+                                                   AP, stride_AP, x, incx, stride_x, batch_count) &
+        bind(c, name='rocblas_ztpsv_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztpsv_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_full)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_diagonal_non_unit)), value :: diag
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: AP
+        integer(c_int64_t), value :: stride_AP
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        integer(c_int64_t), value :: batch_count
+        rocblas_ztpsv_strided_batched_64_fortran = &
+            rocblas_ztpsv_strided_batched_64(handle, uplo, transA, diag, n, &
+                                          AP, stride_AP, x, incx, stride_x, batch_count)
+    end function rocblas_ztpsv_strided_batched_64_fortran
 
     ! symv
     function rocblas_ssymv_fortran(handle, uplo, n, alpha, A, lda, &
