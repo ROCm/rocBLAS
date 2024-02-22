@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +25,16 @@
 #include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_vector.hpp"
 
-template <typename U, typename V>
+template <typename API_INT, typename U, typename V>
 inline rocblas_status rocblas_tpsv_arg_check(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_diagonal  diag,
-                                             rocblas_int       n,
+                                             API_INT           n,
                                              U                 A,
                                              V                 x,
-                                             rocblas_int       incx,
-                                             rocblas_int       batch_count)
+                                             API_INT           incx,
+                                             API_INT           batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -59,33 +59,33 @@ inline rocblas_status rocblas_tpsv_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-template <rocblas_int BLOCK, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_tpsv_template(rocblas_handle    handle,
-                                     rocblas_fill      uplo,
-                                     rocblas_operation transA,
-                                     rocblas_diagonal  diag,
-                                     rocblas_int       n,
-                                     TConstPtr         A,
-                                     rocblas_stride    offset_A,
-                                     rocblas_stride    stride_A,
-                                     TPtr              x,
-                                     rocblas_stride    offset_x,
-                                     rocblas_int       incx,
-                                     rocblas_stride    stride_x,
-                                     rocblas_int       batch_count);
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_tpsv_launcher(rocblas_handle    handle,
+                                              rocblas_fill      uplo,
+                                              rocblas_operation transA,
+                                              rocblas_diagonal  diag,
+                                              rocblas_int       n,
+                                              TConstPtr         A,
+                                              rocblas_stride    offset_A,
+                                              rocblas_stride    stride_A,
+                                              TPtr              x,
+                                              rocblas_stride    offset_x,
+                                              int64_t           incx,
+                                              rocblas_stride    stride_x,
+                                              rocblas_int       batch_count);
 
 //TODO :-Add rocblas_check_numerics_tp_matrix_template for checking Matrix `AP` which is a Triangular Packed Matrix
 template <typename T, typename U>
 rocblas_status rocblas_tpsv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              AP,
                                            rocblas_stride offset_a,
                                            rocblas_stride stride_a,
                                            U              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);
