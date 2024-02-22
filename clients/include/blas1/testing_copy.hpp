@@ -27,11 +27,11 @@
 
 template <typename T>
 static rocblas_status copy_dispatch(rocblas_handle     handle,
-                                    rocblas_int        N,
+                                    int64_t            N,
                                     const T*           dx,
-                                    rocblas_int        incx,
+                                    int64_t            incx,
                                     T*                 dy,
-                                    rocblas_int        incy,
+                                    int64_t            incy,
                                     rocblas_client_api client_api)
 {
     switch(client_api)
@@ -52,7 +52,7 @@ static rocblas_status copy_dispatch(rocblas_handle     handle,
         rocblas_cerr << "Error: not implemented client_api == " << client_api << std::endl;
     }
 
-    return rocblas_status_invalid_value;
+    return rocblas_status_not_implemented;
 }
 
 template <typename T>
