@@ -276,4 +276,26 @@ Tests:
   batch_count: [ 2 ]
   alpha_beta: *small_complex_alpha_beta_range
   graph_test: true
+
+
+- name: geam_repeatability_check
+  category: pre_checkin
+  function:
+    - geam
+    - geam_batched
+    - geam_strided_batched
+  precision: *single_double_precisions_complex
+  initialization: hpl
+  transA: [N]
+  transB: [N]
+  matrix_size:
+    - { M:   192, N:   193, lda:   194, ldb:   195, ldc:   196 }
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  alpha_beta: *small_complex_alpha_beta_range
+  atomics_mode : 0
+  pointer_mode_host: false
+  iters: 5
+  repeatability_check: true
+
 ...
