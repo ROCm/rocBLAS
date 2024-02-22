@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,21 +25,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_trmv_batched_bad_arg(const Arguments& arg)
@@ -47,9 +33,12 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
     auto rocblas_trmv_batched_fn
         = arg.api == FORTRAN ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
 
-    const rocblas_int       N           = 100;
-    const rocblas_int       lda         = 100;
-    const rocblas_int       incx        = 1;
+    auto rocblas_trmv_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trmv_batched_64<T, true>
+                                                            : rocblas_trmv_batched_64<T, false>;
+
+    const int64_t           N           = 100;
+    const int64_t           lda         = 100;
+    const int64_t           incx        = 1;
     const rocblas_int       batch_count = 1;
     const rocblas_operation transA      = rocblas_operation_none;
     const rocblas_fill      uplo        = rocblas_fill_lower;
@@ -66,40 +55,42 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Checks.
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv_batched_fn(handle,
-                                                  rocblas_fill_full,
-                                                  transA,
-                                                  diag,
-                                                  N,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  batch_count),
-                          rocblas_status_invalid_value);
+    DAPI_EXPECT(rocblas_status_invalid_handle,
+                rocblas_trmv_batched_fn,
+                (nullptr,
+                 uplo,
+                 transA,
+                 diag,
+                 N,
+                 dA.ptr_on_device(),
+                 lda,
+                 dx.ptr_on_device(),
+                 incx,
+                 batch_count));
+
+    DAPI_EXPECT(rocblas_status_invalid_value,
+                rocblas_trmv_batched_fn,
+                (handle,
+                 rocblas_fill_full,
+                 transA,
+                 diag,
+                 N,
+                 dA.ptr_on_device(),
+                 lda,
+                 dx.ptr_on_device(),
+                 incx,
+                 batch_count));
+
     // arg_checks code shared so transA, diag tested only in non-batched
+    DAPI_EXPECT(
+        rocblas_status_invalid_pointer,
+        rocblas_trmv_batched_fn,
+        (handle, uplo, transA, diag, N, nullptr, lda, dx.ptr_on_device(), incx, batch_count));
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmv_batched_fn(
-            handle, uplo, transA, diag, N, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmv_batched_fn(
-            handle, uplo, transA, diag, N, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv_batched_fn(nullptr,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  N,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  batch_count),
-                          rocblas_status_invalid_handle);
+    DAPI_EXPECT(
+        rocblas_status_invalid_pointer,
+        rocblas_trmv_batched_fn,
+        (handle, uplo, transA, diag, N, dA.ptr_on_device(), lda, nullptr, incx, batch_count));
 }
 
 template <typename T>
@@ -108,7 +99,10 @@ void testing_trmv_batched(const Arguments& arg)
     auto rocblas_trmv_batched_fn
         = arg.api == FORTRAN ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
 
-    rocblas_int N = arg.N, lda = arg.lda, incx = arg.incx, batch_count = arg.batch_count;
+    auto rocblas_trmv_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trmv_batched_64<T, true>
+                                                            : rocblas_trmv_batched_64<T, false>;
+
+    int64_t N = arg.N, lda = arg.lda, incx = arg.incx, batch_count = arg.batch_count;
 
     char char_uplo = arg.uplo, char_transA = arg.transA, char_diag = arg.diag;
 
@@ -121,10 +115,9 @@ void testing_trmv_batched(const Arguments& arg)
     bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trmv_batched_fn(
-                handle, uplo, transA, diag, N, nullptr, lda, nullptr, incx, batch_count),
-            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_trmv_batched_fn,
+                    (handle, uplo, transA, diag, N, nullptr, lda, nullptr, incx, batch_count));
 
         return;
     }
@@ -157,7 +150,7 @@ void testing_trmv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used, rocblas_error;
+    double cpu_time_used, rocblas_error;
     auto   dA_on_device = dA.ptr_on_device();
     auto   dx_on_device = dx.ptr_on_device();
 
@@ -168,14 +161,15 @@ void testing_trmv_batched(const Arguments& arg)
     {
         handle.pre_test(arg);
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_trmv_batched_fn(
-            handle, uplo, transA, diag, N, dA_on_device, lda, dx_on_device, incx, batch_count));
+        DAPI_CHECK(
+            rocblas_trmv_batched_fn,
+            (handle, uplo, transA, diag, N, dA_on_device, lda, dx_on_device, incx, batch_count));
         handle.post_test(arg);
 
         // CPU BLAS
         {
             cpu_time_used = get_time_us_no_sync();
-            for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+            for(size_t batch_index = 0; batch_index < batch_count; ++batch_index)
             {
                 ref_trmv<T>(uplo, transA, diag, N, hA[batch_index], lda, hx[batch_index], incx);
             }
@@ -200,46 +194,32 @@ void testing_trmv_batched(const Arguments& arg)
 
     if(arg.timing)
     {
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
-        // Warmup
-        {
-            int number_cold_calls = arg.cold_iters;
-            for(int iter = 0; iter < number_cold_calls; iter++)
-            {
-                rocblas_trmv_batched_fn(handle,
-                                        uplo,
-                                        transA,
-                                        diag,
-                                        N,
-                                        dA_on_device,
-                                        lda,
-                                        dx_on_device,
-                                        incx,
-                                        batch_count);
-            }
-        }
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        // Go !
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            hipStream_t stream;
-            CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-            gpu_time_used        = get_time_us_sync(stream); // in microseconds
-            int number_hot_calls = arg.iters;
-            for(int iter = 0; iter < number_hot_calls; iter++)
-            {
-                rocblas_trmv_batched_fn(handle,
-                                        uplo,
-                                        transA,
-                                        diag,
-                                        N,
-                                        dA_on_device,
-                                        lda,
-                                        dx_on_device,
-                                        incx,
-                                        batch_count);
-            }
-            gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_trmv_batched_fn,
+                          (handle,
+                           uplo,
+                           transA,
+                           diag,
+                           N,
+                           dA_on_device,
+                           lda,
+                           dx_on_device,
+                           incx,
+                           batch_count));
         }
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used; // in microseconds
 
         // Log performance
         ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_lda, e_incx, e_batch_count>{}.log_args<T>(

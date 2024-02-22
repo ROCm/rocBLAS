@@ -1,7 +1,7 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * Permission is hereby granted, free of charge, to any person obtaining A copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
@@ -28,7 +28,7 @@
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, bool LOWER, bool UNIT, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_trmvn_kernel_calc(
-    rocblas_int n, const T* A, rocblas_int lda, const T* x, rocblas_int incx, T* workspace)
+    rocblas_int n, const T* A, int64_t lda, const T* x, int64_t incx, T* workspace)
 {
     rocblas_int tid = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -46,16 +46,16 @@ ROCBLAS_KERNEL_ILF void rocblas_trmvn_kernel_calc(
     if(ty == 0 && row < n)
     {
         if(UNIT)
-            res_A = x[row * int64_t(incx)];
+            res_A = x[row * incx];
         else
-            res_A = A[row + row * size_t(lda)] * x[row * int64_t(incx)];
+            res_A = A[row + row * lda] * x[row * incx];
     }
 
     // multiply and sum across columns
     for(rocblas_int col = ty; col < n; col += DIM_Y)
     {
         if(row < n && ((!LOWER && col > row) || (LOWER && col < row)))
-            res_A += A[row + col * size_t(lda)] * x[col * int64_t(incx)];
+            res_A += A[row + col * lda] * x[col * incx];
     }
 
     // move partial sum to shared memory to sum further
@@ -76,7 +76,7 @@ ROCBLAS_KERNEL_ILF void rocblas_trmvn_kernel_calc(
 
 template <rocblas_int NB, bool LOWER, bool CONJ, bool UNIT, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_trmvt_kernel_calc(
-    rocblas_int n, const T* A, rocblas_int lda, const T* x, rocblas_int incx, T* workspace)
+    rocblas_int n, const T* A, int64_t lda, const T* x, int64_t incx, T* workspace)
 {
     // tx is assigned to rows
     rocblas_int tx  = threadIdx.x;
@@ -84,7 +84,7 @@ ROCBLAS_KERNEL_ILF void rocblas_trmvt_kernel_calc(
 
     if(tx < n)
         A += tx;
-    A += col * size_t(lda);
+    A += col * lda;
 
     T res = 0;
 
@@ -92,15 +92,15 @@ ROCBLAS_KERNEL_ILF void rocblas_trmvt_kernel_calc(
     if(tx == 0)
     {
         if(UNIT)
-            res += x[col * int64_t(incx)];
+            res += x[col * incx];
         else
-            res += (CONJ ? conj(A[col]) : A[col]) * x[col * int64_t(incx)];
+            res += (CONJ ? conj(A[col]) : A[col]) * x[col * incx];
     }
 
     for(rocblas_int i = 0; tx + i < n; i += NB)
     {
         if((tx + i > col && LOWER) || (tx + i < col && !LOWER))
-            res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * int64_t(incx)];
+            res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * incx];
     }
 
     res = rocblas_dot_block_reduce<NB>(res);
@@ -115,72 +115,78 @@ template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
           bool        LOWER,
           bool        UNIT,
-          typename A,
-          typename X,
-          typename W>
+          typename TConstPtr,
+          typename TPtr,
+          typename TWork>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_trmvn_kernel(rocblas_int    n,
-                     A              a,
+                     TConstPtr      A,
                      rocblas_stride shifta,
-                     rocblas_int    lda,
-                     rocblas_stride stridea,
-                     X              x,
-                     rocblas_stride shiftx,
-                     rocblas_int    incx,
-                     rocblas_stride stridex,
-                     W              workspace,
-                     rocblas_stride stridew)
+                     int64_t        lda,
+                     rocblas_stride stride_A,
+                     TPtr           x,
+                     rocblas_stride shift_x,
+                     int64_t        incx,
+                     rocblas_stride stride_x,
+                     TWork          workspace,
+                     rocblas_stride stride_w)
 {
     static constexpr ptrdiff_t shiftw = 0;
     rocblas_trmvn_kernel_calc<DIM_X, DIM_Y, LOWER, UNIT>(
         n,
-        load_ptr_batch(a, blockIdx.y, shifta, stridea),
+        load_ptr_batch(A, blockIdx.y, shifta, stride_A),
         lda,
-        load_ptr_batch(x, blockIdx.y, shiftx, stridex),
+        load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
         incx,
-        load_ptr_batch(workspace, blockIdx.y, shiftw, stridew));
+        load_ptr_batch(workspace, blockIdx.y, shiftw, stride_w));
 }
 
-template <rocblas_int NB, bool LOWER, bool CONJ, bool UNIT, typename A, typename X, typename W>
+template <rocblas_int NB,
+          bool        LOWER,
+          bool        CONJ,
+          bool        UNIT,
+          typename TConstPtr,
+          typename TPtr,
+          typename TWork>
 ROCBLAS_KERNEL(NB)
 rocblas_trmvt_kernel(rocblas_int    n,
-                     A              a,
+                     TConstPtr      A,
                      ptrdiff_t      shifta,
-                     rocblas_int    lda,
-                     rocblas_stride stridea,
-                     X              x,
-                     ptrdiff_t      shiftx,
-                     rocblas_int    incx,
-                     rocblas_stride stridex,
-                     W              workspace,
-                     rocblas_stride stridew)
+                     int64_t        lda,
+                     rocblas_stride stride_A,
+                     TPtr           x,
+                     ptrdiff_t      shift_x,
+                     int64_t        incx,
+                     rocblas_stride stride_x,
+                     TWork          workspace,
+                     rocblas_stride stride_w)
 {
     static constexpr ptrdiff_t shiftw = 0;
     rocblas_trmvt_kernel_calc<NB, LOWER, CONJ, UNIT>(
         n,
-        load_ptr_batch(a, blockIdx.y, shifta, stridea),
+        load_ptr_batch(A, blockIdx.y, shifta, stride_A),
         lda,
-        load_ptr_batch(x, blockIdx.y, shiftx, stridex),
+        load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
         incx,
-        load_ptr_batch(workspace, blockIdx.y, shiftw, stridew));
+        load_ptr_batch(workspace, blockIdx.y, shiftw, stride_w));
 }
 
-template <typename A, typename X, typename W>
-rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
+template <typename TConstPtr, typename TPtr, typename TWork>
+rocblas_status rocblas_internal_trmv_launcher(rocblas_handle    handle,
                                               rocblas_fill      uplo,
                                               rocblas_operation transA,
                                               rocblas_diagonal  diag,
                                               rocblas_int       n,
-                                              A                 a,
-                                              rocblas_stride    offseta,
-                                              rocblas_int       lda,
-                                              rocblas_stride    stridea,
-                                              X                 x,
-                                              rocblas_stride    offsetx,
-                                              rocblas_int       incx,
-                                              rocblas_stride    stridex,
-                                              W                 workspace,
-                                              rocblas_stride    stridew,
+                                              TConstPtr         A,
+                                              rocblas_stride    offset_A,
+                                              int64_t           lda,
+                                              rocblas_stride    stride_A,
+                                              TPtr              x,
+                                              rocblas_stride    offset_x,
+                                              int64_t           incx,
+                                              rocblas_stride    stride_x,
+                                              TWork             workspace,
+                                              rocblas_stride    stride_w,
                                               rocblas_int       batch_count)
 {
     //
@@ -193,21 +199,21 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
 
     hipStream_t rocblas_stream = handle->get_stream();
 
-    ptrdiff_t shiftx = incx < 0 ? offsetx + ptrdiff_t(incx) * (1 - n) : offsetx;
+    int64_t shift_x = incx < 0 ? offset_x + incx * (1 - n) : offset_x;
 
-    // NOTE: NB is currently hardcoded as 512
-    constexpr int TRMVT_NB    = 512;
-    constexpr int TRMVN_DIM_X = 64;
-    constexpr int TRMVN_DIM_Y = 16;
+    static constexpr rocblas_int NB          = ROCBLAS_TRMV_NB;
+    constexpr int                TRMVN_DIM_X = 64;
+    constexpr int                TRMVN_DIM_Y = 16;
 
     dim3 trmvn_grid((n - 1) / TRMVN_DIM_X + 1, batch_count);
     dim3 trmvn_threads(TRMVN_DIM_X, TRMVN_DIM_Y);
 
     dim3 trmvt_grid(n, batch_count);
-    dim3 trmvt_threads(TRMVT_NB);
+    dim3 trmvt_threads(NB);
 
-#define TRMV_TEMPLATE_PARAMS \
-    0, rocblas_stream, n, a, offseta, lda, stridea, x, shiftx, incx, stridex, workspace, stridew
+#define TRMV_TEMPLATE_PARAMS                                                                 \
+    0, rocblas_stream, n, A, offset_A, lda, stride_A, x, shift_x, incx, stride_x, workspace, \
+        stride_w
 
     if(uplo == rocblas_fill_upper)
     {
@@ -219,12 +225,12 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
                                       trmvn_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, false, false, true>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, false, false, true>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, false, true, true>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, false, true, true>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
@@ -238,12 +244,12 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
                     trmvn_threads,
                     TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, false, false, false>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, false, false, false>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, false, true, false>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, false, true, false>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
@@ -259,12 +265,12 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
                                       trmvn_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, true, false, true>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, true, false, true>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, true, true, true>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, true, true, true>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
@@ -277,12 +283,12 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
                                       trmvn_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, true, false, false>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, true, false, false>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
             else if(transA == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<TRMVT_NB, true, true, false>),
+                ROCBLAS_LAUNCH_KERNEL((rocblas_trmvt_kernel<NB, true, true, false>),
                                       trmvt_grid,
                                       trmvt_threads,
                                       TRMV_TEMPLATE_PARAMS);
@@ -295,8 +301,17 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
     {
         static constexpr rocblas_int offsetw = 0;
         static constexpr rocblas_int incw    = 1;
-        return rocblas_internal_copy_template<rocblas_int>(
-            handle, n, workspace, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
+        return rocblas_internal_copy_launcher<int64_t, ROCBLAS_COPY_NB>(handle,
+                                                                        n,
+                                                                        workspace,
+                                                                        offsetw,
+                                                                        incw,
+                                                                        stride_w,
+                                                                        x,
+                                                                        offset_x,
+                                                                        incx,
+                                                                        stride_x,
+                                                                        batch_count);
     }
 
 #undef TRMV_TEMPLATE_PARAMS
@@ -309,32 +324,32 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
                                               rocblas_diagonal  diag,
                                               rocblas_int       n,
                                               const T*          A,
-                                              rocblas_stride    offseta,
-                                              rocblas_int       lda,
-                                              rocblas_stride    stridea,
+                                              rocblas_stride    offset_A,
+                                              int64_t           lda,
+                                              rocblas_stride    stride_A,
                                               T*                x,
-                                              rocblas_stride    offsetx,
-                                              rocblas_int       incx,
-                                              rocblas_stride    stridex,
+                                              rocblas_stride    offset_x,
+                                              int64_t           incx,
+                                              rocblas_stride    stride_x,
                                               T*                workspace,
-                                              rocblas_stride    stridew,
+                                              rocblas_stride    stride_w,
                                               rocblas_int       batch_count)
 {
-    return rocblas_internal_trmv_template<const T*>(handle,
+    return rocblas_internal_trmv_launcher<const T*>(handle,
                                                     uplo,
                                                     transA,
                                                     diag,
                                                     n,
                                                     A,
-                                                    offseta,
+                                                    offset_A,
                                                     lda,
-                                                    stridea,
+                                                    stride_A,
                                                     x,
-                                                    offsetx,
+                                                    offset_x,
                                                     incx,
-                                                    stridex,
+                                                    stride_x,
                                                     workspace,
-                                                    stridew,
+                                                    stride_w,
                                                     batch_count);
 }
 
@@ -345,32 +360,32 @@ rocblas_status rocblas_internal_trmv_batched_template(rocblas_handle    handle,
                                                       rocblas_diagonal  diag,
                                                       rocblas_int       n,
                                                       const T* const*   A,
-                                                      rocblas_stride    offseta,
-                                                      rocblas_int       lda,
-                                                      rocblas_stride    stridea,
+                                                      rocblas_stride    offset_A,
+                                                      int64_t           lda,
+                                                      rocblas_stride    stride_A,
                                                       T* const*         x,
-                                                      rocblas_stride    offsetx,
-                                                      rocblas_int       incx,
-                                                      rocblas_stride    stridex,
+                                                      rocblas_stride    offset_x,
+                                                      int64_t           incx,
+                                                      rocblas_stride    stride_x,
                                                       T*                workspace,
-                                                      rocblas_stride    stridew,
+                                                      rocblas_stride    stride_w,
                                                       rocblas_int       batch_count)
 {
-    return rocblas_internal_trmv_template<const T* const*>(handle,
+    return rocblas_internal_trmv_launcher<const T* const*>(handle,
                                                            uplo,
                                                            transA,
                                                            diag,
                                                            n,
                                                            A,
-                                                           offseta,
+                                                           offset_A,
                                                            lda,
-                                                           stridea,
+                                                           stride_A,
                                                            x,
-                                                           offsetx,
+                                                           offset_x,
                                                            incx,
-                                                           stridex,
+                                                           stride_x,
                                                            workspace,
-                                                           stridew,
+                                                           stride_w,
                                                            batch_count);
 }
 
@@ -378,16 +393,16 @@ template <typename T, typename U>
 rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_fill   uplo,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              A,
                                            rocblas_stride offset_a,
-                                           rocblas_int    lda,
+                                           int64_t        lda,
                                            rocblas_stride stride_a,
                                            U              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input)
 {
@@ -431,30 +446,28 @@ rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *trmv*.cpp
 
-// clang-format off
-
 #ifdef INSTANTIATE_TRMV_TEMPLATE
 #error INSTANTIATE_TRMV_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_TRMV_TEMPLATE(T_)                                                       \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmv_template<T_> \
-                                        (rocblas_handle    handle,                          \
-                                        rocblas_fill      uplo,                             \
-                                        rocblas_operation transA,                           \
-                                        rocblas_diagonal  diag,                             \
-                                        rocblas_int       n,                                \
-                                        const T_*         A,                                \
-                                        rocblas_stride    offseta,                          \
-                                        rocblas_int       lda,                              \
-                                        rocblas_stride    stridea,                          \
-                                        T_*               x,                                \
-                                        rocblas_stride    offsetx,                          \
-                                        rocblas_int       incx,                             \
-                                        rocblas_stride    stridex,                          \
-                                        T_*               workspace,                        \
-                                        rocblas_stride    stridew,                          \
-                                        rocblas_int       batch_count);
+#define INSTANTIATE_TRMV_TEMPLATE(T_)                                                            \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmv_template<T_>( \
+        rocblas_handle    handle,                                                                \
+        rocblas_fill      uplo,                                                                  \
+        rocblas_operation transA,                                                                \
+        rocblas_diagonal  diag,                                                                  \
+        rocblas_int       n,                                                                     \
+        const T_*         A,                                                                     \
+        rocblas_stride    offset_A,                                                              \
+        int64_t           lda,                                                                   \
+        rocblas_stride    stride_A,                                                              \
+        T_*               x,                                                                     \
+        rocblas_stride    offset_x,                                                              \
+        int64_t           incx,                                                                  \
+        rocblas_stride    stride_x,                                                              \
+        T_*               workspace,                                                             \
+        rocblas_stride    stride_w,                                                              \
+        rocblas_int       batch_count);
 
 INSTANTIATE_TRMV_TEMPLATE(float)
 INSTANTIATE_TRMV_TEMPLATE(double)
@@ -467,24 +480,24 @@ INSTANTIATE_TRMV_TEMPLATE(rocblas_double_complex)
 #error INSTANTIATE_TRMV_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_TRMV_BATCHED_TEMPLATE(T_)                                                       \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmv_batched_template<T_> \
-                                                (rocblas_handle    handle,                          \
-                                                rocblas_fill      uplo,                             \
-                                                rocblas_operation transA,                           \
-                                                rocblas_diagonal  diag,                             \
-                                                rocblas_int       n,                                \
-                                                const T_* const*  A,                                \
-                                                rocblas_stride    offseta,                          \
-                                                rocblas_int       lda,                              \
-                                                rocblas_stride    stridea,                          \
-                                                T_* const*        x,                                \
-                                                rocblas_stride    offsetx,                          \
-                                                rocblas_int       incx,                             \
-                                                rocblas_stride    stridex,                          \
-                                                T_*               workspace,                        \
-                                                rocblas_stride    stridew,                          \
-                                                rocblas_int       batch_count);
+#define INSTANTIATE_TRMV_BATCHED_TEMPLATE(T_)                                   \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                    \
+        rocblas_internal_trmv_batched_template<T_>(rocblas_handle    handle,    \
+                                                   rocblas_fill      uplo,      \
+                                                   rocblas_operation transA,    \
+                                                   rocblas_diagonal  diag,      \
+                                                   rocblas_int       n,         \
+                                                   const T_* const*  A,         \
+                                                   rocblas_stride    offset_A,  \
+                                                   int64_t           lda,       \
+                                                   rocblas_stride    stride_A,  \
+                                                   T_* const*        x,         \
+                                                   rocblas_stride    offset_x,  \
+                                                   int64_t           incx,      \
+                                                   rocblas_stride    stride_x,  \
+                                                   T_*               workspace, \
+                                                   rocblas_stride    stride_w,  \
+                                                   rocblas_int       batch_count);
 
 INSTANTIATE_TRMV_BATCHED_TEMPLATE(float)
 INSTANTIATE_TRMV_BATCHED_TEMPLATE(double)
@@ -497,23 +510,22 @@ INSTANTIATE_TRMV_BATCHED_TEMPLATE(rocblas_double_complex)
 #error INSTANTIATE_TRMV_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_TRMV_NUMERICS(T_, U_)                                 \
-template rocblas_status rocblas_trmv_check_numerics <T_, U_>              \
-                                          (const char*    function_name,  \
-                                           rocblas_handle handle,         \
-                                           rocblas_fill   uplo,           \
-                                           rocblas_int    n,              \
-                                           T_              A,             \
-                                           rocblas_stride    offset_a,    \
-                                           rocblas_int    lda,            \
-                                           rocblas_stride stride_a,       \
-                                           U_              x,             \
-                                           rocblas_stride    offset_x,    \
-                                           rocblas_int    inc_x,          \
-                                           rocblas_stride stride_x,       \
-                                           rocblas_int    batch_count,    \
-                                           const int      check_numerics, \
-                                           bool           is_input);
+#define INSTANTIATE_TRMV_NUMERICS(T_, U_)                                                      \
+    template rocblas_status rocblas_trmv_check_numerics<T_, U_>(const char*    function_name,  \
+                                                                rocblas_handle handle,         \
+                                                                rocblas_fill   uplo,           \
+                                                                int64_t        n,              \
+                                                                T_             A,              \
+                                                                rocblas_stride offset_a,       \
+                                                                int64_t        lda,            \
+                                                                rocblas_stride stride_a,       \
+                                                                U_             x,              \
+                                                                rocblas_stride offset_x,       \
+                                                                int64_t        inc_x,          \
+                                                                rocblas_stride stride_x,       \
+                                                                int64_t        batch_count,    \
+                                                                const int      check_numerics, \
+                                                                bool           is_input);
 
 INSTANTIATE_TRMV_NUMERICS(float const*, float*)
 INSTANTIATE_TRMV_NUMERICS(double const*, double*)
@@ -525,5 +537,3 @@ INSTANTIATE_TRMV_NUMERICS(rocblas_float_complex const* const*, rocblas_float_com
 INSTANTIATE_TRMV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_TRMV_NUMERICS
-
-// clang-format on

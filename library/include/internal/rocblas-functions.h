@@ -7497,6 +7497,47 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
+
+//trmv_64
+ROCBLAS_EXPORT rocblas_status rocblas_strmv_64(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation transA,
+                                               rocblas_diagonal  diag,
+                                               int64_t           n,
+                                               const float*      A,
+                                               int64_t           lda,
+                                               float*            x,
+                                               int64_t           incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_64(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation transA,
+                                               rocblas_diagonal  diag,
+                                               int64_t           n,
+                                               const double*     A,
+                                               int64_t           lda,
+                                               double*           x,
+                                               int64_t           incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_64(rocblas_handle               handle,
+                                               rocblas_fill                 uplo,
+                                               rocblas_operation            transA,
+                                               rocblas_diagonal             diag,
+                                               int64_t                      n,
+                                               const rocblas_float_complex* A,
+                                               int64_t                      lda,
+                                               rocblas_float_complex*       x,
+                                               int64_t                      incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_64(rocblas_handle                handle,
+                                               rocblas_fill                  uplo,
+                                               rocblas_operation             transA,
+                                               rocblas_diagonal              diag,
+                                               int64_t                       n,
+                                               const rocblas_double_complex* A,
+                                               int64_t                       lda,
+                                               rocblas_double_complex*       x,
+                                               int64_t                       incx);
 //! @}
 
 /*! @{
@@ -7598,6 +7639,52 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched(rocblas_handle              
                                                     rocblas_double_complex* const*       x,
                                                     rocblas_int                          incx,
                                                     rocblas_int batch_count);
+
+//trmv_batched_64
+ROCBLAS_EXPORT rocblas_status rocblas_strmv_batched_64(rocblas_handle      handle,
+                                                       rocblas_fill        uplo,
+                                                       rocblas_operation   transA,
+                                                       rocblas_diagonal    diag,
+                                                       int64_t             n,
+                                                       const float* const* A,
+                                                       int64_t             lda,
+                                                       float* const*       x,
+                                                       int64_t             incx,
+                                                       int64_t             batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_batched_64(rocblas_handle       handle,
+                                                       rocblas_fill         uplo,
+                                                       rocblas_operation    transA,
+                                                       rocblas_diagonal     diag,
+                                                       int64_t              n,
+                                                       const double* const* A,
+                                                       int64_t              lda,
+                                                       double* const*       x,
+                                                       int64_t              incx,
+                                                       int64_t              batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_batched_64(rocblas_handle                      handle,
+                                                       rocblas_fill                        uplo,
+                                                       rocblas_operation                   transA,
+                                                       rocblas_diagonal                    diag,
+                                                       int64_t                             n,
+                                                       const rocblas_float_complex* const* A,
+                                                       int64_t                             lda,
+                                                       rocblas_float_complex* const*       x,
+                                                       int64_t                             incx,
+                                                       int64_t batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched_64(rocblas_handle                       handle,
+                                                       rocblas_fill                         uplo,
+                                                       rocblas_operation                    transA,
+                                                       rocblas_diagonal                     diag,
+                                                       int64_t                              n,
+                                                       const rocblas_double_complex* const* A,
+                                                       int64_t                              lda,
+                                                       rocblas_double_complex* const*       x,
+                                                       int64_t                              incx,
+                                                       int64_t batch_count);
+
 //! @}
 
 /*! @{
@@ -7717,6 +7804,59 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incx,
                                                             rocblas_stride                stride_x,
                                                             rocblas_int batch_count);
+
+//trmv_strided_batched_64
+ROCBLAS_EXPORT rocblas_status rocblas_strmv_strided_batched_64(rocblas_handle    handle,
+                                                               rocblas_fill      uplo,
+                                                               rocblas_operation transA,
+                                                               rocblas_diagonal  diag,
+                                                               int64_t           n,
+                                                               const float*      A,
+                                                               int64_t           lda,
+                                                               rocblas_stride    stride_A,
+                                                               float*            x,
+                                                               int64_t           incx,
+                                                               rocblas_stride    stride_x,
+                                                               int64_t           batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_strided_batched_64(rocblas_handle    handle,
+                                                               rocblas_fill      uplo,
+                                                               rocblas_operation transA,
+                                                               rocblas_diagonal  diag,
+                                                               int64_t           n,
+                                                               const double*     A,
+                                                               int64_t           lda,
+                                                               rocblas_stride    stride_A,
+                                                               double*           x,
+                                                               int64_t           incx,
+                                                               rocblas_stride    stride_x,
+                                                               int64_t           batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_strided_batched_64(rocblas_handle               handle,
+                                                               rocblas_fill                 uplo,
+                                                               rocblas_operation            transA,
+                                                               rocblas_diagonal             diag,
+                                                               int64_t                      n,
+                                                               const rocblas_float_complex* A,
+                                                               int64_t                      lda,
+                                                               rocblas_stride         stride_A,
+                                                               rocblas_float_complex* x,
+                                                               int64_t                incx,
+                                                               rocblas_stride         stride_x,
+                                                               int64_t                batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched_64(rocblas_handle                handle,
+                                                               rocblas_fill                  uplo,
+                                                               rocblas_operation             transA,
+                                                               rocblas_diagonal              diag,
+                                                               int64_t                       n,
+                                                               const rocblas_double_complex* A,
+                                                               int64_t                       lda,
+                                                               rocblas_stride          stride_A,
+                                                               rocblas_double_complex* x,
+                                                               int64_t                 incx,
+                                                               rocblas_stride          stride_x,
+                                                               int64_t                 batch_count);
 //! @}
 
 /*! @{
