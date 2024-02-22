@@ -5,17 +5,17 @@ Definitions:
   - &multiples_of_32_sizes
     - { N:  2048, lda:  2048 }
     - { N:  4096, lda:  4096 }
-    # - { N:  6144, lda:  6144 }
-    # - { N:  8192, lda:  8192 }
+    - { N:  6144, lda:  6144 }
+    - { N:  8192, lda:  8192 }
 
   - &generic_sizes
-    - { N:   100, lda:   100 }
-    - { N:   233, lda:   233 }
+    - { N:  7343, lda:  7343 }
+    - { N:  5143, lda:  5143 }
+    - { N:  3057, lda:  3057 }
+    - { N:  1023, lda:  1023 }
     - { N:   573, lda:   573 }
-    # - { N:  1023, lda:  1023 }
-    # - { N:  3057, lda:  3057 }
-    # - { N:  5143, lda:  5143 }
-    # - { N:  7343, lda:  7343 }
+    - { N:   233, lda:   233 }
+    - { N:   100, lda:   100 }
 
 Tests:
   - name: trmv_multiples_of_32_sizes
@@ -27,6 +27,8 @@ Tests:
     diag: [ N ]
     incx: 1
     matrix_size: *multiples_of_32_sizes
+    iters: 500
+    cold_iters: 500
 
   - name: trmv_generic_sizes
     category: bench
@@ -37,4 +39,6 @@ Tests:
     diag: [ N ]
     incx: 1
     matrix_size: *generic_sizes
+    iters: 500
+    cold_iters: 500    
 ...

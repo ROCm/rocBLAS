@@ -2580,16 +2580,27 @@ static rocblas_status (*rocblas_trmv)(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation transA,
                                       rocblas_diagonal  diag,
-                                      rocblas_int       m,
+                                      rocblas_int       n,
                                       const T*          A,
                                       rocblas_int       lda,
                                       T*                x,
                                       rocblas_int       incx);
 
-MAP2CF(rocblas_trmv, float, rocblas_strmv);
-MAP2CF(rocblas_trmv, double, rocblas_dtrmv);
-MAP2CF(rocblas_trmv, rocblas_float_complex, rocblas_ctrmv);
-MAP2CF(rocblas_trmv, rocblas_double_complex, rocblas_ztrmv);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_trmv_64)(rocblas_handle    handle,
+                                         rocblas_fill      uplo,
+                                         rocblas_operation transA,
+                                         rocblas_diagonal  diag,
+                                         int64_t           n,
+                                         const T*          A,
+                                         int64_t           lda,
+                                         T*                x,
+                                         int64_t           incx);
+
+MAP2CF_D64(rocblas_trmv, float, rocblas_strmv);
+MAP2CF_D64(rocblas_trmv, double, rocblas_dtrmv);
+MAP2CF_D64(rocblas_trmv, rocblas_float_complex, rocblas_ctrmv);
+MAP2CF_D64(rocblas_trmv, rocblas_double_complex, rocblas_ztrmv);
 
 // trmv_batched
 template <typename T, bool FORTRAN = false>
@@ -2597,17 +2608,29 @@ static rocblas_status (*rocblas_trmv_batched)(rocblas_handle    handle,
                                               rocblas_fill      uplo,
                                               rocblas_operation transA,
                                               rocblas_diagonal  diag,
-                                              rocblas_int       m,
+                                              rocblas_int       n,
                                               const T* const*   A,
                                               rocblas_int       lda,
                                               T* const*         x,
                                               rocblas_int       incx,
                                               rocblas_int       batch_count);
 
-MAP2CF(rocblas_trmv_batched, float, rocblas_strmv_batched);
-MAP2CF(rocblas_trmv_batched, double, rocblas_dtrmv_batched);
-MAP2CF(rocblas_trmv_batched, rocblas_float_complex, rocblas_ctrmv_batched);
-MAP2CF(rocblas_trmv_batched, rocblas_double_complex, rocblas_ztrmv_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_trmv_batched_64)(rocblas_handle    handle,
+                                                 rocblas_fill      uplo,
+                                                 rocblas_operation transA,
+                                                 rocblas_diagonal  diag,
+                                                 int64_t           n,
+                                                 const T* const*   A,
+                                                 int64_t           lda,
+                                                 T* const*         x,
+                                                 int64_t           incx,
+                                                 int64_t           batch_count);
+
+MAP2CF_D64(rocblas_trmv_batched, float, rocblas_strmv_batched);
+MAP2CF_D64(rocblas_trmv_batched, double, rocblas_dtrmv_batched);
+MAP2CF_D64(rocblas_trmv_batched, rocblas_float_complex, rocblas_ctrmv_batched);
+MAP2CF_D64(rocblas_trmv_batched, rocblas_double_complex, rocblas_ztrmv_batched);
 
 // trmv_strided_batched
 template <typename T, bool FORTRAN = false>
@@ -2615,7 +2638,7 @@ static rocblas_status (*rocblas_trmv_strided_batched)(rocblas_handle    handle,
                                                       rocblas_fill      uplo,
                                                       rocblas_operation transA,
                                                       rocblas_diagonal  diag,
-                                                      rocblas_int       m,
+                                                      rocblas_int       n,
                                                       const T*          A,
                                                       rocblas_int       lda,
                                                       rocblas_stride    stridea,
@@ -2624,10 +2647,24 @@ static rocblas_status (*rocblas_trmv_strided_batched)(rocblas_handle    handle,
                                                       rocblas_int       incx,
                                                       rocblas_int       batch_count);
 
-MAP2CF(rocblas_trmv_strided_batched, float, rocblas_strmv_strided_batched);
-MAP2CF(rocblas_trmv_strided_batched, double, rocblas_dtrmv_strided_batched);
-MAP2CF(rocblas_trmv_strided_batched, rocblas_float_complex, rocblas_ctrmv_strided_batched);
-MAP2CF(rocblas_trmv_strided_batched, rocblas_double_complex, rocblas_ztrmv_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_trmv_strided_batched_64)(rocblas_handle    handle,
+                                                         rocblas_fill      uplo,
+                                                         rocblas_operation transA,
+                                                         rocblas_diagonal  diag,
+                                                         int64_t           n,
+                                                         const T*          A,
+                                                         int64_t           lda,
+                                                         rocblas_stride    stridea,
+                                                         T*                x,
+                                                         rocblas_stride    stridex,
+                                                         int64_t           incx,
+                                                         int64_t           batch_count);
+
+MAP2CF_D64(rocblas_trmv_strided_batched, float, rocblas_strmv_strided_batched);
+MAP2CF_D64(rocblas_trmv_strided_batched, double, rocblas_dtrmv_strided_batched);
+MAP2CF_D64(rocblas_trmv_strided_batched, rocblas_float_complex, rocblas_ctrmv_strided_batched);
+MAP2CF_D64(rocblas_trmv_strided_batched, rocblas_double_complex, rocblas_ztrmv_strided_batched);
 
 // tbmv
 template <typename T, bool FORTRAN = false>
