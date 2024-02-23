@@ -1390,7 +1390,7 @@ An example input file:
 .. code-block:: bash
 
     - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 320, 'N': 588, 'K': 4096, 'alpha': 1, 'a_type': 'f32_r', 'lda': 320, 'b_type': 'f32_r', 'ldb': 6144, 'beta': 0, 'c_type': 'f32_r', 'ldc': 320, 'd_type': 'f32_r', 'ldd': 320, 'compute_type': 'f32_r', 'device': 0}
-    - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 320, 'N': 588, 'K': 4096, 'alpha': 1, 'a_type': 'f32_r', 'lda': 320, 'b_type': 'f32_r', 'ldb': 6144, 'beta': 0, 'c_type': 'f32_r', 'ldc': 320, 'd_type': 'f32_r', 'ldd': 320, 'compute_type': 'f32_r', 'device': 0}
+    - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 512, 'N': 3096, 'K': 512, 'alpha': 1, 'a_type': 'f16_r', 'lda': 512, 'b_type': 'f16_r', 'ldb': 512, 'beta': 0, 'c_type': 'f16_r', 'ldc': 512, 'd_type': 'f16_r', 'ldd': 512, 'compute_type': 'f32_r', 'device': 0}
 
 Expected output (note selected GEMM idx may differ):
 
@@ -1400,7 +1400,7 @@ Expected output (note selected GEMM idx may differ):
     N,N,320,588,1,4096,1,0,320,6144,320,f32_r,f32_r,f32_r,3788
     N,N,512,3096,1,512,1,0,512,512,512,f16_r,f16_r,f32_r,4546
 
-Where the far right values (``solution_index``) are the indices of the best performing kernels for those GEMMs in the rocBLAS kernel library. These indices can be directly used in future GEMM calls.
+Where the far right values (``solution_index``) are the indices of the best performing kernels for those GEMMs in the rocBLAS kernel library. These indices can be directly used in future GEMM calls, but please note that these indices cannot be reused across library releases or across different device architectures.
 
 See `example_user_driven_tuning.cpp <https://github.com/ROCm/rocBLAS/blob/develop/clients/samples/example_user_driven_tuning.cpp>`_ for sample code of directly using kernels via their indices.
 
