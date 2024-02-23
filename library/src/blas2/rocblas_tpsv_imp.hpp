@@ -31,7 +31,7 @@ namespace
     template <typename>
     constexpr char rocblas_tpsv_name[] = "unknown";
     template <>
-    constexpr char rocblas_tpsv_name<float>[] = ROCBLAS_API_STR(rocblas_stps);
+    constexpr char rocblas_tpsv_name<float>[] = ROCBLAS_API_STR(rocblas_stpsv);
     template <>
     constexpr char rocblas_tpsv_name<double>[] = ROCBLAS_API_STR(rocblas_dtpsv);
     template <>
