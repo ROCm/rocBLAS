@@ -24,8 +24,6 @@
 
 #include "rocblas.h"
 
-extern "C" void rocblas_shutdown();
-
 /*****************************************************************************
  * This is the only file in rocBLAS which should #include Tensile headers    *
  * or reference Tensile identifiers. tensile_host.hpp defines the interface. *
