@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -180,6 +180,38 @@ void testing_rot_batched(const Arguments& arg)
                         ds,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_batch_vector<T> hx_copy(N, incx, batch_count);
+                host_batch_vector<T> hy_copy(N, incy, batch_count);
+
+                CHECK_HIP_ERROR(hx.transfer_from(dx));
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+
+                    DAPI_CHECK(rocblas_rot_batched_fn,
+                               (handle,
+                                N,
+                                dx.ptr_on_device(),
+                                incx,
+                                dy.ptr_on_device(),
+                                incy,
+                                dc,
+                                ds,
+                                batch_count));
+                    CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+
+                    unit_check_general<T>(1, N, incx, hx, hx_copy, batch_count);
+                    unit_check_general<T>(1, N, incy, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         cpu_time_used = get_time_us_no_sync();

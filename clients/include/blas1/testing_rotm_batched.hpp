@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -158,13 +158,6 @@ void testing_rotm_batched(const Arguments& arg)
             hx_gold.copy_from(hx);
             hy_gold.copy_from(hy);
 
-            cpu_time_used = get_time_us_no_sync();
-            for(size_t b = 0; b < batch_count; b++)
-            {
-                ref_rotm<T>(N, hx_gold[b], incx, hy_gold[b], incy, hparam[b]);
-            }
-            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
             // Test rocblas_pointer_mode_host
             //if(arg.pointer_mode_host)
             //{
@@ -231,6 +224,40 @@ void testing_rotm_batched(const Arguments& arg)
 
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
                 CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                if(arg.repeatability_check)
+                {
+                    host_batch_vector<T> hx_copy(N, incx, batch_count);
+                    host_batch_vector<T> hy_copy(N, incy, batch_count);
+
+                    for(int i = 0; i < arg.iters; i++)
+                    {
+                        CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+                        CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+                        CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+                        DAPI_CHECK(rocblas_rotm_batched_fn,
+                                   (handle,
+                                    N,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    dparam.ptr_on_device(),
+                                    batch_count));
+                        CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
+                        CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                        unit_check_general<T>(1, N, incx, hx, hx_copy, batch_count);
+                        unit_check_general<T>(1, N, incy, hy, hy_copy, batch_count);
+                    }
+                    return;
+                }
+
+                cpu_time_used = get_time_us_no_sync();
+                for(size_t b = 0; b < batch_count; b++)
+                {
+                    ref_rotm<T>(N, hx_gold[b], incx, hy_gold[b], incy, hparam[b]);
+                }
+                cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
                 if(arg.unit_check)
                 {

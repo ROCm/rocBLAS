@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -129,6 +129,25 @@ void testing_iamax_iamin(const Arguments& arg, FUNC func)
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                R h_rocblas_result_copy;
+                CHECK_HIP_ERROR(hipMemcpy(
+                    &h_rocblas_result_device, d_rocblas_result, sizeof(R), hipMemcpyDeviceToHost));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx.transfer_from(hx));
+                    CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
+                    CHECK_HIP_ERROR(hipMemcpy(&h_rocblas_result_copy,
+                                              d_rocblas_result,
+                                              sizeof(R),
+                                              hipMemcpyDeviceToHost));
+                    unit_check_general<R>(
+                        1, 1, 1, &h_rocblas_result_device, &h_rocblas_result_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

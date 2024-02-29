@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -262,6 +262,48 @@ void testing_rotmg_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));
                 CHECK_HIP_ERROR(rparams.transfer_from(dparams));
+
+                if(arg.repeatability_check)
+                {
+                    host_strided_batch_vector<T> rd1_copy(1, 1, stride_d1, batch_count);
+                    host_strided_batch_vector<T> rd2_copy(1, 1, stride_d2, batch_count);
+                    host_strided_batch_vector<T> rx_copy(1, 1, stride_x, batch_count);
+                    host_strided_batch_vector<T> ry_copy(1, 1, stride_y, batch_count);
+                    host_strided_batch_vector<T> rparams_copy(5, 1, stride_param, batch_count);
+                    for(int i = 0; i < arg.iters; i++)
+                    {
+                        CHECK_HIP_ERROR(dd1.transfer_from(hd1));
+                        CHECK_HIP_ERROR(dd2.transfer_from(hd2));
+                        CHECK_HIP_ERROR(dx.transfer_from(hx));
+                        CHECK_HIP_ERROR(dy.transfer_from(hy));
+                        CHECK_HIP_ERROR(dparams.transfer_from(hparams));
+                        DAPI_CHECK(rocblas_rotmg_strided_batched_fn,
+                                   (handle,
+                                    dd1,
+                                    stride_d1,
+                                    dd2,
+                                    stride_d2,
+                                    dx,
+                                    stride_x,
+                                    dy,
+                                    stride_y,
+                                    dparams,
+                                    stride_param,
+                                    batch_count));
+                        CHECK_HIP_ERROR(rd1_copy.transfer_from(dd1));
+                        CHECK_HIP_ERROR(rd2_copy.transfer_from(dd2));
+                        CHECK_HIP_ERROR(rx_copy.transfer_from(dx));
+                        CHECK_HIP_ERROR(ry_copy.transfer_from(dy));
+                        CHECK_HIP_ERROR(rparams_copy.transfer_from(dparams));
+                        unit_check_general<T>(1, 1, 1, stride_d1, rd1, rd1_copy, batch_count);
+                        unit_check_general<T>(1, 1, 1, stride_d2, rd2, rd2_copy, batch_count);
+                        unit_check_general<T>(1, 1, 1, stride_x, rx, rx_copy, batch_count);
+                        unit_check_general<T>(1, 1, 1, stride_y, ry, ry_copy, batch_count);
+                        unit_check_general<T>(
+                            1, 5, 1, stride_param, rparams, rparams_copy, batch_count);
+                    }
+                    return;
+                }
 
                 if(arg.unit_check)
                 {

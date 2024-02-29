@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -136,6 +136,21 @@ void testing_rotmg(const Arguments& arg)
                 host_vector<T> hparams(9, 1);
 
                 CHECK_HIP_ERROR(hparams.transfer_from(dparams));
+
+                if(arg.repeatability_check)
+                {
+                    host_vector<T> hparams_copy(9, 1);
+                    for(int i = 0; i < arg.iters; i++)
+                    {
+                        CHECK_HIP_ERROR(dparams.transfer_from(params));
+                        DAPI_CHECK(
+                            rocblas_rotmg_fn,
+                            (handle, dparams, dparams + 1, dparams + 2, dparams + 3, dparams + 4));
+                        CHECK_HIP_ERROR(hparams_copy.transfer_from(dparams));
+                        unit_check_general<T>(1, 9, 1, hparams, hparams_copy);
+                    }
+                    return;
+                }
 
                 if(arg.unit_check)
                     near_check_general<T>(1, 9, 1, hparams_gold, hparams, rel_error);

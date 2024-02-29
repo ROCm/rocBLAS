@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -227,6 +227,33 @@ void testing_rotg_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(rb.transfer_from(db));
         CHECK_HIP_ERROR(rc.transfer_from(dc));
         CHECK_HIP_ERROR(rs.transfer_from(ds));
+
+        if(arg.repeatability_check)
+        {
+            host_strided_batch_vector<T> ra_copy(1, 1, stride_a, batch_count);
+            host_strided_batch_vector<T> rb_copy(1, 1, stride_b, batch_count);
+            host_strided_batch_vector<U> rc_copy(1, 1, stride_c, batch_count);
+            host_strided_batch_vector<T> rs_copy(1, 1, stride_s, batch_count);
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(da.transfer_from(ha));
+                CHECK_HIP_ERROR(db.transfer_from(hb));
+                CHECK_HIP_ERROR(dc.transfer_from(hc));
+                CHECK_HIP_ERROR(ds.transfer_from(hs));
+                DAPI_CHECK(
+                    rocblas_rotg_strided_batched_fn,
+                    (handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count));
+                CHECK_HIP_ERROR(ra_copy.transfer_from(da));
+                CHECK_HIP_ERROR(rb_copy.transfer_from(db));
+                CHECK_HIP_ERROR(rc_copy.transfer_from(dc));
+                CHECK_HIP_ERROR(rs_copy.transfer_from(ds));
+                unit_check_general<T>(1, 1, 1, stride_a, ra, ra_copy, batch_count);
+                unit_check_general<T>(1, 1, 1, stride_b, rb, rb_copy, batch_count);
+                unit_check_general<U>(1, 1, 1, stride_c, rc, rc_copy, batch_count);
+                unit_check_general<T>(1, 1, 1, stride_s, rs, rs_copy, batch_count);
+            }
+            return;
+        }
 
         if(arg.unit_check)
         {
