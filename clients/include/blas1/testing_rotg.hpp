@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -154,6 +154,31 @@ void testing_rotg(const Arguments& arg)
         CHECK_HIP_ERROR(hb.transfer_from(db));
         CHECK_HIP_ERROR(hc.transfer_from(dc));
         CHECK_HIP_ERROR(hs.transfer_from(ds));
+
+        if(arg.repeatability_check)
+        {
+            host_vector<T> ha_copy(1);
+            host_vector<T> hb_copy(1);
+            host_vector<U> hc_copy(1);
+            host_vector<T> hs_copy(1);
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(da.transfer_from(a));
+                CHECK_HIP_ERROR(db.transfer_from(b));
+                CHECK_HIP_ERROR(dc.transfer_from(c));
+                CHECK_HIP_ERROR(ds.transfer_from(s));
+                DAPI_CHECK(rocblas_rotg_fn, (handle, da, db, dc, ds));
+                CHECK_HIP_ERROR(ha_copy.transfer_from(da));
+                CHECK_HIP_ERROR(hb_copy.transfer_from(db));
+                CHECK_HIP_ERROR(hc_copy.transfer_from(dc));
+                CHECK_HIP_ERROR(hs_copy.transfer_from(ds));
+                unit_check_general<T>(1, 1, 1, ha, ha_copy);
+                unit_check_general<T>(1, 1, 1, hb, hb_copy);
+                unit_check_general<U>(1, 1, 1, hc, hc_copy);
+                unit_check_general<T>(1, 1, 1, hs, hs_copy);
+            }
+            return;
+        }
 
         if(arg.unit_check)
         {

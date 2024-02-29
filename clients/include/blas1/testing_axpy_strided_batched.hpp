@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -222,6 +222,22 @@ void testing_axpy_strided_batched(const Arguments& arg)
 
             // Transfer from device to host.
             CHECK_HIP_ERROR(hy_2.transfer_from(dy));
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_vector<T> hy_copy(N, incy, stridey, batch_count);
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+                    DAPI_CHECK(
+                        rocblas_axpy_strided_batched_fn,
+                        (handle, N, dalpha, dx, incx, stridex, dy, incy, stridey, batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, stridey, hy_2, hy_copy, batch_count);
+                }
+                return;
+            }
 
             // CPU BLAS
             {

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -141,6 +141,23 @@ void testing_asum(const Arguments& arg)
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_asum_fn, (handle, N, dx, incx, dr));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                real_t<T> rocblas_result_copy;
+                CHECK_HIP_ERROR(
+                    hipMemcpy(&rocblas_result_2, dr, sizeof(real_t<T>), hipMemcpyDeviceToHost));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_asum_fn, (handle, N, dx, incx, dr));
+                    CHECK_HIP_ERROR(hipMemcpy(
+                        &rocblas_result_copy, dr, sizeof(real_t<T>), hipMemcpyDeviceToHost));
+                    unit_check_general<real_t<T>, real_t<T>>(
+                        1, 1, 1, &rocblas_result_2, &rocblas_result_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

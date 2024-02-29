@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -169,6 +169,20 @@ void testing_asum_strided_batched(const Arguments& arg)
             DAPI_CHECK(rocblas_asum_strided_batched_fn,
                        (handle, N, dx, incx, stridex, batch_count, dr));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<real_t<T>> hr_copy(batch_count);
+                CHECK_HIP_ERROR(hr_2.transfer_from(dr));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_asum_strided_batched_fn,
+                               (handle, N, dx, incx, stridex, batch_count, dr));
+                    CHECK_HIP_ERROR(hr_copy.transfer_from(dr));
+                    unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_2, hr_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -140,6 +140,19 @@ void testing_iamax_iamin_strided_batched(const Arguments& arg, FUNC func)
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, dr));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<R> hr_copy(batch_count);
+                CHECK_HIP_ERROR(hr2.transfer_from(dr));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, dr));
+                    CHECK_HIP_ERROR(hr_copy.transfer_from(dr));
+                    unit_check_general<R>(batch_count, 1, 1, hr2, hr_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
