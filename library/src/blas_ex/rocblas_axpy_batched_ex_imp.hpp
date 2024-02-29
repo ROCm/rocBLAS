@@ -117,7 +117,7 @@ namespace
             else if(layer_mode & rocblas_layer_mode_log_trace)
             {
                 log_trace(handle,
-                          rocblas_axpy_batched_ex,
+                          "rocblas_axpy_batched_ex",
                           n,
                           alpha_type_str,
                           x,
