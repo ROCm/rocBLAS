@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ extern "C" void rocblas_shutdown()
 /* read environment variable */
 /* On windows, getenv take a copy of the environment at the beginning of the process */
 /* This behavior is not suited for the purpose of the tests */
-const char* read_env(const char* env_var)
+static const char* read_env(const char* env_var)
 {
 #ifdef WIN32
     const DWORD              nSize = _MAX_PATH;

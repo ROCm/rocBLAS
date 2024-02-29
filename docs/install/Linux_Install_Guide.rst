@@ -53,6 +53,15 @@ The header files ``rocblas.h`` and ``rocblas_module.f90`` are installed in ``/op
 The library file ``librocblas.so`` is installed in ``/opt/rocm/lib``.
 
 
+Static Library
+----------------
+
+Note for non-standard static library builds there is an additional runtime dependency which is the entire subdirectory ``rocblas/`` located in the ``/opt/rocm/lib`` folder.
+This runtime folder can be moved elsewhere if setting the environment variable ``ROCBLAS_TENSILE_LIBPATH`` to the new location, or if running an executable
+linked against the static library ``librocblas.a`` the same directory as the executable will be searched for the rocblas subdirectory.
+The contents of the files in this ``rocblas/`` subdirectory are read at execution time much like shared library files would be.
+They contain GPU code objects and their meta-data.
+
 
 Building and Installing rocBLAS
 ===================================
