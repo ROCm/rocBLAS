@@ -180,7 +180,7 @@ void testing_asum_batched(const Arguments& arg)
         }
 
         // CPU BLAS
-        real_t<T> cpu_result[batch_count];
+        host_vector<real_t<T>> cpu_result(batch_count);
 
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
