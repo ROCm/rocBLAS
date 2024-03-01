@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -322,6 +322,22 @@ void testing_syrk(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
                 handle, uplo, transA, N, K, d_alpha, dA[0], lda, d_beta, dC[0], ldc));
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hC_copy(N, N, ldc);
+                CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
+                    CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
+                        handle, uplo, transA, N, K, d_alpha, dA[0], lda, d_beta, dC[0], ldc));
+                    CHECK_HIP_ERROR(hC_copy.transfer_one_matrix_from(dC));
+                    unit_check_general<T>(N, N, ldc, hC, hC_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
@@ -354,7 +370,7 @@ void testing_syrk(const Arguments& arg)
             }
         }
 
-        if(arg.pointer_mode_host)
+        if(arg.pointer_mode_device)
         {
             // copy output from device to CPU
             CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
