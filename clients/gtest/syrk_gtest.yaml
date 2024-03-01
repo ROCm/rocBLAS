@@ -242,4 +242,24 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
   graph_test: true
+
+- name: syrk_repeatability_check
+  category: pre_checkin
+  function:
+    - syrk
+    - syrk_batched
+    - syrk_strided_batched
+  precision: *single_double_precisions
+  pointer_mode_host: false
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  uplo: [ L ]
+  transA: [ N, T ]
+  matrix_size:
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+  stride_scale: 1
+  repeatability_check: true
 ...
