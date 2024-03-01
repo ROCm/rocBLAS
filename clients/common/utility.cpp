@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -289,10 +289,16 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
     // Set the atomics mode
     auto status = rocblas_set_atomics_mode(m_handle, arg.atomics_mode);
 
-    // The check_numerics mode is set to "rocblas_check_numerics_mode_no_check" when the arg.initalization == rocblas_initialization::denorm.
-    //This explicit setting, is only applicable when testing the gemm_ex and gemm_strided_batched_ex functions with denorm initialization.
-    if(arg.initialization == rocblas_initialization::denorm)
+    // The check_numerics mode conditional defeat with "rocblas_check_numerics_mode_no_check"
+    // Defeat check numerics when initializing any data with NaN with due to alpha or beta having NaN flags,
+    // or if the arg.initalization is rocblas_initialization::denorm or rocblas_initialization::denorm2
+    // The denorm initialization are sometimes used when testing the gemm_ex and gemm_strided_batched_ex functions
+    if(rocblas_isnan(arg.alpha) || rocblas_isnan(arg.beta)
+       || arg.initialization == rocblas_initialization::denorm
+       || arg.initialization == rocblas_initialization::denorm2)
+    {
         m_handle->check_numerics = rocblas_check_numerics_mode_no_check;
+    }
 
     if(status == rocblas_status_success)
     {
@@ -318,20 +324,29 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
 
 rocblas_local_handle::~rocblas_local_handle()
 {
+    if(m_graph_stream)
+        rocblas_stream_end_capture();
+
     if(m_memory)
         (hipFree)(m_memory);
+
     rocblas_destroy_handle(m_handle);
 }
 
 void rocblas_local_handle::rocblas_stream_begin_capture()
 {
     m_handle->set_stream_order_memory_allocation(true);
-    CHECK_HIP_ERROR(hipStreamCreate(&this->graph_stream));
-    CHECK_ROCBLAS_ERROR(rocblas_get_stream(*this, &this->old_stream));
-    CHECK_ROCBLAS_ERROR(rocblas_set_stream(*this, this->graph_stream));
+
+    if(m_graph_stream)
+        throw std::runtime_error("recursive rocblas_stream_begin_capture");
+
+    CHECK_HIP_ERROR(hipStreamCreate(&m_graph_stream));
+
+    CHECK_ROCBLAS_ERROR(rocblas_get_stream(m_handle, &m_old_stream));
+    CHECK_ROCBLAS_ERROR(rocblas_set_stream(m_handle, m_graph_stream));
 
     // BEGIN GRAPH CAPTURE
-    CHECK_HIP_ERROR(hipStreamBeginCapture(this->graph_stream, hipStreamCaptureModeGlobal));
+    CHECK_HIP_ERROR(hipStreamBeginCapture(m_graph_stream, hipStreamCaptureModeGlobal));
 }
 
 void rocblas_local_handle::rocblas_stream_end_capture()
@@ -340,17 +355,17 @@ void rocblas_local_handle::rocblas_stream_end_capture()
     hipGraphExec_t instance;
 
     // END GRAPH CAPTURE
-    CHECK_HIP_ERROR(hipStreamEndCapture(this->graph_stream, &graph));
+    CHECK_HIP_ERROR(hipStreamEndCapture(m_graph_stream, &graph));
     CHECK_HIP_ERROR(hipGraphInstantiate(&instance, graph, NULL, NULL, 0));
 
     CHECK_HIP_ERROR(hipGraphDestroy(graph));
-    CHECK_HIP_ERROR(hipGraphLaunch(instance, this->graph_stream));
-    CHECK_HIP_ERROR(hipStreamSynchronize(this->graph_stream));
+    CHECK_HIP_ERROR(hipGraphLaunch(instance, m_graph_stream));
+    CHECK_HIP_ERROR(hipStreamSynchronize(m_graph_stream));
     CHECK_HIP_ERROR(hipGraphExecDestroy(instance));
 
-    CHECK_ROCBLAS_ERROR(rocblas_set_stream(*this, this->old_stream));
-    CHECK_HIP_ERROR(hipStreamDestroy(this->graph_stream));
-    this->graph_stream = nullptr;
+    CHECK_ROCBLAS_ERROR(rocblas_set_stream(m_handle, m_old_stream));
+    CHECK_HIP_ERROR(hipStreamDestroy(m_graph_stream));
+    m_graph_stream = nullptr;
 
     m_handle->set_stream_order_memory_allocation(false);
 }
