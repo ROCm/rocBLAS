@@ -380,9 +380,9 @@ void ref_gemv(rocblas_operation transA,
               int64_t           m,
               int64_t           n,
               Ta                alpha,
-              Ti*               A,
+              const Ti*         A,
               int64_t           lda,
-              Ti*               x,
+              const Ti*         x,
               int64_t           incx,
               Ta                beta,
               To*               y,
@@ -400,9 +400,16 @@ void ref_gemv(rocblas_operation transA,
 
         host_vector<float> A_float(size_t(lda) * n), X_float(dim_x * abs_incx);
 
-        for(size_t i = 0; i < size_t(lda) * n; i++)
-            A_float[i] = static_cast<float>(A[i]);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(int64_t i = 0; i < n; i++)
+            for(int64_t j = 0; j < m; j++)
+                A_float[i * lda + j] = static_cast<float>(A[i * lda + j]);
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
         for(int64_t i = 0; i < dim_x; i++)
             X_float[i * abs_incx] = static_cast<float>(x[i * abs_incx]);
 
@@ -410,6 +417,9 @@ void ref_gemv(rocblas_operation transA,
         {
             host_vector<float> Y_float(dim_y * abs_incy);
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
             for(int64_t i = 0; i < dim_y; i++)
                 Y_float[i * abs_incy] = static_cast<float>(y[i * abs_incy]);
 
@@ -417,15 +427,18 @@ void ref_gemv(rocblas_operation transA,
                         CBLAS_TRANSPOSE(transA),
                         m,
                         n,
-                        alpha,
+                        (float)alpha,
                         A_float,
                         lda,
                         X_float,
                         incx,
-                        beta,
+                        (float)beta,
                         Y_float,
                         incy);
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
             for(int64_t i = 0; i < dim_y; i++)
                 y[i * abs_incy] = (To)Y_float[i * abs_incy];
         }
@@ -473,13 +486,13 @@ void ref_gemv(rocblas_operation transA,
                                           int64_t           m,      \
                                           int64_t           n,      \
                                           Ta_               alpha,  \
-                                          Ti_ * A,                  \
-                                          int64_t lda,              \
-                                          Ti_ * x,                  \
-                                          int64_t incx,             \
-                                          Ta_     beta,             \
-                                          To_ * y,                  \
-                                          int64_t incy);
+                                          const Ti_*        A,      \
+                                          int64_t           lda,    \
+                                          const Ti_*        x,      \
+                                          int64_t           incx,   \
+                                          Ta_               beta,   \
+                                          To_*              y,      \
+                                          int64_t           incy);
 
 INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_half, rocblas_half, float)
 INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_half, float, float)
@@ -535,9 +548,12 @@ void ref_dgmm(rocblas_side side,
 
     int64_t shift_x = incx < 0 ? (-incx) * (K - 1) : 0;
 
-    for(int64_t i = 0; i < m; i++)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(int64_t j = 0; j < n; j++)
     {
-        for(int64_t j = 0; j < n; j++)
+        for(int64_t i = 0; i < m; i++)
         {
             if(rocblas_side_right == side)
             {

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -171,7 +171,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
         {
             // left, lower no-transpose
             jb = std::min(BLOCK, m);
-            rocblas_internal_gemv_template(handle,
+            rocblas_internal_gemv_launcher(handle,
                                            transA,
                                            jb,
                                            jb,
@@ -195,7 +195,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
 
             if(BLOCK < m)
             {
-                rocblas_internal_gemv_template(handle,
+                rocblas_internal_gemv_launcher(handle,
                                                transA,
                                                m - BLOCK,
                                                BLOCK,
@@ -222,7 +222,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                 {
                     jb = std::min(m - i, BLOCK);
 
-                    rocblas_internal_gemv_template(handle,
+                    rocblas_internal_gemv_launcher(handle,
                                                    transA,
                                                    jb,
                                                    jb,
@@ -244,7 +244,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                                                    stride_X,
                                                    batch_count);
                     if(i + BLOCK < m)
-                        rocblas_internal_gemv_template(handle,
+                        rocblas_internal_gemv_launcher(handle,
                                                        transA,
                                                        m - i - BLOCK,
                                                        BLOCK,
@@ -275,7 +275,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
             i  = m - jb;
 
             // if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35}
-            rocblas_internal_gemv_template(handle,
+            rocblas_internal_gemv_launcher(handle,
                                            transA,
                                            jb,
                                            jb,
@@ -299,7 +299,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
 
             if(i >= BLOCK)
             {
-                rocblas_internal_gemv_template(handle,
+                rocblas_internal_gemv_launcher(handle,
                                                transA,
                                                i,
                                                jb,
@@ -325,7 +325,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                 for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                 {
                     //{32, 35, 32, 32, 35, 35}
-                    rocblas_internal_gemv_template(handle,
+                    rocblas_internal_gemv_launcher(handle,
                                                    transA,
                                                    BLOCK,
                                                    BLOCK,
@@ -348,7 +348,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                                                    batch_count);
 
                     if(i >= BLOCK)
-                        rocblas_internal_gemv_template(handle,
+                        rocblas_internal_gemv_launcher(handle,
                                                        transA,
                                                        i,
                                                        BLOCK,
@@ -381,7 +381,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
             jb = m % BLOCK == 0 ? BLOCK : m % BLOCK;
             i  = m - jb;
 
-            rocblas_internal_gemv_template(handle,
+            rocblas_internal_gemv_launcher(handle,
                                            transA,
                                            jb,
                                            jb,
@@ -405,7 +405,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
 
             if(i - BLOCK >= 0)
             {
-                rocblas_internal_gemv_template(handle,
+                rocblas_internal_gemv_launcher(handle,
                                                transA,
                                                jb,
                                                i,
@@ -430,7 +430,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                 // remaining blocks
                 for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                 {
-                    rocblas_internal_gemv_template(handle,
+                    rocblas_internal_gemv_launcher(handle,
                                                    transA,
                                                    BLOCK,
                                                    BLOCK,
@@ -453,7 +453,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                                                    batch_count);
 
                     if(i >= BLOCK)
-                        rocblas_internal_gemv_template(handle,
+                        rocblas_internal_gemv_launcher(handle,
                                                        transA,
                                                        BLOCK,
                                                        i,
@@ -481,7 +481,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
         {
             // left, upper transpose
             jb = std::min(BLOCK, m);
-            rocblas_internal_gemv_template(handle,
+            rocblas_internal_gemv_launcher(handle,
                                            transA,
                                            jb,
                                            jb,
@@ -505,7 +505,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
 
             if(BLOCK < m)
             {
-                rocblas_internal_gemv_template(handle,
+                rocblas_internal_gemv_launcher(handle,
                                                transA,
                                                BLOCK,
                                                m - BLOCK,
@@ -531,7 +531,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                 for(i = BLOCK; i < m; i += BLOCK)
                 {
                     jb = std::min(m - i, BLOCK);
-                    rocblas_internal_gemv_template(handle,
+                    rocblas_internal_gemv_launcher(handle,
                                                    transA,
                                                    jb,
                                                    jb,
@@ -554,7 +554,7 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                                                    batch_count);
 
                     if(i + BLOCK < m)
-                        rocblas_internal_gemv_template(handle,
+                        rocblas_internal_gemv_launcher(handle,
                                                        transA,
                                                        BLOCK,
                                                        m - i - BLOCK,
@@ -643,7 +643,7 @@ rocblas_status rocblas_internal_special_trsv_template(rocblas_handle    handle,
                 offsetA = parity ? BLOCK * ((lda + 1) * q - lda) : M * lda;
             }
 
-            rocblas_internal_gemv_template(handle,
+            rocblas_internal_gemv_launcher(handle,
                                            transA,
                                            M,
                                            N,
@@ -666,7 +666,7 @@ rocblas_status rocblas_internal_special_trsv_template(rocblas_handle    handle,
                                            batch_count);
         }
 
-        rocblas_internal_gemv_template(handle,
+        rocblas_internal_gemv_launcher(handle,
                                        transA,
                                        BLOCK,
                                        BLOCK,

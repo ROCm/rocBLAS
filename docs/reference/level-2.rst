@@ -49,6 +49,7 @@ rocblas_Xgemv + batched, strided_batched
 .. doxygenfunction:: rocblas_zgemv
 
 gemv functions have an implementation which uses atomic operations. See section :ref:`Atomic Operations` for more information.
+The gemv functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_sgemv_batched
    :outline:
@@ -57,8 +58,17 @@ gemv functions have an implementation which uses atomic operations. See section 
 .. doxygenfunction:: rocblas_cgemv_batched
    :outline:
 .. doxygenfunction:: rocblas_zgemv_batched
+   :outline:
+.. doxygenfunction:: rocblas_hshgemv_batched
+   :outline:
+.. doxygenfunction:: rocblas_hssgemv_batched
+   :outline:
+.. doxygenfunction:: rocblas_tstgemv_batched
+   :outline:
+.. doxygenfunction:: rocblas_tssgemv_batched
 
 gemv_batched functions have an implementation which uses atomic operations. See section :ref:`Atomic Operations` for more information.
+The gemv_batched functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_sgemv_strided_batched
    :outline:
@@ -67,8 +77,17 @@ gemv_batched functions have an implementation which uses atomic operations. See 
 .. doxygenfunction:: rocblas_cgemv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgemv_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_hshgemv_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_hssgemv_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_tstgemv_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_tssgemv_strided_batched
 
 gemv_strided_batched functions have an implementation which uses atomic operations. See section :ref:`Atomic Operations` for more information.
+The gemv_strided_batched functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
 
 rocblas_Xger + batched, strided_batched
 ========================================

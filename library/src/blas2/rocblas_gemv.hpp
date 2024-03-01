@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,37 @@
 
 #pragma once
 
-#include "check_numerics_matrix.hpp"
-#include "check_numerics_vector.hpp"
 #include "gemv_device.hpp"
 #include "handle.hpp"
+#include "int64_helpers.hpp"
 #include "rocblas_level2_threshold.hpp"
 
-template <typename Ti, typename Tex, typename To>
+template <typename To>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_size(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count);
+
+template <typename API_INT, typename Ti, typename Tex, typename To>
 inline rocblas_status rocblas_internal_gemv_arg_check(rocblas_handle    handle,
                                                       rocblas_operation transA,
-                                                      rocblas_int       m,
-                                                      rocblas_int       n,
+                                                      API_INT           m,
+                                                      API_INT           n,
                                                       const Tex*        alpha,
                                                       rocblas_stride    stride_alpha,
                                                       const Ti*         A,
                                                       rocblas_stride    offseta,
-                                                      rocblas_int       lda,
+                                                      API_INT           lda,
                                                       rocblas_stride    strideA,
                                                       const Ti*         x,
                                                       rocblas_stride    offsetx,
-                                                      rocblas_int       incx,
+                                                      API_INT           incx,
                                                       rocblas_stride    stridex,
                                                       const Tex*        beta,
                                                       rocblas_stride    stride_beta,
                                                       To*               y,
                                                       rocblas_stride    offsety,
-                                                      rocblas_int       incy,
+                                                      API_INT           incy,
                                                       rocblas_stride    stridey,
-                                                      rocblas_int       batch_count)
+                                                      API_INT           batch_count)
 {
     if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
        && transA != rocblas_operation_conjugate_transpose)
@@ -76,12 +79,8 @@ inline rocblas_status rocblas_internal_gemv_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-template <typename To>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_size(
-    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count = 1);
-
 template <typename Ti, typename Tex, typename To>
-rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
+rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                               rocblas_operation transA,
                                               rocblas_int       m,
                                               rocblas_int       n,
@@ -89,17 +88,17 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                                               rocblas_stride    stride_alpha,
                                               const Ti*         A,
                                               rocblas_stride    offseta,
-                                              rocblas_int       lda,
+                                              int64_t           lda,
                                               rocblas_stride    strideA,
                                               const Ti*         x,
                                               rocblas_stride    offsetx,
-                                              rocblas_int       incx,
+                                              int64_t           incx,
                                               rocblas_stride    stridex,
                                               const Tex*        beta,
                                               rocblas_stride    stride_beta,
                                               To*               y,
                                               rocblas_stride    offsety,
-                                              rocblas_int       incy,
+                                              int64_t           incy,
                                               rocblas_stride    stridey,
                                               rocblas_int       batch_count,
                                               Tex*              workspace = nullptr);
@@ -158,20 +157,20 @@ template <typename Ti, typename To>
 rocblas_status rocblas_gemv_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
+                                           int64_t           m,
+                                           int64_t           n,
                                            Ti                A,
                                            rocblas_stride    offset_a,
-                                           rocblas_int       lda,
+                                           int64_t           lda,
                                            rocblas_stride    stride_a,
                                            Ti                x,
                                            rocblas_stride    offset_x,
-                                           rocblas_int       inc_x,
+                                           int64_t           inc_x,
                                            rocblas_stride    stride_x,
                                            To                y,
                                            rocblas_stride    offset_y,
-                                           rocblas_int       inc_y,
+                                           int64_t           inc_y,
                                            rocblas_stride    stride_y,
-                                           rocblas_int       batch_count,
+                                           int64_t           batch_count,
                                            const int         check_numerics,
                                            bool              is_input);

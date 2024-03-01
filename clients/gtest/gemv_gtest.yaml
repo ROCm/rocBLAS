@@ -202,9 +202,9 @@ Tests:
 - name: gemv_bad_arg
   category: pre_checkin
   function: gemv_bad_arg
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   transA: N
-  api: [ C, FORTRAN ]
+  api: [ FORTRAN, FORTRAN_64 ]
 
 - name: gemv_arg_check
   category: quick
@@ -405,7 +405,7 @@ Tests:
   function: gemv_batched_bad_arg
   precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
-  api: [ C, FORTRAN ]
+  api: [ FORTRAN, FORTRAN_64 ]
 
 - name: gemv_batched_arg_check
   category: quick
@@ -525,7 +525,7 @@ Tests:
   function: gemv_strided_batched_bad_arg
   precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
-  api: [ C, FORTRAN ]
+  api: [ FORTRAN, FORTRAN_64 ]
 
 - name: gemv_strided_batched_arg_check
   category: quick
@@ -627,6 +627,45 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
+
+- name: gemv_64
+  category: stress
+  arguments:
+    - { M: 2, N: 2, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+    - { M: 2, N: 2, lda: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+    - { M: 2, N: 2, lda: 2, incx: 1, incy: 2147483649, batch_count: 1 }
+    - { M: 2, N: 2, lda: 2, stride_a: 4, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  transA: [ N, T, C ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - gemv: *single_precision
+    - gemv_batched: *hpa_half_precision
+    - gemv_strided_batched: *hpa_half_precision
+  stride_scale: 1
+  gpu_arch: '9??'
+
+- name: gemv_64
+  category: stress
+  arguments:
+    - { transA: N, M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+    - { transA: N, M: 1, N: 2147483649, lda: 1, incx: 1, incy: 1, batch_count: 1 }
+    - { transA: T, M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+    - { transA: T, M: 1, N: 2147483649, lda: 1, incx: 1, incy: 1, batch_count: 1 }
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  initialization: hpl # large reductions so ints can overflow
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - gemv: *single_precision
+    # Too slow for now
+    #- gemv_batched: *hpa_half_precision
+    #- gemv_strided_batched: *hpa_half_precision
+  stride_scale: 1
+  gpu_arch: '9??'
 
 - name: gemv_graph_test
   category: pre_checkin

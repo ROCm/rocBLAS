@@ -6781,6 +6781,99 @@ module rocblas
         end function rocblas_zgemv
     end interface
 
+    ! gemv_64
+    interface
+        function rocblas_sgemv_64(handle, trans, m, n, alpha, A, lda, &
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_sgemv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_sgemv_64
+    end interface
+
+    interface
+        function rocblas_dgemv_64(handle, trans, m, n, alpha, A, lda, &
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_dgemv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_dgemv_64
+    end interface
+
+    interface
+        function rocblas_cgemv_64(handle, trans, m, n, alpha, A, lda, &
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_cgemv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_cgemv_64
+    end interface
+
+    interface
+        function rocblas_zgemv_64(handle, trans, m, n, alpha, A, lda, &
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zgemv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_zgemv_64
+    end interface
+
     ! gemv_batched
     interface
         function rocblas_sgemv_batched(handle, trans, m, n, alpha, A, lda, &
@@ -6972,6 +7065,199 @@ module rocblas
         integer(c_int), value :: incy
         integer(c_int), value :: batch_count
     end function rocblas_tssgemv_batched
+    end interface
+
+    ! gemv_batched_64
+    interface
+        function rocblas_sgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_sgemv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_sgemv_batched_64
+    end interface
+
+    interface
+        function rocblas_dgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_dgemv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dgemv_batched_64
+    end interface
+
+    interface
+        function rocblas_cgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_cgemv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_cgemv_batched_64
+    end interface
+
+    interface
+        function rocblas_zgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zgemv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zgemv_batched_64
+    end interface
+
+    interface
+    function rocblas_hshgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                   x, incx, beta, y, incy, batch_count) &
+        bind(c, name='rocblas_hshgemv_batched_64')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_hshgemv_batched_64
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_operation_none)), value :: trans
+        integer(c_int64_t), value :: m
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int64_t), value :: lda
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+    end function rocblas_hshgemv_batched_64
+    end interface
+
+    interface
+    function rocblas_hssgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                   x, incx, beta, y, incy, batch_count) &
+        bind(c, name='rocblas_hssgemv_batched_64')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_hssgemv_batched_64
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_operation_none)), value :: trans
+        integer(c_int64_t), value :: m
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int64_t), value :: lda
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+    end function rocblas_hssgemv_batched_64
+    end interface
+
+    interface
+    function rocblas_tstgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                   x, incx, beta, y, incy, batch_count) &
+        bind(c, name='rocblas_tstgemv_batched_64')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_tstgemv_batched_64
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_operation_none)), value :: trans
+        integer(c_int64_t), value :: m
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int64_t), value :: lda
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+    end function rocblas_tstgemv_batched_64
+    end interface
+
+    interface
+    function rocblas_tssgemv_batched_64(handle, trans, m, n, alpha, A, lda, &
+                                   x, incx, beta, y, incy, batch_count) &
+        bind(c, name='rocblas_tssgemv_batched_64')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_tssgemv_batched_64
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_operation_none)), value :: trans
+        integer(c_int64_t), value :: m
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int64_t), value :: lda
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+    end function rocblas_tssgemv_batched_64
     end interface
 
     ! gemv_strided_batched
@@ -7189,6 +7475,223 @@ module rocblas
             integer(c_int64_t), value :: stride_y
             integer(c_int), value :: batch_count
         end function rocblas_tssgemv_strided_batched
+    end interface
+
+    ! gemv_strided_batched_64
+    interface
+        function rocblas_sgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_sgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_sgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_cgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_cgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_cgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_hshgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_hshgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hshgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_hshgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_hssgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_hssgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hssgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_hssgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_tstgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_tstgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_tstgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_tstgemv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_tssgemv_strided_batched_64(handle, trans, m, n, alpha, A, lda, stride_A, &
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_tssgemv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_tssgemv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: trans
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_tssgemv_strided_batched_64
     end interface
 
     ! hbmv

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #include "check_numerics_vector.hpp"
 #include "gemv_device.hpp"
 #include "handle.hpp"
+#include "int64_helpers.hpp"
 #include "rocblas_gemv.hpp"
 #include "rocblas_level2_threshold.hpp"
 
@@ -115,7 +116,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_s
 }
 
 template <typename Ti, typename Tex, typename To>
-rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
+rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                               rocblas_operation transA,
                                               rocblas_int       m,
                                               rocblas_int       n,
@@ -123,17 +124,17 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                                               rocblas_stride    stride_alpha,
                                               const Ti*         A,
                                               rocblas_stride    offseta,
-                                              rocblas_int       lda,
+                                              int64_t           lda,
                                               rocblas_stride    strideA,
                                               const Ti*         x,
                                               rocblas_stride    offsetx,
-                                              rocblas_int       incx,
+                                              int64_t           incx,
                                               rocblas_stride    stridex,
                                               const Tex*        beta,
                                               rocblas_stride    stride_beta,
                                               To*               y,
                                               rocblas_stride    offsety,
-                                              rocblas_int       incy,
+                                              int64_t           incy,
                                               rocblas_stride    stridey,
                                               rocblas_int       batch_count,
                                               Tex*              workspace)
@@ -152,11 +153,13 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                       ? offsety - int64_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
                       : offsety;
 
-    constexpr size_t max_int32 = std::numeric_limits<rocblas_int>::max();
-    bool             i64_indices
-        = size_t(n) * lda > max_int32
-          || size_t(transA == rocblas_operation_none ? n - 1 : m - 1) * std::abs(incx) >= max_int32
-          || size_t(transA == rocblas_operation_none ? m - 1 : n - 1) * std::abs(incy) >= max_int32;
+    bool i64_incs = lda > c_i32_max || incx > c_i32_max || incx < c_i32_min || incy > c_i32_max
+                    || incy < c_i32_min;
+
+    bool i64_indices // i64_incs implies i64_indices
+        = i64_incs || size_t(n) * lda > c_i32_max
+          || size_t(transA == rocblas_operation_none ? n - 1 : m - 1) * std::abs(incx) >= c_i32_max
+          || size_t(transA == rocblas_operation_none ? m - 1 : n - 1) * std::abs(incy) >= c_i32_max;
 
     //Identifying the precision to have an appropriate optimization
     static constexpr bool is_float = std::is_same_v<Ti, float> || std::is_same_v<Ti, float const*>;
@@ -184,7 +187,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
     gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
 
-        if(is_gfx90a && m <= 32 && n <= 32 && batch_count >= 256)
+        if(!i64_incs && is_gfx90a && m <= 32 && n <= 32 && batch_count >= 256)
         {
 #define gemvn_sm_mn_batched_KARGS(alpha_, beta_)                                                 \
     gemvn_sm_mn_batched_grid, gemvn_sm_mn_batched_threads, 0, rocblas_stream, m, n, alpha_,      \
@@ -255,7 +258,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             }
         }
         //optimized gemvn kernel with double buffered loads for gfx90a.
-        else if(is_atomics_allowed && is_gfx90a && (is_float || is_double) && (m == n)
+        else if(!i64_incs && is_atomics_allowed && is_gfx90a && (is_float || is_double) && (m == n)
                 && (m % rocblas_gemv_bx() == 0))
         {
             if constexpr(is_float || is_double)
@@ -382,7 +385,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                                           gemvn_KARGS(*alpha, *beta));
             }
         }
-        else // non-skinny
+        else
         {
             // GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
             static constexpr int GEMVN_DIM_X = 64;
@@ -424,7 +427,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
         // transpose
         static constexpr bool CONJ = false;
 
-        if(m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
+        if(!i64_incs && m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
         {
             // number of columns on the y-dim of the grid
             static constexpr int NB = 256;
@@ -551,7 +554,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 #undef gemvt_sn_KARGS
         }
         //optimized gemvt kernel with double buffered loads for gfx908.
-        else if(is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
+        else if(!i64_incs && is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
                 && (is_gfx908
                     && ((is_float && m > sgemvt_gfx908_lower_threshold)
                         || (is_double && m > dgemvt_gfx908_lower_threshold))))
@@ -651,21 +654,30 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                      gemvt_KARGS(alpha, beta));
+                if(!i64_indices)
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int>),
+                                          gemvt_KARGS(alpha, beta));
+                else
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, int64_t>),
+                                          gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                      gemvt_KARGS(*alpha, *beta));
+                if(!i64_indices)
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int>),
+                                          gemvt_KARGS(*alpha, *beta));
+                else
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, int64_t>),
+                                          gemvt_KARGS(*alpha, *beta));
             }
         }
         //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000 and for complex double in gfx1030.
-        else if((is_float || m < gemvt_threshold || n < gemvt_threshold)
-                || (is_arch_10_or_11 && is_complex_double))
+        else if(!i64_incs
+                && ((is_float || m < gemvt_threshold || n < gemvt_threshold)
+                    || (is_arch_10_or_11 && is_complex_double)))
         {
             //Number of threads per block
             static constexpr int NB = 256;
@@ -696,16 +708,25 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                      gemvt_KARGS(alpha, beta));
+
+                if(!i64_indices)
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int>),
+                                          gemvt_KARGS(alpha, beta));
+                else
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, int64_t>),
+                                          gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                      gemvt_KARGS(*alpha, *beta));
+                if(!i64_indices)
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int>),
+                                          gemvt_KARGS(*alpha, *beta));
+                else
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, int64_t>),
+                                          gemvt_KARGS(*alpha, *beta));
             }
         }
 #undef gemvt_KARGS
@@ -715,7 +736,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
         static constexpr bool CONJ = true;
         // conjugate transpose
 
-        if(m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
+        if(!i64_incs && m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
         {
             // number of columns on the y-dim of the grid
             static constexpr int NB = 256;
@@ -842,7 +863,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 #undef gemvt_sn_KARGS
         }
         //optimized gemvt kernel with double buffered loads for gfx908.
-        else if(is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
+        else if(!i64_incs && is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
                 && (is_gfx908
                     && ((is_float && m > sgemvt_gfx908_lower_threshold)
                         || (is_double && m > dgemvt_gfx908_lower_threshold))))
@@ -928,7 +949,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
         //Using kernel code with shared memory reduction for single precision and all other precision when m or n is less than 6000.
-        else if(is_float || m < 6000 || n < 6000)
+        else if(!i64_incs && (is_float || m < 6000 || n < 6000))
         {
             //Number of threads per block
             static constexpr int NB = 256;
@@ -956,16 +977,24 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                      gemvt_KARGS(alpha, beta));
+                if(!i64_indices)
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int>),
+                                          gemvt_KARGS(alpha, beta));
+                else
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, int64_t>),
+                                          gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                      gemvt_KARGS(*alpha, *beta));
+                if(!i64_indices)
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int>),
+                                          gemvt_KARGS(*alpha, *beta));
+                else
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB, int64_t>),
+                                          gemvt_KARGS(*alpha, *beta));
             }
         }
 #undef gemvt_KARGS
@@ -974,31 +1003,30 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 }
 
 template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_gemv_template(rocblas_handle    handle,
-                                   rocblas_operation transA,
-                                   rocblas_int       m,
-                                   rocblas_int       n,
-                                   const T*          alpha,
-                                   rocblas_stride    stride_alpha,
-                                   const T*          A,
-                                   rocblas_stride    offseta,
-                                   rocblas_int       lda,
-                                   rocblas_stride    strideA,
-                                   const T*          x,
-                                   rocblas_stride    offsetx,
-                                   rocblas_int       incx,
-                                   rocblas_stride    stridex,
-                                   const T*          beta,
-                                   rocblas_stride    stride_beta,
-                                   T*                y,
-                                   rocblas_stride    offsety,
-                                   rocblas_int       incy,
-                                   rocblas_stride    stridey,
-                                   rocblas_int       batch_count,
-                                   T*                workspace)
+rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
+                                              rocblas_operation transA,
+                                              rocblas_int       m,
+                                              rocblas_int       n,
+                                              const T*          alpha,
+                                              rocblas_stride    stride_alpha,
+                                              const T*          A,
+                                              rocblas_stride    offseta,
+                                              rocblas_int       lda,
+                                              rocblas_stride    strideA,
+                                              const T*          x,
+                                              rocblas_stride    offsetx,
+                                              rocblas_int       incx,
+                                              rocblas_stride    stridex,
+                                              const T*          beta,
+                                              rocblas_stride    stride_beta,
+                                              T*                y,
+                                              rocblas_stride    offsety,
+                                              rocblas_int       incy,
+                                              rocblas_stride    stridey,
+                                              rocblas_int       batch_count,
+                                              T*                workspace)
 {
-    return rocblas_internal_gemv_template<T, T, T>(handle,
+    return rocblas_internal_gemv_launcher<T, T, T>(handle,
                                                    transA,
                                                    m,
                                                    n,
@@ -1006,48 +1034,47 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                    stride_alpha,
                                                    A,
                                                    offseta,
-                                                   lda,
+                                                   (int64_t)lda,
                                                    strideA,
                                                    x,
                                                    offsetx,
-                                                   incx,
+                                                   (int64_t)incx,
                                                    stridex,
                                                    beta,
                                                    stride_beta,
                                                    y,
                                                    offsety,
-                                                   incy,
+                                                   (int64_t)incy,
                                                    stridey,
                                                    batch_count,
                                                    workspace);
 }
 
 template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_gemv_batched_template(rocblas_handle    handle,
-                                           rocblas_operation transA,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
-                                           const T*          alpha,
-                                           rocblas_stride    stride_alpha,
-                                           const T* const*   A,
-                                           rocblas_stride    offseta,
-                                           rocblas_int       lda,
-                                           rocblas_stride    strideA,
-                                           const T* const*   x,
-                                           rocblas_stride    offsetx,
-                                           rocblas_int       incx,
-                                           rocblas_stride    stridex,
-                                           const T*          beta,
-                                           rocblas_stride    stride_beta,
-                                           T* const*         y,
-                                           rocblas_stride    offsety,
-                                           rocblas_int       incy,
-                                           rocblas_stride    stridey,
-                                           rocblas_int       batch_count,
-                                           T*                workspace)
+rocblas_status rocblas_internal_gemv_batched_template(rocblas_handle    handle,
+                                                      rocblas_operation transA,
+                                                      rocblas_int       m,
+                                                      rocblas_int       n,
+                                                      const T*          alpha,
+                                                      rocblas_stride    stride_alpha,
+                                                      const T* const*   A,
+                                                      rocblas_stride    offseta,
+                                                      rocblas_int       lda,
+                                                      rocblas_stride    strideA,
+                                                      const T* const*   x,
+                                                      rocblas_stride    offsetx,
+                                                      rocblas_int       incx,
+                                                      rocblas_stride    stridex,
+                                                      const T*          beta,
+                                                      rocblas_stride    stride_beta,
+                                                      T* const*         y,
+                                                      rocblas_stride    offsety,
+                                                      rocblas_int       incy,
+                                                      rocblas_stride    stridey,
+                                                      rocblas_int       batch_count,
+                                                      T*                workspace)
 {
-    return rocblas_internal_gemv_template(handle,
+    return rocblas_internal_gemv_launcher(handle,
                                           transA,
                                           m,
                                           n,
@@ -1055,17 +1082,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                           stride_alpha,
                                           A,
                                           offseta,
-                                          lda,
+                                          (int64_t)lda,
                                           strideA,
                                           x,
                                           offsetx,
-                                          incx,
+                                          (int64_t)incx,
                                           stridex,
                                           beta,
                                           stride_beta,
                                           y,
                                           offsety,
-                                          incy,
+                                          (int64_t)incy,
                                           stridey,
                                           batch_count,
                                           workspace);
@@ -1075,21 +1102,21 @@ template <typename Ti, typename To>
 rocblas_status rocblas_gemv_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
+                                           int64_t           m,
+                                           int64_t           n,
                                            Ti                A,
                                            rocblas_stride    offset_a,
-                                           rocblas_int       lda,
+                                           int64_t           lda,
                                            rocblas_stride    stride_a,
                                            Ti                x,
                                            rocblas_stride    offset_x,
-                                           rocblas_int       inc_x,
+                                           int64_t           inc_x,
                                            rocblas_stride    stride_x,
                                            To                y,
                                            rocblas_stride    offset_y,
-                                           rocblas_int       inc_y,
+                                           int64_t           inc_y,
                                            rocblas_stride    stride_y,
-                                           rocblas_int       batch_count,
+                                           int64_t           batch_count,
                                            const int         check_numerics,
                                            bool              is_input)
 {
@@ -1150,20 +1177,19 @@ rocblas_status rocblas_gemv_check_numerics(const char*       function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *gemv*.cpp
 
-// clang-format off
-
 #ifdef INSTANTIATE_GEMV_WORKSPACE
 #error INSTANTIATE_GEMV_WORKSPACE already defined
 #endif
 
-#define INSTANTIATE_GEMV_WORKSPACE(To_)                                                      \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_size \
-    <To_>(rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count);
+#define INSTANTIATE_GEMV_WORKSPACE(To_)                   \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t      \
+        rocblas_internal_gemv_kernel_workspace_size<To_>( \
+            rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count);
 
 INSTANTIATE_GEMV_WORKSPACE(float)
 INSTANTIATE_GEMV_WORKSPACE(double)
-INSTANTIATE_GEMV_WORKSPACE(rocblas_float_complex )
-INSTANTIATE_GEMV_WORKSPACE(rocblas_double_complex )
+INSTANTIATE_GEMV_WORKSPACE(rocblas_float_complex)
+INSTANTIATE_GEMV_WORKSPACE(rocblas_double_complex)
 INSTANTIATE_GEMV_WORKSPACE(rocblas_half)
 INSTANTIATE_GEMV_WORKSPACE(rocblas_bfloat16)
 #undef INSTANTIATE_GEMV_WORKSPACE
@@ -1172,30 +1198,30 @@ INSTANTIATE_GEMV_WORKSPACE(rocblas_bfloat16)
 #error INSTANTIATE_GEMV_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_GEMV_TEMPLATE(T_)                                                        \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gemv_template<T_>  \
-                                        (rocblas_handle    handle,                           \
-                                        rocblas_operation transA,                            \
-                                        rocblas_int       m,                                 \
-                                        rocblas_int       n,                                 \
-                                        T_ const*         alpha,                             \
-                                        rocblas_stride    stride_alpha,                      \
-                                        T_ const*          A,                                \
-                                        rocblas_stride    offseta,                           \
-                                        rocblas_int       lda,                               \
-                                        rocblas_stride    strideA,                           \
-                                        T_ const*          x,                                \
-                                        rocblas_stride    offsetx,                           \
-                                        rocblas_int       incx,                              \
-                                        rocblas_stride    stridex,                           \
-                                        T_ const*         beta,                              \
-                                        rocblas_stride    stride_beta,                       \
-                                        T_*               y,                                 \
-                                        rocblas_stride    offsety,                           \
-                                        rocblas_int       incy,                              \
-                                        rocblas_stride    stridey,                           \
-                                        rocblas_int       batch_count,                       \
-                                        T_*               workspace);
+#define INSTANTIATE_GEMV_TEMPLATE(T_)                                                            \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gemv_template<T_>( \
+        rocblas_handle    handle,                                                                \
+        rocblas_operation transA,                                                                \
+        rocblas_int       m,                                                                     \
+        rocblas_int       n,                                                                     \
+        const T_*         alpha,                                                                 \
+        rocblas_stride    stride_alpha,                                                          \
+        const T_*         A,                                                                     \
+        rocblas_stride    offseta,                                                               \
+        rocblas_int       lda,                                                                   \
+        rocblas_stride    strideA,                                                               \
+        const T_*         x,                                                                     \
+        rocblas_stride    offsetx,                                                               \
+        rocblas_int       incx,                                                                  \
+        rocblas_stride    stridex,                                                               \
+        const T_*         beta,                                                                  \
+        rocblas_stride    stride_beta,                                                           \
+        T_*               y,                                                                     \
+        rocblas_stride    offsety,                                                               \
+        rocblas_int       incy,                                                                  \
+        rocblas_stride    stridey,                                                               \
+        rocblas_int       batch_count,                                                           \
+        T_*               workspace);
 
 INSTANTIATE_GEMV_TEMPLATE(float)
 INSTANTIATE_GEMV_TEMPLATE(double)
@@ -1208,30 +1234,30 @@ INSTANTIATE_GEMV_TEMPLATE(rocblas_double_complex)
 #error INSTANTIATE_GEMV_BATCHED_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_GEMV_BATCHED_TEMPLATE(T_)                                                       \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gemv_batched_template<T_> \
-                                               (rocblas_handle    handle,                           \
-                                               rocblas_operation transA,                            \
-                                               rocblas_int       m,                                 \
-                                               rocblas_int       n,                                 \
-                                               T_ const*         alpha,                             \
-                                               rocblas_stride    stride_alpha,                      \
-                                               T_ const* const*  A,                                 \
-                                               rocblas_stride    offseta,                           \
-                                               rocblas_int       lda,                               \
-                                               rocblas_stride    strideA,                           \
-                                               T_ const* const*  x,                                 \
-                                               rocblas_stride    offsetx,                           \
-                                               rocblas_int       incx,                              \
-                                               rocblas_stride    stridex,                           \
-                                               T_ const*         beta,                              \
-                                               rocblas_stride    stride_beta,                       \
-                                               T_* const*        y,                                 \
-                                               rocblas_stride    offsety,                           \
-                                               rocblas_int       incy,                              \
-                                               rocblas_stride    stridey,                           \
-                                               rocblas_int       batch_count,                       \
-                                               T_*               workspace);
+#define INSTANTIATE_GEMV_BATCHED_TEMPLATE(T_)                                      \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                       \
+        rocblas_internal_gemv_batched_template<T_>(rocblas_handle    handle,       \
+                                                   rocblas_operation transA,       \
+                                                   rocblas_int       m,            \
+                                                   rocblas_int       n,            \
+                                                   const T_*         alpha,        \
+                                                   rocblas_stride    stride_alpha, \
+                                                   const T_* const*  A,            \
+                                                   rocblas_stride    offseta,      \
+                                                   rocblas_int       lda,          \
+                                                   rocblas_stride    strideA,      \
+                                                   const T_* const*  x,            \
+                                                   rocblas_stride    offsetx,      \
+                                                   rocblas_int       incx,         \
+                                                   rocblas_stride    stridex,      \
+                                                   const T_*         beta,         \
+                                                   rocblas_stride    stride_beta,  \
+                                                   T_* const*        y,            \
+                                                   rocblas_stride    offsety,      \
+                                                   rocblas_int       incy,         \
+                                                   rocblas_stride    stridey,      \
+                                                   rocblas_int       batch_count,  \
+                                                   T_*               workspace);
 
 INSTANTIATE_GEMV_BATCHED_TEMPLATE(float)
 INSTANTIATE_GEMV_BATCHED_TEMPLATE(double)
@@ -1241,73 +1267,71 @@ INSTANTIATE_GEMV_BATCHED_TEMPLATE(rocblas_double_complex)
 #undef INSTANTIATE_GEMV_BATCHED_TEMPLATE
 
 // For mixed-precision gemv
-#ifdef INSTANTIATE_GEMV_MIXED_TEMPLATE
-#error INSTANTIATE_GEMV_MIXED_TEMPLATE already defined
+#ifdef INST_GEMV_MIXED_LAUNCHER
+#error INST_GEMV_MIXED_LAUNCHER already defined
 #endif
 
-#define INSTANTIATE_GEMV_MIXED_TEMPLATE(Ti_, Tex_, To_)                                 \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gemv_template \
-                                  <Ti_, Tex_, To_>                                      \
-                                  (rocblas_handle    handle,                            \
-                                   rocblas_operation transA,                            \
-                                   rocblas_int       m,                                 \
-                                   rocblas_int       n,                                 \
-                                   Tex_ const*       alpha,                             \
-                                   rocblas_stride    stride_alpha,                      \
-                                   Ti_ const*        A,                                 \
-                                   rocblas_stride    offseta,                           \
-                                   rocblas_int       lda,                               \
-                                   rocblas_stride    strideA,                           \
-                                   Ti_ const*        x,                                 \
-                                   rocblas_stride    offsetx,                           \
-                                   rocblas_int       incx,                              \
-                                   rocblas_stride    stridex,                           \
-                                   Tex_ const*       beta,                              \
-                                   rocblas_stride    stride_beta,                       \
-                                   To_*              y,                                 \
-                                   rocblas_stride    offsety,                           \
-                                   rocblas_int       incy,                              \
-                                   rocblas_stride    stridey,                           \
-                                   rocblas_int       batch_count,                       \
-                                   Tex_*             workspace);
+#define INST_GEMV_MIXED_LAUNCHER(Ti_, Tex_, To_)                                       \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                           \
+        rocblas_internal_gemv_launcher<Ti_, Tex_, To_>(rocblas_handle    handle,       \
+                                                       rocblas_operation transA,       \
+                                                       rocblas_int       m,            \
+                                                       rocblas_int       n,            \
+                                                       const Tex_*       alpha,        \
+                                                       rocblas_stride    stride_alpha, \
+                                                       Ti_ const*        A,            \
+                                                       rocblas_stride    offseta,      \
+                                                       int64_t           lda,          \
+                                                       rocblas_stride    strideA,      \
+                                                       Ti_ const*        x,            \
+                                                       rocblas_stride    offsetx,      \
+                                                       int64_t           incx,         \
+                                                       rocblas_stride    stridex,      \
+                                                       const Tex_*       beta,         \
+                                                       rocblas_stride    stride_beta,  \
+                                                       To_*              y,            \
+                                                       rocblas_stride    offsety,      \
+                                                       int64_t           incy,         \
+                                                       rocblas_stride    stridey,      \
+                                                       rocblas_int       batch_count,  \
+                                                       Tex_*             workspace);
 
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_half, float, rocblas_half)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_half const *, float, rocblas_half* const)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_half, float, float)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_half const *, float, float* const)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_bfloat16, float, rocblas_bfloat16)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_bfloat16 const *, float, rocblas_bfloat16* const)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_bfloat16, float, float)
-INSTANTIATE_GEMV_MIXED_TEMPLATE(rocblas_bfloat16 const *, float, float* const)
+INST_GEMV_MIXED_LAUNCHER(rocblas_half, float, rocblas_half)
+INST_GEMV_MIXED_LAUNCHER(rocblas_half const*, float, rocblas_half* const)
+INST_GEMV_MIXED_LAUNCHER(rocblas_half, float, float)
+INST_GEMV_MIXED_LAUNCHER(rocblas_half const*, float, float* const)
+INST_GEMV_MIXED_LAUNCHER(rocblas_bfloat16, float, rocblas_bfloat16)
+INST_GEMV_MIXED_LAUNCHER(rocblas_bfloat16 const*, float, rocblas_bfloat16* const)
+INST_GEMV_MIXED_LAUNCHER(rocblas_bfloat16, float, float)
+INST_GEMV_MIXED_LAUNCHER(rocblas_bfloat16 const*, float, float* const)
 
-#undef INSTANTIATE_GEMV_MIXED_TEMPLATE
+#undef INST_GEMV_MIXED_LAUNCHER
 
 #ifdef INSTANTIATE_GEMV_NUMERICS
 #error INSTANTIATE_GEMV_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_GEMV_NUMERICS(Ti_, To_)                                    \
-template rocblas_status rocblas_gemv_check_numerics<Ti_, To_>                  \
-                                          (const char*       function_name,  \
-                                           rocblas_handle    handle,         \
-                                           rocblas_operation trans_a,        \
-                                           rocblas_int       m,              \
-                                           rocblas_int       n,              \
-                                           Ti_                A,              \
-                                           rocblas_stride    offset_a,       \
-                                           rocblas_int       lda,            \
-                                           rocblas_stride    stride_a,       \
-                                           Ti_                x,              \
-                                           rocblas_stride    offset_x,       \
-                                           rocblas_int       inc_x,          \
-                                           rocblas_stride    stride_x,       \
-                                           To_                y,              \
-                                           rocblas_stride    offset_y,       \
-                                           rocblas_int       inc_y,          \
-                                           rocblas_stride    stride_y,       \
-                                           rocblas_int       batch_count,    \
-                                           const int         check_numerics, \
-                                           bool              is_input);
+#define INSTANTIATE_GEMV_NUMERICS(Ti_, To_)                                                         \
+    template rocblas_status rocblas_gemv_check_numerics<Ti_, To_>(const char*       function_name,  \
+                                                                  rocblas_handle    handle,         \
+                                                                  rocblas_operation trans_a,        \
+                                                                  int64_t           m,              \
+                                                                  int64_t           n,              \
+                                                                  Ti_               A,              \
+                                                                  rocblas_stride    offset_a,       \
+                                                                  int64_t           lda,            \
+                                                                  rocblas_stride    stride_a,       \
+                                                                  Ti_               x,              \
+                                                                  rocblas_stride    offset_x,       \
+                                                                  int64_t           inc_x,          \
+                                                                  rocblas_stride    stride_x,       \
+                                                                  To_               y,              \
+                                                                  rocblas_stride    offset_y,       \
+                                                                  int64_t           inc_y,          \
+                                                                  rocblas_stride    stride_y,       \
+                                                                  int64_t           batch_count,    \
+                                                                  const int         check_numerics, \
+                                                                  bool              is_input);
 
 INSTANTIATE_GEMV_NUMERICS(float const*, float*)
 INSTANTIATE_GEMV_NUMERICS(double const*, double*)
@@ -1327,5 +1351,3 @@ INSTANTIATE_GEMV_NUMERICS(rocblas_bfloat16 const*, float*)
 INSTANTIATE_GEMV_NUMERICS(rocblas_bfloat16 const* const*, float* const*)
 
 #undef INSTANTIATE_GEMV_NUMERICS
-
-// clang-format on

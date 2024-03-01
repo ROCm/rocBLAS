@@ -469,10 +469,10 @@ set(rocblas64_ex_source_no_tensile
 # )
 
 set( rocblas64_blas2_source
-  #   src64/blas2/rocblas_gemv.cpp
-  #   src64/blas2/rocblas_gemv_kernels.cpp
-  #   src64/blas2/rocblas_gemv_batched.cpp
-  #   src64/blas2/rocblas_gemv_strided_batched.cpp
+  src64/blas2/rocblas_gemv_64.cpp
+  src64/blas2/rocblas_gemv_kernels_64.cpp
+  src64/blas2/rocblas_gemv_batched_64.cpp
+  src64/blas2/rocblas_gemv_strided_batched_64.cpp
   src64/blas2/rocblas_tpmv_64.cpp
   src64/blas2/rocblas_tpmv_kernels_64.cpp
   src64/blas2/rocblas_tpmv_batched_64.cpp
@@ -724,10 +724,12 @@ file( GLOB rocblas_prototype_inputs
   ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas2/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas1/*.hpp
 )
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
-  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
+  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
   #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/
   DEPENDS ${rocblas_prototype_inputs}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."

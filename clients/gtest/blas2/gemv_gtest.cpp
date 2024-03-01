@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +74,11 @@ namespace
 
             name << '_' << arg.beta << '_' << arg.incy;
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }
@@ -164,10 +168,14 @@ namespace
             if(GEMV_TYPE == GEMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_y;
 
-            if(GEMV_TYPE == GEMV_STRIDED_BATCHED || GEMV_TYPE == GEMV_BATCHED)
+            if(GEMV_TYPE != GEMV)
                 name << '_' << arg.batch_count;
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }
