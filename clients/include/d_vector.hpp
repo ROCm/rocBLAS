@@ -121,24 +121,24 @@ public:
 #ifdef GOOGLE_TEST
         if(m_pad > 0)
         {
-            T host[m_pad];
+            std::vector<T> host(m_pad);
 
             // Copy device memory after allocated memory to host
-            if(hipMemcpy(host, d + this->m_size, m_guard_len, hipMemcpyDefault) != hipSuccess)
+            if(hipMemcpy(host.data(), d + m_size, m_guard_len, hipMemcpyDefault) != hipSuccess)
                 rocblas_cerr << "Error: hipMemcpy post-guard copy failure." << std::endl;
 
             // Make sure no corruption has occurred
-            EXPECT_EQ(memcmp(host, m_guard, m_guard_len), 0);
+            EXPECT_EQ(memcmp(host.data(), m_guard, m_guard_len), 0);
 
             // Point to m_guard before allocated memory
             d -= m_pad;
 
             // Copy device memory after allocated memory to host
-            if(hipMemcpy(host, d, m_guard_len, hipMemcpyDefault) != hipSuccess)
+            if(hipMemcpy(host.data(), d, m_guard_len, hipMemcpyDefault) != hipSuccess)
                 rocblas_cerr << "Error: hipMemcpy pre-guard copy failure." << std::endl;
 
             // Make sure no corruption has occurred
-            EXPECT_EQ(memcmp(host, m_guard, m_guard_len), 0);
+            EXPECT_EQ(memcmp(host.data(), m_guard, m_guard_len), 0);
         }
 #endif
     }
