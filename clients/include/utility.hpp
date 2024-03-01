@@ -102,10 +102,10 @@ void rocblas_parallel_initialize(int parallel_devices);
 /*! \brief  local handle which is automatically created and destroyed  */
 class rocblas_local_handle
 {
-    rocblas_handle m_handle;
-    void*          m_memory = nullptr;
-    hipStream_t    graph_stream;
-    hipStream_t    old_stream;
+    rocblas_handle m_handle{nullptr};
+    void*          m_memory{nullptr};
+    hipStream_t    m_graph_stream{nullptr};
+    hipStream_t    m_old_stream{nullptr};
 
     void rocblas_stream_begin_capture();
     void rocblas_stream_end_capture();

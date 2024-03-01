@@ -68,13 +68,12 @@ def runTestCommand (platform, project, gfilter)
     String xnackVar = ""
 
     String gtestCommonEnv = "ROCBLAS_CLIENT_RAM_GB_LIMIT=95"
-    String checkNumericsEnv = "ROCBLAS_CHECK_NUMERICS=4"
+    String checkNumericsEnv = "ROCBLAS_CHECK_NUMERICS=6" // report status 4 & log 2 on fail
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
         if (pullRequest.labels.contains("help wanted"))
         {
             gtestCommonEnv += " GTEST_LISTENER=PASS_LINE_IN_LOG"
-            checkNumericsEnv = "ROCBLAS_CHECK_NUMERICS=2"
         }
     }
 
