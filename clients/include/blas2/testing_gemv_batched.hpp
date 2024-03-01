@@ -23,20 +23,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 //The Template parameter Ti, Tex and To is to test the special cases where the input/compute/output types could be HSH (Half, single, half), HSS (Half, single, single),
 // TST (rocblas_bfloat16, single, rocblas_bfloat16), TSS (rocblas_bfloat16, single, single)
@@ -44,8 +31,11 @@
 template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemv_batched_fn = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
-                                                      : rocblas_gemv_batched<Ti, Tex, To, false>;
+    auto rocblas_gemv_batched_fn    = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
+                                                         : rocblas_gemv_batched<Ti, Tex, To, false>;
+    auto rocblas_gemv_batched_fn_64 = arg.api == FORTRAN_64
+                                          ? rocblas_gemv_batched_64<Ti, Tex, To, true>
+                                          : rocblas_gemv_batched_64<Ti, Tex, To, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -53,12 +43,12 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         const rocblas_operation transA      = rocblas_operation_none;
-        const rocblas_int       M           = 100;
-        const rocblas_int       N           = 100;
-        const rocblas_int       lda         = 100;
-        const rocblas_int       incx        = 1;
-        const rocblas_int       incy        = 1;
-        const rocblas_int       batch_count = 2;
+        const int64_t           M           = 100;
+        const int64_t           N           = 100;
+        const int64_t           lda         = 100;
+        const int64_t           incx        = 1;
+        const int64_t           incy        = 1;
+        const int64_t           batch_count = 2;
 
         device_vector<Tex> alpha_d(1), beta_d(1), zero_d(1), one_d(1);
         const Tex          alpha_h(1), beta_h(1), zero_h(0), one_h(1);
@@ -90,193 +80,200 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(nullptr,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA.ptr_on_device(),
-                                                      lda,
-                                                      dx.ptr_on_device(),
-                                                      incx,
-                                                      beta,
-                                                      dy.ptr_on_device(),
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_gemv_batched_fn,
+                    (nullptr,
+                     transA,
+                     M,
+                     N,
+                     alpha,
+                     dA.ptr_on_device(),
+                     lda,
+                     dx.ptr_on_device(),
+                     incx,
+                     beta,
+                     dy.ptr_on_device(),
+                     incy,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      (rocblas_operation)rocblas_fill_full,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA.ptr_on_device(),
-                                                      lda,
-                                                      dx.ptr_on_device(),
-                                                      incx,
-                                                      beta,
-                                                      dy.ptr_on_device(),
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_gemv_batched_fn,
+                    (handle,
+                     (rocblas_operation)rocblas_fill_full,
+                     M,
+                     N,
+                     alpha,
+                     dA.ptr_on_device(),
+                     lda,
+                     dx.ptr_on_device(),
+                     incx,
+                     beta,
+                     dy.ptr_on_device(),
+                     incy,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      nullptr,
-                                                      dA.ptr_on_device(),
-                                                      lda,
-                                                      dx.ptr_on_device(),
-                                                      incx,
-                                                      beta,
-                                                      dy.ptr_on_device(),
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_gemv_batched_fn,
+                    (handle,
+                     transA,
+                     M,
+                     N,
+                     nullptr,
+                     dA.ptr_on_device(),
+                     lda,
+                     dx.ptr_on_device(),
+                     incx,
+                     beta,
+                     dy.ptr_on_device(),
+                     incy,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA.ptr_on_device(),
-                                                      lda,
-                                                      dx.ptr_on_device(),
-                                                      incx,
-                                                      nullptr,
-                                                      dy.ptr_on_device(),
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_gemv_batched_fn,
+                    (handle,
+                     transA,
+                     M,
+                     N,
+                     alpha,
+                     dA.ptr_on_device(),
+                     lda,
+                     dx.ptr_on_device(),
+                     incx,
+                     nullptr,
+                     dy.ptr_on_device(),
+                     incy,
+                     batch_count));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                          transA,
-                                                          M,
-                                                          N,
-                                                          alpha,
-                                                          nullptr,
-                                                          lda,
-                                                          dx.ptr_on_device(),
-                                                          incx,
-                                                          beta,
-                                                          dy.ptr_on_device(),
-                                                          incy,
-                                                          batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_gemv_batched_fn,
+                        (handle,
+                         transA,
+                         M,
+                         N,
+                         alpha,
+                         nullptr,
+                         lda,
+                         dx.ptr_on_device(),
+                         incx,
+                         beta,
+                         dy.ptr_on_device(),
+                         incy,
+                         batch_count));
 
-            EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                          transA,
-                                                          M,
-                                                          N,
-                                                          alpha,
-                                                          dA.ptr_on_device(),
-                                                          lda,
-                                                          nullptr,
-                                                          incx,
-                                                          beta,
-                                                          dy.ptr_on_device(),
-                                                          incy,
-                                                          batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_gemv_batched_fn,
+                        (handle,
+                         transA,
+                         M,
+                         N,
+                         alpha,
+                         dA.ptr_on_device(),
+                         lda,
+                         nullptr,
+                         incx,
+                         beta,
+                         dy.ptr_on_device(),
+                         incy,
+                         batch_count));
 
-            EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                          transA,
-                                                          M,
-                                                          N,
-                                                          alpha,
-                                                          dA.ptr_on_device(),
-                                                          lda,
-                                                          dx.ptr_on_device(),
-                                                          incx,
-                                                          beta,
-                                                          nullptr,
-                                                          incy,
-                                                          batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_gemv_batched_fn,
+                        (handle,
+                         transA,
+                         M,
+                         N,
+                         alpha,
+                         dA.ptr_on_device(),
+                         lda,
+                         dx.ptr_on_device(),
+                         incx,
+                         beta,
+                         nullptr,
+                         incy,
+                         batch_count));
         }
 
         // If M==0, then all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      0,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      incx,
-                                                      nullptr,
-                                                      nullptr,
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_gemv_batched_fn,
+                   (handle,
+                    transA,
+                    0,
+                    N,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    nullptr,
+                    incx,
+                    nullptr,
+                    nullptr,
+                    incy,
+                    batch_count));
 
         // If N==0, then all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      0,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      incx,
-                                                      nullptr,
-                                                      nullptr,
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_gemv_batched_fn,
+                   (handle,
+                    transA,
+                    M,
+                    0,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    nullptr,
+                    incx,
+                    nullptr,
+                    nullptr,
+                    incy,
+                    batch_count));
 
         // If alpha==0, then A and X may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      zero,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      incx,
-                                                      beta,
-                                                      dy.ptr_on_device(),
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_gemv_batched_fn,
+                   (handle,
+                    transA,
+                    M,
+                    N,
+                    zero,
+                    nullptr,
+                    lda,
+                    nullptr,
+                    incx,
+                    beta,
+                    dy.ptr_on_device(),
+                    incy,
+                    batch_count));
 
         // If alpha==0 && beta==1, then A, X and Y may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      zero,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      incx,
-                                                      one,
-                                                      nullptr,
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_gemv_batched_fn,
+                   (handle,
+                    transA,
+                    M,
+                    N,
+                    zero,
+                    nullptr,
+                    lda,
+                    nullptr,
+                    incx,
+                    one,
+                    nullptr,
+                    incy,
+                    batch_count));
 
         // If batch_count==0, then all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      incx,
-                                                      nullptr,
-                                                      nullptr,
-                                                      incy,
-                                                      0),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_gemv_batched_fn,
+                   (handle,
+                    transA,
+                    M,
+                    N,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    nullptr,
+                    incx,
+                    nullptr,
+                    nullptr,
+                    incy,
+                    0));
     }
 }
 
@@ -286,18 +283,21 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
 template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_batched(const Arguments& arg)
 {
-    auto rocblas_gemv_batched_fn = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
-                                                      : rocblas_gemv_batched<Ti, Tex, To, false>;
+    auto rocblas_gemv_batched_fn    = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
+                                                         : rocblas_gemv_batched<Ti, Tex, To, false>;
+    auto rocblas_gemv_batched_fn_64 = arg.api == FORTRAN_64
+                                          ? rocblas_gemv_batched_64<Ti, Tex, To, true>
+                                          : rocblas_gemv_batched_64<Ti, Tex, To, false>;
 
-    rocblas_int       M           = arg.M;
-    rocblas_int       N           = arg.N;
-    rocblas_int       lda         = arg.lda;
-    rocblas_int       incx        = arg.incx;
-    rocblas_int       incy        = arg.incy;
+    int64_t           M           = arg.M;
+    int64_t           N           = arg.N;
+    int64_t           lda         = arg.lda;
+    int64_t           incx        = arg.incx;
+    int64_t           incy        = arg.incy;
     Tex               h_alpha     = arg.get_alpha<Tex>();
     Tex               h_beta      = arg.get_beta<Tex>();
     rocblas_operation transA      = char2rocblas_operation(arg.transA);
-    rocblas_int       batch_count = arg.batch_count;
+    int64_t           batch_count = arg.batch_count;
 
     rocblas_local_handle handle{arg};
 
@@ -305,20 +305,21 @@ void testing_gemv_batched(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      incx,
-                                                      nullptr,
-                                                      nullptr,
-                                                      incy,
-                                                      batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_gemv_batched_fn,
+                    (handle,
+                     transA,
+                     M,
+                     N,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     nullptr,
+                     incx,
+                     nullptr,
+                     nullptr,
+                     incy,
+                     batch_count));
         return;
     }
 
@@ -379,9 +380,9 @@ void testing_gemv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double cpu_time_used;
+    double error_host;
+    double error_device;
 
     /* =====================================================================
            ROCBLAS
@@ -392,19 +393,20 @@ void testing_gemv_batched(const Arguments& arg)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_gemv_batched_fn(handle,
-                                                        transA,
-                                                        M,
-                                                        N,
-                                                        &h_alpha,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        &h_beta,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        batch_count));
+            DAPI_CHECK(rocblas_gemv_batched_fn,
+                       (handle,
+                        transA,
+                        M,
+                        N,
+                        &h_alpha,
+                        dA.ptr_on_device(),
+                        lda,
+                        dx.ptr_on_device(),
+                        incx,
+                        &h_beta,
+                        dy.ptr_on_device(),
+                        incy,
+                        batch_count));
             handle.post_test(arg);
 
             CHECK_HIP_ERROR(hy.transfer_from(dy));
@@ -418,19 +420,20 @@ void testing_gemv_batched(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_gemv_batched_fn(handle,
-                                                        transA,
-                                                        M,
-                                                        N,
-                                                        d_alpha,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        d_beta,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        batch_count));
+            DAPI_CHECK(rocblas_gemv_batched_fn,
+                       (handle,
+                        transA,
+                        M,
+                        N,
+                        d_alpha,
+                        dA.ptr_on_device(),
+                        lda,
+                        dx.ptr_on_device(),
+                        incx,
+                        d_beta,
+                        dy.ptr_on_device(),
+                        incy,
+                        batch_count));
             handle.post_test(arg);
 
             if(arg.repeatability_check)
@@ -442,19 +445,20 @@ void testing_gemv_batched(const Arguments& arg)
                 {
                     CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
-                    CHECK_ROCBLAS_ERROR(rocblas_gemv_batched_fn(handle,
-                                                                transA,
-                                                                M,
-                                                                N,
-                                                                d_alpha,
-                                                                dA.ptr_on_device(),
-                                                                lda,
-                                                                dx.ptr_on_device(),
-                                                                incx,
-                                                                d_beta,
-                                                                dy.ptr_on_device(),
-                                                                incy,
-                                                                batch_count));
+                    DAPI_CHECK(rocblas_gemv_batched_fn,
+                               (handle,
+                                transA,
+                                M,
+                                N,
+                                d_alpha,
+                                dA.ptr_on_device(),
+                                lda,
+                                dx.ptr_on_device(),
+                                incx,
+                                d_beta,
+                                dy.ptr_on_device(),
+                                incy,
+                                batch_count));
 
                     CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
                     unit_check_general<To>(1, dim_y, incy, hy, hy_copy, batch_count);
@@ -465,76 +469,75 @@ void testing_gemv_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int b = 0; b < batch_count; ++b)
+        for(int64_t b = 0; b < batch_count; ++b)
         {
             ref_gemv<Ti, To>(
                 transA, M, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
+        auto compare_hy_to_gold = [&] {
+            if(arg.unit_check)
+            {
+                bool use_near = reduction_requires_near<To>(arg, dim_x);
+                if(use_near)
+                {
+                    const double tol = dim_x * sum_error_tolerance<To>;
+                    near_check_general<To>(1, dim_y, incy, hy_gold, hy, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<To>(1, dim_y, incy, hy_gold, hy, batch_count);
+                }
+            }
+            double error = 0;
+            if(arg.norm_check)
+                error = norm_check_general<To>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
+            return error;
+        };
+
         if(arg.pointer_mode_host)
         {
-            if(arg.unit_check)
-                unit_check_general<To>(1, dim_y, incy, hy_gold, hy, batch_count);
-            if(arg.norm_check)
-                rocblas_error_1
-                    = norm_check_general<To>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
+            error_host = compare_hy_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_HIP_ERROR(hy.transfer_from(dy));
-            if(arg.unit_check)
-                unit_check_general<To>(1, dim_y, incy, hy_gold, hy, batch_count);
-            if(arg.norm_check)
-                rocblas_error_2
-                    = norm_check_general<To>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
+            error_device = compare_hy_to_gold();
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_gemv_batched_fn(handle,
-                                    transA,
-                                    M,
-                                    N,
-                                    &h_alpha,
-                                    dA.ptr_on_device(),
-                                    lda,
-                                    dx.ptr_on_device(),
-                                    incx,
-                                    &h_beta,
-                                    dy.ptr_on_device(),
-                                    incy,
-                                    batch_count);
-        }
-
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_gemv_batched_fn(handle,
-                                    transA,
-                                    M,
-                                    N,
-                                    &h_alpha,
-                                    dA.ptr_on_device(),
-                                    lda,
-                                    dx.ptr_on_device(),
-                                    incx,
-                                    &h_beta,
-                                    dy.ptr_on_device(),
-                                    incy,
-                                    batch_count);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_gemv_batched_fn,
+                          (handle,
+                           transA,
+                           M,
+                           N,
+                           &h_alpha,
+                           dA.ptr_on_device(),
+                           lda,
+                           dx.ptr_on_device(),
+                           incx,
+                           &h_beta,
+                           dy.ptr_on_device(),
+                           incy,
+                           batch_count));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -546,7 +549,7 @@ void testing_gemv_batched(const Arguments& arg)
                            gemv_gflop_count<Tex>(transA, M, N),
                            gemv_gbyte_count<Tex>(transA, M, N),
                            cpu_time_used,
-                           rocblas_error_1,
-                           rocblas_error_2);
+                           error_host,
+                           error_device);
     }
 }

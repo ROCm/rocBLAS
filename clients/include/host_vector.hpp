@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,6 +76,19 @@ struct host_vector : std::vector<T, host_memory_allocator<T>>
     operator const T*() const
     {
         return this->data();
+    }
+
+    //!
+    //! @brief Allow signed indices
+    //!
+    inline T& operator[](int64_t idx)
+    {
+        return std::vector<T, host_memory_allocator<T>>::operator[]((size_t)idx);
+    }
+
+    inline const T& operator[](int64_t idx) const
+    {
+        return std::vector<T, host_memory_allocator<T>>::operator[]((size_t)idx);
     }
 
     //!

@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_gemv.hpp"
+#include "rocblas_gemv_64.hpp"
 
-#include "blas2/rocblas_gemv_batched_imp.hpp"
+#include "blas2/rocblas_gemv_strided_batched_imp.hpp"
 
-INST_GEMV_BATCHED_C_API(rocblas_int);
+INST_GEMV_STRIDED_BATCHED_C_API(int64_t);
