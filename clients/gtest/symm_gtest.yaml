@@ -236,4 +236,25 @@ Tests:
   batch_count: [ 2 ]
   alpha_beta: *alpha_beta_range
   graph_test: true
+
+
+- name: symm_repeatability_check
+  category: pre_checkin
+  function:
+    - symm
+    - symm_batched
+    - symm_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U ]
+  side: [ L ]
+  matrix_size:
+    - { M:   199, N:  290,  lda:  290,  ldb: 290,  ldc: 200 }
+  batch_count: [ 2 ]
+  stride_scale: 1
+  pointer_mode_host: false
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  alpha_beta: *alpha_beta_range
+  repeatability_check: true
 ...
