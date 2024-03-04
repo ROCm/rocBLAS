@@ -490,7 +490,7 @@ Definitions:
    - [-1073741825]
 
   - &c_pos_x32_overflow_int32
-    - [67108865]
+    - [67108865] # (67108865 - 1) x 32 will overflow to sign bit
 
   - &c_grid_yz_require_passes
    - [666666] # force looping over y/z chunks

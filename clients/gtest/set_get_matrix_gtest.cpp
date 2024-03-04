@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ namespace
 {
     enum sync_type
     {
-        SET_GET_MATRIX_SYNC,
+        SET_GET_MATRIX,
         SET_GET_MATRIX_ASYNC,
     };
 
@@ -52,8 +52,8 @@ namespace
         {
             switch(TRANSFER_TYPE)
             {
-            case SET_GET_MATRIX_SYNC:
-                return !strcmp(arg.function, "set_get_matrix_sync");
+            case SET_GET_MATRIX:
+                return !strcmp(arg.function, "set_get_matrix");
             case SET_GET_MATRIX_ASYNC:
                 return !strcmp(arg.function, "set_get_matrix_async");
             }
@@ -73,8 +73,18 @@ namespace
             }
             else
             {
-                name << arg.M << '_' << arg.N << '_' << arg.lda << '_' << arg.ldb << '_' << arg.ldc;
+                name << arg.M << '_' << arg.N << '_' << arg.lda << '_' << arg.ldb << '_' << arg.ldd;
             }
+
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };
@@ -89,14 +99,12 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct set_get_matrix_testing<
-        T,
-        std::enable_if_t<std::is_same_v<T, float> || std::is_same_v<T, double>>>
+    struct set_get_matrix_testing<T, std::enable_if_t<!std::is_same_v<T, void>>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
         {
-            if(!strcmp(arg.function, "set_get_matrix_sync"))
+            if(!strcmp(arg.function, "set_get_matrix"))
                 testing_set_get_matrix<T>(arg);
             else if(!strcmp(arg.function, "set_get_matrix_async"))
                 testing_set_get_matrix_async<T>(arg);
@@ -105,14 +113,13 @@ namespace
         }
     };
 
-    using set_get_matrix_sync
-        = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX_SYNC>;
-    TEST_P(set_get_matrix_sync, auxiliary)
+    using set_get_matrix = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX>;
+    TEST_P(set_get_matrix, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<set_get_matrix_testing>(GetParam()));
     }
-    INSTANTIATE_TEST_CATEGORIES(set_get_matrix_sync);
+    INSTANTIATE_TEST_CATEGORIES(set_get_matrix);
 
     using set_get_matrix_async
         = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX_ASYNC>;

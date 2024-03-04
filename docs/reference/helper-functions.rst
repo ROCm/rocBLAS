@@ -20,15 +20,19 @@ Auxiliary Functions
 .. doxygenfunction:: rocblas_set_atomics_mode
 .. doxygenfunction:: rocblas_get_atomics_mode
 .. doxygenfunction:: rocblas_pointer_to_mode
-.. doxygenfunction:: rocblas_set_vector
-.. doxygenfunction:: rocblas_get_vector
-.. doxygenfunction:: rocblas_set_matrix
-.. doxygenfunction:: rocblas_get_matrix
-.. doxygenfunction:: rocblas_set_vector_async
-.. doxygenfunction:: rocblas_set_matrix_async
-.. doxygenfunction:: rocblas_get_matrix_async
 .. doxygenfunction:: rocblas_initialize
 .. doxygenfunction:: rocblas_status_to_string
+
+.. doxygenfunction:: rocblas_set_vector
+.. doxygenfunction:: rocblas_get_vector
+.. doxygenfunction:: rocblas_set_vector_async
+.. doxygenfunction:: rocblas_get_vector_async
+.. doxygenfunction:: rocblas_set_matrix
+.. doxygenfunction:: rocblas_get_matrix
+.. doxygenfunction:: rocblas_set_matrix_async
+.. doxygenfunction:: rocblas_get_matrix_async
+
+The set/get_vector and set/get_matrix functions including their async forms support the _64 interface.  Refer to section :ref:`ILP64 API`.
 
 Device Memory Allocation Functions
 ==================================
