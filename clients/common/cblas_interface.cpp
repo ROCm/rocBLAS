@@ -718,7 +718,7 @@ void cblas_geam(rocblas_operation       transa,
 }
 
 // legacy BLAS implementation
-// gemm for dim and leading dims < 130 so no int64 multiplies
+// gemm for dim and leading dims <= 256 so no int64 multiplies
 void small_sgemm(rocblas_operation transA,
                  rocblas_operation transB,
                  int               m,
@@ -915,7 +915,7 @@ void ref_gemm(rocblas_operation                    transA,
 {
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
 
-    static constexpr int64_t small = 129;
+    static constexpr int64_t small = 256; // seeing random NaNs with blis on some small sizes
     if(m > small || n > small || k > small || lda > small || ldb > small || ldc > small)
     {
         // just directly cast, since transA, transB enum values match CBLAS
