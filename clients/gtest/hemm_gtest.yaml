@@ -221,4 +221,24 @@ Tests:
     -  { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
   batch_count: [ 2 ]
   graph_test: true
+
+- name: hemm_repeatability_check
+  category: pre_checkin
+  function:
+    - hemm
+    - hemm_batched
+    - hemm_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  side: [ L, R ]
+  matrix_size:
+    -  { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
+  batch_count: [ 2 ]
+  stride_scale : 1
+  pointer_mode_host: false
+  initialization : hpl
+  atomics_mode: 0
+  iters: 5
+  repeatability_check: true
+...
 ...
