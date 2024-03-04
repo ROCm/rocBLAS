@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ namespace
 {
     enum sync_type
     {
-        SET_GET_VECTOR_SYNC,
+        SET_GET_VECTOR,
         SET_GET_VECTOR_ASYNC,
     };
 
@@ -50,8 +50,8 @@ namespace
         {
             switch(TRANSFER_TYPE)
             {
-            case SET_GET_VECTOR_SYNC:
-                return !strcmp(arg.function, "set_get_vector_sync");
+            case SET_GET_VECTOR:
+                return !strcmp(arg.function, "set_get_vector");
             case SET_GET_VECTOR_ASYNC:
                 return !strcmp(arg.function, "set_get_vector_async");
             }
@@ -71,8 +71,18 @@ namespace
             }
             else
             {
-                name << '_' << arg.M << '_' << arg.incx << '_' << arg.incy << '_' << arg.ldd;
+                name << '_' << arg.N << '_' << arg.incx << '_' << arg.incy << '_' << arg.ldd;
             }
+
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };
@@ -94,7 +104,7 @@ namespace
     {
         void operator()(const Arguments& arg)
         {
-            if(!strcmp(arg.function, "set_get_vector_sync"))
+            if(!strcmp(arg.function, "set_get_vector"))
                 testing_set_get_vector<T>(arg);
             else if(!strcmp(arg.function, "set_get_vector_async"))
                 testing_set_get_vector_async<T>(arg);
@@ -103,13 +113,13 @@ namespace
         }
     };
 
-    using set_get_vector_sync = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR_SYNC>;
-    TEST_P(set_get_vector_sync, auxiliary)
+    using set_get_vector = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR>;
+    TEST_P(set_get_vector, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<set_get_vector_testing>(GetParam()));
     }
-    INSTANTIATE_TEST_CATEGORIES(set_get_vector_sync);
+    INSTANTIATE_TEST_CATEGORIES(set_get_vector);
 
     using set_get_vector_async = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR_ASYNC>;
     TEST_P(set_get_vector_async, auxiliary)

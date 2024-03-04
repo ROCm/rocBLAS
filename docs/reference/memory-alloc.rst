@@ -107,13 +107,6 @@ The following computational functions use temporary device memory.
 | - rocblas_Xtrtri_batched                       |                                                      |
 | - rocblas_Xtrtri_strided_batched               |                                                      |
 +------------------------------------------------+------------------------------------------------------+
-|auxiliary                                       | Buffer to compress noncontiguous arrays              |
-|                                                |                                                      |
-| - rocblas_set_vector                           |                                                      |
-| - rocblas_get_vector                           |                                                      |
-| - rocblas_set_matrix                           |                                                      |
-| - rocblas_get_matrix                           |                                                      |
-+------------------------------------------------+------------------------------------------------------+
 
 
 For temporary device memory, rocBLAS uses a per-handle memory allocation with out-of-band management.

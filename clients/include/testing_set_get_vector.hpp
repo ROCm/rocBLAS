@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,45 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_set_get_vector(const Arguments& arg)
 {
-    rocblas_int          M    = arg.M;
-    rocblas_int          incx = arg.incx;
-    rocblas_int          incy = arg.incy;
-    rocblas_int          ldd  = arg.ldd;
-    rocblas_local_handle handle{arg};
+    auto rocblas_set_vector_fn    = rocblas_set_vector;
+    auto rocblas_set_vector_fn_64 = rocblas_set_vector_64;
+    auto rocblas_get_vector_fn    = rocblas_get_vector;
+    auto rocblas_get_vector_fn_64 = rocblas_get_vector_64;
+
+    int64_t N    = arg.N;
+    int64_t incx = arg.incx;
+    int64_t incy = arg.incy;
+    int64_t ldd  = arg.ldd;
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(M < 0 || incx <= 0 || incy <= 0 || ldd <= 0)
+    if(N < 0 || incx <= 0 || incy <= 0 || ldd <= 0)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_set_vector(M, sizeof(T), nullptr, incx, nullptr, ldd),
-                              rocblas_status_invalid_size);
-        EXPECT_ROCBLAS_STATUS(rocblas_get_vector(M, sizeof(T), nullptr, ldd, nullptr, incy),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_set_vector_fn,
+                    (N, sizeof(T), nullptr, incx, nullptr, ldd));
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_get_vector_fn,
+                    (N, sizeof(T), nullptr, ldd, nullptr, incy));
         return;
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hx(M, incx);
-    host_vector<T> hy(M, incy);
-    host_vector<T> hy_gold(M, incy);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy(N, incy);
+    host_vector<T> hy_gold(N, incy);
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
+    double cpu_time_used;
+    cpu_time_used        = 0.0;
+    double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> db(M, ldd);
+    device_vector<T> db(N, ldd);
     CHECK_DEVICE_ALLOCATION(db.memcheck());
 
     // Initial Data on CPU
@@ -75,15 +70,15 @@ void testing_set_get_vector(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // set GPU memory to zero
-        CHECK_HIP_ERROR(hipMemset(db, 0, sizeof(T) * (1 + ldd * (M - 1))));
+        CHECK_HIP_ERROR(hipMemset(db, 0, sizeof(T) * (1 + ldd * (N - 1))));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_vector(M, sizeof(T), hx, incx, db, ldd));
-        CHECK_ROCBLAS_ERROR(rocblas_get_vector(M, sizeof(T), db, ldd, hy, incy));
+        DAPI_CHECK(rocblas_set_vector_fn, (N, sizeof(T), hx, incx, db, ldd));
+        DAPI_CHECK(rocblas_get_vector_fn, (N, sizeof(T), db, ldd, hy, incy));
 
         cpu_time_used = get_time_us_no_sync();
 
         // reference calculation
-        for(size_t i = 0; i < M; i++)
+        for(size_t i = 0; i < N; i++)
         {
             hy_gold[i * incy] = hx[i * incx];
         }
@@ -92,35 +87,37 @@ void testing_set_get_vector(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, incy, hy, hy_gold);
+            unit_check_general<T>(1, N, incy, hy, hy_gold);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, incy, hy, hy_gold);
+            rocblas_error = norm_check_general<T>('F', 1, N, incy, hy, hy_gold);
         }
     }
 
     if(arg.timing)
     {
-        int         number_timing_iterations = arg.iters;
-        hipStream_t stream;
-        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
-        for(int iter = 0; iter < number_timing_iterations; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_set_vector(M, sizeof(T), hx, incx, db, ldd);
-            rocblas_get_vector(M, sizeof(T), db, ldd, hy, incy);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_no_sync();
+
+            DAPI_DISPATCH(rocblas_set_vector_fn, (N, sizeof(T), hx, incx, db, ldd));
+            DAPI_DISPATCH(rocblas_get_vector_fn, (N, sizeof(T), db, ldd, hy, incy));
         }
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        gpu_time_used = get_time_us_no_sync() - gpu_time_used;
 
-        ArgumentModel<e_M, e_incx, e_incy, e_ldd>{}.log_args<T>(rocblas_cout,
+        ArgumentModel<e_N, e_incx, e_incy, e_ldd>{}.log_args<T>(rocblas_cout,
                                                                 arg,
                                                                 gpu_time_used,
                                                                 ArgumentLogging::NA_value,
-                                                                set_get_vector_gbyte_count<T>(M),
+                                                                set_get_vector_gbyte_count<T>(N),
                                                                 cpu_time_used,
                                                                 rocblas_error);
     }

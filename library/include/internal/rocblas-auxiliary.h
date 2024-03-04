@@ -121,6 +121,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_vector(rocblas_int n,
                                                  void*       y,
                                                  rocblas_int incy);
 
+ROCBLAS_EXPORT rocblas_status rocblas_set_vector_64(
+    int64_t n, int64_t elem_size, const void* x, int64_t incx, void* y, int64_t incy);
+
 /*! \brief Copy vector from device to host
     @param[in]
     n           [rocblas_int]
@@ -145,6 +148,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_vector(rocblas_int n,
                                                  rocblas_int incx,
                                                  void*       y,
                                                  rocblas_int incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_get_vector_64(
+    int64_t n, int64_t elem_size, const void* x, int64_t incx, void* y, int64_t incy);
 
 /*! \brief Copy matrix from host to device
     @param[in]
@@ -175,6 +181,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_matrix(rocblas_int rows,
                                                  void*       b,
                                                  rocblas_int ldb);
 
+ROCBLAS_EXPORT rocblas_status rocblas_set_matrix_64(int64_t     rows,
+                                                    int64_t     cols,
+                                                    int64_t     elem_size,
+                                                    const void* a,
+                                                    int64_t     lda,
+                                                    void*       b,
+                                                    int64_t     ldb);
+
 /*! \brief Copy matrix from device to host
     @param[in]
     rows        [rocblas_int]
@@ -203,6 +217,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix(rocblas_int rows,
                                                  rocblas_int lda,
                                                  void*       b,
                                                  rocblas_int ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_get_matrix_64(int64_t     rows,
+                                                    int64_t     cols,
+                                                    int64_t     elem_size,
+                                                    const void* a,
+                                                    int64_t     lda,
+                                                    void*       b,
+                                                    int64_t     ldb);
 
 /*! \brief Asynchronously copy vector from host to device
      \details
@@ -235,6 +257,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_vector_async(rocblas_int n,
                                                        rocblas_int incy,
                                                        hipStream_t stream);
 
+ROCBLAS_EXPORT rocblas_status rocblas_set_vector_async_64(int64_t     n,
+                                                          int64_t     elem_size,
+                                                          const void* x,
+                                                          int64_t     incx,
+                                                          void*       y,
+                                                          int64_t     incy,
+                                                          hipStream_t stream);
+
 /*! \brief Asynchronously copy vector from device to host
      \details
     rocblas_get_vector_async copies a vector from pinned host memory to device memory asynchronously.
@@ -265,6 +295,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_vector_async(rocblas_int n,
                                                        void*       y,
                                                        rocblas_int incy,
                                                        hipStream_t stream);
+
+ROCBLAS_EXPORT rocblas_status rocblas_get_vector_async_64(int64_t     n,
+                                                          int64_t     elem_size,
+                                                          const void* x,
+                                                          int64_t     incx,
+                                                          void*       y,
+                                                          int64_t     incy,
+                                                          hipStream_t stream);
 
 /*! \brief Asynchronously copy matrix from host to device
      \details
@@ -301,6 +339,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_matrix_async(rocblas_int rows,
                                                        rocblas_int ldb,
                                                        hipStream_t stream);
 
+ROCBLAS_EXPORT rocblas_status rocblas_set_matrix_async_64(int64_t     rows,
+                                                          int64_t     cols,
+                                                          int64_t     elem_size,
+                                                          const void* a,
+                                                          int64_t     lda,
+                                                          void*       b,
+                                                          int64_t     ldb,
+                                                          hipStream_t stream);
+
 /*! \brief asynchronously copy matrix from device to host
      \details
     rocblas_get_matrix_async copies a matrix from device memory to pinned host memory asynchronously.
@@ -335,6 +382,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix_async(rocblas_int rows,
                                                        void*       b,
                                                        rocblas_int ldb,
                                                        hipStream_t stream);
+
+ROCBLAS_EXPORT rocblas_status rocblas_get_matrix_async_64(int64_t     rows,
+                                                          int64_t     cols,
+                                                          int64_t     elem_size,
+                                                          const void* a,
+                                                          int64_t     lda,
+                                                          void*       b,
+                                                          int64_t     ldb,
+                                                          hipStream_t stream);
 
 /*******************************************************************************
  * Function to set start/stop event handlers (for internal use only)

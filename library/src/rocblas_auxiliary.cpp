@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -282,60 +282,12 @@ catch(...)
 }
 
 /*******************************************************************************
- *! \brief  Non-unit stride vector copy on device. Vectors are void pointers
-     with element size elem_size
- ******************************************************************************/
-// arbitrarily assign max buffer size to 1Mb
-constexpr size_t      VEC_BUFF_MAX_BYTES = 1048576;
-constexpr rocblas_int NB_X               = 256;
-
-template <rocblas_int NB>
-ROCBLAS_KERNEL(NB)
-rocblas_copy_void_ptr_vector_kernel(rocblas_int n,
-                                    rocblas_int elem_size,
-                                    const void* x,
-                                    rocblas_int incx,
-                                    void*       y,
-                                    rocblas_int incy)
-{
-    size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    if(tid < n)
-    {
-        memcpy(
-            (char*)y + tid * incy * elem_size, (const char*)x + tid * incx * elem_size, elem_size);
-    }
-}
-
-/* ============================================================================================ */
-// TODO: Need to replace this with new device memory allocation system
-
-// device_malloc wraps hipMalloc and provides same API as malloc
-static void* device_malloc(size_t byte_size)
-{
-    void* pointer = nullptr;
-    PRINT_IF_HIP_ERROR((hipMalloc)(&pointer, byte_size));
-    return pointer;
-}
-
-// device_free wraps hipFree and provides same API as free
-static void device_free(void* ptr)
-{
-    PRINT_IF_HIP_ERROR((hipFree)(ptr));
-}
-
-using rocblas_unique_ptr = std::unique_ptr<void, void (*)(void*)>;
-
-/*******************************************************************************
  *! \brief   copies void* vector x with stride incx on host to void* vector
      y with stride incy on device. Vectors have n elements of size elem_size.
   TODO: Need to replace device memory allocation with new system
  ******************************************************************************/
-extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
-                                             rocblas_int elem_size,
-                                             const void* x_h,
-                                             rocblas_int incx,
-                                             void*       y_d,
-                                             rocblas_int incy)
+extern "C" rocblas_status rocblas_set_vector_64(
+    int64_t n, int64_t elem_size, const void* x_h, int64_t incx, void* y_d, int64_t incy)
 try
 {
     if(n == 0) // quick return
@@ -353,101 +305,14 @@ try
     }
     else // either non-contiguous host vector or non-contiguous device vector
     {
-        size_t bytes_to_copy = elem_size_u64 * n;
-        size_t temp_byte_size
-            = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
-        int n_elem = temp_byte_size / elem_size; // number of elements in buffer
-        int n_copy = ((n - 1) / n_elem) + 1; // number of times buffer is copied
-
-        int  blocks = (n_elem - 1) / NB_X + 1; // parameters for device kernel
-        dim3 grid(blocks);
-        dim3 threads(NB_X);
-
-        size_t x_h_byte_stride = elem_size_u64 * incx;
-        size_t y_d_byte_stride = elem_size_u64 * incy;
-        size_t t_h_byte_stride = elem_size_u64;
-
-        for(int i_copy = 0; i_copy < n_copy; i_copy++)
-        {
-            int         i_start     = i_copy * n_elem;
-            int         n_elem_max  = n - i_start < n_elem ? n - i_start : n_elem;
-            size_t      contig_size = n_elem_max * elem_size_u64;
-            void*       y_d_start   = (char*)y_d + i_start * y_d_byte_stride;
-            const void* x_h_start   = (const char*)x_h + i_start * x_h_byte_stride;
-
-            if((incx != 1) && (incy != 1))
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // non-contiguous host vector -> host buffer
-                for(size_t i_b = 0, i_x = i_start; i_b < n_elem_max; i_b++, i_x++)
-                {
-                    memcpy((char*)t_h + i_b * t_h_byte_stride,
-                           (const char*)x_h + i_x * x_h_byte_stride,
-                           elem_size_u64);
-                }
-                // host buffer -> device buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
-                // device buffer -> non-contiguous device vector
-                ROCBLAS_LAUNCH_KERNEL((rocblas_copy_void_ptr_vector_kernel<NB_X>),
-                                      grid,
-                                      threads,
-                                      0,
-                                      0,
-                                      n_elem_max,
-                                      elem_size,
-                                      t_d,
-                                      1,
-                                      y_d_start,
-                                      incy);
-            }
-            else if(incx == 1 && incy != 1)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // contiguous host vector -> device buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_d, x_h_start, contig_size, hipMemcpyHostToDevice));
-                // device buffer -> non-contiguous device vector
-                ROCBLAS_LAUNCH_KERNEL((rocblas_copy_void_ptr_vector_kernel<NB_X>),
-                                      grid,
-                                      threads,
-                                      0,
-                                      0,
-                                      n_elem_max,
-                                      elem_size,
-                                      t_d,
-                                      1,
-                                      y_d_start,
-                                      incy);
-            }
-            else if(incx != 1 && incy == 1)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                // non-contiguous host vector -> host buffer
-                for(size_t i_b = 0, i_x = i_start; i_b < n_elem_max; i_b++, i_x++)
-                {
-                    memcpy((char*)t_h + i_b * t_h_byte_stride,
-                           (const char*)x_h + i_x * x_h_byte_stride,
-                           elem_size);
-                }
-                // host buffer -> contiguous device vector
-                PRINT_IF_HIP_ERROR(hipMemcpy(y_d_start, t_h, contig_size, hipMemcpyHostToDevice));
-            }
-        }
+        // pretend data is 2D to compensate for non unit increments
+        PRINT_IF_HIP_ERROR(hipMemcpy2D(y_d,
+                                       elem_size_u64 * incy,
+                                       x_h,
+                                       elem_size_u64 * incx,
+                                       elem_size,
+                                       n,
+                                       hipMemcpyHostToDevice));
     }
     return rocblas_status_success;
 }
@@ -456,16 +321,22 @@ catch(...) // catch all exceptions
     return exception_to_rocblas_status();
 }
 
+extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
+                                             rocblas_int elem_size,
+                                             const void* x_h,
+                                             rocblas_int incx,
+                                             void*       y_d,
+                                             rocblas_int incy)
+{
+    return rocblas_set_vector_64(n, elem_size, x_h, incx, y_d, incy);
+}
+
 /*******************************************************************************
  *! \brief   copies void* vector x with stride incx on device to void* vector
      y with stride incy on host. Vectors have n elements of size elem_size.
  ******************************************************************************/
-extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
-                                             rocblas_int elem_size,
-                                             const void* x_d,
-                                             rocblas_int incx,
-                                             void*       y_h,
-                                             rocblas_int incy)
+extern "C" rocblas_status rocblas_get_vector_64(
+    int64_t n, int64_t elem_size, const void* x_d, int64_t incx, void* y_h, int64_t incy)
 try
 {
     if(n == 0) // quick return
@@ -481,104 +352,16 @@ try
     {
         PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, elem_size_u64 * n, hipMemcpyDeviceToHost));
     }
-    else // either device or host vector is non-contiguous
+    else
     {
-        size_t bytes_to_copy = elem_size_u64 * n;
-        size_t temp_byte_size
-            = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
-        int n_elem = temp_byte_size / elem_size; // number elements in buffer
-        int n_copy = ((n - 1) / n_elem) + 1; // number of times buffer is copied
-
-        int  blocks = (n_elem - 1) / NB_X + 1; // parameters for device kernel
-        dim3 grid(blocks);
-        dim3 threads(NB_X);
-
-        size_t x_d_byte_stride = elem_size_u64 * incx;
-        size_t y_h_byte_stride = elem_size_u64 * incy;
-        size_t t_h_byte_stride = elem_size_u64;
-
-        for(int i_copy = 0; i_copy < n_copy; i_copy++)
-        {
-            int    i_start        = i_copy * n_elem;
-            int    n_elem_max     = n - (n_elem * i_copy) < n_elem ? n - (n_elem * i_copy) : n_elem;
-            size_t contig_size    = elem_size_u64 * n_elem_max;
-            const void* x_d_start = (const char*)x_d + i_start * x_d_byte_stride;
-            void*       y_h_start = (char*)y_h + i_start * y_h_byte_stride;
-
-            if(incx != 1 && incy != 1)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // non-contiguous device vector -> device buffer
-                ROCBLAS_LAUNCH_KERNEL((rocblas_copy_void_ptr_vector_kernel<NB_X>),
-                                      grid,
-                                      threads,
-                                      0,
-                                      0,
-                                      n_elem_max,
-                                      elem_size,
-                                      x_d_start,
-                                      incx,
-                                      t_d,
-                                      1);
-                // device buffer -> host buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_h, t_d, contig_size, hipMemcpyDeviceToHost));
-                // host buffer -> non-contiguous host vector
-                for(size_t i_b = 0, i_y = i_start; i_b < n_elem_max; i_b++, i_y++)
-                {
-                    memcpy((char*)y_h + i_y * y_h_byte_stride,
-                           (const char*)t_h + i_b * t_h_byte_stride,
-                           elem_size);
-                }
-            }
-            else if(incx == 1 && incy != 1)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                // congiguous device vector -> host buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_h, x_d_start, contig_size, hipMemcpyDeviceToHost));
-
-                // host buffer -> non-contiguous host vector
-                for(size_t i_b = 0, i_y = i_start; i_b < n_elem_max; i_b++, i_y++)
-                {
-                    memcpy((char*)y_h + i_y * y_h_byte_stride,
-                           (const char*)t_h + i_b * t_h_byte_stride,
-                           elem_size);
-                }
-            }
-            else if(incx != 1 && incy == 1)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // non-contiguous device vector -> device buffer
-                ROCBLAS_LAUNCH_KERNEL((rocblas_copy_void_ptr_vector_kernel<NB_X>),
-                                      grid,
-                                      threads,
-                                      0,
-                                      0,
-                                      n_elem_max,
-                                      elem_size,
-                                      x_d_start,
-                                      incx,
-                                      t_d,
-                                      1);
-                // device buffer -> contiguous host vector
-                PRINT_IF_HIP_ERROR(hipMemcpy(y_h_start, t_d, contig_size, hipMemcpyDeviceToHost));
-            }
-        }
+        // pretend data is 2D to compensate for non unit increments
+        PRINT_IF_HIP_ERROR(hipMemcpy2D(y_h,
+                                       elem_size_u64 * incy,
+                                       x_d,
+                                       elem_size_u64 * incx,
+                                       elem_size,
+                                       n,
+                                       hipMemcpyDeviceToHost));
     }
     return rocblas_status_success;
 }
@@ -587,17 +370,27 @@ catch(...) // catch all exceptions
     return exception_to_rocblas_status();
 }
 
+extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
+                                             rocblas_int elem_size,
+                                             const void* x_d,
+                                             rocblas_int incx,
+                                             void*       y_h,
+                                             rocblas_int incy)
+{
+    return rocblas_get_vector_64(n, elem_size, x_d, incx, y_h, incy);
+}
+
 /*******************************************************************************
  *! \brief   copies void* vector x with stride incx on host to void* vector
      y with stride incy on device. Vectors have n elements of size elem_size.
  ******************************************************************************/
-extern "C" rocblas_status rocblas_set_vector_async(rocblas_int n,
-                                                   rocblas_int elem_size,
-                                                   const void* x_h,
-                                                   rocblas_int incx,
-                                                   void*       y_d,
-                                                   rocblas_int incy,
-                                                   hipStream_t stream)
+extern "C" rocblas_status rocblas_set_vector_async_64(int64_t     n,
+                                                      int64_t     elem_size,
+                                                      const void* x_h,
+                                                      int64_t     incx,
+                                                      void*       y_d,
+                                                      int64_t     incy,
+                                                      hipStream_t stream)
 try
 {
     if(n == 0) // quick return
@@ -633,17 +426,28 @@ catch(...) // catch all exceptions
     return exception_to_rocblas_status();
 }
 
+extern "C" rocblas_status rocblas_set_vector_async(rocblas_int n,
+                                                   rocblas_int elem_size,
+                                                   const void* x_h,
+                                                   rocblas_int incx,
+                                                   void*       y_d,
+                                                   rocblas_int incy,
+                                                   hipStream_t stream)
+{
+    return rocblas_set_vector_async_64(n, elem_size, x_h, incx, y_d, incy, stream);
+}
+
 /*******************************************************************************
  *! \brief   copies void* vector x with stride incx on device to void* vector
      y with stride incy on host. Vectors have n elements of size elem_size.
  ******************************************************************************/
-extern "C" rocblas_status rocblas_get_vector_async(rocblas_int n,
-                                                   rocblas_int elem_size,
-                                                   const void* x_d,
-                                                   rocblas_int incx,
-                                                   void*       y_h,
-                                                   rocblas_int incy,
-                                                   hipStream_t stream)
+extern "C" rocblas_status rocblas_get_vector_async_64(int64_t     n,
+                                                      int64_t     elem_size,
+                                                      const void* x_d,
+                                                      int64_t     incx,
+                                                      void*       y_h,
+                                                      int64_t     incy,
+                                                      hipStream_t stream)
 try
 {
     if(n == 0) // quick return
@@ -677,6 +481,17 @@ try
 catch(...) // catch all exceptions
 {
     return exception_to_rocblas_status();
+}
+
+extern "C" rocblas_status rocblas_get_vector_async(rocblas_int n,
+                                                   rocblas_int elem_size,
+                                                   const void* x_d,
+                                                   rocblas_int incx,
+                                                   void*       y_h,
+                                                   rocblas_int incy,
+                                                   hipStream_t stream)
+{
+    return rocblas_get_vector_async_64(n, elem_size, x_d, incx, y_h, incy, stream);
 }
 
 /*******************************************************************************
@@ -713,13 +528,13 @@ rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
      size rows * cols with element size elem_size.
  ******************************************************************************/
 
-extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
-                                             rocblas_int cols,
-                                             rocblas_int elem_size,
-                                             const void* a_h,
-                                             rocblas_int lda,
-                                             void*       b_d,
-                                             rocblas_int ldb)
+extern "C" rocblas_status rocblas_set_matrix_64(int64_t     rows,
+                                                int64_t     cols,
+                                                int64_t     elem_size,
+                                                const void* a_h,
+                                                int64_t     lda,
+                                                void*       b_d,
+                                                int64_t     ldb)
 try
 {
     if(rows == 0 || cols == 0) // quick return
@@ -737,121 +552,16 @@ try
         size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpy(b_d, a_h, bytes_to_copy, hipMemcpyHostToDevice));
     }
-    // matrix columns too large to fit in temp buffer, copy matrix col by col
-    else if(rows * elem_size_u64 > MAT_BUFF_MAX_BYTES)
-    {
-        for(size_t i = 0; i < cols; i++)
-        {
-            PRINT_IF_HIP_ERROR(hipMemcpy((char*)b_d + ldb * i * elem_size_u64,
-                                         (const char*)a_h + lda * i * elem_size_u64,
-                                         elem_size_u64 * rows,
-                                         hipMemcpyHostToDevice));
-        }
-    }
-    // columns fit in temp buffer, pack columns in buffer, hipMemcpy host->device, unpack
-    // columns
     else
     {
-        size_t bytes_to_copy = elem_size_u64 * rows * cols;
-        size_t temp_byte_size
-            = bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
-        int n_cols = temp_byte_size / (elem_size_u64 * rows); // number of columns in buffer
-        int n_copy = ((cols - 1) / n_cols) + 1; // number of times buffer is copied
-
-        rocblas_int blocksX = ((rows - 1) / MATRIX_DIM_X) + 1; // parameters for device kernel
-        rocblas_int blocksY = ((n_cols - 1) / MATRIX_DIM_Y) + 1;
-        dim3        grid(blocksX, blocksY);
-        dim3        threads(MATRIX_DIM_X, MATRIX_DIM_Y);
-
-        size_t lda_h_byte = elem_size_u64 * lda;
-        size_t ldb_d_byte = elem_size_u64 * ldb;
-        size_t ldt_h_byte = elem_size_u64 * rows;
-
-        for(int i_copy = 0; i_copy < n_copy; i_copy++)
-        {
-            size_t      i_start     = i_copy * n_cols;
-            int         n_cols_max  = cols - i_start < n_cols ? cols - i_start : n_cols;
-            size_t      contig_size = elem_size_u64 * rows * n_cols_max;
-            void*       b_d_start   = (char*)b_d + i_start * ldb_d_byte;
-            const void* a_h_start   = (const char*)a_h + i_start * lda_h_byte;
-
-            if((lda != rows) && (ldb != rows))
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // non-contiguous host matrix -> host buffer
-                for(size_t i_t = 0, i_a = i_start; i_t < n_cols_max; i_t++, i_a++)
-                {
-                    memcpy((char*)t_h + i_t * ldt_h_byte,
-                           (const char*)a_h + i_a * lda_h_byte,
-                           ldt_h_byte);
-                }
-                // host buffer -> device buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
-                // device buffer -> non-contiguous device matrix
-                ROCBLAS_LAUNCH_KERNEL(
-                    (rocblas_copy_void_ptr_matrix_kernel<MATRIX_DIM_X, MATRIX_DIM_Y>),
-                    grid,
-                    threads,
-                    0,
-                    0,
-                    rows,
-                    n_cols_max,
-                    elem_size_u64,
-                    t_d,
-                    rows,
-                    b_d_start,
-                    ldb);
-            }
-            else if(lda == rows && ldb != rows)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // contiguous host matrix -> device buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_d, a_h_start, contig_size, hipMemcpyHostToDevice));
-                // device buffer -> non-contiguous device matrix
-                ROCBLAS_LAUNCH_KERNEL(
-                    (rocblas_copy_void_ptr_matrix_kernel<MATRIX_DIM_X, MATRIX_DIM_Y>),
-                    grid,
-                    threads,
-                    0,
-                    0,
-                    rows,
-                    n_cols_max,
-                    elem_size_u64,
-                    t_d,
-                    rows,
-                    b_d_start,
-                    ldb);
-            }
-            else if(lda != rows && ldb == rows)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                // non-contiguous host matrix -> host buffer
-                for(size_t i_t = 0, i_a = i_start; i_t < n_cols_max; i_t++, i_a++)
-                {
-                    memcpy((char*)t_h + i_t * ldt_h_byte,
-                           (const char*)a_h + i_a * lda_h_byte,
-                           ldt_h_byte);
-                }
-                // host buffer -> contiguous device matrix
-                PRINT_IF_HIP_ERROR(hipMemcpy(b_d_start, t_h, contig_size, hipMemcpyHostToDevice));
-            }
-        }
+        // width is column vector in matrix
+        PRINT_IF_HIP_ERROR(hipMemcpy2D(b_d,
+                                       elem_size_u64 * ldb,
+                                       a_h,
+                                       elem_size_u64 * lda,
+                                       elem_size_u64 * rows,
+                                       cols,
+                                       hipMemcpyHostToDevice));
     }
     return rocblas_status_success;
 }
@@ -860,19 +570,30 @@ catch(...) // catch all exceptions
     return exception_to_rocblas_status();
 }
 
+extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
+                                             rocblas_int cols,
+                                             rocblas_int elem_size,
+                                             const void* a_h,
+                                             rocblas_int lda,
+                                             void*       b_d,
+                                             rocblas_int ldb)
+{
+    return rocblas_set_matrix_64(rows, cols, elem_size, a_h, lda, b_d, ldb);
+}
+
 /*******************************************************************************
  *! \brief   copies void* matrix a_h with leading dimentsion lda on host to
      void* matrix b_d with leading dimension ldb on device. Matrices have
      size rows * cols with element size elem_size.
  ******************************************************************************/
 
-extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
-                                             rocblas_int cols,
-                                             rocblas_int elem_size,
-                                             const void* a_d,
-                                             rocblas_int lda,
-                                             void*       b_h,
-                                             rocblas_int ldb)
+extern "C" rocblas_status rocblas_get_matrix_64(int64_t     rows,
+                                                int64_t     cols,
+                                                int64_t     elem_size,
+                                                const void* a_d,
+                                                int64_t     lda,
+                                                void*       b_h,
+                                                int64_t     ldb)
 try
 {
     if(rows == 0 || cols == 0) // quick return
@@ -890,120 +611,16 @@ try
         size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpy(b_h, a_d, bytes_to_copy, hipMemcpyDeviceToHost));
     }
-    // columns too large for temp buffer, hipMemcpy column by column
-    else if(rows * elem_size_u64 > MAT_BUFF_MAX_BYTES)
-    {
-        for(size_t i = 0; i < cols; i++)
-        {
-            PRINT_IF_HIP_ERROR(hipMemcpy((char*)b_h + i * ldb * elem_size,
-                                         (const char*)a_d + i * lda * elem_size,
-                                         elem_size_u64 * rows,
-                                         hipMemcpyDeviceToHost));
-        }
-    }
-    // columns fit in temp buffer, pack columns in buffer, hipMemcpy device->host, unpack
-    // columns
     else
     {
-        size_t bytes_to_copy = elem_size_u64 * rows * cols;
-        size_t temp_byte_size
-            = bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
-        int n_cols = temp_byte_size / (elem_size_u64 * rows); // number of columns in buffer
-        int n_copy = ((cols - 1) / n_cols) + 1; // number times buffer copied
-
-        rocblas_int blocksX = ((rows - 1) / MATRIX_DIM_X) + 1; // parameters for device kernel
-        rocblas_int blocksY = ((n_cols - 1) / MATRIX_DIM_Y) + 1;
-        dim3        grid(blocksX, blocksY);
-        dim3        threads(MATRIX_DIM_X, MATRIX_DIM_Y);
-
-        size_t lda_d_byte = elem_size_u64 * lda;
-        size_t ldb_h_byte = elem_size_u64 * ldb;
-        size_t ldt_h_byte = elem_size_u64 * rows;
-
-        for(int i_copy = 0; i_copy < n_copy; i_copy++)
-        {
-            int         i_start     = i_copy * n_cols;
-            int         n_cols_max  = cols - i_start < n_cols ? cols - i_start : n_cols;
-            size_t      contig_size = elem_size_u64 * rows * n_cols_max;
-            const void* a_d_start   = (const char*)a_d + i_start * lda_d_byte;
-            void*       b_h_start   = (char*)b_h + i_start * ldb_h_byte;
-            if(lda != rows && ldb != rows)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // non-contiguous device matrix -> device buffer
-                ROCBLAS_LAUNCH_KERNEL(
-                    (rocblas_copy_void_ptr_matrix_kernel<MATRIX_DIM_X, MATRIX_DIM_Y>),
-                    grid,
-                    threads,
-                    0,
-                    0,
-                    rows,
-                    n_cols_max,
-                    elem_size_u64,
-                    a_d_start,
-                    lda,
-                    t_d,
-                    rows);
-                // device buffer -> host buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_h, t_d, contig_size, hipMemcpyDeviceToHost));
-                // host buffer -> non-contiguous host matrix
-                for(size_t i_t = 0, i_b = i_start; i_t < n_cols_max; i_t++, i_b++)
-                {
-                    memcpy((char*)b_h + i_b * ldb_h_byte,
-                           (const char*)t_h + i_t * ldt_h_byte,
-                           ldt_h_byte);
-                }
-            }
-            else if(lda == rows && ldb != rows)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h         = t_h_managed.get();
-                if(!t_h)
-                    return rocblas_status_memory_error;
-                // congiguous device matrix -> host buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(t_h, a_d_start, contig_size, hipMemcpyDeviceToHost));
-                // host buffer -> non-contiguous host matrix
-                for(size_t i_t = 0, i_b = i_start; i_t < n_cols_max; i_t++, i_b++)
-                {
-                    memcpy((char*)b_h + i_b * ldb_h_byte,
-                           (const char*)t_h + i_t * ldt_h_byte,
-                           ldt_h_byte);
-                }
-            }
-            else if(lda != rows && ldb == rows)
-            {
-                // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr{device_malloc(temp_byte_size), device_free};
-                void* t_d         = t_d_managed.get();
-                if(!t_d)
-                    return rocblas_status_memory_error;
-                // non-contiguous device matrix -> device buffer
-                ROCBLAS_LAUNCH_KERNEL(
-                    (rocblas_copy_void_ptr_matrix_kernel<MATRIX_DIM_X, MATRIX_DIM_Y>),
-                    grid,
-                    threads,
-                    0,
-                    0,
-                    rows,
-                    n_cols_max,
-                    elem_size_u64,
-                    a_d_start,
-                    lda,
-                    t_d,
-                    rows);
-                // device temp buffer -> contiguous host matrix
-                PRINT_IF_HIP_ERROR(hipMemcpy(b_h_start, t_d, contig_size, hipMemcpyDeviceToHost));
-            }
-        }
+        // width is column vector in matrix
+        PRINT_IF_HIP_ERROR(hipMemcpy2D(b_h,
+                                       elem_size_u64 * ldb,
+                                       a_d,
+                                       elem_size_u64 * lda,
+                                       elem_size_u64 * rows,
+                                       cols,
+                                       hipMemcpyDeviceToHost));
     }
     return rocblas_status_success;
 }
@@ -1012,19 +629,30 @@ catch(...) // catch all exceptions
     return exception_to_rocblas_status();
 }
 
+extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
+                                             rocblas_int cols,
+                                             rocblas_int elem_size,
+                                             const void* a_d,
+                                             rocblas_int lda,
+                                             void*       b_h,
+                                             rocblas_int ldb)
+{
+    return rocblas_get_matrix_64(rows, cols, elem_size, a_d, lda, b_h, ldb);
+}
+
 /*******************************************************************************
  *! \brief   copies void* matrix a_h with leading dimentsion lda on host to
      void* matrix b_d with leading dimension ldb on device. Matrices have
      size rows * cols with element size elem_size.
  ******************************************************************************/
-extern "C" rocblas_status rocblas_set_matrix_async(rocblas_int rows,
-                                                   rocblas_int cols,
-                                                   rocblas_int elem_size,
-                                                   const void* a_h,
-                                                   rocblas_int lda,
-                                                   void*       b_d,
-                                                   rocblas_int ldb,
-                                                   hipStream_t stream)
+extern "C" rocblas_status rocblas_set_matrix_async_64(int64_t     rows,
+                                                      int64_t     cols,
+                                                      int64_t     elem_size,
+                                                      const void* a_h,
+                                                      int64_t     lda,
+                                                      void*       b_d,
+                                                      int64_t     ldb,
+                                                      hipStream_t stream)
 try
 {
     if(rows == 0 || cols == 0) // quick return
@@ -1061,20 +689,32 @@ catch(...) // catch all exceptions
     return exception_to_rocblas_status();
 }
 
+extern "C" rocblas_status rocblas_set_matrix_async(rocblas_int rows,
+                                                   rocblas_int cols,
+                                                   rocblas_int elem_size,
+                                                   const void* a_h,
+                                                   rocblas_int lda,
+                                                   void*       b_d,
+                                                   rocblas_int ldb,
+                                                   hipStream_t stream)
+{
+    return rocblas_set_matrix_async_64(rows, cols, elem_size, a_h, lda, b_d, ldb, stream);
+}
+
 /*******************************************************************************
  *! \brief   copies void* matrix a_h with leading dimentsion lda on host to
      void* matrix b_d with leading dimension ldb on device. Matrices have
      size rows * cols with element size elem_size.
  ******************************************************************************/
 
-extern "C" rocblas_status rocblas_get_matrix_async(rocblas_int rows,
-                                                   rocblas_int cols,
-                                                   rocblas_int elem_size,
-                                                   const void* a_d,
-                                                   rocblas_int lda,
-                                                   void*       b_h,
-                                                   rocblas_int ldb,
-                                                   hipStream_t stream)
+extern "C" rocblas_status rocblas_get_matrix_async_64(int64_t     rows,
+                                                      int64_t     cols,
+                                                      int64_t     elem_size,
+                                                      const void* a_d,
+                                                      int64_t     lda,
+                                                      void*       b_h,
+                                                      int64_t     ldb,
+                                                      hipStream_t stream)
 try
 {
     if(rows == 0 || cols == 0) // quick return
@@ -1109,6 +749,18 @@ try
 catch(...) // catch all exceptions
 {
     return exception_to_rocblas_status();
+}
+
+extern "C" rocblas_status rocblas_get_matrix_async(rocblas_int rows,
+                                                   rocblas_int cols,
+                                                   rocblas_int elem_size,
+                                                   const void* a_d,
+                                                   rocblas_int lda,
+                                                   void*       b_h,
+                                                   rocblas_int ldb,
+                                                   hipStream_t stream)
+{
+    return rocblas_get_matrix_async_64(rows, cols, elem_size, a_d, lda, b_h, ldb, stream);
 }
 
 // Convert rocblas_status to string
