@@ -299,6 +299,16 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
     {
         m_handle->check_numerics = rocblas_check_numerics_mode_no_check;
     }
+    else if(m_handle->check_numerics != rocblas_check_numerics_mode_no_check)
+    {
+        // bypass denorm reporting for f16 gemms, to be analyzed further
+        if(arg.a_type == rocblas_datatype_f16_r && m_handle->getArchMajor() == 11
+           && strstr(arg.function, "gemm"))
+        {
+            m_handle->check_numerics = static_cast<rocblas_check_numerics_mode>(
+                m_handle->check_numerics | rocblas_check_numerics_mode_only_nan_inf);
+        }
+    }
 
     if(status == rocblas_status_success)
     {

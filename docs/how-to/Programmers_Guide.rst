@@ -554,11 +554,13 @@ In level 2 functions, only the general (ge) type input and the output matrix can
 
 * ``ROCBLAS_CHECK_NUMERICS = 0``: is not set, then there is no numerical checking
 
-* ``ROCBLAS_CHECK_NUMERICS = 1``: fully informative message, prints the results of numerical checking whether the input and the output Matrices/Vectors have NaN's/zeros/infinities/denormal values to the console
+* ``ROCBLAS_CHECK_NUMERICS = 1``: fully informative message, prints the results of numerical checking whether the input and the output Matrices/Vectors have NaN/zero/infinity/denormal values to the console
 
 * ``ROCBLAS_CHECK_NUMERICS = 2``: prints result of numerical checking only if the input and the output Matrices/Vectors has a NaN/infinity/denormal value
 
 * ``ROCBLAS_CHECK_NUMERICS = 4``: return ``rocblas_status_check_numeric_fail`` status if there is a NaN/infinity/denormal value
+
+* ``ROCBLAS_CHECK_NUMERICS = 8``: ignore denormal values if there are no NaN/infinity values present
 
 An example usage of ``ROCBLAS_CHECK_NUMERICS`` is shown below,
 
