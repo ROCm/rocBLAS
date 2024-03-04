@@ -332,6 +332,9 @@ typedef enum rocblas_check_numerics_mode_
     //Return 'rocblas_status_check_numeric_fail' status if there is NaN/Inf/denormal value
     rocblas_check_numerics_mode_fail = 0x4,
 
+    //Limits checks to NaN and infinities
+    rocblas_check_numerics_mode_only_nan_inf = 0x8,
+
 } rocblas_check_numerics_mode;
 
 typedef enum rocblas_math_mode_

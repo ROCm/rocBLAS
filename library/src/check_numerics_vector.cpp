@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -84,6 +84,8 @@ rocblas_check_numerics_vector_kernel(rocblas_int               n,
   *                is_input              : To check if the vector under consideration is an Input or an Output vector
   *                h_abnormal            : Structure holding the boolean NaN/zero/Inf/denormal
   *
+  * If check_numerics contains flag rocblas_check_numerics_mode_only_nan_inf then denorms are ignored
+  *
   * Return Value : rocblas_status
   *        rocblas_status_success        : Return status if the vector does not have a NaN/Inf/denormal value
   *   rocblas_status_check_numerics_fail : Return status if the vector contains a NaN/Inf/denormal value and 'check_numerics' enum is set to 'rocblas_check_numerics_mode_fail'
@@ -96,8 +98,9 @@ rocblas_status rocblas_check_numerics_abnormal_struct(const char*               
                                                       rocblas_check_numerics_t* h_abnormal)
 {
     //is_abnormal will be set if the vector has a NaN/Inf/denormal value
-    bool is_abnormal
-        = (h_abnormal->has_NaN != 0) || (h_abnormal->has_Inf != 0) || (h_abnormal->has_denorm != 0);
+    bool is_abnormal = (h_abnormal->has_NaN != 0) || (h_abnormal->has_Inf != 0)
+                       || (h_abnormal->has_denorm != 0
+                           && !(check_numerics & rocblas_check_numerics_mode_only_nan_inf));
 
     //Fully informative message will be printed if 'check_numerics == ROCBLAS_CHECK_NUMERICS_INFO' or 'check_numerics == ROCBLAS_CHECK_NUMERICS_WARN' and 'is_abnormal'
     if(((check_numerics & rocblas_check_numerics_mode_info) != 0)
@@ -125,6 +128,7 @@ rocblas_status rocblas_check_numerics_abnormal_struct(const char*               
         if((check_numerics & rocblas_check_numerics_mode_fail) != 0)
             return rocblas_status_check_numerics_fail;
     }
+
     return rocblas_status_success;
 }
 /**
