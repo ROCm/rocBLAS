@@ -1696,10 +1696,26 @@ static rocblas_status (*rocblas_gbmv)(rocblas_handle    handle,
                                       T*                y,
                                       rocblas_int       incy);
 
-MAP2CF(rocblas_gbmv, float, rocblas_sgbmv);
-MAP2CF(rocblas_gbmv, double, rocblas_dgbmv);
-MAP2CF(rocblas_gbmv, rocblas_float_complex, rocblas_cgbmv);
-MAP2CF(rocblas_gbmv, rocblas_double_complex, rocblas_zgbmv);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_gbmv_64)(rocblas_handle    handle,
+                                         rocblas_operation transA,
+                                         int64_t           m,
+                                         int64_t           n,
+                                         int64_t           kl,
+                                         int64_t           ku,
+                                         const T*          alpha,
+                                         const T*          A,
+                                         int64_t           lda,
+                                         const T*          x,
+                                         int64_t           incx,
+                                         const T*          beta,
+                                         T*                y,
+                                         int64_t           incy);
+
+MAP2CF_D64(rocblas_gbmv, float, rocblas_sgbmv);
+MAP2CF_D64(rocblas_gbmv, double, rocblas_dgbmv);
+MAP2CF_D64(rocblas_gbmv, rocblas_float_complex, rocblas_cgbmv);
+MAP2CF_D64(rocblas_gbmv, rocblas_double_complex, rocblas_zgbmv);
 
 // gbmv_batched
 template <typename T, bool FORTRAN = false>
@@ -1719,10 +1735,27 @@ static rocblas_status (*rocblas_gbmv_batched)(rocblas_handle    handle,
                                               rocblas_int       incy,
                                               rocblas_int       batch_count);
 
-MAP2CF(rocblas_gbmv_batched, float, rocblas_sgbmv_batched);
-MAP2CF(rocblas_gbmv_batched, double, rocblas_dgbmv_batched);
-MAP2CF(rocblas_gbmv_batched, rocblas_float_complex, rocblas_cgbmv_batched);
-MAP2CF(rocblas_gbmv_batched, rocblas_double_complex, rocblas_zgbmv_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_gbmv_batched_64)(rocblas_handle    handle,
+                                                 rocblas_operation transA,
+                                                 int64_t           m,
+                                                 int64_t           n,
+                                                 int64_t           kl,
+                                                 int64_t           ku,
+                                                 const T*          alpha,
+                                                 const T* const    A[],
+                                                 int64_t           lda,
+                                                 const T* const    x[],
+                                                 int64_t           incx,
+                                                 const T*          beta,
+                                                 T* const          y[],
+                                                 int64_t           incy,
+                                                 int64_t           batch_count);
+
+MAP2CF_D64(rocblas_gbmv_batched, float, rocblas_sgbmv_batched);
+MAP2CF_D64(rocblas_gbmv_batched, double, rocblas_dgbmv_batched);
+MAP2CF_D64(rocblas_gbmv_batched, rocblas_float_complex, rocblas_cgbmv_batched);
+MAP2CF_D64(rocblas_gbmv_batched, rocblas_double_complex, rocblas_zgbmv_batched);
 
 // gbmv_strided_batched
 template <typename T, bool FORTRAN = false>
@@ -1745,10 +1778,30 @@ static rocblas_status (*rocblas_gbmv_strided_batched)(rocblas_handle    handle,
                                                       rocblas_stride    stride_y,
                                                       rocblas_int       batch_count);
 
-MAP2CF(rocblas_gbmv_strided_batched, float, rocblas_sgbmv_strided_batched);
-MAP2CF(rocblas_gbmv_strided_batched, double, rocblas_dgbmv_strided_batched);
-MAP2CF(rocblas_gbmv_strided_batched, rocblas_float_complex, rocblas_cgbmv_strided_batched);
-MAP2CF(rocblas_gbmv_strided_batched, rocblas_double_complex, rocblas_zgbmv_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_gbmv_strided_batched_64)(rocblas_handle    handle,
+                                                         rocblas_operation transA,
+                                                         int64_t           m,
+                                                         int64_t           n,
+                                                         int64_t           kl,
+                                                         int64_t           ku,
+                                                         const T*          alpha,
+                                                         const T*          A,
+                                                         int64_t           lda,
+                                                         rocblas_stride    stride_A,
+                                                         const T*          x,
+                                                         int64_t           incx,
+                                                         rocblas_stride    stride_x,
+                                                         const T*          beta,
+                                                         T*                y,
+                                                         int64_t           incy,
+                                                         rocblas_stride    stride_y,
+                                                         int64_t           batch_count);
+
+MAP2CF_D64(rocblas_gbmv_strided_batched, float, rocblas_sgbmv_strided_batched);
+MAP2CF_D64(rocblas_gbmv_strided_batched, double, rocblas_dgbmv_strided_batched);
+MAP2CF_D64(rocblas_gbmv_strided_batched, rocblas_float_complex, rocblas_cgbmv_strided_batched);
+MAP2CF_D64(rocblas_gbmv_strided_batched, rocblas_double_complex, rocblas_zgbmv_strided_batched);
 
 // gemv
 template <typename T, bool FORTRAN = false>

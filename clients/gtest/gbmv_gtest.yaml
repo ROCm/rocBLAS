@@ -104,7 +104,7 @@ Tests:
   - gbmv_strided_batched_bad_arg
   precision: *single_double_precisions
   transA: N
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 # Regular gbmv
 - name: gbmv_NaN
@@ -293,4 +293,47 @@ Tests:
   beta: [ 3.0 ]
   gpu_arch: '90a'
   os_flags: LINUX
+
+- name: gbmv_64
+  category: stress
+  arguments:
+    - { M: 3, N: 2, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+    - { M: 3, N: 3, lda: 5, incx: 2147483649, incy: 1, batch_count: 1 }
+    - { M: 3, N: 3, lda: 5, incx: 1, incy: 2147483649, batch_count: 1 }
+    - { M: 3, N: 3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  KL: 1
+  KU: 1
+  transA: [ N, T, C ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  function:
+    - gbmv: *single_precision
+    - gbmv_batched: *single_precision
+    - gbmv_strided_batched: *single_precision
+  stride_scale: 1
+  gpu_arch: '9??'
+
+# - name: gbmv_64
+#   category: pre_checkin # TODO decide on full problem support
+#   arguments:
+#     - { transA: N, M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+#     - { transA: N, M: 3, N: 2147483649, lda: 3, incx: 1, incy: 1, batch_count: 1 }
+#     - { transA: T, M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+#     - { transA: T, M: 3, N: 2147483649, lda: 3, incx: 1, incy: 1, batch_count: 1 }
+#   KL: 1
+#   KU: 1
+#   alpha_beta: *alpha_beta_range_small
+#   pointer_mode_host: false
+#   initialization: hpl # large reductions so ints can overflow
+#   api: [ C_64 ]
+#   os_flags: [ LINUX ]
+#   function:
+#     - gbmv: *single_precision
+#     - gbmv_batched: *single_precision
+#     - gbmv_strided_batched: *single_precision
+#   stride_scale: 1
+#   gpu_arch: '9??'
+
 ...
