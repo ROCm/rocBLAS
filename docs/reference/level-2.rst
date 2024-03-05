@@ -21,6 +21,9 @@ rocblas_Xgbmv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgbmv
 
+gbmv functions support the _64 interface.  Parameters `m`,`n`,`kl` and `ku` larger than int32_t max value are not currently supported.
+Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sgbmv_batched
    :outline:
 .. doxygenfunction:: rocblas_dgbmv_batched
@@ -29,6 +32,9 @@ rocblas_Xgbmv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgbmv_batched
 
+gbmv_batched functions support the _64 interface.  Parameters `m`,`n`,`kl` and `ku` larger than int32_t max value are not currently supported.
+Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sgbmv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dgbmv_strided_batched
@@ -36,6 +42,9 @@ rocblas_Xgbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_cgbmv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgbmv_strided_batched
+
+gbmv_strided_batched functions support the _64 interface.  Parameters `m`,`n`,`kl` and `ku` larger than int32_t max value are not currently supported.
+Refer to section :ref:`ILP64 API`.
 
 rocblas_Xgemv + batched, strided_batched
 ========================================

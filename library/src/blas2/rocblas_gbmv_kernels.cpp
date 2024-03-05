@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,6 @@
  *
  * ************************************************************************ */
 
-#include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "rocblas_gbmv.hpp"
@@ -29,7 +28,7 @@
   *  Helper for the non-transpose case. Iterates through each diagonal
   *  and creates partial sums for each ty.
   */
-template <rocblas_int DIM_Y, typename T>
+template <int DIM_Y, typename T>
 __device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
                                          rocblas_int ind,
                                          rocblas_int m,
@@ -37,9 +36,9 @@ __device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
                                          rocblas_int kl,
                                          rocblas_int ku,
                                          const T*    A,
-                                         rocblas_int lda,
+                                         int64_t     lda,
                                          const T*    x,
-                                         rocblas_int incx)
+                                         int64_t     incx)
 {
     T           res_A = 0.0;
     rocblas_int col;
@@ -76,7 +75,7 @@ __device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
   *  triangular matrix. Since A is compressed, the indexing changes, and we
   *  basically just iterate down columns.
   */
-template <rocblas_int DIM_Y, typename T>
+template <int DIM_Y, typename T>
 __device__ T rocblas_gbmvt_kernel_helper(bool        is_conj,
                                          rocblas_int ty,
                                          rocblas_int ind,
@@ -85,9 +84,9 @@ __device__ T rocblas_gbmvt_kernel_helper(bool        is_conj,
                                          rocblas_int kl,
                                          rocblas_int ku,
                                          const T*    A,
-                                         rocblas_int lda,
+                                         int64_t     lda,
                                          const T*    x,
-                                         rocblas_int incx)
+                                         int64_t     incx)
 {
     T           res_A = 0.0;
     rocblas_int row;
@@ -123,7 +122,7 @@ __device__ T rocblas_gbmvt_kernel_helper(bool        is_conj,
 /**
   *  A combined kernel to handle all gbmv cases (transpose, conjugate, normal).
   */
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
+template <int DIM_X, int DIM_Y, typename T>
 __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
                                           rocblas_int       m,
                                           rocblas_int       n,
@@ -131,21 +130,21 @@ __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
                                           rocblas_int       ku,
                                           T                 alpha,
                                           const T*          A,
-                                          rocblas_int       lda,
+                                          int64_t           lda,
                                           const T*          x,
-                                          rocblas_int       incx,
+                                          int64_t           incx,
                                           T                 beta,
                                           T*                y,
-                                          rocblas_int       incy)
+                                          int64_t           incy)
 {
-    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * DIM_X;
 
     // threads are all configurated locally
     // Create "tilted" blocks. With the compaction, each diagonal,
     // (from top right to bottom left) is like a row in a normal
     // matrix, so the blocks are "tilted" to the right.
-    rocblas_int tx = thread_id % DIM_X;
-    rocblas_int ty = thread_id / DIM_X;
+    rocblas_int tx = threadIdx.x;
+    rocblas_int ty = threadIdx.y;
 
     rocblas_int ind = blockIdx.x * DIM_X + tx;
 
@@ -208,7 +207,7 @@ __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
   *  1 2 0 0 0              0 2 2 2 2
   *  3 1 2 0 0              1 1 1 1 1    <- main diag on (ku+1)'th row = (1+1)'th row = 2nd row
   *  4 3 1 2 0     ---->    3 3 3 3 0
-  *  0 4 3 1 9              4 4 4 0 0
+  *  0 4 3 1 2              4 4 4 0 0
   *  0 0 4 3 1              0 0 0 0 0
   *
   *  Note: This definition uses 1-indexing as seen above.
@@ -217,7 +216,7 @@ __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
   *  of each element is preserved in the compaction, and the diagonals are "pushed" upwards and
   *  reside on the same row as the other elements of the same diagonal.
   */
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
+template <int DIM_X, int DIM_Y, typename U, typename V, typename W>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_gbmvx_kernel(rocblas_operation transA,
                      rocblas_int       m,
@@ -227,16 +226,16 @@ rocblas_gbmvx_kernel(rocblas_operation transA,
                      U                 alphaa,
                      V                 Aa,
                      rocblas_stride    shifta,
-                     rocblas_int       lda,
+                     int64_t           lda,
                      rocblas_stride    strideA,
                      V                 xa,
                      rocblas_stride    shiftx,
-                     rocblas_int       incx,
+                     int64_t           incx,
                      rocblas_stride    stridex,
                      U                 betaa,
                      W                 ya,
                      rocblas_stride    shifty,
-                     rocblas_int       incy,
+                     int64_t           incy,
                      rocblas_stride    stridey)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
@@ -263,27 +262,27 @@ rocblas_gbmvx_kernel(rocblas_operation transA,
   *  V is either a `T*` or a `T* const*`
   */
 template <typename T, typename U, typename V>
-rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
-                                     rocblas_operation transA,
-                                     rocblas_int       m,
-                                     rocblas_int       n,
-                                     rocblas_int       kl,
-                                     rocblas_int       ku,
-                                     const T*          alpha,
-                                     U                 A,
-                                     rocblas_stride    offseta,
-                                     rocblas_int       lda,
-                                     rocblas_stride    strideA,
-                                     U                 x,
-                                     rocblas_stride    offsetx,
-                                     rocblas_int       incx,
-                                     rocblas_stride    stridex,
-                                     const T*          beta,
-                                     V                 y,
-                                     rocblas_stride    offsety,
-                                     rocblas_int       incy,
-                                     rocblas_stride    stridey,
-                                     rocblas_int       batch_count)
+rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
+                                              rocblas_operation transA,
+                                              rocblas_int       m,
+                                              rocblas_int       n,
+                                              rocblas_int       kl,
+                                              rocblas_int       ku,
+                                              const T*          alpha,
+                                              U                 A,
+                                              rocblas_stride    offseta,
+                                              int64_t           lda,
+                                              rocblas_stride    strideA,
+                                              U                 x,
+                                              rocblas_stride    offsetx,
+                                              int64_t           incx,
+                                              rocblas_stride    stridex,
+                                              const T*          beta,
+                                              V                 y,
+                                              rocblas_stride    offsety,
+                                              int64_t           incy,
+                                              rocblas_stride    stridey,
+                                              rocblas_int       batch_count)
 {
     // quick return
     if(!m || !n || !batch_count)
@@ -373,136 +372,140 @@ template <typename T, typename U>
 rocblas_status rocblas_gbmv_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
+                                           int64_t           m,
+                                           int64_t           n,
                                            T                 A,
                                            rocblas_stride    offset_a,
-                                           rocblas_int       lda,
+                                           int64_t           lda,
                                            rocblas_stride    stride_a,
                                            T                 x,
                                            rocblas_stride    offset_x,
-                                           rocblas_int       inc_x,
+                                           int64_t           inc_x,
                                            rocblas_stride    stride_x,
                                            U                 y,
                                            rocblas_stride    offset_y,
-                                           rocblas_int       inc_y,
+                                           int64_t           inc_y,
                                            rocblas_stride    stride_y,
-                                           rocblas_int       batch_count,
+                                           int64_t           batch_count,
                                            const int         check_numerics,
                                            bool              is_input)
 {
-    //Checking trans_a to transpose a vector 'x'
-    rocblas_int n_x = trans_a == rocblas_operation_none ? n : m;
+    if(is_input)
+    {
+        //TODO :-Add rocblas_check_numerics_gb_matrix_template for checking Matrix `A` which is a General Band matrix
 
-    rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_vector_template(function_name,
-                                                          handle,
-                                                          n_x,
-                                                          x,
-                                                          offset_x,
-                                                          inc_x,
-                                                          stride_x,
-                                                          batch_count,
-                                                          check_numerics,
-                                                          is_input);
-    if(check_numerics_status != rocblas_status_success)
+        //Checking trans_a to transpose a vector 'x'
+        int64_t        n_x = trans_a == rocblas_operation_none ? n : m;
+        rocblas_status check_numerics_status
+            = rocblas_internal_check_numerics_vector_template(function_name,
+                                                              handle,
+                                                              n_x,
+                                                              x,
+                                                              offset_x,
+                                                              inc_x,
+                                                              stride_x,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
         return check_numerics_status;
-
-    //Checking trans_a to transpose a vector 'y'
-    rocblas_int n_y       = trans_a == rocblas_operation_none ? m : n;
-    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
-                                                                            handle,
-                                                                            n_y,
-                                                                            y,
-                                                                            offset_y,
-                                                                            inc_y,
-                                                                            stride_y,
-                                                                            batch_count,
-                                                                            check_numerics,
-                                                                            is_input);
-
-    return check_numerics_status;
+    }
+    else
+    {
+        //Checking trans_a to transpose a vector 'y'
+        int64_t        n_y = trans_a == rocblas_operation_none ? m : n;
+        rocblas_status check_numerics_status
+            = rocblas_internal_check_numerics_vector_template(function_name,
+                                                              handle,
+                                                              n_y,
+                                                              y,
+                                                              offset_y,
+                                                              inc_y,
+                                                              stride_y,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        return check_numerics_status;
+    }
 }
 
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files *gbmv*.cpp
 
-// clang-format off
-
-#ifdef INSTANTIATE_GBMV_TEMPLATE
-#error INSTANTIATE_GBMV_TEMPLATE  already defined
+#ifdef INST_GBMV_LAUNCHER
+#error INST_GBMV_LAUNCHER  already defined
 #endif
 
-#define INSTANTIATE_GBMV_TEMPLATE(T_,  U_,  V_)                      \
-template rocblas_status rocblas_gbmv_template<T_,  U_,  V_>          \
-                                    (rocblas_handle    handle,       \
-                                     rocblas_operation transA,       \
-                                     rocblas_int       m,            \
-                                     rocblas_int       n,            \
-                                     rocblas_int       kl,           \
-                                     rocblas_int       ku,           \
-                                     const T_*         alpha,        \
-                                     U_                A,            \
-                                     rocblas_stride    offseta,      \
-                                     rocblas_int       lda,          \
-                                     rocblas_stride    strideA,      \
-                                     U_                x,            \
-                                     rocblas_stride    offsetx,      \
-                                     rocblas_int       incx,         \
-                                     rocblas_stride    stridex,      \
-                                     const T_*         beta,         \
-                                     V_                y,            \
-                                     rocblas_stride    offsety,      \
-                                     rocblas_int       incy,         \
-                                     rocblas_stride    stridey,      \
-                                     rocblas_int       batch_count);
+#define INST_GBMV_LAUNCHER(T_, U_, V_)                                                            \
+    template rocblas_status rocblas_internal_gbmv_launcher<T_, U_, V_>(rocblas_handle    handle,  \
+                                                                       rocblas_operation transA,  \
+                                                                       rocblas_int       m,       \
+                                                                       rocblas_int       n,       \
+                                                                       rocblas_int       kl,      \
+                                                                       rocblas_int       ku,      \
+                                                                       const T_*         alpha,   \
+                                                                       U_                A,       \
+                                                                       rocblas_stride    offseta, \
+                                                                       int64_t           lda,     \
+                                                                       rocblas_stride    strideA, \
+                                                                       U_                x,       \
+                                                                       rocblas_stride    offsetx, \
+                                                                       int64_t           incx,    \
+                                                                       rocblas_stride    stridex, \
+                                                                       const T_*         beta,    \
+                                                                       V_                y,       \
+                                                                       rocblas_stride    offsety, \
+                                                                       int64_t           incy,    \
+                                                                       rocblas_stride    stridey, \
+                                                                       rocblas_int batch_count);
 
-INSTANTIATE_GBMV_TEMPLATE(double, double const* const*, double* const*)
-INSTANTIATE_GBMV_TEMPLATE(rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_GBMV_TEMPLATE(rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex* const*)
-INSTANTIATE_GBMV_TEMPLATE(float, float const*, float*)
-INSTANTIATE_GBMV_TEMPLATE(double, double const*, double*)
-INSTANTIATE_GBMV_TEMPLATE(rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_GBMV_TEMPLATE(rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_GBMV_TEMPLATE(float, float const* const*, float* const*)
+INST_GBMV_LAUNCHER(double, double const* const*, double* const*)
+INST_GBMV_LAUNCHER(rocblas_float_complex,
+                   rocblas_float_complex const* const*,
+                   rocblas_float_complex* const*)
+INST_GBMV_LAUNCHER(rocblas_double_complex,
+                   rocblas_double_complex const* const*,
+                   rocblas_double_complex* const*)
+INST_GBMV_LAUNCHER(float, float const*, float*)
+INST_GBMV_LAUNCHER(double, double const*, double*)
+INST_GBMV_LAUNCHER(rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
+INST_GBMV_LAUNCHER(rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
+INST_GBMV_LAUNCHER(float, float const* const*, float* const*)
 
-#undef INSTANTIATE_GBMV_TEMPLATE
+#undef INST_GBMV_LAUNCHER
 
-#ifdef INSTANTIATE_GBMV_NUMERICS
-#error INSTANTIATE_GBMV_NUMERICS  already defined
+#ifdef INST_GBMV_NUMERICS
+#error INST_GBMV_NUMERICS  already defined
 #endif
 
-#define INSTANTIATE_GBMV_NUMERICS(T_,  U_)                                   \
-template rocblas_status rocblas_gbmv_check_numerics<T_,  U_>                 \
-                                          (const char*       function_name,  \
-                                           rocblas_handle    handle,         \
-                                           rocblas_operation trans_a,        \
-                                           rocblas_int       m,              \
-                                           rocblas_int       n,              \
-                                           T_                A,              \
-                                           rocblas_stride       offset_a,       \
-                                           rocblas_int       lda,            \
-                                           rocblas_stride    stride_a,       \
-                                           T_                x,              \
-                                           rocblas_stride       offset_x,       \
-                                           rocblas_int       inc_x,          \
-                                           rocblas_stride    stride_x,       \
-                                           U_                y,              \
-                                           rocblas_stride       offset_y,       \
-                                           rocblas_int       inc_y,          \
-                                           rocblas_stride    stride_y,       \
-                                           rocblas_int       batch_count,    \
-                                           const int         check_numerics, \
-                                           bool              is_input);
+#define INST_GBMV_NUMERICS(T_, U_)                                                                \
+    template rocblas_status rocblas_gbmv_check_numerics<T_, U_>(const char*       function_name,  \
+                                                                rocblas_handle    handle,         \
+                                                                rocblas_operation trans_a,        \
+                                                                int64_t           m,              \
+                                                                int64_t           n,              \
+                                                                T_                A,              \
+                                                                rocblas_stride    offset_a,       \
+                                                                int64_t           lda,            \
+                                                                rocblas_stride    stride_a,       \
+                                                                T_                x,              \
+                                                                rocblas_stride    offset_x,       \
+                                                                int64_t           inc_x,          \
+                                                                rocblas_stride    stride_x,       \
+                                                                U_                y,              \
+                                                                rocblas_stride    offset_y,       \
+                                                                int64_t           inc_y,          \
+                                                                rocblas_stride    stride_y,       \
+                                                                int64_t           batch_count,    \
+                                                                const int         check_numerics, \
+                                                                bool              is_input);
 
-INSTANTIATE_GBMV_NUMERICS(float const*, float*)
-INSTANTIATE_GBMV_NUMERICS(double const*, double*)
-INSTANTIATE_GBMV_NUMERICS(rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_GBMV_NUMERICS(rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_GBMV_NUMERICS(float const* const*, float* const*)
-INSTANTIATE_GBMV_NUMERICS(double const* const*, double* const*)
-INSTANTIATE_GBMV_NUMERICS(rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_GBMV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INST_GBMV_NUMERICS(float const*, float*)
+INST_GBMV_NUMERICS(double const*, double*)
+INST_GBMV_NUMERICS(rocblas_float_complex const*, rocblas_float_complex*)
+INST_GBMV_NUMERICS(rocblas_double_complex const*, rocblas_double_complex*)
+INST_GBMV_NUMERICS(float const* const*, float* const*)
+INST_GBMV_NUMERICS(double const* const*, double* const*)
+INST_GBMV_NUMERICS(rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INST_GBMV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
-#undef INSTANTIATE_GBMV_NUMERICS
-// clang-format on
+#undef INST_GBMV_NUMERICS
