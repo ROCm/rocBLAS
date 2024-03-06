@@ -265,7 +265,7 @@ Tests:
   arguments:
     - { N: 2, lda: 2147483649, incx: 1, batch_count: 1 }
     - { N: 2, lda: 2, incx: 2147483649, batch_count: 1 }
-    - { N: 2, lda: 2, stride_a: 2, incx: 1, batch_count: *c_grid_yz_require_passes }
+    - { N: 2, lda: 2, incx: 1, batch_count: *c_grid_yz_require_passes }
   uplo: [ U, L ]
   stride_scale: [ 1 ]
   alpha_beta: *alpha_range_small

@@ -77,7 +77,7 @@ ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        is_upper,
     }
 }
 
-template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
+template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X)
 rocblas_her_kernel(bool           is_upper,
                    rocblas_int    n,

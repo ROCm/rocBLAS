@@ -487,13 +487,13 @@ Definitions:
   - &c_pos_x2_overflow_int32
     - [1073741825]
   - &c_neg_x2_overflow_int32
-   - [-1073741825]
+    - [-1073741825]
 
   - &c_pos_x32_overflow_int32
     - [67108865] # (67108865 - 1) x 32 will overflow to sign bit
 
   - &c_grid_yz_require_passes
-   - [666666] # force looping over y/z chunks
+    - [65539] # force looping over y/z chunks 65536.  TODO track constant c_i64_grid_YZ_chunk in int64_helpers.hpp
 
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
