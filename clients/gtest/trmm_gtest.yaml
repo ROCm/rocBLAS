@@ -742,4 +742,31 @@ Tests:
   batch_count: [ 2  ]
   graph_test: true
   outofplace: [false, true] # test both inplace and outofplace
+
+- name: trmm_repeatability_check
+  category: pre_checkin
+  function:
+    - trmm
+    - trmm_batched
+    - trmm_strided_batched
+  precision: *single_double_precisions
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: T, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  uplo: [ U ]
+  transA: [ N ]
+  diag: [ U ]
+  matrix_size:
+    - { M:   600, N:   500, lda:   600, ldb:   601, ldc: 700 }
+    - { M:   800, N:   900, lda:   801, ldb:   901, ldc:  901 }
+  alpha_beta: *complex_alpha_range
+  stride_scale: [ 1  ]
+  batch_count: [ 2  ]
+  outofplace: [ false, true ] # test both inplace and outofplace
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  pointer_mode_host: false
+  repeatability_check: true
 ...
