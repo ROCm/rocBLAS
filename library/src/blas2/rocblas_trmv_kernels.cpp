@@ -325,11 +325,11 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
                                               rocblas_int       n,
                                               const T*          A,
                                               rocblas_stride    offset_A,
-                                              int64_t           lda,
+                                              rocblas_int       lda,
                                               rocblas_stride    stride_A,
                                               T*                x,
                                               rocblas_stride    offset_x,
-                                              int64_t           incx,
+                                              rocblas_int       incx,
                                               rocblas_stride    stride_x,
                                               T*                workspace,
                                               rocblas_stride    stride_w,
@@ -361,11 +361,11 @@ rocblas_status rocblas_internal_trmv_batched_template(rocblas_handle    handle,
                                                       rocblas_int       n,
                                                       const T* const*   A,
                                                       rocblas_stride    offset_A,
-                                                      int64_t           lda,
+                                                      rocblas_int       lda,
                                                       rocblas_stride    stride_A,
                                                       T* const*         x,
                                                       rocblas_stride    offset_x,
-                                                      int64_t           incx,
+                                                      rocblas_int       incx,
                                                       rocblas_stride    stride_x,
                                                       T*                workspace,
                                                       rocblas_stride    stride_w,
@@ -459,11 +459,11 @@ rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
         rocblas_int       n,                                                                     \
         const T_*         A,                                                                     \
         rocblas_stride    offset_A,                                                              \
-        int64_t           lda,                                                                   \
+        rocblas_int       lda,                                                                   \
         rocblas_stride    stride_A,                                                              \
         T_*               x,                                                                     \
         rocblas_stride    offset_x,                                                              \
-        int64_t           incx,                                                                  \
+        rocblas_int       incx,                                                                  \
         rocblas_stride    stride_x,                                                              \
         T_*               workspace,                                                             \
         rocblas_stride    stride_w,                                                              \
@@ -489,11 +489,11 @@ INSTANTIATE_TRMV_TEMPLATE(rocblas_double_complex)
                                                    rocblas_int       n,         \
                                                    const T_* const*  A,         \
                                                    rocblas_stride    offset_A,  \
-                                                   int64_t           lda,       \
+                                                   rocblas_int       lda,       \
                                                    rocblas_stride    stride_A,  \
                                                    T_* const*        x,         \
                                                    rocblas_stride    offset_x,  \
-                                                   int64_t           incx,      \
+                                                   rocblas_int       incx,      \
                                                    rocblas_stride    stride_x,  \
                                                    T_*               workspace, \
                                                    rocblas_stride    stride_w,  \
