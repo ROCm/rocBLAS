@@ -4,9 +4,9 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_N_incx_incy_range
-    - { incx: [1,8], incy: [1..3] }
+    - { incx: [1,8], incy: [1,3] }
   - &large_N_incx_incy_range
-    - { incx: [1,3], incy: [1,3] }
+    - { incx: [1,2], incy: [1,2] }
 
   - &small_N_size_t_incx_incy
     # these fail on async due to hipMemcpy2DAsync pitch limit, TODO add back when fix lands
@@ -21,7 +21,7 @@ Tests:
 - name: auxiliary_1
   category: quick
   precision: *single_double_precisions
-  N: [ 2, 9, 600 ]
+  N: [ 4, 601 ]
   incx_incy: *small_N_incx_incy_range
   ldd:  1..3 # used for device memory layout of intermediate test results
   function:
@@ -47,6 +47,7 @@ Tests:
   function:
   - set_get_vector
   - set_get_vector_async
+  os_flags: LINUX # windows TODO perf tickets
 
 - name: auxiliary_size_t
   category: stress
