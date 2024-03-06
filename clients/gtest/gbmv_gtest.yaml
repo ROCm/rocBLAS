@@ -297,7 +297,7 @@ Tests:
 - name: gbmv_64
   category: stress
   arguments:
-    - { M: 3, N: 2, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+    - { M: 3, N: 3, lda: 1024, incx: 1, incy: 1, batch_count: 1 } # TODO use I64 with less memory
     - { M: 3, N: 3, lda: 5, incx: 2147483649, incy: 1, batch_count: 1 }
     - { M: 3, N: 3, lda: 5, incx: 1, incy: 2147483649, batch_count: 1 }
     - { M: 3, N: 3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }

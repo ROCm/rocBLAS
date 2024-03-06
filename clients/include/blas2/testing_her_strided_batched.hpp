@@ -202,7 +202,6 @@ void testing_her_strided_batched(const Arguments& arg)
         hA, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
-    hA.copy_from(hA);
     hA_gold.copy_from(hA);
 
     // copy data from CPU to device
@@ -244,7 +243,7 @@ void testing_her_strided_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
+        for(int64_t i = 0; i < batch_count; i++)
         {
             ref_her<T>(uplo, N, h_alpha, hx[i], incx, hA_gold[i], lda);
         }
