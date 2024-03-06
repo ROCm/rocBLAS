@@ -536,7 +536,7 @@ Coding Guidelines
     for an example, and how it's handled there.
 
 18. For reduction operations, the file
-    `reduction.h <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas1/reduction.h>`__
+    `reduction.hpp <https://github.com/ROCm/rocBLAS/blob/develop/library/src/blas1/reduction.hpp>`
     has been created to systematize reductions and perform their device
     kernels in one place. This works for ``amax``, ``amin``, ``asum``,
     ``nrm2``, and (partially) ``dot`` and ``gemv``.
