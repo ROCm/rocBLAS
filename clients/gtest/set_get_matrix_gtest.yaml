@@ -25,8 +25,6 @@ Definitions:
     - { M: 52441, N:     1, lda: 52441, ldb: 52441, ldd: 52441 }
     - { M:  4011, N:  4012, lda:  4014, ldb:  4015, ldd:  4016 }
 
-
-
   - &small_N_size_t_ld
     - { M: 1, N: 3, lda: *c_pos_x2_overflow_int32, ldb: 1, ldd: 1 }
     - { M: 1, N: 3, lda: *c_pos_x2_overflow_int32, ldb: 1, ldd: 1 }
@@ -89,7 +87,6 @@ Tests:
   precision: *half_precision
   arguments:
     - { M: 2147483649, N: 1, lda: 2147483649,  ldb: 2147483649,  ldd: 2147483649 }
-
   function:
     - set_get_matrix
     - set_get_matrix_async
