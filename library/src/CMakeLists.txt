@@ -556,10 +556,10 @@ set( rocblas64_blas2_source
   src64/blas2/rocblas_symv_64.cpp
   src64/blas2/rocblas_symv_batched_64.cpp
   src64/blas2/rocblas_symv_strided_batched_64.cpp
-  #   src64/blas2/rocblas_trsv.cpp
-  #   src64/blas2/rocblas_trsv_kernels.cpp
-  #   src64/blas2/rocblas_trsv_strided_batched.cpp
-  #   src64/blas2/rocblas_trsv_batched.cpp
+  src64/blas2/rocblas_trsv_64.cpp
+  src64/blas2/rocblas_trsv_kernels_64.cpp
+  src64/blas2/rocblas_trsv_strided_batched_64.cpp
+  src64/blas2/rocblas_trsv_batched_64.cpp
 )
 
 set( rocblas64_auxiliary_source

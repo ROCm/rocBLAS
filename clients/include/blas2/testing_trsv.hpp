@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,7 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
@@ -44,9 +32,12 @@ void testing_trsv_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsv_fn = arg.api == FORTRAN ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
 
-    const rocblas_int       N      = 100;
-    const rocblas_int       lda    = 100;
-    const rocblas_int       incx   = 1;
+    auto rocblas_trsv_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_trsv_64<T, true> : rocblas_trsv_64<T, false>;
+
+    const int64_t           N      = 100;
+    const int64_t           lda    = 100;
+    const int64_t           incx   = 1;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_fill      uplo   = rocblas_fill_lower;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
@@ -71,28 +62,29 @@ void testing_trsv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Checks.
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trsv_fn(handle, rocblas_fill_full, transA, diag, N, dA, lda, dx, incx),
-        rocblas_status_invalid_value);
+    DAPI_EXPECT(rocblas_status_invalid_handle,
+                rocblas_trsv_fn,
+                (nullptr, uplo, transA, diag, N, dA, lda, dx, incx));
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trsv_fn(
-            handle, uplo, (rocblas_operation)rocblas_fill_full, diag, N, dA, lda, dx, incx),
-        rocblas_status_invalid_value);
+    DAPI_EXPECT(rocblas_status_invalid_value,
+                rocblas_trsv_fn,
+                (handle, rocblas_fill_full, transA, diag, N, dA, lda, dx, incx));
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trsv_fn(
-            handle, uplo, transA, (rocblas_diagonal)rocblas_fill_full, N, dA, lda, dx, incx),
-        rocblas_status_invalid_value);
+    DAPI_EXPECT(rocblas_status_invalid_value,
+                rocblas_trsv_fn,
+                (handle, uplo, (rocblas_operation)rocblas_fill_full, diag, N, dA, lda, dx, incx));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsv_fn(handle, uplo, transA, diag, N, nullptr, lda, dx, incx),
-                          rocblas_status_invalid_pointer);
+    DAPI_EXPECT(rocblas_status_invalid_value,
+                rocblas_trsv_fn,
+                (handle, uplo, transA, (rocblas_diagonal)rocblas_fill_full, N, dA, lda, dx, incx));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsv_fn(handle, uplo, transA, diag, N, dA, lda, nullptr, incx),
-                          rocblas_status_invalid_pointer);
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_trsv_fn,
+                (handle, uplo, transA, diag, N, nullptr, lda, dx, incx));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsv_fn(nullptr, uplo, transA, diag, N, dA, lda, dx, incx),
-                          rocblas_status_invalid_handle);
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_trsv_fn,
+                (handle, uplo, transA, diag, N, dA, lda, nullptr, incx));
 }
 
 template <typename T>
@@ -100,12 +92,15 @@ void testing_trsv(const Arguments& arg)
 {
     auto rocblas_trsv_fn = arg.api == FORTRAN ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
 
-    rocblas_int N           = arg.N;
-    rocblas_int lda         = arg.lda;
-    rocblas_int incx        = arg.incx;
-    char        char_uplo   = arg.uplo;
-    char        char_transA = arg.transA;
-    char        char_diag   = arg.diag;
+    auto rocblas_trsv_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_trsv_64<T, true> : rocblas_trsv_64<T, false>;
+
+    int64_t N           = arg.N;
+    int64_t lda         = arg.lda;
+    int64_t incx        = arg.incx;
+    char    char_uplo   = arg.uplo;
+    char    char_transA = arg.transA;
+    char    char_diag   = arg.diag;
 
     rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
     rocblas_operation transA = char2rocblas_operation(char_transA);
@@ -118,10 +113,9 @@ void testing_trsv(const Arguments& arg)
     bool invalid_size = N < 0 || lda < N || lda < 1 || !incx;
     if(invalid_size || !N)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsv_fn(handle, uplo, transA, diag, N, nullptr, lda, nullptr, incx),
-            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_trsv_fn,
+                    (handle, uplo, transA, diag, N, nullptr, lda, nullptr, incx));
         return;
     }
 
@@ -166,9 +160,8 @@ void testing_trsv(const Arguments& arg)
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
-    double max_err_host = 0.0;
-    double max_err_dev  = 0.0;
-    double gpu_time_used, cpu_time_used;
+    double max_err_host            = 0.0;
+    double max_err_dev             = 0.0;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -194,8 +187,7 @@ void testing_trsv(const Arguments& arg)
             CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(
-                rocblas_trsv_fn(handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
+            DAPI_CHECK(rocblas_trsv_fn, (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
             handle.post_test(arg);
             CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
         }
@@ -207,8 +199,7 @@ void testing_trsv(const Arguments& arg)
             CHECK_HIP_ERROR(dx_or_b.transfer_from(cpu_x_or_b));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(
-                rocblas_trsv_fn(handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
+            DAPI_CHECK(rocblas_trsv_fn, (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
             handle.post_test(arg);
         }
 
@@ -251,33 +242,32 @@ void testing_trsv(const Arguments& arg)
 
     if(arg.timing)
     {
-        // GPU rocBLAS
-        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-
-        for(int i = 0; i < number_cold_calls; i++)
-            rocblas_trsv_fn(handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx);
+        double gpu_time_used, cpu_time_used = 0.0;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int i = 0; i < number_hot_calls; i++)
-            rocblas_trsv_fn(handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx);
+        for(int iter = 0; iter < total_calls; iter++)
+        {
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+            DAPI_DISPATCH(rocblas_trsv_fn, (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
+        }
 
-        // CPU cblas
-        cpu_time_used = get_time_us_no_sync();
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used; // in microseconds
 
-        if(arg.norm_check)
+        if(arg.unit_check || arg.norm_check)
+        {
+            // CPU cblas
+            cpu_time_used = get_time_us_no_sync();
+
             ref_trsv<T>(uplo, transA, diag, N, hA, lda, cpu_x_or_b, incx);
 
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+        }
 
         ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_lda, e_incx>{}.log_args<T>(
             rocblas_cout,

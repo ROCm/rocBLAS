@@ -1,0 +1,23 @@
+---
+include: ../../../../clients/include/rocblas_common.yaml
+
+Definitions:
+  - &multiples_of_32_sizes
+    - {N:  2048, lda:  2048 }
+    - {N:  4096, lda:  4096 }
+    - {N:  6144, lda:  6144 }
+    - {N:  8192, lda:  8192 }
+    - {N: 10240, lda: 10240 }
+    - {N: 20480, lda: 20480 }
+
+Tests:
+  - name: trsv_upper_multiples_of_32_sizes
+    category: bench
+    function: trsv
+    precision: *single_double_precisions_complex_real
+    uplo: U
+    transA: [ N, T ]
+    diag: U
+    incx: 1
+    matrix_size: *multiples_of_32_sizes
+...

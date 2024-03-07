@@ -525,6 +525,9 @@ rocblas_Xtrsv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsv
 
+
+The trsv functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_strsv_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrsv_batched
@@ -533,6 +536,8 @@ rocblas_Xtrsv + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsv_batched
 
+The trsv_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_strsv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrsv_strided_batched
@@ -540,6 +545,8 @@ rocblas_Xtrsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ctrsv_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsv_strided_batched
+
+The trsv_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xhemv + batched, strided_batched
 ========================================
