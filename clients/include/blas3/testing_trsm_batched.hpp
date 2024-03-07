@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -580,6 +580,34 @@ void testing_trsm_batched(const Arguments& arg)
                                                         batch_count));
 
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+
+            if(arg.repeatability_check)
+            {
+                host_batch_matrix<T> hXorB_copy(M, N, ldb, batch_count);
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    copy_matrix_with_different_leading_dimensions(hB, hXorB_copy);
+                    CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_copy));
+
+                    CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
+                                                                side,
+                                                                uplo,
+                                                                transA,
+                                                                diag,
+                                                                M,
+                                                                N,
+                                                                alpha_d,
+                                                                dA.ptr_on_device(),
+                                                                lda,
+                                                                dXorB.ptr_on_device(),
+                                                                ldb,
+                                                                batch_count));
+                    CHECK_HIP_ERROR(hXorB_copy.transfer_from(dXorB));
+                    unit_check_general<T>(M, N, ldb, hXorB_1, hXorB_copy, batch_count);
+                }
+                return;
+            }
 
             if(alpha_h == 0)
             {
