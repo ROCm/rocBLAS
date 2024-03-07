@@ -12092,6 +12092,87 @@ module rocblas
         end function rocblas_ztrsv
     end interface
 
+    ! trsv_64
+    interface
+        function rocblas_strsv_64(handle, uplo, transA, diag, m, &
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_strsv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+        end function rocblas_strsv_64
+    end interface
+
+    interface
+        function rocblas_dtrsv_64(handle, uplo, transA, diag, m, &
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_dtrsv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+        end function rocblas_dtrsv_64
+    end interface
+
+    interface
+        function rocblas_ctrsv_64(handle, uplo, transA, diag, m, &
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ctrsv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+        end function rocblas_ctrsv_64
+    end interface
+
+    interface
+        function rocblas_ztrsv_64(handle, uplo, transA, diag, m, &
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ztrsv_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsv_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+        end function rocblas_ztrsv_64
+    end interface
+
     ! trsv_batched
     interface
         function rocblas_strsv_batched(handle, uplo, transA, diag, m, &
@@ -12175,6 +12256,91 @@ module rocblas
             integer(c_int), value :: incx
             integer(c_int), value :: batch_count
         end function rocblas_ztrsv_batched
+    end interface
+
+    ! trsv_batched_64
+    interface
+        function rocblas_strsv_batched_64(handle, uplo, transA, diag, m, &
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_strsv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_strsv_batched_64
+    end interface
+
+    interface
+        function rocblas_dtrsv_batched_64(handle, uplo, transA, diag, m, &
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_dtrsv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dtrsv_batched_64
+    end interface
+
+    interface
+        function rocblas_ctrsv_batched_64(handle, uplo, transA, diag, m, &
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ctrsv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ctrsv_batched_64
+    end interface
+
+    interface
+        function rocblas_ztrsv_batched_64(handle, uplo, transA, diag, m, &
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ztrsv_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsv_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ztrsv_batched_64
     end interface
 
     ! trsv_strided_batched
@@ -12268,6 +12434,99 @@ module rocblas
             integer(c_int64_t), value :: stride_x
             integer(c_int), value :: batch_count
         end function rocblas_ztrsv_strided_batched
+    end interface
+
+    ! trsv_strided_batched_64
+    interface
+        function rocblas_strsv_strided_batched_64(handle, uplo, transA, diag, m, &
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_strsv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_strsv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dtrsv_strided_batched_64(handle, uplo, transA, diag, m, &
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtrsv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dtrsv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_ctrsv_strided_batched_64(handle, uplo, transA, diag, m, &
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctrsv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ctrsv_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_ztrsv_strided_batched_64(handle, uplo, transA, diag, m, &
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztrsv_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsv_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_diagonal_non_unit)), value :: diag
+            integer(c_int64_t), value :: m
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ztrsv_strided_batched_64
     end interface
 
     ! tpsv

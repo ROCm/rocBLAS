@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
-#include "rocblas_block_sizes.h"
 #include "rocblas_trsv.hpp"
 
 // Copyright 2014-6, The Science and Technology Facilities Council (STFC)
@@ -486,12 +485,12 @@ ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_trsv_device(rocblas_int    n,
                     ATYPE          dA,
                     rocblas_stride offset_A,
-                    rocblas_int    lda,
+                    int64_t        lda,
                     rocblas_stride stride_A,
                     ALPHATYPE      alpha_device_host,
                     XTYPE          dx,
                     rocblas_stride offset_x,
-                    rocblas_int    incx,
+                    int64_t        incx,
                     rocblas_stride stride_x,
                     rocblas_int*   w_completed_sec)
 {
@@ -537,11 +536,11 @@ rocblas_trsv_device(rocblas_int    n,
         const rocblas_int block_col = backwards_sub ? block_row + 1 : block_row - 1;
         const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
         const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
-        const size_t      A_idx     = (local_row) + (local_col)*size_t(lda);
+        const size_t      A_idx     = (local_row) + (local_col)*lda;
 
         for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
         {
-            const size_t i_idx = TRANS ? i : i * size_t(lda);
+            const size_t i_idx = TRANS ? i : i * lda;
 
             __syncthreads();
             if(TRANS ? (local_row + i < n && local_col < n) : (local_row < n && local_col + i < n))
@@ -566,8 +565,7 @@ rocblas_trsv_device(rocblas_int    n,
         {
             const rocblas_int col    = ty + i;
             const rocblas_int sA_idx = cache_transpose ? col + DIM_X * row : col * DIM_X + row;
-            const size_t      A_idx
-                = (block_row * DIM_X * size_t(lda) + block_row * DIM_X) + col * size_t(lda) + row;
+            const size_t A_idx = (block_row * DIM_X * lda + block_row * DIM_X) + col * lda + row;
             const rocblas_int total_col = block_row * DIM_X + col;
             const rocblas_int total_row = block_row * DIM_X + row;
 
@@ -593,8 +591,7 @@ rocblas_trsv_device(rocblas_int    n,
         {
             const rocblas_int col    = ty + i;
             const rocblas_int sA_idx = cache_transpose ? col + DIM_X * row : col * DIM_X + row;
-            const size_t      A_idx
-                = (block_row * DIM_X * size_t(lda) + block_row * DIM_X) + col * size_t(lda) + row;
+            const size_t A_idx = (block_row * DIM_X * lda + block_row * DIM_X) + col * lda + row;
             const rocblas_int total_col = block_row * DIM_X + col;
             const rocblas_int total_row = block_row * DIM_X + row;
             if(((row > col && LOWER) || (col > row && !LOWER)) && row < remainder
@@ -636,7 +633,7 @@ rocblas_trsv_device(rocblas_int    n,
         if(!row_is_remainder || tx < remainder)
         {
             // multiply by alpha when reading from device memory x
-            val = -alpha * x[(block_row * DIM_X + tx) * int64_t(incx)];
+            val = -alpha * x[(block_row * DIM_X + tx) * incx];
         }
     }
 
@@ -650,8 +647,8 @@ rocblas_trsv_device(rocblas_int    n,
 
         const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
         const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
-        const size_t      A_idx     = local_col * size_t(lda) + local_row;
-        const int64_t     x_idx     = (block_col * DIM_X) * int64_t(incx);
+        const size_t      A_idx     = local_col * lda + local_row;
+        const int64_t     x_idx     = (block_col * DIM_X) * incx;
 
         if(tid == 0)
         {
@@ -677,7 +674,7 @@ rocblas_trsv_device(rocblas_int    n,
             else
             {
                 // Don't multiply by alpha here as this is a solved value
-                sx[tid] = x[x_idx + tid * int64_t(incx)];
+                sx[tid] = x[x_idx + tid * incx];
             }
         }
 
@@ -687,7 +684,7 @@ rocblas_trsv_device(rocblas_int    n,
         for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
         {
             // Use shared memory if previous col since we cached this earlier
-            const size_t i_idx = TRANS ? i : i * size_t(lda);
+            const size_t i_idx = TRANS ? i : i * lda;
             const bool   cached
                 = !first_row
                   && (backwards_sub ? block_col == block_row + 1 : block_col == block_row - 1);
@@ -733,7 +730,7 @@ rocblas_trsv_device(rocblas_int    n,
         {
             if(ty == 0)
             {
-                x[(block_row * DIM_X + tid) * int64_t(incx)] = val;
+                x[(block_row * DIM_X + tid) * incx] = val;
             }
         }
     }
@@ -748,7 +745,7 @@ rocblas_trsv_device(rocblas_int    n,
         // Store solved value into x
         if(!row_is_remainder || tx < remainder)
             if(ty == 0)
-                x[(block_row * DIM_X + tid) * int64_t(incx)] = val;
+                x[(block_row * DIM_X + tid) * incx] = val;
     }
 #else
     // Solve the diagonal block
@@ -760,7 +757,7 @@ rocblas_trsv_device(rocblas_int    n,
     // Store solved value into x
     if(!row_is_remainder || tx < remainder)
         if(ty == 0)
-            x[(block_row * DIM_X + tid) * int64_t(incx)] = val;
+            x[(block_row * DIM_X + tid) * incx] = val;
 #endif
 
     // ensure solved x values are saved
@@ -776,20 +773,20 @@ rocblas_trsv_device(rocblas_int    n,
     __threadfence();
 }
 
-template <rocblas_int DIM_X, typename T, typename ATYPE, typename XTYPE>
+template <rocblas_int DIM_X, typename T, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    handle,
                                                            rocblas_fill      uplo,
                                                            rocblas_operation transA,
                                                            rocblas_diagonal  diag,
                                                            rocblas_int       n,
-                                                           ATYPE             dA,
+                                                           TConstPtr         dA,
                                                            rocblas_stride    offset_A,
-                                                           rocblas_int       lda,
+                                                           int64_t           lda,
                                                            rocblas_stride    stride_A,
                                                            T const*          alpha,
-                                                           XTYPE             dx,
+                                                           TPtr              dx,
                                                            rocblas_stride    offset_x,
-                                                           rocblas_int       incx,
+                                                           int64_t           incx,
                                                            rocblas_stride    stride_x,
                                                            rocblas_int       batch_count,
                                                            rocblas_int*      w_completed_sec)
@@ -801,7 +798,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
     // cppcheck-suppress unreadVariable
     auto saved_device_id = handle->push_device_id();
 
-    offset_x = incx < 0 ? offset_x + int64_t(incx) * (1 - n) : offset_x;
+    offset_x = incx < 0 ? offset_x + incx * (1 - n) : offset_x;
 
     constexpr rocblas_int DIM_Y  = 16;
     rocblas_int           blocks = (n + DIM_X - 1) / DIM_X;
@@ -1053,16 +1050,16 @@ template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
                                                     rocblas_fill      uplo,
-                                                    rocblas_int       n,
+                                                    int64_t           n,
                                                     T                 A,
                                                     rocblas_stride    offset_a,
-                                                    rocblas_int       lda,
+                                                    int64_t           lda,
                                                     rocblas_stride    stride_a,
                                                     U                 x,
                                                     rocblas_stride    offset_x,
-                                                    rocblas_int       inc_x,
+                                                    int64_t           inc_x,
                                                     rocblas_stride    stride_x,
-                                                    rocblas_int       batch_count,
+                                                    int64_t           batch_count,
                                                     const rocblas_int check_numerics,
                                                     bool              is_input)
 {
@@ -1118,16 +1115,16 @@ template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>           
                                                    (const char*       function_name,  \
                                                     rocblas_handle    handle,         \
                                                     rocblas_fill      uplo,           \
-                                                    rocblas_int       n,              \
+                                                    int64_t       n,              \
                                                     T_                A,              \
                                                     rocblas_stride    offset_a,       \
-                                                    rocblas_int       lda,            \
+                                                    int64_t       lda,            \
                                                     rocblas_stride    stride_a,       \
                                                     U_                x,              \
                                                     rocblas_stride    offset_x,       \
-                                                    rocblas_int       inc_x,          \
+                                                    int64_t       inc_x,          \
                                                     rocblas_stride    stride_x,       \
-                                                    rocblas_int       batch_count,    \
+                                                    int64_t       batch_count,    \
                                                     const rocblas_int check_numerics, \
                                                     bool              is_input);
 
