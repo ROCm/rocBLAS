@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -662,6 +662,33 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                                 ldb,
                                                                 stride_B,
                                                                 batch_count));
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_matrix<T> hXorB_copy(M, N, ldb, stride_B, batch_count);
+                CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dXorB.transfer_from(hB));
+                    CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_fn(handle,
+                                                                        side,
+                                                                        uplo,
+                                                                        transA,
+                                                                        diag,
+                                                                        M,
+                                                                        N,
+                                                                        alpha_d,
+                                                                        dA,
+                                                                        lda,
+                                                                        stride_A,
+                                                                        dXorB,
+                                                                        ldb,
+                                                                        stride_B,
+                                                                        batch_count));
+                    CHECK_HIP_ERROR(hXorB_copy.transfer_from(dXorB));
+                    unit_check_general<T>(M, N, ldb, stride_B, hXorB_1, hXorB_copy, batch_count);
+                }
+                return;
+            }
         }
 
         if(alpha_h == 0)
