@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ set( rocblas_samples_common
       ../common/singletons.cpp
       ../common/utility.cpp
       ../common/rocblas_random.cpp
+      ../common/host_alloc.cpp
     )
 
 # C example
@@ -61,8 +62,9 @@ endif()
 # L3 examples with or with tensile or source gemm builds
 add_executable( rocblas-example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
 add_executable( rocblas-example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
+add_executable( rocblas-example-sgemm-multiple-strided-batch example_sgemm_multiple_strided_batch.cpp  ${rocblas_samples_common} )
 
-set( sample_list_L3 rocblas-example-sgemm rocblas-example-sgemm-strided-batched )
+set( sample_list_L3 rocblas-example-sgemm rocblas-example-sgemm-strided-batched rocblas-example-sgemm-multiple-strided-batch )
 
 # device includes
 set( sample_list_hip_device ${sample_list_base} ${sample_list_tensile} ${sample_list_L3} )

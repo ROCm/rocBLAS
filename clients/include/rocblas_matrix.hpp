@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,18 @@
 
 #pragma once
 
+#include "utility.hpp"
+
 #include "d_vector.hpp"
 
 #include "device_batch_matrix.hpp"
 #include "device_matrix.hpp"
+#include "device_multiple_strided_batch_matrix.hpp"
 #include "device_strided_batch_matrix.hpp"
 
 #include "host_batch_matrix.hpp"
 #include "host_matrix.hpp"
+#include "host_multiple_strided_batch_matrix.hpp"
 #include "host_strided_batch_matrix.hpp"
 #include "rocblas_init.hpp"
 
