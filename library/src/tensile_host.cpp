@@ -1180,16 +1180,25 @@ rocblas_status
                 {
                     if(!(prob.flags & rocblas_gemm_flags_check_solution_index))
                     {
-                        adapter.launchKernels(
+                        hipError_t hip_status = adapter.launchKernels(
                             solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
                             handle->get_stream(),
                             handle->startEvent,
                             handle->stopEvent);
+                        if(hip_status != hipSuccess)
+                            status = rocblas_internal_convert_hip_to_rocblas_status(hip_status);
+                        else
+                            status = rocblas_status_success;
                     }
-                    status = rocblas_status_success;
+                    else
+                    {
+                        status = rocblas_status_success;
+                    }
                 }
                 else
+                {
                     status = rocblas_status_invalid_value;
+                }
             }
         }
     }
