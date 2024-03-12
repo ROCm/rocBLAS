@@ -131,6 +131,14 @@ Currently ``rdeps.py`` uses ``vcpkg`` and ``pip`` to install the build dependenc
 The minimum version requirement for CMake is listed in the top level ``CMakeLists.txt`` file. CMake installed with Visual Studio 2022 meets this requirement.
 The ``vcpkg`` version tag is specified at the top of the ``rdeps.py`` file.
 
+However, for the test and benchmark clients' host reference BLAS, it is recommended that you manually download and install AMD's ILP64 version of AOCL-BLAS 4.2 from https://www.amd.com/en/developer/aocl.html.
+If you download and run the full Windows AOCL installer into the default locations ( `C:\Program Files\AMD\AOCL-Windows\` ) then the AOCL reference BLAS (amd-blis) should be found
+by the clients CMakeLists.txt.  
+
+.. note::
+   If instead of the AOCL reference library you use OpenBLAS with vcpkg from rdeps.py you may experience `rocblas-test` stress test failures due to 32-bit integer overflow
+   on the host reference code unless you exclude the ILP64 stress tests via command line argument `--gtest_filter=-*I64*`.
+
 
 Build Library dependencies + Library
 ------------------------------------
