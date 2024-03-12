@@ -147,4 +147,23 @@ Tests:
     - { N:    32, lda:    32 }
   batch_count: [ 2 ]
   graph_test: true
+
+
+- name: trtri_repeatability_check
+  category: pre_checkin
+  function:
+    - trtri
+    - trtri_batched
+    - trtri_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  diag: [ N ]
+  matrix_size: *medium_matrix_size_range
+  batch_count: [ 2 ]
+  stride_scale: 1
+  atomics_mode: 0
+  pointer_mode_host: false
+  iters: 5
+  initialization: hpl
+  repeatability_check: true
 ...

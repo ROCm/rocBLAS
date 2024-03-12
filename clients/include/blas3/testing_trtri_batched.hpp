@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -290,6 +290,27 @@ void testing_trtri_batched(const Arguments& arg)
                                                          dinvA.ptr_on_device(),
                                                          lda,
                                                          batch_count));
+            if(arg.repeatability_check)
+            {
+                host_batch_matrix<T> hA_copy(N, N, lda, batch_count);
+                CHECK_HIP_ERROR(hA.transfer_from(dinvA));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_ROCBLAS_ERROR(rocblas_trtri_batched_fn(handle,
+                                                                 uplo,
+                                                                 diag,
+                                                                 N,
+                                                                 dA.ptr_on_device(),
+                                                                 lda,
+                                                                 dinvA.ptr_on_device(),
+                                                                 lda,
+                                                                 batch_count));
+                    CHECK_HIP_ERROR(hA_copy.transfer_from(dinvA));
+                    unit_check_general<T>(N, N, lda, hA, hA_copy, batch_count);
+                }
+                return;
+            }
         }
         else
         {
