@@ -129,24 +129,32 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
         set( BLAS_LIBRARY /usr/local/lib/libblis.a )
         set( BLIS_INCLUDE_DIR /usr/local/include/blis )
       endif()
-      if ( DEFINED BLIS_INCLUDE_DIR )
-        set( BLIS_CPP ../common/blis_interface.cpp )
-        message(STATUS "Linking BLIS LIB: ${BLAS_LIBRARY}")
-      endif()
     else()
       set( BLAS_LIBRARY "blas" )
     endif()
   else() # WIN32
-    set( BLAS_INCLUDE_DIR ${OPENBLAS_DIR}/include CACHE PATH "OpenBLAS library include path" )
-    find_library( BLAS_LIBRARY libopenblas
-                  PATHS ${OPENBLAS_DIR}/lib
-                  NO_DEFAULT_PATH
-                )
-    if (NOT BLAS_LIBRARY)
-      find_package( OPENBLAS CONFIG REQUIRED )
-      set( BLAS_LIBRARY OpenBLAS::OpenBLAS )
-      set( BLAS_INCLUDE_DIR "" )
+    file(TO_CMAKE_PATH "C:/Program\ Files/AMD/AOCL-Windows/amd-blis/lib/ILP64/AOCL-LibBlis-Win-MT.lib" AOCL_BLAS_LIBRARY)
+    if (LINK_BLIS AND EXISTS ${AOCL_BLAS_LIBRARY})
+      set( BLAS_LIBRARY "-l\"C:/Program\ Files/AMD/AOCL-Windows/amd-blis/lib/ILP64/AOCL-LibBlis-Win-MT\"" )     
+      set( BLIS_INCLUDE_DIR "C:/Program\ Files/AMD/AOCL-Windows/amd-blis/include/ILP64" )
+      set( BLIS_DEFINES BLIS_ENABLE_NO_UNDERSCORE_API BLIS_ENABLE_CBLAS )
+    else()
+      set( BLAS_INCLUDE_DIR ${OPENBLAS_DIR}/include CACHE PATH "OpenBLAS library include path" )
+      find_library( BLAS_LIBRARY libopenblas
+                    PATHS ${OPENBLAS_DIR}/lib
+                    NO_DEFAULT_PATH
+                  )
+      if (NOT BLAS_LIBRARY)
+        find_package( OPENBLAS CONFIG REQUIRED )
+        set( BLAS_LIBRARY OpenBLAS::OpenBLAS )
+        set( BLAS_INCLUDE_DIR "" )
+      endif()
     endif()
+
+    if ( DEFINED BLIS_INCLUDE_DIR )
+      set( BLIS_CPP ../common/blis_interface.cpp )
+    endif()
+    message(STATUS "Linking Reference BLAS LIB: ${BLAS_LIBRARY}")
   endif()
 
   # Find the package ROCmSMI

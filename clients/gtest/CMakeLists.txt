@@ -119,7 +119,7 @@ else()
 endif()
 
 if (WIN32)
-  target_compile_definitions( rocblas-test PRIVATE _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING )
+  target_compile_definitions( rocblas-test PRIVATE _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING ${BLIS_DEFINES} )
 endif()
 
 target_compile_definitions( rocblas-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST)
