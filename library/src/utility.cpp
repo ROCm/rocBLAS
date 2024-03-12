@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ rocblas_status rocblas_internal_convert_hip_to_rocblas_status(hipError_t status)
     case hipErrorNoBinaryForGpu:
         return rocblas_status_arch_mismatch;
 
+    case hipErrorNotFound: // most likely tensile runtime error
     // hip runtime failing
     case hipErrorNoDevice: // no hip devices
     case hipErrorUnknown:
