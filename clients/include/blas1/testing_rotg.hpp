@@ -89,111 +89,117 @@ void testing_rotg(const Arguments& arg)
     // Test rocblas_pointer_mode_host
     if(arg.unit_check || arg.norm_check)
     {
-        // Naming: `h` is in CPU (host) memory(eg ha), `d` is in GPU (device) memory (eg da).
-        // Allocate host memory
-        host_vector<T> ha = a;
-        host_vector<T> hb = b;
-        host_vector<U> hc = c;
-        host_vector<T> hs = s;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        DAPI_CHECK(rocblas_rotg_fn, (handle, ha, hb, hc, hs));
-        handle.post_test(arg);
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            near_check_general<T>(1, 1, 1, ha_gold, ha, rel_error);
-            near_check_general<T>(1, 1, 1, hb_gold, hb, rel_error);
-            near_check_general<U>(1, 1, 1, hc_gold, hc, rel_error);
-            near_check_general<T>(1, 1, 1, hs_gold, hs, rel_error);
-        }
+            // Naming: `h` is in CPU (host) memory(eg ha), `d` is in GPU (device) memory (eg da).
+            // Allocate host memory
+            host_vector<T> ha = a;
+            host_vector<T> hb = b;
+            host_vector<U> hc = c;
+            host_vector<T> hs = s;
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_rotg_fn, (handle, ha, hb, hc, hs));
+            handle.post_test(arg);
 
-        if(arg.norm_check)
-        {
-            error_host = norm_check_general<T>('F', 1, 1, 1, ha_gold, ha);
-            error_host += norm_check_general<T>('F', 1, 1, 1, hb_gold, hb);
-            error_host += norm_check_general<U>('F', 1, 1, 1, hc_gold, hc);
-            error_host += norm_check_general<T>('F', 1, 1, 1, hs_gold, hs);
+            if(arg.unit_check)
+            {
+                near_check_general<T>(1, 1, 1, ha_gold, ha, rel_error);
+                near_check_general<T>(1, 1, 1, hb_gold, hb, rel_error);
+                near_check_general<U>(1, 1, 1, hc_gold, hc, rel_error);
+                near_check_general<T>(1, 1, 1, hs_gold, hs, rel_error);
+            }
+
+            if(arg.norm_check)
+            {
+                error_host = norm_check_general<T>('F', 1, 1, 1, ha_gold, ha);
+                error_host += norm_check_general<T>('F', 1, 1, 1, hb_gold, hb);
+                error_host += norm_check_general<U>('F', 1, 1, 1, hc_gold, hc);
+                error_host += norm_check_general<T>('F', 1, 1, 1, hs_gold, hs);
+            }
         }
     }
 
     // Test rocblas_pointer_mode_device
     if(arg.unit_check || arg.norm_check)
     {
-        // Allocate device memory
-        device_vector<T> da(1, 1);
-        device_vector<T> db(1, 1);
-        device_vector<U> dc(1, 1);
-        device_vector<T> ds(1, 1);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(da.memcheck());
-        CHECK_DEVICE_ALLOCATION(db.memcheck());
-        CHECK_DEVICE_ALLOCATION(dc.memcheck());
-        CHECK_DEVICE_ALLOCATION(ds.memcheck());
-        CHECK_DEVICE_ALLOCATION(ds.memcheck());
-
-        // Transfer from CPU to GPU
-        CHECK_HIP_ERROR(da.transfer_from(a));
-        CHECK_HIP_ERROR(db.transfer_from(b));
-        CHECK_HIP_ERROR(dc.transfer_from(c));
-        CHECK_HIP_ERROR(ds.transfer_from(s));
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        DAPI_CHECK(rocblas_rotg_fn, (handle, da, db, dc, ds));
-        handle.post_test(arg);
-
-        host_vector<T> ha(1);
-        host_vector<T> hb(1);
-        host_vector<U> hc(1);
-        host_vector<T> hs(1);
-
-        // Transfer from GPU to CPU
-        CHECK_HIP_ERROR(ha.transfer_from(da));
-        CHECK_HIP_ERROR(hb.transfer_from(db));
-        CHECK_HIP_ERROR(hc.transfer_from(dc));
-        CHECK_HIP_ERROR(hs.transfer_from(ds));
-
-        if(arg.repeatability_check)
+        if(arg.pointer_mode_device)
         {
-            host_vector<T> ha_copy(1);
-            host_vector<T> hb_copy(1);
-            host_vector<U> hc_copy(1);
-            host_vector<T> hs_copy(1);
-            for(int i = 0; i < arg.iters; i++)
+            // Allocate device memory
+            device_vector<T> da(1, 1);
+            device_vector<T> db(1, 1);
+            device_vector<U> dc(1, 1);
+            device_vector<T> ds(1, 1);
+
+            // Check device memory allocation
+            CHECK_DEVICE_ALLOCATION(da.memcheck());
+            CHECK_DEVICE_ALLOCATION(db.memcheck());
+            CHECK_DEVICE_ALLOCATION(dc.memcheck());
+            CHECK_DEVICE_ALLOCATION(ds.memcheck());
+            CHECK_DEVICE_ALLOCATION(ds.memcheck());
+
+            // Transfer from CPU to GPU
+            CHECK_HIP_ERROR(da.transfer_from(a));
+            CHECK_HIP_ERROR(db.transfer_from(b));
+            CHECK_HIP_ERROR(dc.transfer_from(c));
+            CHECK_HIP_ERROR(ds.transfer_from(s));
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_rotg_fn, (handle, da, db, dc, ds));
+            handle.post_test(arg);
+
+            host_vector<T> ha(1);
+            host_vector<T> hb(1);
+            host_vector<U> hc(1);
+            host_vector<T> hs(1);
+
+            // Transfer from GPU to CPU
+            CHECK_HIP_ERROR(ha.transfer_from(da));
+            CHECK_HIP_ERROR(hb.transfer_from(db));
+            CHECK_HIP_ERROR(hc.transfer_from(dc));
+            CHECK_HIP_ERROR(hs.transfer_from(ds));
+
+            if(arg.repeatability_check)
             {
-                CHECK_HIP_ERROR(da.transfer_from(a));
-                CHECK_HIP_ERROR(db.transfer_from(b));
-                CHECK_HIP_ERROR(dc.transfer_from(c));
-                CHECK_HIP_ERROR(ds.transfer_from(s));
-                DAPI_CHECK(rocblas_rotg_fn, (handle, da, db, dc, ds));
-                CHECK_HIP_ERROR(ha_copy.transfer_from(da));
-                CHECK_HIP_ERROR(hb_copy.transfer_from(db));
-                CHECK_HIP_ERROR(hc_copy.transfer_from(dc));
-                CHECK_HIP_ERROR(hs_copy.transfer_from(ds));
-                unit_check_general<T>(1, 1, 1, ha, ha_copy);
-                unit_check_general<T>(1, 1, 1, hb, hb_copy);
-                unit_check_general<U>(1, 1, 1, hc, hc_copy);
-                unit_check_general<T>(1, 1, 1, hs, hs_copy);
+                host_vector<T> ha_copy(1);
+                host_vector<T> hb_copy(1);
+                host_vector<U> hc_copy(1);
+                host_vector<T> hs_copy(1);
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(da.transfer_from(a));
+                    CHECK_HIP_ERROR(db.transfer_from(b));
+                    CHECK_HIP_ERROR(dc.transfer_from(c));
+                    CHECK_HIP_ERROR(ds.transfer_from(s));
+                    DAPI_CHECK(rocblas_rotg_fn, (handle, da, db, dc, ds));
+                    CHECK_HIP_ERROR(ha_copy.transfer_from(da));
+                    CHECK_HIP_ERROR(hb_copy.transfer_from(db));
+                    CHECK_HIP_ERROR(hc_copy.transfer_from(dc));
+                    CHECK_HIP_ERROR(hs_copy.transfer_from(ds));
+                    unit_check_general<T>(1, 1, 1, ha, ha_copy);
+                    unit_check_general<T>(1, 1, 1, hb, hb_copy);
+                    unit_check_general<U>(1, 1, 1, hc, hc_copy);
+                    unit_check_general<T>(1, 1, 1, hs, hs_copy);
+                }
+                return;
             }
-            return;
-        }
 
-        if(arg.unit_check)
-        {
-            near_check_general<T>(1, 1, 1, ha_gold, ha, rel_error);
-            near_check_general<T>(1, 1, 1, hb_gold, hb, rel_error);
-            near_check_general<U>(1, 1, 1, hc_gold, hc, rel_error);
-            near_check_general<T>(1, 1, 1, hs_gold, hs, rel_error);
-        }
+            if(arg.unit_check)
+            {
+                near_check_general<T>(1, 1, 1, ha_gold, ha, rel_error);
+                near_check_general<T>(1, 1, 1, hb_gold, hb, rel_error);
+                near_check_general<U>(1, 1, 1, hc_gold, hc, rel_error);
+                near_check_general<T>(1, 1, 1, hs_gold, hs, rel_error);
+            }
 
-        if(arg.norm_check)
-        {
-            error_device = norm_check_general<T>('F', 1, 1, 1, ha_gold, ha);
-            error_device += norm_check_general<T>('F', 1, 1, 1, hb_gold, hb);
-            error_device += norm_check_general<U>('F', 1, 1, 1, hc_gold, hc);
-            error_device += norm_check_general<T>('F', 1, 1, 1, hs_gold, hs);
+            if(arg.norm_check)
+            {
+                error_device = norm_check_general<T>('F', 1, 1, 1, ha_gold, ha);
+                error_device += norm_check_general<T>('F', 1, 1, 1, hb_gold, hb);
+                error_device += norm_check_general<U>('F', 1, 1, 1, hc_gold, hc);
+                error_device += norm_check_general<T>('F', 1, 1, 1, hs_gold, hs);
+            }
         }
     }
 

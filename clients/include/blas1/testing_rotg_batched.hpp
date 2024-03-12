@@ -139,6 +139,7 @@ void testing_rotg_batched(const Arguments& arg)
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
     // Test rocblas_pointer_mode_host
+    if(arg.pointer_mode_host)
     {
 
         host_batch_vector<T> ra(1, 1, batch_count);
@@ -174,6 +175,7 @@ void testing_rotg_batched(const Arguments& arg)
     }
 
     // Test rocblas_pointer_mode_device
+    if(arg.pointer_mode_device)
     {
         // Allocate device memory
         device_batch_vector<T> da(1, 1, batch_count);
