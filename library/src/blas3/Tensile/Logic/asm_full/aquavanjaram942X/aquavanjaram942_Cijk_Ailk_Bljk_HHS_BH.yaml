@@ -22086,7 +22086,7 @@
     LocalWritePerMfma: -1
     LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
-    LoopDoWhile: false
+    LoopDoWhile: true
     LoopIters: 4
     LoopTail: true
     LoopUnroll: 32
@@ -22097,10 +22097,10 @@
     MIInputPerThread: 4
     MIOutputVectorWidth: 4
     MIRegPerOut: 1
-    MIWaveGroup: [4, 1]
-    MIWaveTile: [2, 8]
-    MIWaveTileA: 2
-    MIWaveTileB: 8
+    MIWaveGroup: [1, 4]
+    MIWaveTile: [8, 2]
+    MIWaveTileA: 8
+    MIWaveTileB: 2
     MacroTile0: 256
     MacroTile1: 256
     MacroTileA: 256
@@ -22217,7 +22217,7 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 77
-    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT256x256x32_MI32x32x8x1_SN_LBSPPB128_WGM32
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT256x256x32_MI32x32x8x1_SN_LBSPPB128_SSO0_WGM32
     SourceSwap: true
     StaggerU: 0
     StaggerUMapping: 0
@@ -22228,21 +22228,21 @@
     StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
-    StoreSyncOpt: 4
+    StoreSyncOpt: 0
     StoreVectorWidth: 2
     StreamK: 0
-    SubGroup0: 8
-    SubGroup1: 32
-    SubGroupA: 8
-    SubGroupB: 32
+    SubGroup0: 2
+    SubGroup1: 128
+    SubGroupA: 2
+    SubGroupB: 128
     SuppressNoLoadLoop: false
     ThreadSeparateGlobalReadA: 0
     ThreadSeparateGlobalReadB: 0
-    ThreadTile: [2, 256]
-    ThreadTile0: 32
-    ThreadTile1: 8
-    ThreadTileA: 32
-    ThreadTileB: 8
+    ThreadTile: [8, 64]
+    ThreadTile0: 128
+    ThreadTile1: 2
+    ThreadTileA: 128
+    ThreadTileB: 2
     TransposeLDS: 1
     UnrollIncIsDepthU: 0
     UnrollMajorLDSA: false
@@ -22261,7 +22261,7 @@
     WaveSeparateGlobalReadA: 1
     WaveSeparateGlobalReadB: 0
     WavefrontSize: 64
-    WorkGroup: [128, 2, 1]
+    WorkGroup: [32, 8, 1]
     WorkGroupMapping: 32
     WorkGroupMappingType: B
     _DepthULds: 32
@@ -22436,7 +22436,7 @@
   - - [9728, 64, 1, 1024]
     - [76, 10.1]
   - - [98304, 98304, 1, 98304]
-    - [77, 83.93]
+    - [77, 86.12]
 - null
 - null
 - DeviceEfficiency
