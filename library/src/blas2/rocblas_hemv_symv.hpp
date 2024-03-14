@@ -72,8 +72,11 @@ inline rocblas_status rocblas_hemv_symv_arg_check(rocblas_handle handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if(!beta || !alpha)
-        return rocblas_status_invalid_pointer;
+    if(!handle->is_device_memory_size_query())
+    {
+        if(!beta || !alpha)
+            return rocblas_status_invalid_pointer;
+    }
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
@@ -81,11 +84,14 @@ inline rocblas_status rocblas_hemv_symv_arg_check(rocblas_handle handle,
         if(stride_alpha || stride_beta)
             return rocblas_status_not_implemented;
 
-        if(*alpha == 0 && *beta == 1)
-            return rocblas_status_success;
+        if(!handle->is_device_memory_size_query())
+        {
+            if(*alpha == 0 && *beta == 1)
+                return rocblas_status_success;
 
-        if(!y || (*alpha != 0 && (!A || !x)))
-            return rocblas_status_invalid_pointer;
+            if(!y || (*alpha != 0 && (!A || !x)))
+                return rocblas_status_invalid_pointer;
+        }
     }
 
     return rocblas_status_continue;
