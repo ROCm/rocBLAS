@@ -424,7 +424,7 @@ set(rocblas64_ex_source_no_tensile
 # )
 
 # rocblas L3 that use tensile but can use source gemm as fallback
-# set( rocblas64_blas3_source
+set( rocblas64_blas3_source
 #     src64/blas3/rocblas_hemm.cpp
 #     src64/blas3/rocblas_hemm_batched.cpp
 #     src64/blas3/rocblas_hemm_strided_batched.cpp
@@ -460,13 +460,14 @@ set(rocblas64_ex_source_no_tensile
 #     src64/blas3/rocblas_trmm_kernels.cpp
 #     src64/blas3/rocblas_trmm_batched.cpp
 #     src64/blas3/rocblas_trmm_strided_batched.cpp
-#     src64/blas3/rocblas_trsm.cpp
-#     src64/blas3/rocblas_trsm_batched.cpp
-#     src64/blas3/rocblas_trsm_strided_batched.cpp
+    src64/blas3/rocblas_trsm_64.cpp
+    src64/blas3/rocblas_trsm_kernels_64.cpp
+    src64/blas3/rocblas_trsm_batched_64.cpp
+    src64/blas3/rocblas_trsm_strided_batched_64.cpp
 #     src64/blas3/rocblas_trtri.cpp
 #     src64/blas3/rocblas_trtri_batched.cpp
 #     src64/blas3/rocblas_trtri_strided_batched.cpp
-# )
+)
 
 set( rocblas64_blas2_source
   src64/blas2/rocblas_gemv_64.cpp
@@ -729,7 +730,7 @@ file( GLOB rocblas_prototype_inputs
 )
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
-  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
+  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
   #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/
   DEPENDS ${rocblas_prototype_inputs}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."

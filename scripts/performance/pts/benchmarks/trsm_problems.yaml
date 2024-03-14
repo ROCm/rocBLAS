@@ -75,6 +75,12 @@ Definitions:
 #   - { M:  44928,  N: 384,  lda: 44928, ldb:   44928 }
 #   - { M:  53376,  N: 384,  lda: 53376, ldb:   53376 }
 
+  - &left_substitution_range
+    - { scan: [ 128..2048..128 ], M: 16, N: *c_scan_value, lda: 16, ldb: 16 }
+
+  - &right_substitution_range
+    - { scan: [ 128..2048..128 ], M: *c_scan_value, N: 16, lda: 16, ldb: *c_scan_value }
+
 Tests:
 # - name: trsm_bench_const_n
 #   category: bench
@@ -150,6 +156,34 @@ Tests:
     incx: 1
     incy: 1
     matrix_size: *testset2_small_matrix_size_range
+    iters: 10
+
+  - name: trsm_bench_substitution_left_size
+    category: bench
+    function: trsm
+    precision: *single_precision
+    transA: [ N ]
+    side: [ L ]
+    uplo: [ U, L ]
+    diag: U
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *left_substitution_range
+    iters: 10
+
+  - name: trsm_bench_substitution_right_size
+    category: bench
+    function: trsm
+    precision: *single_precision
+    transA: [ N ]
+    side: [ R ]
+    uplo: [ U, L ]
+    diag: U
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *right_substitution_range
     iters: 10
 
   # - name: trsm_bench_1_matrix_size

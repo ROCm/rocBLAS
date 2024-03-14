@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,16 +57,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    stride_invA)
 {
     if constexpr(std::is_same_v<T, float>)
-        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
+        return rocblas_internal_trsm_launcher<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
     else if constexpr(std::is_same_v<T, double>)
-        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
+        return rocblas_internal_trsm_launcher<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_float_complex>)
-        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
+        return rocblas_internal_trsm_launcher<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_double_complex>)
-        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB, true, T>(
+        return rocblas_internal_trsm_launcher<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
 
     return rocblas_status_not_implemented;

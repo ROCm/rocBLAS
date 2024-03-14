@@ -190,6 +190,8 @@ rocblas_Xtrsm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsm
 
+The trsm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_strsm_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrsm_batched
@@ -198,6 +200,8 @@ rocblas_Xtrsm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsm_batched
 
+The trsm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_strsm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrsm_strided_batched
@@ -205,6 +209,8 @@ rocblas_Xtrsm + batched, strided_batched
 .. doxygenfunction:: rocblas_ctrsm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsm_strided_batched
+
+The trsm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xhemm + batched, strided_batched
 =========================================

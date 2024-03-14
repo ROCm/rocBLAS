@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,20 @@
 #include "handle.hpp"
 #include "rocblas.h"
 
-template <typename TScal, typename TPtr, typename TConstPtr>
+template <typename API_INT, typename TScal, typename TPtr, typename TConstPtr>
 inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
                                              rocblas_side      side,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_diagonal  diag,
-                                             rocblas_int       m,
-                                             rocblas_int       n,
+                                             API_INT           m,
+                                             API_INT           n,
                                              const TScal*      alpha,
                                              TConstPtr         A,
-                                             rocblas_int       lda,
+                                             API_INT           lda,
                                              TPtr              B,
-                                             rocblas_int       ldb,
-                                             rocblas_int       batch_count)
+                                             API_INT           ldb,
+                                             API_INT           batch_count)
 {
     if(side != rocblas_side_left && side != rocblas_side_right)
         return rocblas_status_invalid_value;
@@ -55,7 +55,7 @@ inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
         return rocblas_status_invalid_value;
 
     // A is of size lda*k
-    rocblas_int k = side == rocblas_side_left ? m : n;
+    auto k = side == rocblas_side_left ? m : n;
     if(batch_count < 0 || m < 0 || n < 0 || lda < k || ldb < m)
         return rocblas_status_invalid_size;
 
@@ -72,14 +72,62 @@ inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
 
 template <typename T, typename U>
 rocblas_status set_block_unit(rocblas_handle handle,
-                              rocblas_int    m,
-                              rocblas_int    n,
+                              int64_t        m,
+                              int64_t        n,
                               U              src,
-                              rocblas_int    src_ld,
+                              int64_t        src_ld,
                               rocblas_stride src_stride,
                               rocblas_int    batch_count,
                               T              val        = 0.0,
                               rocblas_stride offset_src = 0);
+
+template <bool BATCHED, typename T, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_trsm_small_substitution_launcher(rocblas_handle    handle,
+                                                                 rocblas_side      side,
+                                                                 rocblas_fill      uplo,
+                                                                 rocblas_operation transA,
+                                                                 rocblas_diagonal  diag,
+                                                                 int64_t           m,
+                                                                 int64_t           n,
+                                                                 T                 alpha_h,
+                                                                 TConstPtr         A,
+                                                                 rocblas_stride    offset_A,
+                                                                 int64_t           lda,
+                                                                 rocblas_stride    stride_A,
+                                                                 TPtr              B,
+                                                                 rocblas_stride    offset_B,
+                                                                 int64_t           ldb,
+                                                                 rocblas_stride    stride_B,
+                                                                 int               batch_count,
+                                                                 int               blksize);
+
+template <rocblas_int BLOCK, rocblas_int DIM_X, bool BATCHED, typename T, typename U, typename V>
+rocblas_status rocblas_internal_trsm_launcher(rocblas_handle    handle,
+                                              rocblas_side      side,
+                                              rocblas_fill      uplo,
+                                              rocblas_operation transA,
+                                              rocblas_diagonal  diag,
+                                              rocblas_int       m,
+                                              rocblas_int       n,
+                                              const T*          alpha,
+                                              U                 A,
+                                              rocblas_stride    offset_A,
+                                              rocblas_int       lda,
+                                              rocblas_stride    stride_A,
+                                              V                 B,
+                                              rocblas_stride    offset_B,
+                                              rocblas_int       ldb,
+                                              rocblas_stride    stride_B,
+                                              rocblas_int       batch_count,
+                                              bool              optimal_mem,
+                                              void*             w_x_temp,
+                                              void*             w_x_temparr,
+                                              void*             invA,
+                                              void*             invAarr,
+                                              U                 supplied_invA,
+                                              rocblas_int       supplied_invA_size,
+                                              rocblas_stride    offset_invA,
+                                              rocblas_stride    stride_invA);
 
 template <rocblas_int BLOCK, bool BATCHED, typename T>
 rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,
@@ -100,6 +148,8 @@ rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              ha
                                                   rocblas_operation           transA,
                                                   rocblas_int                 m,
                                                   rocblas_int                 n,
+                                                  rocblas_int                 lda,
+                                                  rocblas_int                 ldb,
                                                   rocblas_int                 batch_count,
                                                   rocblas_device_malloc_base& w_mem,
                                                   void*&                      w_mem_x_temp,

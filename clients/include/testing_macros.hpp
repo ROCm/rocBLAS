@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2023-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,4 +55,14 @@
     else                                                      \
     {                                                         \
         CHECK_ROCBLAS_ERROR((name_(UNWRAP_ARGS args_)));      \
+    }
+
+#define DAPI_CHECK_ALLOC_QUERY(name_, args_)                \
+    if(arg.api & c_API_64)                                  \
+    {                                                       \
+        CHECK_ALLOC_QUERY((name_##_64(UNWRAP_ARGS args_))); \
+    }                                                       \
+    else                                                    \
+    {                                                       \
+        CHECK_ALLOC_QUERY((name_(UNWRAP_ARGS args_)));      \
     }

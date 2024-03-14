@@ -413,28 +413,28 @@ inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
 /*! \brief For testing purposes, makes the square matrix hA into a unit_diagonal matrix and               *
  *         randomly initialize the diagonal. This routine is for host vector                     */
 template <typename T>
-void make_unit_diagonal(rocblas_fill uplo, T* hA, size_t lda, rocblas_int N)
+void make_unit_diagonal(rocblas_fill uplo, T* hA, size_t lda, int64_t N)
 {
     if(uplo == rocblas_fill_lower)
     {
-        for(int i = 0; i < N; i++)
+        for(int64_t i = 0; i < N; i++)
         {
             T diag = hA[i + i * size_t(lda)];
-            for(int j = 0; j <= i; j++)
+            for(int64_t j = 0; j <= i; j++)
                 hA[i + j * size_t(lda)] = hA[i + j * size_t(lda)] / diag;
         }
     }
     else // rocblas_fill_upper
     {
-        for(int j = 0; j < N; j++)
+        for(int64_t j = 0; j < N; j++)
         {
             T diag = hA[j + j * size_t(lda)];
-            for(int i = 0; i <= j; i++)
+            for(int64_t i = 0; i <= j; i++)
                 hA[i + j * size_t(lda)] = hA[i + j * size_t(lda)] / diag;
         }
     }
     // randomly initialize diagonal to ensure we aren't using it's values for tests.
-    for(int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
         rocblas_init<T>(hA + i * size_t(lda) + i, 1, 1, 1);
     }
@@ -487,12 +487,12 @@ void make_unit_diagonal(rocblas_fill uplo, T& h_A)
 template <typename T, typename U>
 void copy_matrix_with_different_leading_dimensions(T& hB, U& hC)
 {
-    rocblas_int M           = hB.m();
-    rocblas_int N           = hB.n();
-    size_t      ldb         = hB.lda();
-    size_t      ldc         = hC.lda();
-    rocblas_int batch_count = hB.batch_count();
-    for(int b = 0; b < batch_count; b++)
+    int64_t M           = hB.m();
+    int64_t N           = hB.n();
+    size_t  ldb         = hB.lda();
+    size_t  ldc         = hC.lda();
+    int64_t batch_count = hB.batch_count();
+    for(int64_t b = 0; b < batch_count; b++)
     {
         auto* B = hB[b];
         auto* C = hC[b];

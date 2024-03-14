@@ -40,5 +40,5 @@ Tests:
     incx: 1
     matrix_size: *generic_sizes
     iters: 500
-    cold_iters: 500    
+    cold_iters: 500
 ...

@@ -22,19 +22,7 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 #include "blas3/rocblas_trsm.hpp"
 
@@ -46,17 +34,19 @@ void testing_trsm_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsm_batched_fn
         = arg.api == FORTRAN ? rocblas_trsm_batched<T, true> : rocblas_trsm_batched<T, false>;
+    auto rocblas_trsm_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trsm_batched_64<T, true>
+                                                            : rocblas_trsm_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        const rocblas_int M           = 100;
-        const rocblas_int N           = 100;
-        const rocblas_int lda         = 100;
-        const rocblas_int ldb         = 100;
-        const rocblas_int batch_count = 2;
+        const int64_t M           = 100;
+        const int64_t N           = 100;
+        const int64_t lda         = 100;
+        const int64_t ldb         = 100;
+        const int64_t batch_count = 2;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -78,7 +68,7 @@ void testing_trsm_batched_bad_arg(const Arguments& arg)
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-        rocblas_int K = side == rocblas_side_left ? M : N;
+        int64_t K = side == rocblas_side_left ? M : N;
 
         // Allocate device memory
         device_batch_matrix<T> dA(K, K, lda, batch_count);
@@ -89,205 +79,214 @@ void testing_trsm_batched_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
         // check for invalid enum
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      rocblas_side_both,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA,
-                                                      lda,
-                                                      dB,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     rocblas_side_both,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      (rocblas_fill)rocblas_side_both,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA,
-                                                      lda,
-                                                      dB,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     (rocblas_fill)rocblas_side_both,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      uplo,
-                                                      (rocblas_operation)rocblas_side_both,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA,
-                                                      lda,
-                                                      dB,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     (rocblas_operation)rocblas_side_both,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      (rocblas_diagonal)rocblas_side_both,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA,
-                                                      lda,
-                                                      dB,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     (rocblas_diagonal)rocblas_side_both,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb,
+                     batch_count));
 
         // check for invalid size
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb, batch_count),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(
+            rocblas_status_invalid_size,
+            rocblas_trsm_batched_fn,
+            (handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb, batch_count));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb, batch_count),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(
+            rocblas_status_invalid_size,
+            rocblas_trsm_batched_fn,
+            (handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb, batch_count));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, -1),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_batched_fn,
+                    (handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, -1));
 
         // check for invalid leading dimension
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1, batch_count),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(
+            rocblas_status_invalid_size,
+            rocblas_trsm_batched_fn,
+            (handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1, batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      rocblas_side_left,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA,
-                                                      M - 1,
-                                                      dB,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     rocblas_side_left,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     M - 1,
+                     dB,
+                     ldb,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      rocblas_side_right,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      alpha,
-                                                      dA,
-                                                      N - 1,
-                                                      dB,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     rocblas_side_right,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     N - 1,
+                     dB,
+                     ldb,
+                     batch_count));
 
         // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, batch_count),
-            rocblas_status_invalid_handle);
+        DAPI_EXPECT(
+            rocblas_status_invalid_handle,
+            rocblas_trsm_batched_fn,
+            (nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, batch_count));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, batch_count),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(
+            rocblas_status_invalid_pointer,
+            rocblas_trsm_batched_fn,
+            (handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, batch_count));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                          side,
-                                                          uplo,
-                                                          transA,
-                                                          diag,
-                                                          M,
-                                                          N,
-                                                          alpha,
-                                                          nullptr,
-                                                          lda,
-                                                          dB,
-                                                          ldb,
-                                                          batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_trsm_batched_fn,
+                        (handle,
+                         side,
+                         uplo,
+                         transA,
+                         diag,
+                         M,
+                         N,
+                         alpha,
+                         nullptr,
+                         lda,
+                         dB,
+                         ldb,
+                         batch_count));
         }
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb, batch_count),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(
+            rocblas_status_invalid_pointer,
+            rocblas_trsm_batched_fn,
+            (handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb, batch_count));
 
         // When batch_count==0, all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_batched_fn(
-                handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0),
-            rocblas_status_success);
+        DAPI_EXPECT(
+            rocblas_status_success,
+            rocblas_trsm_batched_fn,
+            (handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0));
 
         // When M==0, all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      0,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     0,
+                     N,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     nullptr,
+                     ldb,
+                     batch_count));
 
         // When N==0, all pointers may be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      0,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     0,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     nullptr,
+                     ldb,
+                     batch_count));
 
         // If alpha==0, then A can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      zero,
-                                                      nullptr,
-                                                      lda,
-                                                      dB.ptr_on_device(),
-                                                      ldb,
-                                                      batch_count),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     zero,
+                     nullptr,
+                     lda,
+                     dB.ptr_on_device(),
+                     ldb,
+                     batch_count));
     }
 }
 
@@ -296,12 +295,14 @@ void testing_trsm_batched(const Arguments& arg)
 {
     auto rocblas_trsm_batched_fn
         = arg.api == FORTRAN ? rocblas_trsm_batched<T, true> : rocblas_trsm_batched<T, false>;
+    auto rocblas_trsm_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trsm_batched_64<T, true>
+                                                            : rocblas_trsm_batched_64<T, false>;
 
-    rocblas_int M           = arg.M;
-    rocblas_int N           = arg.N;
-    rocblas_int lda         = arg.lda;
-    rocblas_int ldb         = arg.ldb;
-    rocblas_int batch_count = arg.batch_count;
+    int64_t M           = arg.M;
+    int64_t N           = arg.N;
+    int64_t lda         = arg.lda;
+    int64_t ldb         = arg.ldb;
+    int64_t batch_count = arg.batch_count;
 
     char char_side   = arg.side;
     char char_uplo   = arg.uplo;
@@ -319,7 +320,7 @@ void testing_trsm_batched(const Arguments& arg)
     rocblas_stride offsetA      = internal_api ? arg.ldc : 0;
     rocblas_stride offsetB      = internal_api ? arg.ldd : 0;
 
-    rocblas_int K = side == rocblas_side_left ? M : N;
+    int64_t K = side == rocblas_side_left ? M : N;
 
     rocblas_local_handle handle{arg};
     // check here to prevent undefined memory allocation error
@@ -327,20 +328,21 @@ void testing_trsm_batched(const Arguments& arg)
     if(invalid_size || batch_count == 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      ldb,
-                                                      batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_trsm_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     nullptr,
+                     ldb,
+                     batch_count));
         return;
     }
 
@@ -397,8 +399,6 @@ void testing_trsm_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used  = 0.0;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -409,19 +409,20 @@ void testing_trsm_batched(const Arguments& arg)
     {
         // Compute size
         CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
-        CHECK_ALLOC_QUERY(rocblas_trsm_batched_fn(handle,
-                                                  side,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  M,
-                                                  N,
-                                                  &alpha_h,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dXorB.ptr_on_device(),
-                                                  ldb,
-                                                  batch_count));
+        DAPI_CHECK_ALLOC_QUERY(rocblas_trsm_batched_fn,
+                               (handle,
+                                side,
+                                uplo,
+                                transA,
+                                diag,
+                                M,
+                                N,
+                                &alpha_h,
+                                dA.ptr_on_device(),
+                                lda,
+                                dXorB.ptr_on_device(),
+                                ldb,
+                                batch_count));
         size_t size;
         CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
 
@@ -440,26 +441,27 @@ void testing_trsm_batched(const Arguments& arg)
             handle.pre_test(arg);
             if(!internal_api)
             {
-                CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
-                                                            side,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            M,
-                                                            N,
-                                                            &alpha_h,
-                                                            dA.ptr_on_device(),
-                                                            lda,
-                                                            dXorB.ptr_on_device(),
-                                                            ldb,
-                                                            batch_count));
+                DAPI_CHECK(rocblas_trsm_batched_fn,
+                           (handle,
+                            side,
+                            uplo,
+                            transA,
+                            diag,
+                            M,
+                            N,
+                            &alpha_h,
+                            dA.ptr_on_device(),
+                            lda,
+                            dXorB.ptr_on_device(),
+                            ldb,
+                            batch_count));
             }
             else
             {
                 // internal function requires us to supply temporary memory ourselves
                 constexpr bool BATCHED        = true;
                 bool           optimal_mem    = true;
-                rocblas_int    supp_invA_size = 0; // used for trsm_ex
+                int64_t        supp_invA_size = 0; // used for trsm_ex
 
                 // first exported internal interface - calculate how much mem is needed
                 size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size,
@@ -521,7 +523,7 @@ void testing_trsm_batched(const Arguments& arg)
             if(alpha_h == 0)
             {
                 // expecting 0 output, set hX == 0
-                for(rocblas_int b = 0; b < batch_count; b++)
+                for(int64_t b = 0; b < batch_count; b++)
                     rocblas_init_zero((T*)hX[b], M, N, ldb);
 
                 if(arg.unit_check)
@@ -534,7 +536,7 @@ void testing_trsm_batched(const Arguments& arg)
             {
                 //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
                 // calculate vector-induced-norm 1 of matrix E
-                for(int b = 0; b < batch_count; b++)
+                for(int64_t b = 0; b < batch_count; b++)
                 {
                     double err_host_batch = matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]);
 
@@ -565,19 +567,20 @@ void testing_trsm_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
             CHECK_HIP_ERROR(alpha_d.transfer_from(halpha));
 
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
-                                                        side,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        N,
-                                                        alpha_d,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dXorB.ptr_on_device(),
-                                                        ldb,
-                                                        batch_count));
+            DAPI_CHECK(rocblas_trsm_batched_fn,
+                       (handle,
+                        side,
+                        uplo,
+                        transA,
+                        diag,
+                        M,
+                        N,
+                        alpha_d,
+                        dA.ptr_on_device(),
+                        lda,
+                        dXorB.ptr_on_device(),
+                        ldb,
+                        batch_count));
 
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
@@ -612,7 +615,7 @@ void testing_trsm_batched(const Arguments& arg)
             if(alpha_h == 0)
             {
                 // expecting 0 output, set hX == 0
-                for(rocblas_int b = 0; b < batch_count; b++)
+                for(int64_t b = 0; b < batch_count; b++)
                     rocblas_init_zero((T*)hX[b], M, N, ldb);
 
                 if(arg.unit_check)
@@ -625,7 +628,7 @@ void testing_trsm_batched(const Arguments& arg)
             {
                 //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
                 // calculate vector-induced-norm 1 of matrix E
-                for(int b = 0; b < batch_count; b++)
+                for(int64_t b = 0; b < batch_count; b++)
                 {
                     double err_device_batch = matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]);
 
@@ -650,8 +653,9 @@ void testing_trsm_batched(const Arguments& arg)
     // internal tests/offsets, so ensuring not used when internal_api is set.
     if(arg.timing && !internal_api)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used, cpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         // GPU rocBLAS
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
@@ -662,40 +666,25 @@ void testing_trsm_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int i = 0; i < number_cold_calls; i++)
+        for(int i = 0; i < total_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
-                                                        side,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        N,
-                                                        &alpha_h,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dXorB.ptr_on_device(),
-                                                        ldb,
-                                                        batch_count));
-        }
+            if(i == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
 
-        gpu_time_used = get_time_us_sync(stream);
-
-        for(int i = 0; i < number_hot_calls; i++)
-        {
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
-                                                        side,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        N,
-                                                        &alpha_h,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dXorB.ptr_on_device(),
-                                                        ldb,
-                                                        batch_count));
+            DAPI_DISPATCH(rocblas_trsm_batched_fn,
+                          (handle,
+                           side,
+                           uplo,
+                           transA,
+                           diag,
+                           M,
+                           N,
+                           &alpha_h,
+                           dA.ptr_on_device(),
+                           lda,
+                           dXorB.ptr_on_device(),
+                           ldb,
+                           batch_count));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -703,7 +692,7 @@ void testing_trsm_batched(const Arguments& arg)
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
 
-        for(int b = 0; b < batch_count; b++)
+        for(int64_t b = 0; b < batch_count; b++)
             ref_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hXorB_1[b], ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
