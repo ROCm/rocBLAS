@@ -60,16 +60,16 @@ inline rocblas_status rocblas_trsv_arg_check(rocblas_handle    handle,
         return rocblas_status_success;
     }
 
-    // pointers are validated if they need to be dereferenced
-    if(!A || !B)
-        return rocblas_status_invalid_pointer;
-
     // Need one int worth of global memory to keep track of completed sections
     dev_bytes = sizeof(rocblas_int) * batch_count;
     if(handle->is_device_memory_size_query())
     {
         return handle->set_optimal_device_memory_size(dev_bytes);
     }
+
+    // pointers are validated if they need to be dereferenced
+    if(!A || !B)
+        return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;
 }

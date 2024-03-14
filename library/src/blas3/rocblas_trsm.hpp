@@ -64,8 +64,11 @@ inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
         return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                      : rocblas_status_success;
 
-    if(!B || !alpha || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && !A))
-        return rocblas_status_invalid_pointer;
+    if(!handle->is_device_memory_size_query())
+    {
+        if(!B || !alpha || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && !A))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
