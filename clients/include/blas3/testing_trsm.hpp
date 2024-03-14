@@ -22,21 +22,8 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
-
 #include "blas3/rocblas_trsm.hpp"
+#include "testing_common.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
@@ -45,16 +32,18 @@ template <typename T>
 void testing_trsm_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsm_fn = arg.api == FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_trsm_64<T, true> : rocblas_trsm_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        const rocblas_int M   = 100;
-        const rocblas_int N   = 100;
-        const rocblas_int lda = 100;
-        const rocblas_int ldb = 100;
+        const int64_t M   = 100;
+        const int64_t N   = 100;
+        const int64_t lda = 100;
+        const int64_t ldb = 100;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -76,7 +65,7 @@ void testing_trsm_bad_arg(const Arguments& arg)
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-        rocblas_int K = side == rocblas_side_left ? M : N;
+        int64_t K = side == rocblas_side_left ? M : N;
 
         // Allocate device memory
         device_matrix<T> dA(K, K, lda);
@@ -87,114 +76,113 @@ void testing_trsm_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
         // check for invalid enum
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(
-                handle, rocblas_side_both, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb),
-            rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_fn,
+                    (handle, rocblas_side_both, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_fn(handle,
-                                              side,
-                                              (rocblas_fill)rocblas_side_both,
-                                              transA,
-                                              diag,
-                                              M,
-                                              N,
-                                              alpha,
-                                              dA,
-                                              lda,
-                                              dB,
-                                              ldb),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_fn,
+                    (handle,
+                     side,
+                     (rocblas_fill)rocblas_side_both,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_fn(handle,
-                                              side,
-                                              uplo,
-                                              (rocblas_operation)rocblas_side_both,
-                                              diag,
-                                              M,
-                                              N,
-                                              alpha,
-                                              dA,
-                                              lda,
-                                              dB,
-                                              ldb),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     (rocblas_operation)rocblas_side_both,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_fn(handle,
-                                              side,
-                                              uplo,
-                                              transA,
-                                              (rocblas_diagonal)rocblas_side_both,
-                                              M,
-                                              N,
-                                              alpha,
-                                              dA,
-                                              lda,
-                                              dB,
-                                              ldb),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trsm_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     (rocblas_diagonal)rocblas_side_both,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     dB,
+                     ldb));
 
         // check for invalid size
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb));
 
         /// check for invalid leading dimension
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(
-                handle, rocblas_side_left, uplo, transA, diag, M, N, alpha, dA, M - 1, dB, ldb),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(
+            rocblas_status_invalid_size,
+            rocblas_trsm_fn,
+            (handle, rocblas_side_left, uplo, transA, diag, M, N, alpha, dA, M - 1, dB, ldb));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(
-                handle, rocblas_side_right, uplo, transA, diag, M, N, alpha, dA, N - 1, dB, ldb),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(
+            rocblas_status_invalid_size,
+            rocblas_trsm_fn,
+            (handle, rocblas_side_right, uplo, transA, diag, M, N, alpha, dA, N - 1, dB, ldb));
 
         // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb),
-            rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_trsm_fn,
+                    (nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_trsm_fn(
-                    handle, side, uplo, transA, diag, M, N, alpha, nullptr, lda, dB, ldb),
-                rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_trsm_fn,
+                        (handle, side, uplo, transA, diag, M, N, alpha, nullptr, lda, dB, ldb));
         }
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb),
-            rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb));
 
         // quick return: If alpha==0, then A can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, zero, nullptr, lda, dB, ldb),
-            rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, N, zero, nullptr, lda, dB, ldb));
 
         // quick return: If M==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb),
-            rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb));
 
         // quick return: If N==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, M, 0, nullptr, nullptr, lda, nullptr, ldb),
-            rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, 0, nullptr, nullptr, lda, nullptr, ldb));
     }
 }
 
@@ -202,11 +190,13 @@ template <typename T>
 void testing_trsm(const Arguments& arg)
 {
     auto rocblas_trsm_fn = arg.api == FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_trsm_64<T, true> : rocblas_trsm_64<T, false>;
 
-    rocblas_int M   = arg.M;
-    rocblas_int N   = arg.N;
-    rocblas_int lda = arg.lda;
-    rocblas_int ldb = arg.ldb;
+    int64_t M   = arg.M;
+    int64_t N   = arg.N;
+    int64_t lda = arg.lda;
+    int64_t ldb = arg.ldb;
 
     char char_side   = arg.side;
     char char_uplo   = arg.uplo;
@@ -221,7 +211,7 @@ void testing_trsm(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K = side == rocblas_side_left ? M : N;
+    int64_t K = side == rocblas_side_left ? M : N;
 
     rocblas_local_handle handle{arg};
 
@@ -231,10 +221,9 @@ void testing_trsm(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb),
-            rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trsm_fn,
+                    (handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb));
 
         return;
     }
@@ -281,8 +270,6 @@ void testing_trsm(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used  = 0.0;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -293,8 +280,9 @@ void testing_trsm(const Arguments& arg)
     {
         // Compute size
         CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
-        CHECK_ALLOC_QUERY(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
+        DAPI_CHECK_ALLOC_QUERY(
+            rocblas_trsm_fn,
+            (handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
 
         size_t size;
         CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
@@ -314,16 +302,17 @@ void testing_trsm(const Arguments& arg)
             handle.pre_test(arg);
             if(arg.api != INTERNAL)
             {
-                CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
-                    handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
+                DAPI_CHECK(rocblas_trsm_fn,
+                           (handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
             }
             else
             {
+                // NOTE: not testing internal 64-bit API as of now
                 // internal function requires us to supply temporary memory ourselves
-                constexpr bool        BATCHED        = false;
-                constexpr rocblas_int batch_count    = 1;
-                bool                  optimal_mem    = true;
-                rocblas_int           supp_invA_size = 0; // used for trsm_ex
+                constexpr bool    BATCHED        = false;
+                constexpr int64_t batch_count    = 1;
+                bool              optimal_mem    = true;
+                int64_t           supp_invA_size = 0; // used for trsm_ex
 
                 // first exported internal interface - calculate how much mem is needed
                 size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size,
@@ -423,8 +412,8 @@ void testing_trsm(const Arguments& arg)
             CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
             CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
+            DAPI_CHECK(rocblas_trsm_fn,
+                       (handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
 
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
@@ -473,28 +462,24 @@ void testing_trsm(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used, cpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         // GPU rocBLAS
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        for(int i = 0; i < number_cold_calls; i++)
-        {
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
-        }
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int i = 0; i < number_hot_calls; i++)
+        for(int i = 0; i < total_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
+            if(i == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream); // in microseconds
+
+            DAPI_DISPATCH(rocblas_trsm_fn,
+                          (handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

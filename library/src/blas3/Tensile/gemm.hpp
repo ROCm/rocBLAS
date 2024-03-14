@@ -34,12 +34,8 @@
  * TODO: Make this asynchronous, putting synchronization closer to Tensile call. *
  *********************************************************************************/
 template <typename Ta, typename Tac, typename Tb, typename Tbc>
-rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(rocblas_handle handle,
-                                                            const Ta*&     alpha,
-                                                            const Tb*&     beta,
-                                                            Tac&           alpha_h,
-                                                            Tbc&           beta_h,
-                                                            rocblas_int    k)
+rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(
+    rocblas_handle handle, const Ta*& alpha, const Tb*& beta, Tac& alpha_h, Tbc& beta_h, int64_t k)
 {
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
