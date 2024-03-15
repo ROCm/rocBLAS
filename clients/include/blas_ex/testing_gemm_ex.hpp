@@ -493,7 +493,7 @@ void testing_gemm_ex(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_gemm<Ti, To_hpa, Tc>(
+        ref_gemm<Ti, To_hpa, Tc>(
             transA,
             transB,
             M,
