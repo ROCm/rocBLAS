@@ -405,7 +405,10 @@ printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m
 
 install_blis()
 {
-    if [[ ! -e "/opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a" ]] && [[ ! -e "/opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a"  ]] && [[ ! -e "/usr/local/lib/libblis.a" ]]; then
+    if [[ ! -e "/opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc/lib_ILP64/libblis-mt.a" ]] &&
+        [[ ! -e "/opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a" ]] &&
+        [[ ! -e "/opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a"  ]] &&
+        [[ ! -e "/usr/local/lib/libblis.a" ]]; then
         pushd .
         #Download prebuilt AMD multithreaded blis
         if [[ ! -e "./blis/lib/libblis.a" ]]; then
