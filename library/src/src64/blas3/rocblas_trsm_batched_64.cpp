@@ -20,8 +20,9 @@
  *
  * ************************************************************************ */
 
-#include "blas3/rocblas_trsm_batched_imp.hpp"
 #include "rocblas_trsm_64.hpp"
+
+#include "blas3/rocblas_trsm_batched_imp.hpp"
 
 INST_TRSM_BATCHED_C_API(int64_t);
 
