@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -109,9 +109,11 @@ namespace
             return rocblas_status_success;
         }
 
-        if(!A || !B)
-            return rocblas_status_invalid_pointer;
-
+        if(!handle->is_device_memory_size_query())
+        {
+            if(!A || !B)
+                return rocblas_status_invalid_pointer;
+        }
         // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
         auto  w_mem = handle->device_malloc(0);
         void* w_mem_x_temp;
