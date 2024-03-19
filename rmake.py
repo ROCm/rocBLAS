@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -173,10 +173,16 @@ def get_ram_GB():
     """
     Total amount of GB RAM available or zero if unknown
     """
-    if psutil_imported:
-        gb = round(psutil.virtual_memory().total / pow(1024, 3))
-    else:
-        gb = 0
+    gb = 0
+    env_limit = os.getenv('ROCM_CI_RAM_GB_LIMIT', "")
+    if len(env_limit):
+        gb = int(env_limit)
+    if gb == 0:
+        if psutil_imported:
+            gb = round(psutil.virtual_memory().total / pow(1024, 3))
+            print( "psutil: virtual_memory ", str(gb), " GB" )
+        else:
+            print( "psutil: not installed so can't estimate RAM limit" )
     return gb
 
 def strip_ECC(token):
