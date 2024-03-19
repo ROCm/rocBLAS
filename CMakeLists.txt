@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -192,7 +192,7 @@ endif( )
 
 # setup rocblas defines used for both the library and clients
 if( BUILD_WITH_TENSILE )
-    list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=1)
+    list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE)
     if( Tensile_SEPARATE_ARCHITECTURES )
         list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_SEPARATE_ARCH=1)
     else()
@@ -203,8 +203,6 @@ if( BUILD_WITH_TENSILE )
   else()
         list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_LAZY_LOAD=0)
   endif()
-else()
-    list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
 endif()
 
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
