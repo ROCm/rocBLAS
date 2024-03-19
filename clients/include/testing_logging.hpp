@@ -565,9 +565,8 @@ void testing_logging(const Arguments& arg)
                                                                 solution_index,
                                                                 flags));
         }
-    }
-
 #endif // BUILD_WITH_TENSILE
+    }
 
     setenv_status = setenv("ROCBLAS_LAYER", "0", true);
 
@@ -601,10 +600,10 @@ void testing_logging(const Arguments& arg)
     std::string bench(arg.api == C_64 ? "./rocblas-bench --api 1" : "./rocblas-bench");
 
     // Auxiliary function
-    int mode = (int)test_pointer_mode;
+    int pmode = (int)test_pointer_mode;
     trace_ofs2 << "rocblas_create_handle,atomics_allowed\n";
-    trace_ofs2 << "rocblas_set_pointer_mode," << mode << ",atomics_allowed\n";
-    trace_ofs2 << "rocblas_get_pointer_mode," << mode << ",atomics_allowed\n";
+    trace_ofs2 << "rocblas_set_pointer_mode," << pmode << ",atomics_allowed\n";
+    trace_ofs2 << "rocblas_get_pointer_mode," << pmode << ",atomics_allowed\n";
 
     // *************************************************** BLAS1 ***************************************************
 
@@ -1128,7 +1127,7 @@ void testing_logging(const Arguments& arg)
     int trace_cmp = diff_files(trace_path1, trace_path2);
     //int trace_cmp = system(("fc.exe \"" + trace_path1 + "\" \"" + trace_path2 + "\" | findstr *****").c_str());
 #else
-        int trace_cmp = system(("/usr/bin/diff " + trace_path1 + " " + trace_path2).c_str());
+    int trace_cmp = system(("/usr/bin/diff " + trace_path1 + " " + trace_path2).c_str());
 #endif
 
 #ifdef GOOGLE_TEST
@@ -1145,7 +1144,7 @@ void testing_logging(const Arguments& arg)
     int bench_cmp = diff_files(bench_path1, bench_path2);
     //int bench_cmp = system(("fc.exe \"" + bench_path1 + "\" \"" + bench_path2 + "\" | findstr *****").c_str());
 #else
-        int bench_cmp = system(("/usr/bin/diff " + bench_path1 + " " + bench_path2).c_str());
+    int bench_cmp = system(("/usr/bin/diff " + bench_path1 + " " + bench_path2).c_str());
 #endif
 
 #ifdef GOOGLE_TEST
