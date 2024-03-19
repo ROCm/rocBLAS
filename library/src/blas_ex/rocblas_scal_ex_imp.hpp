@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,6 +103,7 @@ namespace
                               incx,
                               ex_type_str);
             }
+
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
                             ROCBLAS_API_STR(rocblas_scal_ex),

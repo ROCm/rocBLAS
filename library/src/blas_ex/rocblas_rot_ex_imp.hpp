@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ namespace
         auto ex_type_str = rocblas_datatype_string(execution_type);
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle,
-                      "rocblas_rot_ex",
+                      ROCBLAS_API_STR(rocblas_rot_ex),
                       n,
                       x,
                       x_type_str,
@@ -87,7 +87,7 @@ namespace
                       incy);
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
-                        "rocblas_rot_ex",
+                        ROCBLAS_API_STR(rocblas_rot_ex),
                         "N",
                         n,
                         "a_type",
