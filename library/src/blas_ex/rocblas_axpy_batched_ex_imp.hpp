@@ -71,7 +71,7 @@ namespace
                        == rocblas_status_success)
                     {
                         log_trace(handle,
-                                  "rocblas_axpy_batched_ex",
+                                  ROCBLAS_API_STR(rocblas_axpy_batched_ex),
                                   n,
                                   alphass.str(),
                                   alpha_type_str,
@@ -93,8 +93,8 @@ namespace
                        == rocblas_status_success)
                     {
                         log_bench(handle,
-                                  ROCBLAS_API_BENCH " -f axpy_batched_ex"
-                                                    "-n",
+                                  ROCBLAS_API_BENCH " -f axpy_batched_ex",
+                                  "-n",
                                   n,
                                   alphas,
                                   "--a_type",
@@ -117,7 +117,7 @@ namespace
             else if(layer_mode & rocblas_layer_mode_log_trace)
             {
                 log_trace(handle,
-                          "rocblas_axpy_batched_ex",
+                          ROCBLAS_API_STR(rocblas_axpy_batched_ex),
                           n,
                           alpha_type_str,
                           x,
@@ -133,7 +133,7 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
                 log_profile(handle,
-                            "rocblas_axpy_batched_ex",
+                            ROCBLAS_API_STR(rocblas_axpy_batched_ex),
                             "N",
                             n,
                             "a_type",

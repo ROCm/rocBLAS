@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,21 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<logging>(arg.name) << rocblas_datatype2string(arg.a_type);
+            RocBLAS_TestName<logging> name(arg.name);
+            name << rocblas_datatype2string(arg.a_type);
+
+            name << (arg.pointer_mode_host ? "_hostptr" : "_devptr");
+
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
+            {
+                name << "_F";
+            }
+
+            return std::move(name);
         }
     };
 

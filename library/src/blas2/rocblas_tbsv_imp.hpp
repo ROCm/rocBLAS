@@ -69,7 +69,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                if(handle->pointer_mode == rocblas_pointer_mode_host)
+                if(handle->pointer_mode == rocblas_pointer_mode_host) // TODO log both modes
                     log_bench(handle,
                               ROCBLAS_API_BENCH " -f tbsv -r",
                               rocblas_precision_string<T>,
