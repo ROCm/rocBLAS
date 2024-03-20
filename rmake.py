@@ -223,16 +223,17 @@ def os_detect():
 
 def jobs_heuristic():
     # auto jobs heuristics
-    jobs = min(OS_info["NUM_PROC"], 128) # disk limiter
+    nprocs = min(OS_info["NUM_PROC"], 128) # disk limiter
     ram = OS_info["RAM_GB"]
+    jobs = nprocs
     if (ram >= 16): # don't apply if below minimum RAM
         jobs = min(round(ram/2), jobs) # RAM limiter
     hipcc_flags = os.getenv('HIPCC_COMPILE_FLAGS_APPEND', "")
     pjstr = hipcc_flags.split("parallel-jobs=")
     if (len(pjstr) > 1):
         pjobs = int(pjstr[1][0])
-        if (pjobs > 1 and pjobs < jobs):
-            jobs = round(jobs / pjobs)
+        if (pjobs > 1):
+            jobs = min( jobs, max( 1, round(nprocs / pjobs) ) )
     if os.name == "nt":
         jobs = min(61, jobs) # multiprocessing limit (used by tensile)
     return int(jobs)
