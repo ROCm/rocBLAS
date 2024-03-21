@@ -310,6 +310,12 @@ By using atomics, functions may not give bit-wise reproducible results. Differen
 remain accurate, but if users require identical results across multiple runs, atomics should be turned off. See :any:`rocblas_atomics_mode`,
 :any:`rocblas_set_atomics_mode`, and :any:`rocblas_get_atomics_mode`.
 
+In addition to the above API, rocBLAS also provides an environment variable ``ROCBLAS_DEFAULT_ATOMICS_MODE``, which allows users to set the default atomics mode during the creation of ``rocblas_handle``.
+:any:`rocblas_set_atomics_mode` has higher precedence and users can use the API in the application to override the configuration set via the environment variable.
+
+* ``ROCBLAS_DEFAULT_ATOMICS_MODE = 0`` : To set the default to be :any:`rocblas_atomics_not_allowed`
+* ``ROCBLAS_DEFAULT_ATOMICS_MODE = 1`` : To set the atomics to be :any:`rocblas_atomics_allowed`
+
 MI100 (gfx908) Considerations
 -----------------------------
 

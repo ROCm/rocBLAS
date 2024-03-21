@@ -163,6 +163,14 @@ _rocblas_handle::_rocblas_handle()
         stream_order_alloc             = stream_order_alloc_env_val ? true : false;
     }
 
+    //ROCBLAS_DEFAULT_ATOMICS_MODE
+    const char* atomics_mode_env = read_env("ROCBLAS_DEFAULT_ATOMICS_MODE");
+    if(atomics_mode_env)
+    {
+        atomics_mode = strtoul(atomics_mode_env, nullptr, 0) ? rocblas_atomics_allowed
+                                                             : rocblas_atomics_not_allowed;
+    }
+
     // Device memory size
     const char* env = read_env("ROCBLAS_DEVICE_MEMORY_SIZE");
     if(env)
