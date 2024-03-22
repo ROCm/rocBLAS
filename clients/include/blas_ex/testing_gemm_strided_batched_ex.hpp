@@ -291,36 +291,16 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                         || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex_fn(handle,
-                                                                 transA,
-                                                                 transB,
-                                                                 M,
-                                                                 N,
-                                                                 K,
-                                                                 nullptr,
-                                                                 nullptr,
-                                                                 arg.a_type,
-                                                                 lda,
-                                                                 stride_a,
-                                                                 nullptr,
-                                                                 arg.b_type,
-                                                                 ldb,
-                                                                 stride_b,
-                                                                 nullptr,
-                                                                 nullptr,
-                                                                 arg.c_type,
-                                                                 ldc,
-                                                                 stride_c,
-                                                                 nullptr,
-                                                                 arg.d_type,
-                                                                 ldd,
-                                                                 stride_d,
-                                                                 batch_count,
-                                                                 arg.compute_type,
-                                                                 algo,
-                                                                 solution_index,
-                                                                 flags),
+        // clang-format off
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex_fn(
+				handle, transA, transB, M, N, K, nullptr,
+                                nullptr, arg.a_type, lda, stride_a,
+                                nullptr, arg.b_type, ldb, stride_b, nullptr,
+                                nullptr, arg.c_type, ldc, stride_c,
+                                nullptr, arg.d_type, ldd, stride_d,
+                                batch_count, arg.compute_type, algo, solution_index, flags),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        // clang-format on
         return;
     }
 
@@ -331,35 +311,15 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         device_strided_batch_matrix<Ti> dB(1, 1, 1, 1, 1);
         device_strided_batch_matrix<To> dC(1, 1, 1, 1, 1);
         device_strided_batch_matrix<To> dD(1, 1, 1, 1, 1);
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
-                                                               transA,
-                                                               transB,
-                                                               M,
-                                                               N,
-                                                               K,
-                                                               &h_alpha_Tc,
-                                                               dA,
-                                                               arg.a_type,
-                                                               lda,
-                                                               stride_a,
-                                                               dB,
-                                                               arg.b_type,
-                                                               ldb,
-                                                               stride_b,
-                                                               &h_beta_Tc,
-                                                               dC,
-                                                               arg.c_type,
-                                                               ldc,
-                                                               stride_c,
-                                                               dD,
-                                                               arg.d_type,
-                                                               ldd,
-                                                               stride_d,
-                                                               batch_count,
-                                                               arg.compute_type,
-                                                               algo,
-                                                               solution_index,
-                                                               flags));
+        // clang-format off
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(
+				handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                dA, arg.a_type, lda, stride_a,
+                                dB, arg.b_type, ldb, stride_b, &h_beta_Tc,
+                                dC, arg.c_type, ldc, stride_c,
+                                dD, arg.d_type, ldd, stride_d,
+                                batch_count, arg.compute_type, algo, solution_index, flags));
+        // clang-format on
         return;
     }
 #endif
@@ -390,23 +350,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     CHECK_HIP_ERROR(hD_gold.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
-    device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
-    // if C!=D, allocate C and D normally
-    // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
-    device_strided_batch_matrix<To> dD
-        = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
-                           : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-    device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-    device_vector<Tc>                d_alpha_Tc(1);
-    device_vector<Tc>                d_beta_Tc(1);
+    device_vector<Tc> d_alpha_Tc(1);
+    device_vector<Tc> d_beta_Tc(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(dD.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
 
@@ -426,78 +373,42 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     hD_2.copy_from(hD_1);
 
-#if 0 // Copied from testing_gemm_ex.hpp
-    if(std::is_same_v<To, rocblas_half> && std::is_same_v<Tc, float>)
-    {
-        // half precision IEEE has max and lowest values 65504 and -65504,
-        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
-        // the following will overflow to inf in half arithmetic,
-        // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
-        //
-        // set matrix A and matrix B upper left block to values below to cause
-        // inf overflow with 16 bit arithmetic, but no overflow for 32 bit arithmetic
-        //
-        // 65500 65500             2   -2
-        // 65500 65500            -2    2
-        //
-        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
-        const rocblas_half positive_two      (2.0);
-        const rocblas_half negative_two      (-2.0);
-        Ti* A = (Ti*)hA;
-        Ti* B = (Ti*)hB;
-        if(M >= 2 && N >= 2 && K >= 2)
-        {
-            A[0]       = ieee_half_near_max;
-            A[1]       = ieee_half_near_max;
-            A[lda]     = ieee_half_near_max;
-            A[lda + 1] = ieee_half_near_max;
-            B[0]       = positive_two;
-            B[1]       = negative_two;
-            B[ldb]     = negative_two;
-            B[ldb + 1] = positive_two;
-        }
-    }
-#endif
-
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dB.transfer_from(hB));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
-
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
+        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
+        // if C!=D, allocate C and D normally
+        // if C==D, allocate C big enough for the larger of C and D; D points to C
+        device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
+        device_strided_batch_matrix<To> dD
+            = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
+                               : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
+        device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
+        CHECK_HIP_ERROR(dB.transfer_from(hB));
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
+
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
-                                                               transA,
-                                                               transB,
-                                                               M,
-                                                               N,
-                                                               K,
-                                                               &h_alpha_Tc,
-                                                               dA,
-                                                               arg.a_type,
-                                                               lda,
-                                                               stride_a,
-                                                               dB,
-                                                               arg.b_type,
-                                                               ldb,
-                                                               stride_b,
-                                                               &h_beta_Tc,
-                                                               dC,
-                                                               arg.c_type,
-                                                               ldc,
-                                                               stride_c,
-                                                               dDref,
-                                                               d_type,
-                                                               ldd,
-                                                               stride_d,
-                                                               batch_count,
-                                                               arg.compute_type,
-                                                               algo,
-                                                               solution_index,
-                                                               flags));
+        // clang-format off
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(
+				handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                dA, arg.a_type, lda, stride_a,
+                                dB, arg.b_type, ldb, stride_b, &h_beta_Tc,
+				dC, arg.c_type, ldc, stride_c,
+                                dDref, d_type, ldd, stride_d,
+                                batch_count, arg.compute_type, algo, solution_index, flags));
+        // clang-format on
         handle.post_test(arg);
         // copy output from device to CPU
         CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
@@ -507,35 +418,15 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(dC.transfer_from(hC));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
-                                                               transA,
-                                                               transB,
-                                                               M,
-                                                               N,
-                                                               K,
-                                                               d_alpha_Tc,
-                                                               dA,
-                                                               arg.a_type,
-                                                               lda,
-                                                               stride_a,
-                                                               dB,
-                                                               arg.b_type,
-                                                               ldb,
-                                                               stride_b,
-                                                               d_beta_Tc,
-                                                               dC,
-                                                               arg.c_type,
-                                                               ldc,
-                                                               stride_c,
-                                                               dDref,
-                                                               d_type,
-                                                               ldd,
-                                                               stride_d,
-                                                               batch_count,
-                                                               arg.compute_type,
-                                                               algo,
-                                                               solution_index,
-                                                               flags));
+        // clang-format off
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(
+				handle, transA, transB, M, N, K, d_alpha_Tc,
+                                dA, arg.a_type, lda, stride_a,
+                                dB, arg.b_type, ldb, stride_b, d_beta_Tc,
+                                dC, arg.c_type, ldc, stride_c,
+                                dDref, d_type, ldd, stride_d,
+                                batch_count, arg.compute_type, algo, solution_index, flags));
+        // clang-format on
 
         CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
 
@@ -546,35 +437,15 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             for(int i = 0; i < arg.iters; i++)
             {
                 CHECK_HIP_ERROR(dC.transfer_from(hC));
-                CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
-                                                                       transA,
-                                                                       transB,
-                                                                       M,
-                                                                       N,
-                                                                       K,
-                                                                       d_alpha_Tc,
-                                                                       dA,
-                                                                       arg.a_type,
-                                                                       lda,
-                                                                       stride_a,
-                                                                       dB,
-                                                                       arg.b_type,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       d_beta_Tc,
-                                                                       dC,
-                                                                       arg.c_type,
-                                                                       ldc,
-                                                                       stride_c,
-                                                                       dDref,
-                                                                       d_type,
-                                                                       ldd,
-                                                                       stride_d,
-                                                                       batch_count,
-                                                                       arg.compute_type,
-                                                                       algo,
-                                                                       solution_index,
-                                                                       flags));
+                // clang-format off
+                CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(
+					handle, transA, transB, M, N, K, d_alpha_Tc,
+                                        dA, arg.a_type, lda, stride_a,
+                                        dB, arg.b_type, ldb, stride_b, d_beta_Tc,
+                                        dC, arg.c_type, ldc, stride_c,
+                                        dDref, d_type, ldd, stride_d,
+                                        batch_count, arg.compute_type, algo, solution_index, flags));
+                // clang-format on
                 CHECK_HIP_ERROR(hD_2_copy.transfer_from(dDref));
                 unit_check_general<To>(M, N, ldd, stride_d, hD_2, hD_2_copy, batch_count);
             }
@@ -596,23 +467,15 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         // CPU BLAS
         for(rocblas_int b = 0; b < batch_count; b++)
         {
-            ref_gemm<Ti, To_hpa>(
-                transA,
-                transB,
-                M,
-                N,
-                K,
-                h_alpha_Tc,
-                hA[b],
-                lda,
-                hB[b],
-                ldb,
-                h_beta_Tc,
-                hD_gold[b],
-                ldd,
+            // clang-format off
+            ref_gemm<Ti, To_hpa>( transA, transB, M, N, K, h_alpha_Tc,
+                hA[b], lda,
+                hB[b], ldb, h_beta_Tc,
+                hD_gold[b], ldd,
                 alt ? (alt_round ? rocblas_bfloat16::rocblas_truncate_t::rocblas_round_near_zero
                                  : rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate)
                     : rocblas_bfloat16::rocblas_truncate_t::rocblas_round_near_even);
+            // clang-format on
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
@@ -654,41 +517,58 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     if(arg.timing)
     {
+        size_t a_size = M * K * batch_count * sizeof(Ti);
+        size_t b_size = K * N * batch_count * sizeof(Ti);
+        size_t c_size = M * N * batch_count * sizeof(To);
+        //      exclude d_size from cached_size calculation because
+        //      - for arg.outofplace == false : D == C
+        //      - for arg.outofplace == true  : D is write only
+        size_t a_b_c_cached_size = a_size + b_size + c_size;
+
+        size_t flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
+
+        // Allocate device memory
+        device_multiple_strided_batch_matrix<Ti> dA(
+            A_row, A_col, lda, stride_a, batch_count, flush_batch_count);
+        device_multiple_strided_batch_matrix<Ti> dB(
+            B_row, B_col, ldb, stride_b, batch_count, flush_batch_count);
+        // if C!=D, allocate C and D normally
+        // if C==D, allocate C big enough for the larger of C and D; D points to C
+        device_multiple_strided_batch_matrix<To> dC(
+            M, N, ldc, stride_c, batch_count, flush_batch_count);
+        device_multiple_strided_batch_matrix<To> dD
+            = (arg.outofplace) ? device_multiple_strided_batch_matrix<To>(
+                  M, N, ldd, stride_d, batch_count, flush_batch_count)
+                               : device_multiple_strided_batch_matrix<To>(0, 1, 1, 1, 1, 1);
+        device_multiple_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.broadcast_one_strided_batch_matrix_from(hA));
+        CHECK_HIP_ERROR(dB.broadcast_one_strided_batch_matrix_from(hB));
+        CHECK_HIP_ERROR(dC.broadcast_one_strided_batch_matrix_from(hC));
+
         int number_cold_calls = arg.cold_iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
-                                                                   transA,
-                                                                   transB,
-                                                                   M,
-                                                                   N,
-                                                                   K,
-                                                                   &h_alpha_Tc,
-                                                                   dA,
-                                                                   arg.a_type,
-                                                                   lda,
-                                                                   stride_a,
-                                                                   dB,
-                                                                   arg.b_type,
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   &h_beta_Tc,
-                                                                   dC,
-                                                                   arg.c_type,
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   dDref,
-                                                                   d_type,
-                                                                   ldd,
-                                                                   stride_d,
-                                                                   batch_count,
-                                                                   arg.compute_type,
-                                                                   algo,
-                                                                   solution_index,
-                                                                   flags));
+            // clang-format off
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(
+				    handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                    dA[0], arg.a_type, lda, stride_a,
+                                    dB[0], arg.b_type, ldb, stride_b, &h_beta_Tc,
+                                    dC[0], arg.c_type, ldc, stride_c,
+                                    dDref[0], d_type, ldd, stride_d,
+                                    batch_count, arg.compute_type, algo, solution_index, flags));
+            // clang-format on
         }
 
         int         number_hot_calls = arg.iters;
@@ -699,55 +579,26 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm_strided_batched_ex_fn(handle,
-                                               transA,
-                                               transB,
-                                               M,
-                                               N,
-                                               K,
-                                               &h_alpha_Tc,
-                                               dA,
-                                               arg.a_type,
-                                               lda,
-                                               stride_a,
-                                               dB,
-                                               arg.b_type,
-                                               ldb,
-                                               stride_b,
-                                               &h_beta_Tc,
-                                               dC,
-                                               arg.c_type,
-                                               ldc,
-                                               stride_c,
-                                               dDref,
-                                               d_type,
-                                               ldd,
-                                               stride_d,
-                                               batch_count,
-                                               arg.compute_type,
-                                               algo,
-                                               solution_index,
-                                               flags);
+            int flush_index = (i + 1) % flush_batch_count;
+            // clang-format off
+            rocblas_gemm_strided_batched_ex_fn(
+			    handle, transA, transB, M, N, K, &h_alpha_Tc,
+                            dA[flush_index], arg.a_type, lda, stride_a,
+                            dB[flush_index], arg.b_type, ldb, stride_b, &h_beta_Tc,
+                            dC[flush_index], arg.c_type, ldc, stride_c,
+                            dDref[flush_index], d_type, ldd, stride_d,
+                            batch_count, arg.compute_type, algo, solution_index, flags);
+            // clang-format on
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         freq_monitor.stop();
 
-        ArgumentModel<e_transA,
-                      e_transB,
-                      e_M,
-                      e_N,
-                      e_K,
-                      e_alpha,
-                      e_lda,
-                      e_stride_a,
-                      e_beta,
-                      e_ldb,
-                      e_stride_b,
-                      e_ldc,
-                      e_stride_c,
-                      e_ldd,
-                      e_stride_d,
-                      e_batch_count>{}
+        // clang-format off
+        ArgumentModel<e_transA, e_transB, e_M, e_N, e_K, e_alpha,
+                      e_lda, e_stride_a, e_beta,
+                      e_ldb, e_stride_b,
+                      e_ldc, e_stride_c,
+                      e_ldd, e_stride_d, e_batch_count>{}
             .log_args<To>(rocblas_cout,
                           arg,
                           gpu_time_used,
@@ -755,5 +606,6 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                           ArgumentLogging::NA_value,
                           cpu_time_used,
                           rocblas_error);
+        // clang-format on
     }
 }
