@@ -168,6 +168,15 @@ public:
     }
 
     //!
+    //! @brief Returns the number of members.
+    //!
+
+    size_t nmemb() const
+    {
+        return m_nmemb;
+    }
+
+    //!
     //! @brief Returns pointer.
     //! @param batch_index The batch index.
     //! @return A mutable pointer to the batch_index'th matrix.
