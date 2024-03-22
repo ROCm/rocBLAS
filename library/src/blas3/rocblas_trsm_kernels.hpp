@@ -2937,7 +2937,7 @@ rocblas_status rocblas_trsm_small(rocblas_handle    handle,
         stride_A, dB, offset_B, ldb, stride_B
     if(side == rocblas_side_left)
     {
-        dim3 grid((n + NB - 1) / NB, batch_count);
+        dim3 grid((n - 1) / NB + 1, batch_count);
         if(transA == rocblas_operation_none)
         {
             constexpr bool TRANSA = false;
@@ -3124,7 +3124,7 @@ rocblas_status rocblas_trsm_small(rocblas_handle    handle,
     }
     else
     {
-        dim3 grid((m + NB - 1) / NB, batch_count);
+        dim3 grid((m - 1) / NB + 1, batch_count);
         ROCBLAS_LAUNCH_KERNEL_GRID(grid,
                                    (rocblas_trsm_small_right_device<T, SCAL, ATYPE, BTYPE, NB>),
                                    TRSM_SMALL_KERNEL_PARAM);
