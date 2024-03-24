@@ -16,6 +16,7 @@ def runCompileCommand(platform, project, jobName)
         //default in the hipclang docker containers. May change later on
         hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral -parallel-jobs=2'"
     }
+
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
         if (pullRequest.labels.contains("noTensile"))
@@ -35,6 +36,13 @@ def runCompileCommand(platform, project, jobName)
             // test PR as static pipeline may be infrequent
             dynamicOptions = dynamicOptions + ' --static'
         }
+    }
+    // these 908 nodes have too few CPU cores to build full fat library (temporary workaround)
+    // contains question to remove after testing PR before merging!!!
+    else if (env.BRANCH_NAME ==~ /develop/ && platform.jenkinsLabel.contains('gfx908'))
+    {
+        // mimimal fat binary
+        dynamicOptions = dynamicOptions + ' -a "gfx908;gfx1101"'
     }
 
     def command = """#!/usr/bin/env bash
@@ -56,7 +64,8 @@ def runTestCommand (platform, project, gfilter)
     if (platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('sles'))
     {
         installPackage = 'sudo rpm -i rocblas*.rpm'
-    } else
+    }
+    else
     {
         installPackage = 'sudo dpkg -i rocblas*.deb'
     }
