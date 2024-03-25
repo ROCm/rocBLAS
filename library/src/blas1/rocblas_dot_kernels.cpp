@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -355,6 +355,8 @@ INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, rocblas_bfloat16, rocbla
 INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, rocblas_bfloat16, rocblas_bfloat16 const* const*, float)
 INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, float, float const*, float)
 INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, float, float const* const*, float)
+INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, float, double const*, double)
+INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, float, double const* const*, double)
 INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, double, double const*, double)
 INST_DOT_EX_LAUNCHER(rocblas_int, ROCBLAS_DOT_NB, true, double, double const* const*, double)
 

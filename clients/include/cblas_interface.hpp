@@ -159,8 +159,8 @@ inline void ref_copy(
 }
 
 // dot
-template <typename T>
-void ref_dot(int64_t n, const T* x, int64_t incx, const T* y, int64_t incy, T* result);
+template <typename T, typename Tr>
+void ref_dot(int64_t n, const T* x, int64_t incx, const T* y, int64_t incy, Tr* result);
 
 template <>
 inline void
@@ -199,8 +199,8 @@ inline void ref_dot(int64_t                       n,
 }
 
 // dotc
-template <typename T>
-void ref_dotc(int64_t n, const T* x, int64_t incx, const T* y, int64_t incy, T* result);
+template <typename T, typename Tr>
+void ref_dotc(int64_t n, const T* x, int64_t incx, const T* y, int64_t incy, Tr* result);
 
 template <>
 inline void ref_dotc(int64_t                      n,

@@ -435,7 +435,7 @@ Tests:
     api: [ FORTRAN_64 ]
     function:
       - dot:  *half_bfloat_single_double_complex_real_precisions
-      - dot_ex:  *half_bfloat_single_double_complex_real_precisions
+      - dot_ex:  *dot_ex_precisions
       - dot_batched:  *single_precision
       - dot_batched_ex:  *single_precision
       - dot_strided_batched:  *single_precision
@@ -453,6 +453,7 @@ Tests:
     function:
       - dot: *single_precision
       - dot_ex: *single_precision
+      - dot_ex: *single_in_double_out_precision
       - dot_batched: *single_precision
       - dot_batched_ex: *single_precision
       - dot_strided_batched: *single_precision
@@ -1056,7 +1057,7 @@ Tests:
       - copy: *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
       - dotc:  *single_double_precisions_complex
-      - dot_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
       - dotc_ex: *half_bfloat_single_double_complex_real_precisions
       - swap: *single_double_precisions_complex_real
       - rot:   *rot_precisions
@@ -1139,7 +1140,7 @@ Tests:
       - copy: *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
       - dotc:  *single_double_precisions_complex
-      - dot_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex:   *dot_ex_precisions
       - dotc_ex:   *half_bfloat_single_double_complex_real_precisions
 
   - name: blas1_batched
@@ -1524,12 +1525,12 @@ Tests:
       - dotc:  *single_double_precisions_complex
       - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
-      - dot_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
       - scal:  *single_double_precisions_complex_real
       - scal:  *scal_single_double_complex_real_alpha_complex_out
       - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
@@ -1598,12 +1599,12 @@ Tests:
       - dotc_bad_arg:  *single_double_precisions_complex
       - dotc_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
-      - dot_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
       - scal_bad_arg:  *single_double_precisions_complex_real
       - scal_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
       - scal_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
@@ -1669,12 +1670,12 @@ Tests:
       - dotc_bad_arg:  *single_double_precisions_complex
       - dotc_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
-      - dot_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
       - scal_bad_arg:  *single_double_precisions_complex_real
       - scal_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
       - scal_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
@@ -1746,12 +1747,12 @@ Tests:
       - dotc:  *single_double_precisions_complex
       - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
-      - dot_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
-      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
       - scal:  *single_double_precisions_complex_real
       - scal:  *scal_single_double_complex_real_alpha_complex_out
       - scal_batched:  *single_double_precisions_complex_real
@@ -1822,12 +1823,12 @@ Tests:
  #     - dotc:  *single_double_precisions_complex
  #     - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
  #     - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
- #     - dot_ex: *half_bfloat_single_double_complex_real_precisions
- #     - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
- #     - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
- #     - dotc_ex: *half_bfloat_single_double_complex_real_precisions
- #     - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
- #     - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+ #     - dot_ex: *dot_ex_precisions
+ #     - dot_batched_ex: *dot_ex_precisions
+ #     - dot_strided_batched_ex: *dot_ex_precisions
+ #     - dotc_ex: *dot_ex_precisions
+ #     - dotc_batched_ex: *dot_ex_precisions
+ #     - dotc_strided_batched_ex: *dot_ex_precisions
        - scal:  *single_double_precisions_complex_real
        - scal:  *scal_single_double_complex_real_alpha_complex_out
        - scal_batched:  *single_double_precisions_complex_real

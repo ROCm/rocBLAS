@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -382,6 +382,14 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
                         rocblas_double_complex,
                         double,
                         rocblas_double_complex>{}(arg);
+        }
+    }
+    else if(is_dot)
+    {
+        if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f32_r
+           && Ty == rocblas_datatype_f64_r && Tex == rocblas_datatype_f64_r)
+        {
+            return TEST<float, float, double, double>{}(arg);
         }
     }
 

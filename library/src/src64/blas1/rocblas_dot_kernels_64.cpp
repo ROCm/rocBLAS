@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -606,6 +606,8 @@ INST_DOT_EX_LAUNCHER(int64_t, ROCBLAS_DOT_NB, false, float, rocblas_bfloat16 con
 // Mixed precision for dot_ex
 INST_DOT_EX_LAUNCHER_64(false, rocblas_half, rocblas_half const*, float);
 INST_DOT_EX_LAUNCHER_64(false, rocblas_half, rocblas_half const* const*, float);
+INST_DOT_EX_LAUNCHER_64(false, double, float const*, double);
+INST_DOT_EX_LAUNCHER_64(false, double, float const* const*, double);
 
 // real types are "supported" in dotc_ex
 INST_DOT_EX_LAUNCHER_64(true, rocblas_half, rocblas_half const*, float);
@@ -614,6 +616,8 @@ INST_DOT_EX_LAUNCHER_64(true, rocblas_half, rocblas_half const*, rocblas_half);
 INST_DOT_EX_LAUNCHER_64(true, rocblas_half, rocblas_half const* const*, rocblas_half);
 INST_DOT_EX_LAUNCHER_64(true, rocblas_bfloat16, rocblas_bfloat16 const*, float);
 INST_DOT_EX_LAUNCHER_64(true, rocblas_bfloat16, rocblas_bfloat16 const* const*, float);
+INST_DOT_EX_LAUNCHER_64(true, double, float const*, double);
+INST_DOT_EX_LAUNCHER_64(true, double, float const* const*, double);
 INST_DOT_EX_LAUNCHER_64(true, float, float const*, float);
 INST_DOT_EX_LAUNCHER_64(true, float, float const* const*, float);
 INST_DOT_EX_LAUNCHER_64(true, double, double const*, double);

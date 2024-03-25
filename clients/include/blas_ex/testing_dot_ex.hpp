@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -253,7 +253,7 @@ void testing_dot_ex(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        (CONJ ? ref_dotc<Tx> : ref_dot<Tx>)(N, hx, incx, hy_ptr, incy, cpu_result);
+        (CONJ ? ref_dotc<Tx, Tr> : ref_dot<Tx, Tr>)(N, hx, incx, hy_ptr, incy, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // For large N, rocblas_half tends to diverge proportional to N
