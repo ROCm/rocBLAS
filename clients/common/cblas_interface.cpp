@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -717,22 +717,401 @@ void cblas_geam(rocblas_operation       transa,
     return cblas_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
 }
 
+// legacy BLAS implementation
+// gemm for dim and leading dims <= 256 so no int64 multiplies
+void small_sgemm(rocblas_operation transA,
+                 rocblas_operation transB,
+                 int               m,
+                 int               n,
+                 int               k,
+                 float             alpha,
+                 const float*      A,
+                 int               lda,
+                 const float*      B,
+                 int               ldb,
+                 float             beta,
+                 float*            C,
+                 int               ldc)
+{
+    bool notTA = (transA == rocblas_operation_none);
+    bool notTB = (transB == rocblas_operation_none);
+
+    if(!m or !n or (alpha == 0.0f or !k) && (beta == 1.0f))
+        return;
+
+    if(alpha == 0.0f)
+    {
+        if(beta == 0.0f)
+        {
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    C[j * ldc + i] = 0.0f;
+                }
+            }
+        }
+        else
+        {
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    C[j * ldc + i] *= beta;
+                }
+            }
+        }
+        return;
+    }
+
+    if(notTB)
+    {
+        if(notTA)
+        {
+            // C = alpha*A*B + beta*C.
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                if(beta == 0.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] = 0.0f;
+                    }
+                }
+                else if(beta != 1.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] *= beta;
+                    }
+                }
+
+                for(int l = 0; l < k; ++l)
+                {
+                    float temp = alpha * B[j * ldb + l];
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] += temp * A[l * lda + i];
+                    }
+                }
+            }
+        }
+        else
+        {
+            // C = alpha*A**T*B + beta*C
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    float temp = 0.0f;
+                    for(int l = 0; l < k; ++l)
+                    {
+                        temp += A[i * lda + l] * B[j * ldb + l];
+                    }
+                    if(beta == 0.0f)
+                    {
+                        C[j * ldc + i] = alpha * temp;
+                    }
+                    else
+                    {
+                        C[j * ldc + i] = alpha * temp + beta * C[j * ldc + i];
+                    }
+                }
+            }
+        }
+    }
+    else // TB
+    {
+        if(notTA)
+        {
+            //  C = alpha*A*B**T + beta*C
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                if(beta == 0.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] = 0.0f;
+                    }
+                }
+                else if(beta != 1.0f)
+                {
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] = beta * C[j * ldc + i];
+                    }
+                }
+
+                for(int l = 0; l < k; ++l)
+                {
+                    float temp = alpha * B[l * ldb + j];
+                    for(int i = 0; i < m; ++i)
+                    {
+                        C[j * ldc + i] += temp * A[l * lda + i];
+                    }
+                }
+            }
+        }
+        else
+        {
+            // C = alpha*A**T*B**T + beta*C
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for(int j = 0; j < n; ++j)
+            {
+                for(int i = 0; i < m; ++i)
+                {
+                    float temp = 0.0f;
+                    for(int l = 0; l < k; ++l)
+                    {
+                        temp += A[i * lda + l] * B[l * ldb + j];
+                    }
+
+                    if(beta == 0.0f)
+                    {
+                        C[j * ldc + i] = alpha * temp;
+                    }
+                    else
+                    {
+                        C[j * ldc + i] = alpha * temp + beta * C[j * ldc + i];
+                    }
+                }
+            }
+        }
+    }
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              float                                alpha,
+              const float*                         A,
+              int64_t                              lda,
+              const float*                         B,
+              int64_t                              ldb,
+              float                                beta,
+              float*                               C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+
+    static constexpr int64_t small = 256; // seeing random NaNs with blis on some small sizes
+    if(m > small || n > small || k > small || lda > small || ldb > small || ldc > small)
+    {
+        // just directly cast, since transA, transB enum values match CBLAS
+        cblas_sgemm(CblasColMajor,
+                    CBLAS_TRANSPOSE(transA),
+                    CBLAS_TRANSPOSE(transB),
+                    m,
+                    n,
+                    k,
+                    alpha,
+                    A,
+                    lda,
+                    B,
+                    ldb,
+                    beta,
+                    C,
+                    ldc);
+    }
+    else
+    {
+        small_sgemm(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              double                               alpha,
+              const float*                         A,
+              int64_t                              lda,
+              const float*                         B,
+              int64_t                              ldb,
+              double                               beta,
+              float*                               C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    ref_gemm(transA, transB, m, n, k, float(alpha), A, lda, B, ldb, float(beta), C, ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              double                               alpha,
+              const double*                        A,
+              int64_t                              lda,
+              const double*                        B,
+              int64_t                              ldb,
+              double                               beta,
+              double*                              C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    cblas_dgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                beta,
+                C,
+                ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              rocblas_float_complex                alpha,
+              const rocblas_float_complex*         A,
+              int64_t                              lda,
+              const rocblas_float_complex*         B,
+              int64_t                              ldb,
+              rocblas_float_complex                beta,
+              rocblas_float_complex*               C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    cblas_cgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                &alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                &beta,
+                C,
+                ldc);
+}
+
+template <>
+void ref_gemm(rocblas_operation                    transA,
+              rocblas_operation                    transB,
+              int64_t                              m,
+              int64_t                              n,
+              int64_t                              k,
+              rocblas_double_complex               alpha,
+              const rocblas_double_complex*        A,
+              int64_t                              lda,
+              const rocblas_double_complex*        B,
+              int64_t                              ldb,
+              rocblas_double_complex               beta,
+              rocblas_double_complex*              C,
+              int64_t                              ldc,
+              rocblas_bfloat16::rocblas_truncate_t round)
+{
+    cblas_zgemm(CblasColMajor,
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
+                m,
+                n,
+                k,
+                &alpha,
+                A,
+                lda,
+                B,
+                ldb,
+                &beta,
+                C,
+                ldc);
+}
+
+template <typename T, typename U>
+void cast_to_buffer(
+    rocblas_operation transA, int64_t m, int64_t k, int64_t lda, const T* A_t, host_vector<U>& A_u)
+{
+    size_t colsA = (transA == rocblas_operation_none ? k : m);
+    size_t rowsA = (transA == rocblas_operation_none ? m : k);
+
+    size_t sizeA = colsA * lda;
+
+    A_u.resize(sizeA);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(size_t i = 0; i < colsA; i++)
+    {
+        size_t   offset = i * lda;
+        const T* src    = A_t + offset;
+        U*       dst    = A_u + offset;
+        for(size_t j = 0; j < rowsA; j++)
+        {
+            *dst++ = static_cast<U>(*src++);
+        }
+    }
+}
+
+template <typename T, typename U>
+void cast_from_buffer(int64_t m, int64_t n, int64_t ldc, const host_vector<T>& C_t, U* C_u)
+{
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(size_t i = 0; i < n; i++)
+    {
+        size_t offset = i * ldc;
+        for(size_t j = 0; j < m; j++)
+            C_u[j + offset] = static_cast<U>(C_t[j + offset]);
+    }
+}
+
 // gemm
 template <>
-void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation                    transA,
-                                                rocblas_operation                    transB,
-                                                int64_t                              m,
-                                                int64_t                              n,
-                                                int64_t                              k,
-                                                float                                alpha,
-                                                const rocblas_bfloat16*              A,
-                                                int64_t                              lda,
-                                                const rocblas_bfloat16*              B,
-                                                int64_t                              ldb,
-                                                float                                beta,
-                                                float*                               C,
-                                                int64_t                              ldc,
-                                                rocblas_bfloat16::rocblas_truncate_t round)
+void ref_gemm<rocblas_bfloat16, float, float>(rocblas_operation                    transA,
+                                              rocblas_operation                    transB,
+                                              int64_t                              m,
+                                              int64_t                              n,
+                                              int64_t                              k,
+                                              float                                alpha,
+                                              const rocblas_bfloat16*              A,
+                                              int64_t                              lda,
+                                              const rocblas_bfloat16*              B,
+                                              int64_t                              ldb,
+                                              float                                beta,
+                                              float*                               C,
+                                              int64_t                              ldc,
+                                              rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -747,40 +1126,42 @@ void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation               
     for(size_t i = 0; i < sizeB; i++)
         B_float[i] = static_cast<float>(B[i]);
 
+    ref_gemm(
+        transA, transB, m, n, k, alpha, A_float.data(), lda, B_float.data(), ldb, beta, C, ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C,
+    //             ldc);
 }
 
 template <>
-void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(
-    rocblas_operation                    transA,
-    rocblas_operation                    transB,
-    int64_t                              m,
-    int64_t                              n,
-    int64_t                              k,
-    float                                alpha,
-    const rocblas_bfloat16*              A,
-    int64_t                              lda,
-    const rocblas_bfloat16*              B,
-    int64_t                              ldb,
-    float                                beta,
-    rocblas_bfloat16*                    C,
-    int64_t                              ldc,
-    rocblas_bfloat16::rocblas_truncate_t round)
+void ref_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation       transA,
+                                                         rocblas_operation       transB,
+                                                         int64_t                 m,
+                                                         int64_t                 n,
+                                                         int64_t                 k,
+                                                         float                   alpha,
+                                                         const rocblas_bfloat16* A,
+                                                         int64_t                 lda,
+                                                         const rocblas_bfloat16* B,
+                                                         int64_t                 ldb,
+                                                         float                   beta,
+                                                         rocblas_bfloat16*       C,
+                                                         int64_t                 ldc,
+                                                         rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -798,42 +1179,56 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(
     for(size_t i = 0; i < sizeC; i++)
         C_float[i] = static_cast<float>(C[i]);
 
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             alpha,
+             A_float.data(),
+             lda,
+             B_float.data(),
+             ldb,
+             beta,
+             C_float.data(),
+             ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C_float,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C_float,
+    //             ldc);
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = static_cast<rocblas_bfloat16>(C_float[i]);
 }
 
 template <>
-void cblas_gemm<rocblas_half, float, float>(rocblas_operation                    transA,
-                                            rocblas_operation                    transB,
-                                            int64_t                              m,
-                                            int64_t                              n,
-                                            int64_t                              k,
-                                            float                                alpha,
-                                            const rocblas_half*                  A,
-                                            int64_t                              lda,
-                                            const rocblas_half*                  B,
-                                            int64_t                              ldb,
-                                            float                                beta,
-                                            float*                               C,
-                                            int64_t                              ldc,
-                                            rocblas_bfloat16::rocblas_truncate_t round)
+void ref_gemm<rocblas_half, float, float>(rocblas_operation                    transA,
+                                          rocblas_operation                    transB,
+                                          int64_t                              m,
+                                          int64_t                              n,
+                                          int64_t                              k,
+                                          float                                alpha,
+                                          const rocblas_half*                  A,
+                                          int64_t                              lda,
+                                          const rocblas_half*                  B,
+                                          int64_t                              ldb,
+                                          float                                beta,
+                                          float*                               C,
+                                          int64_t                              ldc,
+                                          rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -848,39 +1243,42 @@ void cblas_gemm<rocblas_half, float, float>(rocblas_operation                   
     for(size_t i = 0; i < sizeB; i++)
         B_float[i] = B[i];
 
+    ref_gemm(
+        transA, transB, m, n, k, alpha, A_float.data(), lda, B_float.data(), ldb, beta, C, ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C,
+    //             ldc);
 }
 
 template <>
-void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation                    transA,
-                                                   rocblas_operation                    transB,
-                                                   int64_t                              m,
-                                                   int64_t                              n,
-                                                   int64_t                              k,
-                                                   float                                alpha,
-                                                   const rocblas_half*                  A,
-                                                   int64_t                              lda,
-                                                   const rocblas_half*                  B,
-                                                   int64_t                              ldb,
-                                                   float                                beta,
-                                                   rocblas_half*                        C,
-                                                   int64_t                              ldc,
-                                                   rocblas_bfloat16::rocblas_truncate_t round)
+void ref_gemm<rocblas_half, rocblas_half, float>(rocblas_operation                    transA,
+                                                 rocblas_operation                    transB,
+                                                 int64_t                              m,
+                                                 int64_t                              n,
+                                                 int64_t                              k,
+                                                 float                                alpha,
+                                                 const rocblas_half*                  A,
+                                                 int64_t                              lda,
+                                                 const rocblas_half*                  B,
+                                                 int64_t                              ldb,
+                                                 float                                beta,
+                                                 rocblas_half*                        C,
+                                                 int64_t                              ldc,
+                                                 rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -910,43 +1308,56 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation            
             C_float[i] = C[i];
     }
 
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             alpha,
+             A_float.data(),
+             lda,
+             B_float.data(),
+             ldb,
+             beta,
+             C_float.data(),
+             ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta,
-                C_float,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta,
+    //             C_float,
+    //             ldc);
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = rocblas_half(C_float[i]);
 }
 
 template <>
-void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(
-    rocblas_operation                    transA,
-    rocblas_operation                    transB,
-    int64_t                              m,
-    int64_t                              n,
-    int64_t                              k,
-    rocblas_half                         alpha,
-    const rocblas_half*                  A,
-    int64_t                              lda,
-    const rocblas_half*                  B,
-    int64_t                              ldb,
-    rocblas_half                         beta,
-    rocblas_half*                        C,
-    int64_t                              ldc,
-    rocblas_bfloat16::rocblas_truncate_t round)
+void ref_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation                    transA,
+                                                        rocblas_operation                    transB,
+                                                        int64_t                              m,
+                                                        int64_t                              n,
+                                                        int64_t                              k,
+                                                        rocblas_half                         alpha,
+                                                        const rocblas_half*                  A,
+                                                        int64_t                              lda,
+                                                        const rocblas_half*                  B,
+                                                        int64_t                              ldb,
+                                                        rocblas_half                         beta,
+                                                        rocblas_half*                        C,
+                                                        int64_t                              ldc,
+                                                        rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -966,42 +1377,56 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(
     for(size_t i = 0; i < sizeC; i++)
         C_float[i] = C[i];
 
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             alpha_float,
+             A_float.data(),
+             lda,
+             B_float.data(),
+             ldb,
+             beta_float,
+             C_float.data(),
+             ldc);
+
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha_float,
-                A_float,
-                lda,
-                B_float,
-                ldb,
-                beta_float,
-                C_float,
-                ldc);
+    // cblas_sgemm(CblasColMajor,
+    //             static_cast<CBLAS_TRANSPOSE>(transA),
+    //             static_cast<CBLAS_TRANSPOSE>(transB),
+    //             m,
+    //             n,
+    //             k,
+    //             alpha_float,
+    //             A_float,
+    //             lda,
+    //             B_float,
+    //             ldb,
+    //             beta_float,
+    //             C_float,
+    //             ldc);
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = rocblas_half(C_float[i]);
 }
 
 template <>
-void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    transA,
-                                          rocblas_operation                    transB,
-                                          int64_t                              m,
-                                          int64_t                              n,
-                                          int64_t                              k,
-                                          int32_t                              alpha,
-                                          const int8_t*                        A,
-                                          int64_t                              lda,
-                                          const int8_t*                        B,
-                                          int64_t                              ldb,
-                                          int32_t                              beta,
-                                          int32_t*                             C,
-                                          int64_t                              ldc,
-                                          rocblas_bfloat16::rocblas_truncate_t round)
+void ref_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    transA,
+                                        rocblas_operation                    transB,
+                                        int64_t                              m,
+                                        int64_t                              n,
+                                        int64_t                              k,
+                                        int32_t                              alpha,
+                                        const int8_t*                        A,
+                                        int64_t                              lda,
+                                        const int8_t*                        B,
+                                        int64_t                              ldb,
+                                        int32_t                              beta,
+                                        int32_t*                             C,
+                                        int64_t                              ldc,
+                                        rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support int8_t input / int32_t output, however non-overflowing
     // 32-bit integer operations can be represented accurately with double-precision

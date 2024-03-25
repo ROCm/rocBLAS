@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -533,19 +533,19 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
         for(rocblas_int b = 0; b < batch_count; b++)
         {
-            cblas_gemm<Ti, To_hpa>(transA,
-                                   transB,
-                                   M,
-                                   N,
-                                   K,
-                                   h_alpha_Tc,
-                                   hA[b],
-                                   lda,
-                                   hB[b],
-                                   ldb,
-                                   h_beta_Tc,
-                                   hD_gold[b],
-                                   ldd);
+            ref_gemm<Ti, To_hpa>(transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 h_alpha_Tc,
+                                 hA[b],
+                                 lda,
+                                 hB[b],
+                                 ldb,
+                                 h_beta_Tc,
+                                 hD_gold[b],
+                                 ldd);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
