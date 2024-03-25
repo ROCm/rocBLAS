@@ -821,7 +821,10 @@ struct perf_blas_dot_ex<
                 rocblas_half> && std::is_same_v<Tx, Ty> && std::is_same_v<Ty, Tr> && std::is_same_v<Tex, float>)
         || (std::is_same_v<
                 Tx,
-                rocblas_bfloat16> && std::is_same_v<Tx, Ty> && std::is_same_v<Ty, Tr> && std::is_same_v<Tex, float>)>>
+                rocblas_bfloat16> && std::is_same_v<Tx, Ty> && std::is_same_v<Ty, Tr> && std::is_same_v<Tex, float>)
+        || (std::is_same_v<
+                Tx,
+                float> && std::is_same_v<Tx, Ty> && std::is_same_v<Tr, double> && std::is_same_v<Tr, Tex>)>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -254,6 +254,18 @@ rocblas_status rocblas_dot_ex_template(rocblas_handle __restrict__ handle,
     {
         return rocblas_dot_ex_typecasting<API_INT, NB, ISBATCHED, CONJ, rocblas_double_complex>(
             rocblas_dot_ex_typecasting_PARAM);
+    }
+    else if(x_type == rocblas_datatype_f32_r && y_type == rocblas_datatype_f32_r
+            && result_type == rocblas_datatype_f64_r && execution_type == rocblas_datatype_f64_r)
+    {
+        return rocblas_dot_ex_typecasting<API_INT,
+                                          NB,
+                                          ISBATCHED,
+                                          CONJ,
+                                          float,
+                                          float,
+                                          double,
+                                          double>(rocblas_dot_ex_typecasting_PARAM);
     }
 
     return rocblas_status_not_implemented;

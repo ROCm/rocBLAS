@@ -21680,6 +21680,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex_64(rocblas_handle 
     | f16_r  | f16_r  |    f16_r    |     f32_r      |
     | bf16_r | bf16_r |    bf16_r   |     f32_r      |
     | f32_r  | f32_r  |    f32_r    |     f32_r      |
+    | f32_r  | f32_r  |    f64_r    |     f64_r      |
     | f64_r  | f64_r  |    f64_r    |     f64_r      |
     | f32_c  | f32_c  |    f32_c    |     f32_c      |
     | f64_c  | f64_c  |    f64_c    |     f64_c      |
@@ -21793,6 +21794,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dotc_ex_64(rocblas_handle   handle,
     | f16_r  | f16_r  |    f16_r    |     f32_r      |
     | bf16_r | bf16_r |    bf16_r   |     f32_r      |
     | f32_r  | f32_r  |    f32_r    |     f32_r      |
+    | f32_r  | f32_r  |    f64_r    |     f64_r      |
     | f64_r  | f64_r  |    f64_r    |     f64_r      |
     | f32_c  | f32_c  |    f32_c    |     f32_c      |
     | f64_c  | f64_c  |    f64_c    |     f64_c      |
@@ -21912,6 +21914,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dotc_batched_ex_64(rocblas_handle   handle
     | f16_r  | f16_r  |    f16_r    |     f32_r      |
     | bf16_r | bf16_r |    bf16_r   |     f32_r      |
     | f32_r  | f32_r  |    f32_r    |     f32_r      |
+    | f32_r  | f32_r  |    f64_r    |     f64_r      |
     | f64_r  | f64_r  |    f64_r    |     f64_r      |
     | f32_c  | f32_c  |    f32_c    |     f32_c      |
     | f64_c  | f64_c  |    f64_c    |     f64_c      |

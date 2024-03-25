@@ -110,6 +110,8 @@ Real precisions: &real_precisions
     { a_type:  bf16_r, b_type:  bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
   - &hpa_half_float_alpha
     { a_type: f32_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r }
+  - &single_in_double_out_precision
+    { a_type: f32_r, b_type: f32_r, c_type: f64_r, d_type: f64_r, compute_type: f64_r }
 
 C precisions: &single_double_precisions
   - *single_precision
@@ -357,6 +359,17 @@ Half bfloat single double complex real: &half_bfloat_single_double_complex_real_
 #  - *half_precision_complex
   - *single_precision_complex
   - *double_precision_complex
+
+Half bfloat single double mixed complex real: &dot_ex_precisions
+  - *half_precision
+  - *hpa_bf16_precision
+  - *hpa_bf16_in_single_out_precision
+  - *single_precision
+  - *double_precision
+#  - *half_precision_complex
+  - *single_precision_complex
+  - *double_precision_complex
+  - *single_in_double_out_precision
 
 #############################################
 #           Used for Dot (algo=1)           #

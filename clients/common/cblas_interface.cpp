@@ -189,12 +189,30 @@ template void ref_scal<double, rocblas_complex_num<double>*>(int64_t            
                                                              int64_t                      incx);
 
 template <>
-void ref_dot<rocblas_half>(int64_t             n,
-                           const rocblas_half* x,
-                           int64_t             incx,
-                           const rocblas_half* y,
-                           int64_t             incy,
-                           rocblas_half*       result)
+void ref_dot<>(
+    int64_t n, const float* x, int64_t incx, const float* y, int64_t incy, double* result)
+{
+    int64_t ix = incx >= 0 ? 0 : (1 - n) * incx;
+    int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
+
+    double r = 0.0;
+    for(int64_t i = 0; i < n; i++)
+    {
+        r += double(x[ix]) * y[iy];
+        ix += incx;
+        iy += incy;
+    }
+
+    *result = r;
+}
+
+template <>
+void ref_dot<>(int64_t             n,
+               const rocblas_half* x,
+               int64_t             incx,
+               const rocblas_half* y,
+               int64_t             incy,
+               rocblas_half*       result)
 {
     int64_t ix = incx >= 0 ? 0 : (1 - n) * incx;
     int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
@@ -211,12 +229,12 @@ void ref_dot<rocblas_half>(int64_t             n,
 }
 
 template <>
-void ref_dot<rocblas_bfloat16>(int64_t                 n,
-                               const rocblas_bfloat16* x,
-                               int64_t                 incx,
-                               const rocblas_bfloat16* y,
-                               int64_t                 incy,
-                               rocblas_bfloat16*       result)
+void ref_dot<>(int64_t                 n,
+               const rocblas_bfloat16* x,
+               int64_t                 incx,
+               const rocblas_bfloat16* y,
+               int64_t                 incy,
+               rocblas_bfloat16*       result)
 {
     int64_t ix = incx >= 0 ? 0 : (1 - n) * incx;
     int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
@@ -233,37 +251,44 @@ void ref_dot<rocblas_bfloat16>(int64_t                 n,
 }
 
 template <>
-void ref_dotc<float>(
+void ref_dotc<>(
+    int64_t n, const float* x, int64_t incx, const float* y, int64_t incy, double* result)
+{
+    ref_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void ref_dotc<float, float>(
     int64_t n, const float* x, int64_t incx, const float* y, int64_t incy, float* result)
 {
     ref_dot(n, x, incx, y, incy, result);
 }
 
 template <>
-void ref_dotc<double>(
+void ref_dotc<double, double>(
     int64_t n, const double* x, int64_t incx, const double* y, int64_t incy, double* result)
 {
     ref_dot(n, x, incx, y, incy, result);
 }
 
 template <>
-void ref_dotc<rocblas_half>(int64_t             n,
-                            const rocblas_half* x,
-                            int64_t             incx,
-                            const rocblas_half* y,
-                            int64_t             incy,
-                            rocblas_half*       result)
+void ref_dotc<rocblas_half, rocblas_half>(int64_t             n,
+                                          const rocblas_half* x,
+                                          int64_t             incx,
+                                          const rocblas_half* y,
+                                          int64_t             incy,
+                                          rocblas_half*       result)
 {
     ref_dot(n, x, incx, y, incy, result);
 }
 
 template <>
-void ref_dotc<rocblas_bfloat16>(int64_t                 n,
-                                const rocblas_bfloat16* x,
-                                int64_t                 incx,
-                                const rocblas_bfloat16* y,
-                                int64_t                 incy,
-                                rocblas_bfloat16*       result)
+void ref_dotc<rocblas_bfloat16, rocblas_bfloat16>(int64_t                 n,
+                                                  const rocblas_bfloat16* x,
+                                                  int64_t                 incx,
+                                                  const rocblas_bfloat16* y,
+                                                  int64_t                 incy,
+                                                  rocblas_bfloat16*       result)
 {
     ref_dot(n, x, incx, y, incy, result);
 }

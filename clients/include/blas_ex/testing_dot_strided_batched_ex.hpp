@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -310,8 +310,8 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; ++b)
         {
-            (CONJ ? ref_dotc<Tx>
-                  : ref_dot<Tx>)(N, hx[b], incx, hy_ptr + b * stride_y, incy, &cpu_result[b]);
+            (CONJ ? ref_dotc<Tx, Tr>
+                  : ref_dot<Tx, Tr>)(N, hx[b], incx, hy_ptr + b * stride_y, incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
