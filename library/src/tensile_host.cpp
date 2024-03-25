@@ -852,7 +852,7 @@ namespace
                     auto deviceArch = getLazyLoadingArch(devId);
                     if(tensileDeviceSet.find(deviceArch) == tensileDeviceSet.end())
                     {
-                        //populate the arch list for lazy loading
+                        //future work: populate the arch list for heterogeneous support
                         tensileDeviceSet.insert(deviceArch);
                         //populate device property map, used in finding solutions based on arch
                         HIP_CHECK_EXC(hipGetDeviceProperties(&prop, devId));
@@ -953,8 +953,7 @@ namespace
                         = std::async(std::launch::async,
                                      Tensile::LoadLibraryFilePreload<Tensile::ContractionProblem>,
                                      tensileLibraryPath,
-                                     std::vector<Tensile::LazyLoadingInit>{tensileDeviceSet.begin(),
-                                                                           tensileDeviceSet.end()});
+                                     std::vector<Tensile::LazyLoadingInit>{});
                     return 0;
                 }();
             }
