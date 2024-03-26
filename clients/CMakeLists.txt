@@ -138,7 +138,7 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
   else() # WIN32
     file(TO_CMAKE_PATH "C:/Program\ Files/AMD/AOCL-Windows/amd-blis/lib/ILP64/AOCL-LibBlis-Win-MT.lib" AOCL_BLAS_LIBRARY)
     if (LINK_BLIS AND EXISTS ${AOCL_BLAS_LIBRARY})
-      set( BLAS_LIBRARY "-l\"C:/Program\ Files/AMD/AOCL-Windows/amd-blis/lib/ILP64/AOCL-LibBlis-Win-MT\"" )     
+      set( BLAS_LIBRARY "-l\"C:/Program\ Files/AMD/AOCL-Windows/amd-blis/lib/ILP64/AOCL-LibBlis-Win-MT\"" )
       set( BLIS_INCLUDE_DIR "C:/Program\ Files/AMD/AOCL-Windows/amd-blis/include/ILP64" )
       set( BLIS_DEFINES BLIS_ENABLE_NO_UNDERSCORE_API BLIS_ENABLE_CBLAS )
     else()
@@ -153,12 +153,12 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
         set( BLAS_INCLUDE_DIR "" )
       endif()
     endif()
-
-    if ( DEFINED BLIS_INCLUDE_DIR )
-      set( BLIS_CPP ../common/blis_interface.cpp )
-    endif()
-    message(STATUS "Linking Reference BLAS LIB: ${BLAS_LIBRARY}")
   endif()
+
+  if ( DEFINED BLIS_INCLUDE_DIR )
+    set( BLIS_CPP ../common/blis_interface.cpp )
+  endif()
+  message(STATUS "Linking Reference BLAS LIB: ${BLAS_LIBRARY}")
 
   # Find the package ROCmSMI
   if(NOT WIN32)
