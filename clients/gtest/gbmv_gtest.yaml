@@ -97,7 +97,7 @@ Tests:
   matrix_size: *special_case_range
 
 - name: gbmv_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - gbmv_bad_arg
   - gbmv_batched_bad_arg

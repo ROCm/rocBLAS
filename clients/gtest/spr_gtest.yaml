@@ -42,7 +42,7 @@ Definitions:
 Tests:
 
 - name: spr_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - spr_bad_arg: *single_double_precisions
   - spr_batched_bad_arg: *single_double_precisions

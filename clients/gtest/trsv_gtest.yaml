@@ -48,7 +48,7 @@ Definitions:
 
 Tests:
 - name: trsv_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - trsv_bad_arg: *single_double_precisions
   - trsv_batched_bad_arg: *single_double_precisions

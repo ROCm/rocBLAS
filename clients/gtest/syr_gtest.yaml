@@ -49,7 +49,7 @@ Definitions:
 Tests:
 
 - name: syr_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - syr_bad_arg: *single_precision
   - syr_batched_bad_arg: *single_precision

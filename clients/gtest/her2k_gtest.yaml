@@ -39,7 +39,7 @@ Definitions:
 
 Tests:
 - name: her2k_bad
-  category: pre_checkin
+  category: quick
   function: her2k_bad_arg
   precision: *single_double_precisions_complex
   api: [ C, FORTRAN ]
@@ -101,7 +101,7 @@ Tests:
 
   # batched
 - name: her2k_batched_bad
-  category: pre_checkin
+  category: quick
   function: her2k_batched_bad_arg
   precision: *single_double_precisions_complex
   api: [ C, FORTRAN ]
@@ -152,7 +152,7 @@ Tests:
 
   # strided batched
 - name: her2k_strided_batched_bad
-  category: pre_checkin
+  category: quick
   function: her2k_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   api: [ C, FORTRAN ]

@@ -57,7 +57,7 @@ Definitions:
 
 Tests:
 - name: spmv_bad
-  category: pre_checkin
+  category: quick
   function: spmv_bad_arg
   precision: *single_precision
   api: [ C, FORTRAN, FORTRAN_64 ]
@@ -152,7 +152,7 @@ Tests:
 
   # batched
 - name: spmv_batched_bad
-  category: pre_checkin
+  category: quick
   function: spmv_batched_bad_arg
   precision: *single_precision
   api: [ C, FORTRAN ]
@@ -202,7 +202,7 @@ Tests:
 
   # strided batched
 - name: spmv_strided_batched_bad
-  category: pre_checkin
+  category: quick
   function: spmv_strided_batched_bad_arg
   precision: *single_precision
   api: [ C, FORTRAN ]

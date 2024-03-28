@@ -64,7 +64,7 @@ Definitions:
 
 Tests:
 - name: hpmv_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - hpmv_bad_arg
   - hpmv_batched_bad_arg

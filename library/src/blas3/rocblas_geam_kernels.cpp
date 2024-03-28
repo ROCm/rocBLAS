@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -781,21 +781,23 @@ rocblas_status rocblas_geam_check_numerics(const char*       function_name,
         if(check_numerics_status != rocblas_status_success)
             return check_numerics_status;
     }
-    check_numerics_status
-        = rocblas_internal_check_numerics_matrix_template(function_name,
-                                                          handle,
-                                                          rocblas_operation_none,
-                                                          rocblas_fill_full,
-                                                          rocblas_client_general_matrix,
-                                                          m,
-                                                          n,
-                                                          C,
-                                                          0,
-                                                          ldc,
-                                                          stride_c,
-                                                          batch_count,
-                                                          check_numerics,
-                                                          is_input);
+
+    if(!is_input)
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              m,
+                                                              n,
+                                                              C,
+                                                              0,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
 
     return check_numerics_status;
 }

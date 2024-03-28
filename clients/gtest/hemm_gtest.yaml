@@ -40,7 +40,7 @@ Definitions:
 
 Tests:
 - name: hemm_bad
-  category: pre_checkin
+  category: quick
   function:
   - hemm_bad_arg
   - hemm_batched_bad_arg

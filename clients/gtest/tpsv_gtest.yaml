@@ -66,7 +66,7 @@ Tests:
 
 # Regular tpsv
 - name: tpsv_bad_arg
-  category: pre_checkin
+  category: quick
   function: tpsv_bad_arg
   precision: *single_double_precisions_complex_real
   uplo: [ L ]
@@ -121,7 +121,7 @@ Tests:
 
 # tpsv_batched
 - name: tpsv_batched_bad_arg
-  category: pre_checkin
+  category: quick
   function: tpsv_batched_bad_arg
   precision: *single_double_precisions_complex_real
   uplo: [ L ]
@@ -165,7 +165,7 @@ Tests:
 
 # tpsv_strided_batched
 - name: tpsv_strided_batched_bad_arg
-  category: pre_checkin
+  category: quick
   function: tpsv_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
   uplo: [ L ]

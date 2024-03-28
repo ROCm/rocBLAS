@@ -61,7 +61,7 @@ Definitions:
 Tests:
 
 - name: syr2_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - syr2_bad_arg: *single_double_precisions_complex_real
   - syr2_batched_bad_arg: *single_double_precisions_complex_real
