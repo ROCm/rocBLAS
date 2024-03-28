@@ -1566,7 +1566,7 @@ Tests:
 # all functions bad arg
 # for bad_arg no arguments should be used by test code
   - name: blas1_bad_arg
-    category: pre_checkin
+    category: quick
     api: [ C, FORTRAN ]
     function:
       - nrm2_bad_arg:  *single_double_precisions_complex_real

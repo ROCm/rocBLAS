@@ -53,7 +53,7 @@ Definitions:
 
 Tests:
 - name: geruc_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - geru_bad_arg
   - geru_batched_bad_arg

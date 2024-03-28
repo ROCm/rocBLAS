@@ -95,12 +95,16 @@ def runTestCommand (platform, project, gfilter)
     }
 
     def rocBLASTestCommand = ''
-
-    // Enable check numerics only for weekly tests
+    def checkNumericsTestCommand= ''
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                 """
+
+            // Enable check numerics only for checkNumericsTestCommand
+            checkNumericsTestCommand = """
+                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*graph_test*:*repeatability_check*:*get_solutions*
                                  """
     }
     else
@@ -124,6 +128,10 @@ def runTestCommand (platform, project, gfilter)
                     if (( \$? != 0 )); then
                         exit 1
                     fi
+                    ${checkNumericsTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
                     mv build_BAK build
                     popd
                    """
@@ -139,6 +147,10 @@ def runTestCommand (platform, project, gfilter)
                         exit 1
                     fi
                     ${hmmTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
+                    ${checkNumericsTestCommand}
                     if (( \$? != 0 )); then
                         exit 1
                     fi

@@ -63,7 +63,7 @@ Definitions:
 
 Tests:
 - name: sbmv_bad
-  category: pre_checkin
+  category: quick
   function:
   - sbmv_bad_arg
   - sbmv_batched_bad_arg

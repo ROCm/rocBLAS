@@ -207,7 +207,7 @@ Definitions:
 
 Tests:
 - name: gemm_xx_batched_bad_arg
-  category: pre_checkin
+  category: quick
   function:
     - gemm_batched_bad_arg: *half_single_double_complex_real_precisions
     - gemm_batched_ex_bad_arg: *real_precisions

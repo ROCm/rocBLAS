@@ -40,7 +40,7 @@ Definitions:
 
 Tests:
 - name: symm_bad
-  category: pre_checkin
+  category: quick
   function:
   - symm_bad_arg
   - symm_batched_bad_arg

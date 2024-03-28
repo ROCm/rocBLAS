@@ -38,7 +38,7 @@ Definitions:
 
 Tests:
 - name: syrk_bad
-  category: pre_checkin
+  category: quick
   function:
   - syrk_bad_arg
   - syrk_batched_bad_arg

@@ -35,7 +35,7 @@ Definitions:
 
 Tests:
 - name: herk_bad
-  category: pre_checkin
+  category: quick
   function:
   - herk_bad_arg
   - herk_batched_bad_arg

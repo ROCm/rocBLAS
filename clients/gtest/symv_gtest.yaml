@@ -74,7 +74,7 @@ Definitions:
 
 Tests:
 - name: symv_bad
-  category: pre_checkin
+  category: quick
   function: symv_bad_arg
   precision: *single_precision
   api: [ C, FORTRAN, FORTRAN_64 ]
@@ -184,7 +184,7 @@ Tests:
 
   # batched
 - name: symv_batched_bad
-  category: pre_checkin
+  category: quick
   function: symv_batched_bad_arg
   precision: *single_precision
   api: [ C, FORTRAN, FORTRAN_64 ]
@@ -245,7 +245,7 @@ Tests:
 
   # strided batched
 - name: symv_strided_batched_bad
-  category: pre_checkin
+  category: quick
   function: symv_strided_batched_bad_arg
   precision: *single_precision
   api: [ C, FORTRAN, FORTRAN_64 ]

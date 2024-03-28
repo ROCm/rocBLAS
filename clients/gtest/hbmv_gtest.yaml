@@ -75,7 +75,7 @@ Definitions:
 
 Tests:
 - name: hbmv_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - hbmv_bad_arg
   - hbmv_batched_bad_arg

@@ -200,7 +200,7 @@ Definitions:
 Tests:
 # Regular gemv
 - name: gemv_bad_arg
-  category: pre_checkin
+  category: quick
   function: gemv_bad_arg
   precision: *single_double_precisions_complex_real
   transA: N
@@ -401,7 +401,7 @@ Tests:
 
 # gemv_batched
 - name: gemv_batched_bad_arg
-  category: pre_checkin
+  category: quick
   function: gemv_batched_bad_arg
   precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
@@ -521,7 +521,7 @@ Tests:
 
 # gemv_strided_batched
 - name: gemv_strided_batched_bad_arg
-  category: pre_checkin
+  category: quick
   function: gemv_strided_batched_bad_arg
   precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N

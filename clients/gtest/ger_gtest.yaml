@@ -69,7 +69,7 @@ Definitions:
 
 Tests:
 - name: ger_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - ger_bad_arg
   - ger_batched_bad_arg

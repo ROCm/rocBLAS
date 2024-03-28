@@ -40,7 +40,7 @@ Definitions:
 Tests:
 
 - name: hpr_bad_arg
-  category: pre_checkin
+  category: quick
   function:
   - hpr_bad_arg: *single_double_precisions_complex
   - hpr_batched_bad_arg: *single_double_precisions_complex
