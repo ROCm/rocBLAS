@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -499,6 +499,36 @@ void testing_trsm_ex(const Arguments& arg)
                                                arg.compute_type));
 
         CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
+
+        if(arg.repeatability_check)
+        {
+            host_matrix<T> hXorB_copy(M, N, ldb);
+            CHECK_HIP_ERROR(hXorB_copy.memcheck());
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dXorB.transfer_from(hB));
+                CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_fn(handle,
+                                                       side,
+                                                       uplo,
+                                                       transA,
+                                                       diag,
+                                                       M,
+                                                       N,
+                                                       alpha_d,
+                                                       dA,
+                                                       lda,
+                                                       dXorB,
+                                                       ldb,
+                                                       dinvA,
+                                                       TRSM_BLOCK * K,
+                                                       arg.compute_type));
+
+                CHECK_HIP_ERROR(hXorB_copy.transfer_from(dXorB));
+                unit_check_general<T>(M, N, ldb, hXorB_2, hXorB_copy);
+            }
+            return;
+        }
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate vector-induced-norm 1 of matrix E

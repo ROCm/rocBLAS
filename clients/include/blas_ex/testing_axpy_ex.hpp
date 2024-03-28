@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -281,6 +281,32 @@ void testing_axpy_ex(const Arguments& arg)
                         incy,
                         execution_type));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<Ty> hy_copy(N, incy);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+                    DAPI_CHECK(rocblas_axpy_ex_fn,
+                               (handle,
+                                N,
+                                d_alpha,
+                                alpha_type,
+                                dx,
+                                x_type,
+                                incx,
+                                dy,
+                                y_type,
+                                incy,
+                                execution_type));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<Ty>(1, N, incy, hy, hy_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

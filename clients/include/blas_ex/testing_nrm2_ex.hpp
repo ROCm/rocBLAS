@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -154,6 +154,28 @@ void testing_nrm2_ex(const Arguments& arg)
                 rocblas_nrm2_ex_fn,
                 (handle, N, dx, x_type, incx, d_rocblas_result_2, result_type, execution_type));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<Tr> rocblas_result_copy(1, 1);
+                CHECK_HIP_ERROR(rocblas_result_copy.memcheck());
+                CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_nrm2_ex_fn,
+                               (handle,
+                                N,
+                                dx,
+                                x_type,
+                                incx,
+                                d_rocblas_result_2,
+                                result_type,
+                                execution_type));
+                    CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result_2));
+                    unit_check_general<Tr, Tr>(1, 1, 1, rocblas_result_2, rocblas_result_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

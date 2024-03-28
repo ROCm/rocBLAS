@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -647,59 +647,102 @@ void testing_geam_ex(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
-                                               transA,
-                                               transB,
-                                               M,
-                                               N,
-                                               K,
-                                               &alpha,
-                                               dA,
-                                               a_type,
-                                               lda,
-                                               dB,
-                                               b_type,
-                                               ldb,
-                                               &beta,
-                                               dC,
-                                               c_type,
-                                               ldc,
-                                               dD,
-                                               d_type,
-                                               ldd,
-                                               compute_type,
-                                               geam_ex_op));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hD_1.transfer_from(dD));
-        CHECK_HIP_ERROR(dD.transfer_from(hD_2));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
+                                                   transA,
+                                                   transB,
+                                                   M,
+                                                   N,
+                                                   K,
+                                                   &alpha,
+                                                   dA,
+                                                   a_type,
+                                                   lda,
+                                                   dB,
+                                                   b_type,
+                                                   ldb,
+                                                   &beta,
+                                                   dC,
+                                                   c_type,
+                                                   ldc,
+                                                   dD,
+                                                   d_type,
+                                                   ldd,
+                                                   compute_type,
+                                                   geam_ex_op));
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hD_1.transfer_from(dD));
+            CHECK_HIP_ERROR(dD.transfer_from(hD_2));
+        }
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
-                                               transA,
-                                               transB,
-                                               M,
-                                               N,
-                                               K,
-                                               d_alpha,
-                                               dA,
-                                               a_type,
-                                               lda,
-                                               dB,
-                                               b_type,
-                                               ldb,
-                                               d_beta,
-                                               dC,
-                                               c_type,
-                                               ldc,
-                                               dD,
-                                               d_type,
-                                               ldd,
-                                               compute_type,
-                                               geam_ex_op));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
+                                                   transA,
+                                                   transB,
+                                                   M,
+                                                   N,
+                                                   K,
+                                                   d_alpha,
+                                                   dA,
+                                                   a_type,
+                                                   lda,
+                                                   dB,
+                                                   b_type,
+                                                   ldb,
+                                                   d_beta,
+                                                   dC,
+                                                   c_type,
+                                                   ldc,
+                                                   dD,
+                                                   d_type,
+                                                   ldd,
+                                                   compute_type,
+                                                   geam_ex_op));
 
-        CHECK_HIP_ERROR(hD_2.transfer_from(dD));
+            CHECK_HIP_ERROR(hD_2.transfer_from(dD));
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hD_copy(M, N, ldd);
+                CHECK_HIP_ERROR(hD_copy.memcheck());
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+
+                    CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
+                                                           transA,
+                                                           transB,
+                                                           M,
+                                                           N,
+                                                           K,
+                                                           d_alpha,
+                                                           dA,
+                                                           a_type,
+                                                           lda,
+                                                           dB,
+                                                           b_type,
+                                                           ldb,
+                                                           d_beta,
+                                                           dC,
+                                                           c_type,
+                                                           ldc,
+                                                           dD,
+                                                           d_type,
+                                                           ldd,
+                                                           compute_type,
+                                                           geam_ex_op));
+                    CHECK_HIP_ERROR(hD_copy.transfer_from(dD));
+                    unit_check_general<T>(M, N, ldd, hD_2, hD_copy);
+                }
+
+                return;
+            }
+        }
 
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
@@ -726,16 +769,30 @@ void testing_geam_ex(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(M, N, ldd, hD_gold, hD_1);
-            unit_check_general<T>(M, N, ldd, hD_gold, hD_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldd, hD_gold, hD_1);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<T>('F', M, N, ldd, (T*)hD_gold, (T*)hD_1);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<T>('F', M, N, ldd, (T*)hD_gold, (T*)hD_1);
-            rocblas_error_2 = norm_check_general<T>('F', M, N, ldd, (T*)hD_gold, (T*)hD_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldd, hD_gold, hD_2);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<T>('F', M, N, ldd, (T*)hD_gold, (T*)hD_2);
+            }
         }
 
         // inplace check for dD == dC

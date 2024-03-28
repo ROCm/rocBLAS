@@ -226,4 +226,24 @@ Tests:
   batch_count: [ 2 ]
   alpha_beta: *alpha_beta_range
   graph_test: true
+
+
+- name: gemmt_repeatability_check
+  category: pre_checkin
+  function:
+    - gemmt
+    - gemmt_batched
+    - gemmt_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  transA: [ T ]
+  transB: [ N ]
+  matrix_size:
+    - { N:   199, K:  290,  lda:  290,  ldb: 290,  ldc: 200 }
+  batch_count: [ 2 ]
+  alpha_beta: *alpha_beta_range
+  atomics_mode: 0
+  iters: 5
+  initialization: hpl
+  repeatability_check: true
 ...

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -182,6 +182,32 @@ void testing_scal_batched_ex(const Arguments& arg)
                         batch_count,
                         execution_type));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_batch_vector<Tx> hx_copy(N, incx, batch_count);
+                CHECK_HIP_ERROR(hx_copy.memcheck());
+
+                CHECK_HIP_ERROR(hx.transfer_from(dx));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+                    DAPI_CHECK(rocblas_scal_batched_ex_fn,
+                               (handle,
+                                N,
+                                d_alpha,
+                                alpha_type,
+                                dx.ptr_on_device(),
+                                x_type,
+                                incx,
+                                batch_count,
+                                execution_type));
+                    CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
+                    unit_check_general<Tx>(1, N, incx, hx, hx_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

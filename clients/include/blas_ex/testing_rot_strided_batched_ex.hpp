@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -286,6 +286,46 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                         cs_type,
                         batch_count,
                         execution_type));
+
+            if(arg.repeatability_check)
+            {
+
+                host_strided_batch_vector<Tx> hx_copy(N, incx, stride_x, batch_count);
+                host_strided_batch_vector<Ty> hy_copy(N, incy, stride_y, batch_count);
+
+                CHECK_HIP_ERROR(hx_copy.memcheck());
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+
+                CHECK_HIP_ERROR(hx.transfer_from(dx));
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+                    DAPI_CHECK(rocblas_rot_strided_batched_ex_fn,
+                               (handle,
+                                N,
+                                dx,
+                                x_type,
+                                incx,
+                                stride_x,
+                                dy,
+                                y_type,
+                                incy,
+                                stride_y,
+                                dc,
+                                ds,
+                                cs_type,
+                                batch_count,
+                                execution_type));
+                    CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<Tx>(1, N, incx, stride_x, hx, hx_copy, batch_count);
+                    unit_check_general<Ty>(1, N, incy, stride_y, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         cpu_time_used = get_time_us_no_sync();
