@@ -1284,9 +1284,9 @@ Tests:
     - trsm
     - trsm_batched
     - trsm_strided_batched
-   # - trsm_ex
-   # - trsm_batched_ex
-   # - trsm_strided_batched_ex
+    - trsm_ex
+    - trsm_batched_ex
+    - trsm_strided_batched_ex
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: U }

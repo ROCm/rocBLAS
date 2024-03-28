@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -305,6 +305,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
         // Call routine with pointer mode on host.
+        if(arg.pointer_mode_host)
         {
             // Pointer mode.
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -330,8 +331,11 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
                            execution_type));
             handle.post_test(arg);
             CHECK_HIP_ERROR(hy1.transfer_from(dy));
+        }
 
-            // Pointer mode.
+        // Pointer mode.
+        if(arg.pointer_mode_device)
+        {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
             // Transfer host to device
@@ -358,35 +362,78 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
             // Transfer from device to host.
             CHECK_HIP_ERROR(hy2.transfer_from(dy));
 
-            // CPU BLAS
+            if(arg.repeatability_check)
             {
-                cpu_time_used = get_time_us_no_sync();
-
-                // Compute the host solution.
-                for(int64_t b = 0; b < batch_count; ++b)
+                host_strided_batch_vector<Ty> hy_copy(N, incx, stridex, batch_count);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                for(int i = 0; i < arg.iters; i++)
                 {
-                    ref_axpy<Tex>(N, h_alpha_ex, hx_ex[b], incx, hy_ex[b], incy);
+                    CHECK_HIP_ERROR(dy.transfer_from(hy));
+                    DAPI_DISPATCH(rocblas_axpy_strided_batched_ex_fn,
+                                  (handle,
+                                   N,
+                                   dalpha,
+                                   alpha_type,
+                                   dx,
+                                   x_type,
+                                   incx,
+                                   stridex,
+                                   dy,
+                                   y_type,
+                                   incy,
+                                   stridey,
+                                   batch_count,
+                                   execution_type));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<Ty>(1, N, incy, stridey, hy2, hy_copy, batch_count);
                 }
-                cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
-                for(int64_t b = 0; b < batch_count; b++)
-                {
-                    for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
-                        hy[b][idx] = (Ty)hy_ex[b][idx];
-                }
+                return;
             }
+        }
 
+        // CPU BLAS
+        {
+            cpu_time_used = get_time_us_no_sync();
+
+            // Compute the host solution.
+            for(int64_t b = 0; b < batch_count; ++b)
+            {
+                ref_axpy<Tex>(N, h_alpha_ex, hx_ex[b], incx, hy_ex[b], incy);
+            }
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+            for(int64_t b = 0; b < batch_count; b++)
+            {
+                for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
+                    hy[b][idx] = (Ty)hy_ex[b][idx];
+            }
+        }
+
+        if(arg.pointer_mode_host)
+        {
             // Compare with with the solution.
             if(arg.unit_check)
             {
                 unit_check_general<Ty>(1, N, incy, stridey, hy, hy1, batch_count);
-                unit_check_general<Ty>(1, N, incy, stridey, hy, hy2, batch_count);
             }
 
             if(arg.norm_check)
             {
                 rocblas_error_1
                     = norm_check_general<Ty>('I', 1, N, incy, stridey, hy, hy1, batch_count);
+            }
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            // Compare with with the solution.
+            if(arg.unit_check)
+            {
+                unit_check_general<Ty>(1, N, incy, stridey, hy, hy2, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
                 rocblas_error_2
                     = norm_check_general<Ty>('I', 1, N, incy, stridey, hy, hy2, batch_count);
             }

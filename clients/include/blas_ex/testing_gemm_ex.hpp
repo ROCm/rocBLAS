@@ -409,67 +409,77 @@ void testing_gemm_ex(const Arguments& arg)
     {
         using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
 
-        host_matrix<To>     hD(M, N, ldd);
+        host_matrix<To>     hD_1(M, N, ldd);
+        host_matrix<To>     hD_2(M, N, ldd);
         host_matrix<To_hpa> hD_gold(M, N, ldd);
 
-        rocblas_init_nan<To>(hD, M, N, ldd);
+        rocblas_init_nan<To>(hD_1, M, N, ldd);
+        rocblas_init_nan<To>(hD_2, M, N, ldd);
         rocblas_init_nan<To_hpa>(hD_gold, M, N, ldd);
 
-        // ROCBLAS rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        // clang-format off
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+        if(arg.pointer_mode_host)
+        {
+            // ROCBLAS rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            // clang-format off
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
                                                dA[0], arg.a_type, lda,
                                                dB[0], arg.b_type, ldb, &h_beta_Tc,
                                                dC[0], arg.c_type, ldc,
                                                dD[0],     d_type, ldd,
                                                arg.compute_type, algo, solution_index, flags));
-        // clang-format on
-        handle.post_test(arg);
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hD.transfer_one_matrix_from(dD));
-
-        // ROCBLAS rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-
-        CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
-
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
-        // clang-format off
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
-                                               dA[0], arg.a_type, lda,
-                                               dB[0], arg.b_type, ldb, d_beta_Tc,
-                                               dC[0], arg.c_type, ldc,
-                                               dD[0],     d_type, ldd,
-                                               arg.compute_type, algo, solution_index, flags));
-        // clang-format on
-        if(arg.repeatability_check)
-        {
-            // fetch device mode GPU results
-            CHECK_HIP_ERROR(hD.transfer_one_matrix_from(dD));
-
-            host_matrix<To> hD_copy(M, N, ldd);
-
-            for(int i = 0; i < arg.iters; i++)
-            {
-                CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
-                // clang-format off
-                CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
-                                               dA[0], arg.a_type, lda,
-                                               dB[0], arg.b_type, ldb, d_beta_Tc,
-                                               dC[0], arg.c_type, ldc,
-                                               dD[0],     d_type, ldd,
-                                               arg.compute_type, algo, solution_index, flags));
-                // clang-format on
-                // fetch device mode GPU results
-                CHECK_HIP_ERROR(hD_copy.transfer_one_matrix_from(dD));
-
-                unit_check_general<To>(M, N, ldd, hD, hD_copy);
-            }
-            return;
+            // clang-format on
+            handle.post_test(arg);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hD_1.transfer_one_matrix_from(dD));
         }
+
+        if(arg.pointer_mode_device)
+        {
+            // ROCBLAS rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+
+            CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
+            // clang-format off
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
+                                               dA[0], arg.a_type, lda,
+                                               dB[0], arg.b_type, ldb, d_beta_Tc,
+                                               dC[0], arg.c_type, ldc,
+                                               dD[0],     d_type, ldd,
+                                               arg.compute_type, algo, solution_index, flags));
+            // clang-format on
+
+            CHECK_HIP_ERROR(hD_2.transfer_one_matrix_from(dD));
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<To> hD_copy(M, N, ldd);
+                CHECK_HIP_ERROR(hD_copy.memcheck());
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+                    // clang-format off
+                    CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
+                                               dA[0], arg.a_type, lda,
+                                               dB[0], arg.b_type, ldb, d_beta_Tc,
+                                               dC[0], arg.c_type, ldc,
+                                               dD[0],     d_type, ldd,
+                                               arg.compute_type, algo, solution_index, flags));
+                    // clang-format on
+                    // fetch device mode GPU results
+                    CHECK_HIP_ERROR(hD_copy.transfer_one_matrix_from(dD));
+
+                    unit_check_general<To>(M, N, ldd, hD_2, hD_copy);
+                }
+                return;
+            }
+        }
+
         // copy C matrix into D matrix
         copy_matrix_with_different_leading_dimensions(hC, hD_gold);
 
@@ -503,59 +513,65 @@ void testing_gemm_ex(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
+            if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
-                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD, tol);
+                if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
+                {
+                    const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
+                    near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
+                }
+                else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<Tc>;
+                    near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
+                }
+                else
+                {
+                    unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1);
+                }
             }
-            else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
+
+            if(arg.norm_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<Tc>;
-                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD, tol);
-            }
-            else
-            {
-                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD);
+                auto err1
+                    = std::abs(norm_check_general<To>('F', M, N, ldd, (To_hpa*)hD_gold, (To*)hD_1));
+
+                rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            auto err1 = std::abs(norm_check_general<To>('F', M, N, ldd, (To_hpa*)hD_gold, (To*)hD));
-            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
-        }
-
-        // fetch device mode GPU results
-        CHECK_HIP_ERROR(hD.transfer_one_matrix_from(dD));
-
-        if(arg.unit_check)
-        {
-            if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
+            if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
-                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD, tol);
+                if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
+                {
+                    const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
+                    near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, tol);
+                }
+                else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<Tc>;
+                    near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, tol);
+                }
+                else
+                {
+                    unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2);
+                }
             }
-            else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
-            {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<Tc>;
-                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD, tol);
-            }
-            else
-            {
-                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD);
-            }
-        }
 
-        if(arg.norm_check)
-        {
-            auto err1 = std::abs(norm_check_general<To>('F', M, N, ldd, (To_hpa*)hD_gold, (To*)hD));
-            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
+            if(arg.norm_check)
+            {
+                auto err1
+                    = std::abs(norm_check_general<To>('F', M, N, ldd, (To_hpa*)hD_gold, (To*)hD_2));
+                rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
+            }
         }
     }
 

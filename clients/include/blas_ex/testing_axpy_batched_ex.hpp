@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -280,51 +280,86 @@ void testing_axpy_batched_ex(const Arguments& arg)
         // Call routine with pointer mode on host.
 
         // Pointer mode.
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        // Call routine.
-        CHECK_HIP_ERROR(dy.transfer_from(hy));
-        handle.pre_test(arg);
-        DAPI_CHECK(rocblas_axpy_batched_ex_fn,
-                   (handle,
-                    N,
-                    halpha,
-                    alpha_type,
-                    dx.ptr_on_device(),
-                    x_type,
-                    incx,
-                    dy.ptr_on_device(),
-                    y_type,
-                    incy,
-                    batch_count,
-                    execution_type));
-        handle.post_test(arg);
-        // Transfer from device to host.
-        CHECK_HIP_ERROR(hy1.transfer_from(dy));
+            // Call routine.
+            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_axpy_batched_ex_fn,
+                       (handle,
+                        N,
+                        halpha,
+                        alpha_type,
+                        dx.ptr_on_device(),
+                        x_type,
+                        incx,
+                        dy.ptr_on_device(),
+                        y_type,
+                        incy,
+                        batch_count,
+                        execution_type));
+            handle.post_test(arg);
+            // Transfer from device to host.
+            CHECK_HIP_ERROR(hy1.transfer_from(dy));
+        }
 
-        // Pointer mode.
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        // Call routine.
-        CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
-        CHECK_HIP_ERROR(dy.transfer_from(hy));
-        handle.pre_test(arg);
-        DAPI_CHECK(rocblas_axpy_batched_ex_fn,
-                   (handle,
-                    N,
-                    dalpha,
-                    alpha_type,
-                    dx.ptr_on_device(),
-                    x_type,
-                    incx,
-                    dy.ptr_on_device(),
-                    y_type,
-                    incy,
-                    batch_count,
-                    execution_type));
-        handle.post_test(arg);
-        // Transfer from device to host.
-        CHECK_HIP_ERROR(hy2.transfer_from(dy));
+            // Call routine.
+            CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_axpy_batched_ex_fn,
+                       (handle,
+                        N,
+                        dalpha,
+                        alpha_type,
+                        dx.ptr_on_device(),
+                        x_type,
+                        incx,
+                        dy.ptr_on_device(),
+                        y_type,
+                        incy,
+                        batch_count,
+                        execution_type));
+            handle.post_test(arg);
+
+            // Transfer from device to host.
+            CHECK_HIP_ERROR(hy2.transfer_from(dy));
+
+            if(arg.repeatability_check)
+            {
+                host_batch_vector<Ty> hy_copy(N, incy, batch_count);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy));
+
+                    DAPI_CHECK(rocblas_axpy_batched_ex_fn,
+                               (handle,
+                                N,
+                                dalpha,
+                                alpha_type,
+                                dx.ptr_on_device(),
+                                x_type,
+                                incx,
+                                dy.ptr_on_device(),
+                                y_type,
+                                incy,
+                                batch_count,
+                                execution_type));
+
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+
+                    unit_check_general<Ty>(1, N, incy, hy2, hy_copy, batch_count);
+                }
+                return;
+            }
+        }
 
         // CPU BLAS
         {
@@ -344,18 +379,32 @@ void testing_axpy_batched_ex(const Arguments& arg)
             }
         }
 
-        // Compare with with hsolution.
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<Ty>(1, N, incy, hy, hy1, batch_count);
+            // Compare with with hsolution.
+            if(arg.unit_check)
+            {
+                unit_check_general<Ty>(1, N, incy, hy, hy1, batch_count);
+            }
 
-            unit_check_general<Ty>(1, N, incy, hy, hy2, batch_count);
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<Ty>('I', 1, N, incy, hy, hy1, batch_count);
+            }
         }
-
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<Ty>('I', 1, N, incy, hy, hy1, batch_count);
-            rocblas_error_2 = norm_check_general<Ty>('I', 1, N, incy, hy, hy2, batch_count);
+            // Compare with with hsolution.
+            if(arg.unit_check)
+            {
+
+                unit_check_general<Ty>(1, N, incy, hy, hy2, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<Ty>('I', 1, N, incy, hy, hy2, batch_count);
+            }
         }
     }
 

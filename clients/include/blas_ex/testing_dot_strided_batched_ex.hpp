@@ -304,6 +304,37 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
                         result_type,
                         execution_type));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<Tr> rocblas_result_device_copy(batch_count);
+                CHECK_HIP_ERROR(rocblas_result_device_copy.memcheck());
+
+                CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_dot_strided_batched_ex_fn,
+                               (handle,
+                                N,
+                                dx,
+                                x_type,
+                                incx,
+                                stride_x,
+                                dy_ptr,
+                                y_type,
+                                incy,
+                                stride_y,
+                                batch_count,
+                                d_rocblas_result_device,
+                                result_type,
+                                execution_type));
+                    CHECK_HIP_ERROR(
+                        rocblas_result_device_copy.transfer_from(d_rocblas_result_device));
+                    unit_check_general<Tr>(
+                        1, 1, 1, 1, rocblas_result_device, rocblas_result_device_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
