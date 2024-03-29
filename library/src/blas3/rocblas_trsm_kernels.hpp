@@ -1768,18 +1768,17 @@ rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,
         w_invA_size, w_invA_arr_size, w_x_tmp_size_backup
 
 template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsm_workspace_size(rocblas_side      side,
-                                         rocblas_operation transA,
-                                         rocblas_int       m,
-                                         rocblas_int       n,
-                                         rocblas_int       batch_count,
-                                         rocblas_int       supplied_invA_size,
-                                         size_t*           w_x_tmp_size,
-                                         size_t*           w_x_tmp_arr_size,
-                                         size_t*           w_invA_size,
-                                         size_t*           w_invA_arr_size,
-                                         size_t*           w_x_tmp_size_backup)
+rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,
+                                                    rocblas_operation transA,
+                                                    rocblas_int       m,
+                                                    rocblas_int       n,
+                                                    rocblas_int       batch_count,
+                                                    rocblas_int       supplied_invA_size,
+                                                    size_t*           w_x_tmp_size,
+                                                    size_t*           w_x_tmp_arr_size,
+                                                    size_t*           w_invA_size,
+                                                    size_t*           w_invA_arr_size,
+                                                    size_t*           w_x_tmp_size_backup)
 {
     if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
@@ -1798,18 +1797,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 }
 
 template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsm_batched_workspace_size(rocblas_side      side,
-                                                 rocblas_operation transA,
-                                                 rocblas_int       m,
-                                                 rocblas_int       n,
-                                                 rocblas_int       batch_count,
-                                                 rocblas_int       supplied_invA_size,
-                                                 size_t*           w_x_tmp_size,
-                                                 size_t*           w_x_tmp_arr_size,
-                                                 size_t*           w_invA_size,
-                                                 size_t*           w_invA_arr_size,
-                                                 size_t*           w_x_tmp_size_backup)
+rocblas_status rocblas_internal_trsm_batched_workspace_size(rocblas_side      side,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            rocblas_int       batch_count,
+                                                            rocblas_int       supplied_invA_size,
+                                                            size_t*           w_x_tmp_size,
+                                                            size_t*           w_x_tmp_arr_size,
+                                                            size_t*           w_invA_size,
+                                                            size_t*           w_invA_arr_size,
+                                                            size_t*           w_x_tmp_size_backup)
 {
     if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
