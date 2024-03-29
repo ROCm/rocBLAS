@@ -590,6 +590,46 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                       rocblas_stride    offset_invA,        \
                                                       rocblas_stride    stride_invA);
 
+#ifdef INST_TRSM_WORK_SIZE_64
+#error INST_TRSM_WORK_SIZE_64 already defined
+#endif
+
+#define INST_TRSM_WORK_SIZE_64(T_)                                                        \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                              \
+        rocblas_internal_trsm_workspace_size_64<T_>(rocblas_side      side,               \
+                                                    rocblas_operation transA,             \
+                                                    int64_t           m,                  \
+                                                    int64_t           n,                  \
+                                                    int64_t           lda,                \
+                                                    int64_t           ldb,                \
+                                                    int64_t           batch_count,        \
+                                                    int64_t           supplied_invA_size, \
+                                                    size_t * w_x_tmp_size,                \
+                                                    size_t * w_x_tmp_arr_size,            \
+                                                    size_t * w_invA_size,                 \
+                                                    size_t * w_invA_arr_size,             \
+                                                    size_t * w_x_tmp_size_backup);
+
+#ifdef INST_TRSM_BATCHED_WORK_SIZE_64
+#error INST_TRSM_BATCHED_WORK_SIZE_64 already defined
+#endif
+
+#define INST_TRSM_BATCHED_WORK_SIZE_64(T_)                                                        \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                                      \
+        rocblas_internal_trsm_batched_workspace_size_64<T_>(rocblas_side      side,               \
+                                                            rocblas_operation transA,             \
+                                                            int64_t           m,                  \
+                                                            int64_t           n,                  \
+                                                            int64_t           lda,                \
+                                                            int64_t           ldb,                \
+                                                            int64_t           batch_count,        \
+                                                            int64_t           supplied_invA_size, \
+                                                            size_t * w_x_tmp_size,                \
+                                                            size_t * w_x_tmp_arr_size,            \
+                                                            size_t * w_invA_size,                 \
+                                                            size_t * w_invA_arr_size,             \
+                                                            size_t * w_x_tmp_size_backup);
+
 #ifdef INSTANTIATE_TRSM_MEM_TEMPLATE_64
 #error INSTANTIATE_TRSM_MEM_TEMPLATE_64 already defined
 #endif
@@ -631,3 +671,13 @@ INSTANTIATE_TRSM_MEM_TEMPLATE_64(true, float, const float* const*)
 INSTANTIATE_TRSM_MEM_TEMPLATE_64(true, double, const double* const*)
 INSTANTIATE_TRSM_MEM_TEMPLATE_64(true, rocblas_float_complex, const rocblas_float_complex* const*)
 INSTANTIATE_TRSM_MEM_TEMPLATE_64(true, rocblas_double_complex, const rocblas_double_complex* const*)
+
+INST_TRSM_WORK_SIZE_64(float)
+INST_TRSM_WORK_SIZE_64(double)
+INST_TRSM_WORK_SIZE_64(rocblas_float_complex)
+INST_TRSM_WORK_SIZE_64(rocblas_double_complex)
+
+INST_TRSM_BATCHED_WORK_SIZE_64(float)
+INST_TRSM_BATCHED_WORK_SIZE_64(double)
+INST_TRSM_BATCHED_WORK_SIZE_64(rocblas_float_complex)
+INST_TRSM_BATCHED_WORK_SIZE_64(rocblas_double_complex)
