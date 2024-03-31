@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -207,6 +207,12 @@ public:
         //
         // Copy each matrix.
         //
+        if(this->m_nmemb != that.nmemb())
+        {
+            rocblas_cout << "ERROR: m_nmemb mismatch in broadcast_one_batch_matrix_from"
+                         << std::endl;
+            return hipErrorInvalidValue;
+        }
         hipMemcpyKind kind = this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice;
         if(m_batch_count > 0)
         {
@@ -215,6 +221,51 @@ public:
                    = hipMemcpy((*this)[0], that[0], sizeof(T) * m_nmemb * m_batch_count, kind)))
             {
                 return hip_err;
+            }
+        }
+
+        return hipSuccess;
+    }
+
+    //!
+    //! @brief Broadcast from a host batched matrix.
+    //! @param that The host_batch_matrix to copy.
+    //!
+    hipError_t broadcast_one_batch_matrix_from(const host_batch_matrix<T>& that)
+    {
+        hipError_t hip_err;
+        //
+        // Copy each matrix.
+        //
+
+        if(this->m_nmemb != that.nmemb())
+        {
+            rocblas_cout << "ERROR: m_nmemb mismatch in broadcast_one_batch_matrix_from"
+                         << std::endl;
+            return hipErrorInvalidValue;
+        }
+        if(that.batch_count() == 0 || this->m_batch_count % that.batch_count() != 0)
+        {
+            rocblas_cout << "ERROR: batch_count mismatch in broadcast_one_batch_matrix_from"
+                         << std::endl;
+            return hipErrorInvalidValue;
+        }
+
+        int64_t flush_batch_count = this->m_batch_count / that.batch_count();
+
+        hipMemcpyKind kind = this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice;
+        for(int flush_batch_index = 0; flush_batch_index < flush_batch_count; flush_batch_index++)
+        {
+            if(m_batch_count > 0)
+            {
+                if(hipSuccess
+                   != (hip_err = hipMemcpy((*this)[flush_batch_index],
+                                           that[0],
+                                           sizeof(T) * that.nmemb() * that.batch_count(),
+                                           kind)))
+                {
+                    return hip_err;
+                }
             }
         }
 

@@ -119,7 +119,6 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
         dC.transfer_from(hC);
 
         // clang-format off
-
 // check for invalid enum
 EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, (rocblas_operation) rocblas_side_both, transB, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc, nullptr, d_type, ldd, batch_count,
@@ -239,7 +238,6 @@ dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index
 EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, zero,
 nullptr, a_type, lda, nullptr, b_type, ldb, zero, nullptr, c_type, ldc,
 dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_success);
-
         // clang-format on
     }
 }
@@ -282,32 +280,16 @@ void testing_gemm_batched_ex(const Arguments& arg)
                         || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         &h_alpha_Tc,
-                                                         nullptr,
-                                                         arg.a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         arg.b_type,
-                                                         ldb,
-                                                         nullptr,
-                                                         nullptr,
-                                                         arg.c_type,
-                                                         ldc,
-                                                         nullptr,
-                                                         arg.d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         arg.compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
+        // clang-format off
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(
+				handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                nullptr, arg.a_type, lda,
+                                nullptr, arg.b_type, ldb, nullptr,
+                                nullptr, arg.c_type, ldc,
+                                nullptr, arg.d_type, ldd,
+                                batch_count, arg.compute_type, algo, solution_index, flags),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        // clang-format on
         return;
     }
 
@@ -318,31 +300,15 @@ void testing_gemm_batched_ex(const Arguments& arg)
         device_batch_vector<Ti> dB(1, 1, batch_count);
         device_batch_vector<To> dC(1, 1, batch_count);
         device_batch_vector<To> dD(1, 1, batch_count);
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
-                                                       transA,
-                                                       transB,
-                                                       M,
-                                                       N,
-                                                       K,
-                                                       &h_alpha_Tc,
-                                                       dA.ptr_on_device(),
-                                                       arg.a_type,
-                                                       lda,
-                                                       dB.ptr_on_device(),
-                                                       arg.b_type,
-                                                       ldb,
-                                                       &h_beta_Tc,
-                                                       dC.ptr_on_device(),
-                                                       arg.c_type,
-                                                       ldc,
-                                                       dD.ptr_on_device(),
-                                                       arg.d_type,
-                                                       ldd,
-                                                       batch_count,
-                                                       arg.compute_type,
-                                                       algo,
-                                                       solution_index,
-                                                       flags));
+        // clang-format off
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(
+				handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                dA.ptr_on_device(), arg.a_type, lda,
+                                dB.ptr_on_device(), arg.b_type, ldb, &h_beta_Tc,
+                                dC.ptr_on_device(), arg.c_type, ldc,
+                                dD.ptr_on_device(), arg.d_type, ldd,
+                                batch_count, arg.compute_type, algo, solution_index, flags));
+        // clang-format on
         return;
     }
 #endif
@@ -367,22 +333,10 @@ void testing_gemm_batched_ex(const Arguments& arg)
     CHECK_HIP_ERROR(hC.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<Ti> dA(A_row, A_col, lda, batch_count);
-    device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count);
-    // if C!=D, allocate C and D normally
-    // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_batch_matrix<To>  dC(M, N, ldc, batch_count);
-    device_batch_matrix<To>  dD = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count)
-                                                   : device_batch_matrix<To>(0, 1, 1, 1);
-    device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-    device_vector<Tc>        d_alpha_Tc(1);
-    device_vector<Tc>        d_beta_Tc(1);
+    device_vector<Tc> d_alpha_Tc(1);
+    device_vector<Tc> d_beta_Tc(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(dD.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
 
@@ -393,44 +347,30 @@ void testing_gemm_batched_ex(const Arguments& arg)
         hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
     rocblas_init_matrix<To>(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
-#if 0 // Copied from testing_gemm_ex.hpp
-    if(std::is_same_v<To, rocblas_half> && std::is_same_v<Tc, float>)
-    {
-        // half precision IEEE has max and lowest values 65504 and -65504,
-        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
-        // the following will overflow to inf in half arithmetic,
-        // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
-        //
-        // set matrix A and matrix B upper left block to values below to cause
-        // inf overflow with 16 bit arithmetic, but no overflow for 32 bit arithmetic
-        //
-        // 65500 65500             2   -2
-        // 65500 65500            -2    2
-        //
-        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
-        const rocblas_half positive_two      (2.0);
-        const rocblas_half negative_two      (-2.0);
-        if(M >= 2 && N >= 2 && K >= 2)
-        {
-            hA[0]       = ieee_half_near_max;
-            hA[1]       = ieee_half_near_max;
-            hA[lda]     = ieee_half_near_max;
-            hA[lda + 1] = ieee_half_near_max;
-            hB[0]       = positive_two;
-            hB[1]       = negative_two;
-            hB[ldb]     = negative_two;
-            hB[ldb + 1] = positive_two;
-        }
-    }
-#endif
-
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dB.transfer_from(hB));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
-
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        device_batch_matrix<Ti> dA(A_row, A_col, lda, batch_count);
+        device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count);
+        // if C!=D, allocate C and D normally
+        // if C==D, allocate C big enough for the larger of C and D; D points to C
+        device_batch_matrix<To>  dC(M, N, ldc, batch_count);
+        device_batch_matrix<To>  dD    = (arg.outofplace)
+                                             ? device_batch_matrix<To>(M, N, ldd, batch_count)
+                                             : device_batch_matrix<To>(0, 1, 1, 1);
+        device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
+        CHECK_HIP_ERROR(dB.transfer_from(hB));
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
+
         using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
         host_batch_matrix<To>     hD_1(M, N, ldd, batch_count);
         host_batch_matrix<To>     hD_2(M, N, ldd, batch_count);
@@ -455,31 +395,15 @@ void testing_gemm_batched_ex(const Arguments& arg)
             // ROCBLAS rocblas_pointer_mode_host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
-                                                           transA,
-                                                           transB,
-                                                           M,
-                                                           N,
-                                                           K,
-                                                           &h_alpha_Tc,
-                                                           dA.ptr_on_device(),
-                                                           arg.a_type,
-                                                           lda,
-                                                           dB.ptr_on_device(),
-                                                           arg.b_type,
-                                                           ldb,
-                                                           &h_beta_Tc,
-                                                           dC.ptr_on_device(),
-                                                           arg.c_type,
-                                                           ldc,
-                                                           dDref.ptr_on_device(),
-                                                           d_type,
-                                                           ldd,
-                                                           batch_count,
-                                                           arg.compute_type,
-                                                           algo,
-                                                           solution_index,
-                                                           flags));
+            // clang-format off
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(
+				    handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                    dA.ptr_on_device(), arg.a_type, lda,
+                                    dB.ptr_on_device(), arg.b_type, ldb, &h_beta_Tc,
+                                    dC.ptr_on_device(), arg.c_type, ldc,
+                                    dDref.ptr_on_device(),  d_type, ldd,
+                                    batch_count, arg.compute_type, algo, solution_index, flags));
+            // clang-format on
             handle.post_test(arg);
             // copy output from device to CPU
             CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
@@ -492,31 +416,15 @@ void testing_gemm_batched_ex(const Arguments& arg)
             CHECK_HIP_ERROR(dC.transfer_from(hC));
             CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
-                                                           transA,
-                                                           transB,
-                                                           M,
-                                                           N,
-                                                           K,
-                                                           d_alpha_Tc,
-                                                           dA.ptr_on_device(),
-                                                           arg.a_type,
-                                                           lda,
-                                                           dB.ptr_on_device(),
-                                                           arg.b_type,
-                                                           ldb,
-                                                           d_beta_Tc,
-                                                           dC.ptr_on_device(),
-                                                           arg.c_type,
-                                                           ldc,
-                                                           dDref.ptr_on_device(),
-                                                           d_type,
-                                                           ldd,
-                                                           batch_count,
-                                                           arg.compute_type,
-                                                           algo,
-                                                           solution_index,
-                                                           flags));
+            // clang-format off
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(
+				    handle, transA, transB, M, N, K, d_alpha_Tc,
+                                    dA.ptr_on_device(), arg.a_type, lda,
+                                    dB.ptr_on_device(), arg.b_type, ldb, d_beta_Tc,
+                                    dC.ptr_on_device(), arg.c_type, ldc,
+                                    dDref.ptr_on_device(),  d_type, ldd,
+                                    batch_count, arg.compute_type, algo, solution_index, flags));
+            // clang-format on
 
             // copy output from device to CPU
             CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
@@ -529,31 +437,15 @@ void testing_gemm_batched_ex(const Arguments& arg)
                 for(int i = 0; i < arg.iters; i++)
                 {
                     CHECK_HIP_ERROR(dC.transfer_from(hC));
-                    CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
-                                                                   transA,
-                                                                   transB,
-                                                                   M,
-                                                                   N,
-                                                                   K,
-                                                                   d_alpha_Tc,
-                                                                   dA.ptr_on_device(),
-                                                                   arg.a_type,
-                                                                   lda,
-                                                                   dB.ptr_on_device(),
-                                                                   arg.b_type,
-                                                                   ldb,
-                                                                   d_beta_Tc,
-                                                                   dC.ptr_on_device(),
-                                                                   arg.c_type,
-                                                                   ldc,
-                                                                   dDref.ptr_on_device(),
-                                                                   d_type,
-                                                                   ldd,
-                                                                   batch_count,
-                                                                   arg.compute_type,
-                                                                   algo,
-                                                                   solution_index,
-                                                                   flags));
+                    // clang-format off
+                    CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(
+					    handle, transA, transB, M, N, K, d_alpha_Tc,
+                                            dA.ptr_on_device(), arg.a_type, lda,
+                                            dB.ptr_on_device(), arg.b_type, ldb, d_beta_Tc,
+                                            dC.ptr_on_device(), arg.c_type, ldc,
+                                            dDref.ptr_on_device(),  d_type, ldd,
+                                            batch_count, arg.compute_type, algo, solution_index, flags));
+                    // clang-format on
                     // copy output from device to CPU
                     CHECK_HIP_ERROR(hD_2_copy.transfer_from(dDref));
                     unit_check_general<To>(M, N, ldd, hD_2, hD_2_copy, batch_count);
@@ -579,19 +471,12 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
         for(rocblas_int b = 0; b < batch_count; b++)
         {
-            ref_gemm<Ti, To_hpa>(transA,
-                                 transB,
-                                 M,
-                                 N,
-                                 K,
-                                 h_alpha_Tc,
-                                 hA[b],
-                                 lda,
-                                 hB[b],
-                                 ldb,
-                                 h_beta_Tc,
-                                 hD_gold[b],
-                                 ldd);
+            // clang-format off
+            ref_gemm<Ti, To_hpa>(transA, transB, M, N, K, h_alpha_Tc,
+                                 hA[b], lda,
+                                 hB[b], ldb, h_beta_Tc,
+                                 hD_gold[b], ldd);
+            // clang-format on
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
@@ -656,37 +541,54 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
     if(arg.timing)
     {
+        size_t a_size = M * K * batch_count * sizeof(Ti);
+        size_t b_size = K * N * batch_count * sizeof(Ti);
+        size_t c_size = M * N * batch_count * sizeof(To);
+        //      exclude d_size from cached_size calculation because
+        //      - for arg.outofplace == false : D == C
+        //      - for arg.outofplace == true  : D is write only
+        size_t a_b_c_cached_size = a_size + b_size + c_size;
+
+        size_t flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
+
+        // Allocate device memory
+        device_batch_matrix<Ti> dA(A_row, A_col, lda, batch_count * flush_batch_count);
+        device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count * flush_batch_count);
+        // if C!=D, allocate C and D normally
+        // if C==D, allocate C big enough for the larger of C and D; D points to C
+        device_batch_matrix<To> dC(M, N, ldc, batch_count * flush_batch_count);
+        device_batch_matrix<To> dD
+            = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count * flush_batch_count)
+                               : device_batch_matrix<To>(0, 1, 1, 1);
+        device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.broadcast_one_batch_matrix_from(hA));
+        CHECK_HIP_ERROR(dB.broadcast_one_batch_matrix_from(hB));
+        CHECK_HIP_ERROR(dC.broadcast_one_batch_matrix_from(hC));
+
         int number_cold_calls = arg.cold_iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
-                                                           transA,
-                                                           transB,
-                                                           M,
-                                                           N,
-                                                           K,
-                                                           &h_alpha_Tc,
-                                                           dA.ptr_on_device(),
-                                                           arg.a_type,
-                                                           lda,
-                                                           dB.ptr_on_device(),
-                                                           arg.b_type,
-                                                           ldb,
-                                                           &h_beta_Tc,
-                                                           dC.ptr_on_device(),
-                                                           arg.c_type,
-                                                           ldc,
-                                                           dDref.ptr_on_device(),
-                                                           d_type,
-                                                           ldd,
-                                                           batch_count,
-                                                           arg.compute_type,
-                                                           algo,
-                                                           solution_index,
-                                                           flags));
+            // clang-format off
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(
+				    handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                    dA.ptr_on_device(), arg.a_type, lda,
+                                    dB.ptr_on_device(), arg.b_type, ldb, &h_beta_Tc,
+                                    dC.ptr_on_device(), arg.c_type, ldc,
+                                    dDref.ptr_on_device(),  d_type, ldd,
+                                    batch_count, arg.compute_type, algo, solution_index, flags));
+            // clang-format on
         }
 
         int         number_hot_calls = arg.iters;
@@ -697,31 +599,15 @@ void testing_gemm_batched_ex(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm_batched_ex_fn(handle,
-                                       transA,
-                                       transB,
-                                       M,
-                                       N,
-                                       K,
-                                       &h_alpha_Tc,
-                                       dA.ptr_on_device(),
-                                       arg.a_type,
-                                       lda,
-                                       dB.ptr_on_device(),
-                                       arg.b_type,
-                                       ldb,
-                                       &h_beta_Tc,
-                                       dC.ptr_on_device(),
-                                       arg.c_type,
-                                       ldc,
-                                       dDref.ptr_on_device(),
-                                       d_type,
-                                       ldd,
-                                       batch_count,
-                                       arg.compute_type,
-                                       algo,
-                                       solution_index,
-                                       flags);
+            int flush_index = (i + 1) % flush_batch_count;
+            // clang-format off
+            rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                       (dA.ptr_on_device() + (flush_index * batch_count)), arg.a_type, lda,
+                                       (dB.ptr_on_device() + (flush_index * batch_count)), arg.b_type, ldb, &h_beta_Tc,
+                                       (dC.ptr_on_device() + (flush_index * batch_count)), arg.c_type, ldc,
+                                       (dDref.ptr_on_device() + (flush_index * batch_count)),  d_type, ldd,
+                                       batch_count, arg.compute_type, algo, solution_index, flags);
+            // clang-format on
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         freq_monitor.stop();
