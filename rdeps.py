@@ -38,7 +38,7 @@ OS_info = {}
 var_subs = {}
 
 vcpkg_script = ['tdir %IDIR%', 
-                'git clone -b 2022.05.10 https://github.com/microsoft/vcpkg %IDIR%', 'cd %IDIR%', 'bootstrap-vcpkg.bat -disableMetrics' ]
+                'git clone -b 2024.02.14 https://github.com/microsoft/vcpkg %IDIR%', 'cd %IDIR%', 'bootstrap-vcpkg.bat -disableMetrics' ]
 
 xml_script = [ '%XML%' ]
 
