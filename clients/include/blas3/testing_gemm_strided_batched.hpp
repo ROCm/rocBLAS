@@ -332,6 +332,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
+    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -345,7 +346,6 @@ void testing_gemm_strided_batched(const Arguments& arg)
         if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(dC.transfer_from(hC));
             handle.pre_test(arg);
             if(arg.api != INTERNAL)
             {
