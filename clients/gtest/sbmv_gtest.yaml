@@ -240,4 +240,24 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+
+- name: sbmv_repeatablity_check
+  category: pre_checkin
+  function:
+        - sbmv
+        - sbmv_batched
+        - sbmv_strided_batched
+  precision: *single_double_precisions
+  matrix_size: *tiny_matrix
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  initialization: hpl
+  atomics_mode: 0
+  pointer_mode_host: false
+  iters: 5
+  repeatability_check: true
 ...

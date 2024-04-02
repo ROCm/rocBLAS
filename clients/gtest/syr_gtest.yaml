@@ -268,4 +268,24 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: syr_repeatability_check
+  category: pre_checkin
+  function:
+        - syr
+        - syr_batched
+        - syr_strided_batched
+  precision: *single_double_precisions_complex_real
+  matrix_size:
+        - { N:    33, lda:    32 }
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  initilaization: hpl
+  atomics_mode: 0
+  iters: 5
+  pointer_mode_host: false
+  repreatability_check: true
 ...

@@ -340,6 +340,31 @@ void testing_spmv_batched(const Arguments& arg)
                         incy,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_batch_vector<T> hy_copy(N, incy, batch_count);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_spmv_batched_fn,
+                               (handle,
+                                uplo,
+                                N,
+                                d_alpha,
+                                dAp.ptr_on_device(),
+                                dx.ptr_on_device(),
+                                incx,
+                                d_beta,
+                                dy.ptr_on_device(),
+                                incy,
+                                batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         cpu_time_used = get_time_us_no_sync();

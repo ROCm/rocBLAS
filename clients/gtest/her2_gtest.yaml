@@ -301,4 +301,24 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: her2_repeatability_check
+  category: pre_checkin
+  function:
+        - her2
+        - her2_batched
+        - her2_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size:
+        - { N:    33, lda:  35 }
+  uplo: [ U ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  pointer_mode_host: false
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  repeatability_check: true
 ...

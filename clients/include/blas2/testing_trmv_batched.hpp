@@ -166,6 +166,34 @@ void testing_trmv_batched(const Arguments& arg)
             (handle, uplo, transA, diag, N, dA_on_device, lda, dx_on_device, incx, batch_count));
         handle.post_test(arg);
 
+        // fetch GPU
+        CHECK_HIP_ERROR(hres.transfer_from(dx));
+
+        if(arg.repeatability_check)
+        {
+            host_batch_vector<T> hres_copy(N, incx, batch_count);
+            CHECK_HIP_ERROR(hres_copy.memcheck());
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dA.transfer_from(hA));
+                CHECK_HIP_ERROR(dx.transfer_from(hx));
+                DAPI_CHECK(rocblas_trmv_batched_fn,
+                           (handle,
+                            uplo,
+                            transA,
+                            diag,
+                            N,
+                            dA_on_device,
+                            lda,
+                            dx_on_device,
+                            incx,
+                            batch_count));
+                CHECK_HIP_ERROR(hres_copy.transfer_from(dx));
+                unit_check_general<T>(1, N, incx, hres, hres_copy, batch_count);
+            }
+            return;
+        }
+
         // CPU BLAS
         {
             cpu_time_used = get_time_us_no_sync();
@@ -175,9 +203,6 @@ void testing_trmv_batched(const Arguments& arg)
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
-
-        // fetch GPU
-        CHECK_HIP_ERROR(hres.transfer_from(dx));
 
         // Unit check.
         if(arg.unit_check)

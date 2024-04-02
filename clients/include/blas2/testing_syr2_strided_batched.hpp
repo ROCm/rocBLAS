@@ -375,6 +375,36 @@ void testing_syr2_strided_batched(const Arguments& arg)
                         stride_A,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_matrix<T> hA_copy(N, N, lda, stride_A, batch_count);
+                CHECK_HIP_ERROR(hA_copy.memcheck());
+                CHECK_HIP_ERROR(hA.transfer_from(dA));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+
+                    DAPI_CHECK(rocblas_syr2_strided_batched_fn,
+                               (handle,
+                                uplo,
+                                N,
+                                d_alpha,
+                                dx,
+                                incx,
+                                stride_x,
+                                dy,
+                                incy,
+                                stride_y,
+                                dA,
+                                lda,
+                                stride_A,
+                                batch_count));
+                    CHECK_HIP_ERROR(hA_copy.transfer_from(dA));
+                    unit_check_general<T>(N, N, lda, stride_A, hA, hA_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

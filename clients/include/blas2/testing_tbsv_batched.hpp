@@ -215,6 +215,34 @@ void testing_tbsv_batched(const Arguments& arg)
 
         CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
 
+        if(arg.repeatability_check)
+        {
+            host_batch_vector<T> hx_or_b_copy(N, incx, batch_count);
+            CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dx_or_b.transfer_from(hb));
+                CHECK_HIP_ERROR(dAb.transfer_from(hAb));
+
+                DAPI_CHECK(rocblas_tbsv_batched_fn,
+                           (handle,
+                            uplo,
+                            transA,
+                            diag,
+                            N,
+                            K,
+                            dAb.ptr_on_device(),
+                            lda,
+                            dx_or_b.ptr_on_device(),
+                            incx,
+                            batch_count));
+                CHECK_HIP_ERROR(hx_or_b_copy.transfer_from(dx_or_b));
+                unit_check_general<T>(1, N, incx, hx_or_b, hx_or_b_copy, batch_count);
+            }
+            return;
+        }
+
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate norm 1 of vector E
         max_err = rocblas_abs(vector_norm_1<T>(N, incx, hx, hx_or_b));

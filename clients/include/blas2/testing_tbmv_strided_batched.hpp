@@ -225,6 +225,34 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                     batch_count));
         handle.post_test(arg);
 
+        if(arg.repeatability_check)
+        {
+            host_strided_batch_vector<T> hx_copy(N, incx, stride_x, batch_count);
+            CHECK_HIP_ERROR(hx_copy.memcheck());
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+                DAPI_CHECK(rocblas_tbmv_strided_batched_fn,
+                           (handle,
+                            uplo,
+                            transA,
+                            diag,
+                            N,
+                            K,
+                            dAb,
+                            lda,
+                            stride_A,
+                            dx,
+                            incx,
+                            stride_x,
+                            batch_count));
+                CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
+                unit_check_general<T>(1, N, incx, stride_x, hx, hx_copy, batch_count);
+            }
+            return;
+        }
+
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 

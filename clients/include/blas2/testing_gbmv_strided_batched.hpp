@@ -521,6 +521,38 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                         stride_y,
                         batch_count));
             handle.post_test(arg);
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_vector<T> hy_copy(dim_y, incy, stride_y, batch_count);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+                    DAPI_CHECK(rocblas_gbmv_strided_batched_fn,
+                               (handle,
+                                transA,
+                                M,
+                                N,
+                                KL,
+                                KU,
+                                d_alpha,
+                                dAb,
+                                lda,
+                                stride_A,
+                                dx,
+                                incx,
+                                stride_x,
+                                d_beta,
+                                dy,
+                                incy,
+                                stride_y,
+                                batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, dim_y, incy, stride_y, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

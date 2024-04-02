@@ -303,4 +303,25 @@ Tests:
   diag: [ U, N ]
   gpu_arch: '90a'
   os_flags: LINUX
+
+- name: tbmv_repeatability_check
+  category: pre_checkin
+  function:
+        - tbmv
+        - tbmv_batched
+        - tbmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  matrix_size:
+        - { N:   100, K:    60, lda:   65  }
+  uplo: [ U ]
+  transA: [ N ]
+  diag: [ N ]
+  stride_scale: [ 1 ]
+  batch_count: [2]
+  incx_incy: *incx_range
+  initialization: hpl
+  atomics_mode: 0
+  pointer_mode_host: false
+  iters: 5
+  repeatability_check: true
 ...

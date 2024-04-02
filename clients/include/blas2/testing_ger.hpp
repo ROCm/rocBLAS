@@ -183,10 +183,35 @@ void testing_ger(const Arguments& arg)
 
             // Transfer output from device to CPU
             CHECK_HIP_ERROR(hA.transfer_from(dA));
+        }
 
-            // Transfer data from CPU to device (only need to restore if we did mode_host test)
-            if(arg.pointer_mode_device)
-                CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_ger_fn, (handle, M, N, d_alpha, dx, incx, dy, incy, dA, lda));
+            handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hA_copy(M, N, lda);
+                CHECK_HIP_ERROR(hA_copy.memcheck());
+                CHECK_HIP_ERROR(hA.transfer_from(dA));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
+
+                    DAPI_CHECK(rocblas_ger_fn,
+                               (handle, M, N, d_alpha, dx, incx, dy, incy, dA, lda));
+                    CHECK_HIP_ERROR(hA_copy.transfer_from(dA));
+                    unit_check_general<T>(M, N, lda, hA, hA_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
@@ -219,15 +244,6 @@ void testing_ger(const Arguments& arg)
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            handle.pre_test(arg);
-            DAPI_CHECK(rocblas_ger_fn, (handle, M, N, d_alpha, dx, incx, dy, incy, dA, lda));
-            handle.post_test(arg);
-
-            CHECK_HIP_ERROR(hA.transfer_from(dA));
-
             if(arg.unit_check)
             {
                 if(std::is_same_v<T, float> || std::is_same_v<T, double>)

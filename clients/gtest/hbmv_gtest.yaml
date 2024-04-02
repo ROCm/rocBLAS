@@ -309,4 +309,22 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: hbmv_repeatability_check
+  category: pre_checkin
+  function:
+        - hbmv
+        - hbmv_batched
+        - hbmv_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size: *tiny_matrix_size
+  uplo: [ U ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  atomics_mode: false
+  initialization: hpl
+  pointer_mode_host: false
+  iters: 5
+  repeatability_check: true
 ...
