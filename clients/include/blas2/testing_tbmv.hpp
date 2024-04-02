@@ -149,6 +149,21 @@ void testing_tbmv(const Arguments& arg)
         DAPI_CHECK(rocblas_tbmv_fn, (handle, uplo, transA, diag, N, K, dAb, lda, dx, incx));
         handle.post_test(arg);
 
+        if(arg.repeatability_check)
+        {
+            host_vector<T> hx_copy(N, incx);
+            CHECK_HIP_ERROR(hx_copy.memcheck());
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+                DAPI_CHECK(rocblas_tbmv_fn, (handle, uplo, transA, diag, N, K, dAb, lda, dx, incx));
+                CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
+                unit_check_general<T>(1, N, incx, hx, hx_copy);
+            }
+            return;
+        }
+
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         ref_tbmv<T>(uplo, transA, diag, N, K, hAb, lda, hx_gold, incx);

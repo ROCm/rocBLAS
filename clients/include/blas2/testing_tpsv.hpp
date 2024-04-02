@@ -162,6 +162,20 @@ void testing_tpsv(const Arguments& arg)
         handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
 
+        if(arg.repeatability_check)
+        {
+            host_vector<T> hx_or_b_copy(N, incx);
+            CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dx_or_b.transfer_from(hb));
+                DAPI_CHECK(rocblas_tpsv_fn, (handle, uplo, transA, diag, N, dAp, dx_or_b, incx));
+                CHECK_HIP_ERROR(hx_or_b_copy.transfer_from(dx_or_b));
+                unit_check_general<T>(1, N, incx, hx_or_b, hx_or_b_copy);
+            }
+            return;
+        }
+
         max_err = rocblas_abs(vector_norm_1<T>(N, incx, hx, hx_or_b));
 
         if(arg.unit_check)

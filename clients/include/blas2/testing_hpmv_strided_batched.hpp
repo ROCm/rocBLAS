@@ -424,7 +424,8 @@ void testing_hpmv_strided_batched(const Arguments& arg)
 
             CHECK_HIP_ERROR(hy.transfer_from(dy));
         }
-        if(arg.pointer_mode_host)
+
+        if(arg.pointer_mode_device)
         {
             CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
@@ -446,6 +447,36 @@ void testing_hpmv_strided_batched(const Arguments& arg)
                         stride_y,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.pointer_mode_device)
+            {
+                host_strided_batch_vector<T> hy_copy(N, incy, stride_y, batch_count);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+
+                    DAPI_CHECK(rocblas_hpmv_strided_batched_fn,
+                               (handle,
+                                uplo,
+                                N,
+                                d_alpha,
+                                dAp,
+                                stride_A,
+                                dx,
+                                incx,
+                                stride_x,
+                                d_beta,
+                                dy,
+                                incy,
+                                stride_y,
+                                batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, stride_y, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

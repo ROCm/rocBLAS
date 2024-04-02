@@ -225,4 +225,22 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
   graph_test: true
+
+- name: tbsv_repeatability_check
+  category: pre_checkin
+  function:
+    - tbsv
+    - tbsv_batched
+    - tbsv_strided_batched
+  arguments: *common_args
+  matrix_size:
+    - { N:   128, K:   1, lda: 128 }
+  incx: [ 1 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  pointer_mode_host: false
+  repeatability_check: true
 ...

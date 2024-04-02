@@ -239,6 +239,30 @@ void testing_syr_batched(const Arguments& arg)
                         lda,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_batch_matrix<T> hA_copy(N, N, lda, batch_count);
+                CHECK_HIP_ERROR(hA_copy.memcheck());
+                CHECK_HIP_ERROR(hA.transfer_from(dA));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dA.transfer_from(hA_gold));
+                    DAPI_CHECK(rocblas_syr_batched_fn,
+                               (handle,
+                                uplo,
+                                N,
+                                d_alpha,
+                                dx.ptr_on_device(),
+                                incx,
+                                dA.ptr_on_device(),
+                                lda,
+                                batch_count));
+                    CHECK_HIP_ERROR(hA_copy.transfer_from(dA));
+                    unit_check_general<T>(N, N, lda, hA, hA_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

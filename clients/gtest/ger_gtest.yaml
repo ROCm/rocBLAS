@@ -312,4 +312,22 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: ger_repeatability_check
+  category: pre_checkin
+  function:
+        - ger
+        - ger_batched
+        - ger_strided_batched
+  precision: *single_double_precisions
+  matrix_size:
+        - { M:   33, N:   32, lda:   33, stride_a: 1056 }
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  atomics_mode: 0
+  initialization: hpl
+  iters: 5
+  pointer_mode_host: false
+  repeatability_check: true
 ...

@@ -460,6 +460,38 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                         stridey,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_vector<T> hy_copy(N, incy, stridey, batch_count);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    dy.transfer_from(hy_gold);
+                    DAPI_CHECK(rocblas_sbmv_strided_batched_fn,
+                               (handle,
+                                uplo,
+                                N,
+                                K,
+                                d_alpha,
+                                dAb,
+                                lda,
+                                strideA,
+                                dx,
+                                incx,
+                                stridex,
+                                d_beta,
+                                dy,
+                                incy,
+                                stridey,
+                                batch_count));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, stridey, hy, hy_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // cpu reference

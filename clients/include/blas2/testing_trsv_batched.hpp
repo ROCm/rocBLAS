@@ -262,6 +262,31 @@ void testing_trsv_batched(const Arguments& arg)
                         incx,
                         batch_count));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_batch_vector<T> hx_or_b_copy(N, incx, batch_count);
+                CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+                CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx_or_b.transfer_from(cpu_x_or_b));
+                    DAPI_CHECK(rocblas_trsv_batched_fn,
+                               (handle,
+                                uplo,
+                                transA,
+                                diag,
+                                N,
+                                dA.ptr_on_device(),
+                                lda,
+                                dx_or_b.ptr_on_device(),
+                                incx,
+                                batch_count));
+                    CHECK_HIP_ERROR(hx_or_b_copy.transfer_from(dx_or_b));
+                    unit_check_general<T>(1, N, incx, hx_or_b, hx_or_b_copy, batch_count);
+                }
+                return;
+            }
         }
 
         if(arg.pointer_mode_host)

@@ -253,4 +253,24 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: hpr2_repeatability_check
+  category: pre_checkin
+  function:
+        - hpr2
+        - hpr2_batched
+        - hpr2_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size:
+        - { N: 33 }
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  iters: 5
+  initialization: hpl
+  atomics_mode: 0
+  pointer_mode_host: false
+  repeatability_check: true
 ...

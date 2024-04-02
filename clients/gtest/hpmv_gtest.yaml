@@ -305,4 +305,24 @@ Tests:
     - hpmv_batched: *single_precision_complex
     - hpmv_strided_batched: *single_precision_complex
 
+
+- name: hpmv_repeatability_check
+  category: pre_checkin
+  function:
+        - hpmv
+        - hpmv_batched
+        - hpmv_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size:
+        - { N : 33}
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  initialization: hpl
+  pointer_mode_host: false
+  atomics_mode: 0
+  iters: 5
+  repeatability_check: true
 ...

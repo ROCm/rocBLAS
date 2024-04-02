@@ -241,4 +241,24 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: spr2_repeatability_check
+  category: pre_checkin
+  function:
+        - spr2
+        - spr2_batched
+        - spr2_strided_batched
+  precision: *single_double_precisions
+  matrix_size:
+    - { N : 33 }
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  initialization: hpl
+  atomics_mode: 0
+  iters: 5
+  pointer_mode_host: false
+  repeatability_check: true
 ...

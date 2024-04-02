@@ -201,6 +201,21 @@ void testing_hpr2(const Arguments& arg)
         DAPI_CHECK(rocblas_hpr2_fn, (handle, uplo, N, d_alpha, dx, incx, dy, incy, dAp_2));
         handle.post_test(arg);
 
+        if(arg.repeatability_check)
+        {
+            host_matrix<T> hAp_copy(1, size_A, 1);
+            CHECK_HIP_ERROR(hAp_copy.memcheck());
+            CHECK_HIP_ERROR(hAp_2.transfer_from(dAp_2));
+
+            for(int i = 0; i < arg.iters; i++)
+            {
+                DAPI_CHECK(rocblas_hpr2_fn, (handle, uplo, N, d_alpha, dx, incx, dy, incy, dAp_2));
+                CHECK_HIP_ERROR(hAp_copy.transfer_from(dAp_2));
+                unit_check_general<T>(1, size_A, 1, hAp_2, hAp_copy);
+            }
+            return;
+        }
+
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         ref_hpr2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hAp_gold);

@@ -199,6 +199,22 @@ void testing_syr2(const Arguments& arg)
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_syr2_fn, (handle, uplo, N, d_alpha, dx, incx, dy, incy, dA, lda));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hA_copy(N, N, lda);
+                CHECK_HIP_ERROR(hA_copy.memcheck());
+                CHECK_HIP_ERROR(hA.transfer_from(dA));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    DAPI_CHECK(rocblas_syr2_fn,
+                               (handle, uplo, N, d_alpha, dx, incx, dy, incy, dA, lda));
+                    CHECK_HIP_ERROR(hA_copy.transfer_from(dA));
+                    unit_check_general<T>(N, N, lda, hA, hA_copy);
+                }
+                return;
+            }
         }
 
         // CPU BLAS

@@ -246,6 +246,23 @@ void testing_sbmv(const Arguments& arg)
                        (handle, uplo, N, K, d_alpha, dAb, lda, dx, incx, d_beta, dy, incy));
 
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<T> hy_copy(N, incy);
+                CHECK_HIP_ERROR(hy_copy.memcheck());
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    dy.transfer_from(hy_gold);
+                    DAPI_CHECK(rocblas_sbmv_fn,
+                               (handle, uplo, N, K, d_alpha, dAb, lda, dx, incx, d_beta, dy, incy));
+                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                    unit_check_general<T>(1, N, incy, hy, hy_copy);
+                }
+                return;
+            }
         }
 
         // cpu ref

@@ -181,6 +181,29 @@ void testing_tpsv_batched(const Arguments& arg)
         handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
 
+        if(arg.repeatability_check)
+        {
+            host_batch_vector<T> hx_or_b_copy(N, incx, batch_count);
+            CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+            for(int i = 0; i < arg.iters; i++)
+            {
+                CHECK_HIP_ERROR(dx_or_b.transfer_from(hb));
+                DAPI_CHECK(rocblas_tpsv_batched_fn,
+                           (handle,
+                            uplo,
+                            transA,
+                            diag,
+                            N,
+                            dAp.ptr_on_device(),
+                            dx_or_b.ptr_on_device(),
+                            incx,
+                            batch_count));
+                CHECK_HIP_ERROR(hx_or_b_copy.transfer_from(dx_or_b));
+                unit_check_general<T>(1, N, incx, hx_or_b, hx_or_b_copy, batch_count);
+            }
+            return;
+        }
+
         max_err = vector_norm_1(N, incx, hx, hx_or_b);
 
         if(arg.unit_check)

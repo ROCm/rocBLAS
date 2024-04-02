@@ -203,9 +203,36 @@ void testing_hpr_strided_batched(const Arguments& arg)
 
             // copy output from device to CPU
             CHECK_HIP_ERROR(hAp.transfer_from(dAp));
+        }
 
-            if(arg.pointer_mode_device)
-                CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_hpr_strided_batched_fn,
+                       (handle, uplo, N, d_alpha, dx, incx, stride_x, dAp, stride_A, batch_count));
+            handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_matrix<T> hAp_copy(1, size_A, 1, stride_A, batch_count);
+                CHECK_HIP_ERROR(hAp_copy.memcheck());
+                CHECK_HIP_ERROR(hAp.transfer_from(dAp));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
+                    DAPI_CHECK(
+                        rocblas_hpr_strided_batched_fn,
+                        (handle, uplo, N, d_alpha, dx, incx, stride_x, dAp, stride_A, batch_count));
+                    CHECK_HIP_ERROR(hAp_copy.transfer_from(dAp));
+                    unit_check_general<T>(1, size_A, 1, stride_A, hAp, hAp_copy, batch_count);
+                }
+                return;
+            }
         }
 
         // CPU BLAS
@@ -231,16 +258,9 @@ void testing_hpr_strided_batched(const Arguments& arg)
             }
         }
 
-        if(arg.pointer_mode_host)
+        if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            handle.pre_test(arg);
-            DAPI_CHECK(rocblas_hpr_strided_batched_fn,
-                       (handle, uplo, N, d_alpha, dx, incx, stride_x, dAp, stride_A, batch_count));
-            handle.post_test(arg);
-
+            CHECK_HIP_ERROR(hAp.transfer_from(dAp));
             if(arg.unit_check)
             {
                 const double tol = N * sum_error_tolerance<T>;

@@ -201,6 +201,22 @@ void testing_trsv(const Arguments& arg)
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_trsv_fn, (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
             handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_vector<T> hx_or_b_copy(N, incx);
+                CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+                CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx_or_b.transfer_from(cpu_x_or_b));
+                    DAPI_CHECK(rocblas_trsv_fn,
+                               (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
+                    CHECK_HIP_ERROR(hx_or_b_copy.transfer_from(dx_or_b));
+                    unit_check_general<T>(1, N, incx, hx_or_b, hx_or_b_copy);
+                }
+                return;
+            }
         }
 
         if(arg.pointer_mode_host)

@@ -177,11 +177,34 @@ void testing_spr(const Arguments& arg)
 
             // copy output from device to CPU
             CHECK_HIP_ERROR(hAp.transfer_from(dAp));
-
-            if(arg.pointer_mode_device)
-                CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
         }
 
+        if(arg.pointer_mode_device)
+        {
+            // copy data from CPU to device
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_spr_fn, (handle, uplo, N, d_alpha, dx, incx, dAp));
+            handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_matrix<T> hAp_copy(1, size_A, 1);
+                CHECK_HIP_ERROR(hAp_copy.memcheck());
+                CHECK_HIP_ERROR(hAp.transfer_from(dAp));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
+                    DAPI_CHECK(rocblas_spr_fn, (handle, uplo, N, d_alpha, dx, incx, dAp));
+                    CHECK_HIP_ERROR(hAp_copy.transfer_from(dAp));
+                    unit_check_general<T>(1, size_A, 1, hAp, hAp_copy);
+                }
+                return;
+            }
+        }
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         ref_spr<T>(uplo, N, h_alpha, hx, incx, hAp_gold);
@@ -212,15 +235,7 @@ void testing_spr(const Arguments& arg)
 
         if(arg.pointer_mode_device)
         {
-            // copy data from CPU to device
-            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            handle.pre_test(arg);
-            DAPI_CHECK(rocblas_spr_fn, (handle, uplo, N, d_alpha, dx, incx, dAp));
-            handle.post_test(arg);
-
             CHECK_HIP_ERROR(hAp.transfer_from(dAp));
-
             if(arg.unit_check)
             {
                 if(std::is_same_v<

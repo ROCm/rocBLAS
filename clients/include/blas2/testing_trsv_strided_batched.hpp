@@ -276,6 +276,33 @@ void testing_trsv_strided_batched(const Arguments& arg)
                         incx,
                         stride_x,
                         batch_count));
+
+            if(arg.repeatability_check)
+            {
+                host_strided_batch_vector<T> hx_or_b_copy(N, incx, stride_x, batch_count);
+                CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+                CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dx_or_b.transfer_from(cpu_x_or_b));
+                    DAPI_CHECK(rocblas_trsv_strided_batched_fn,
+                               (handle,
+                                uplo,
+                                transA,
+                                diag,
+                                N,
+                                dA,
+                                lda,
+                                stride_a,
+                                dx_or_b,
+                                incx,
+                                stride_x,
+                                batch_count));
+                    CHECK_HIP_ERROR(hx_or_b_copy.transfer_from(dx_or_b));
+                    unit_check_general<T>(1, N, incx, stride_x, hx_or_b, hx_or_b_copy, batch_count);
+                }
+                return;
+            }
         }
 
         if(arg.pointer_mode_host)

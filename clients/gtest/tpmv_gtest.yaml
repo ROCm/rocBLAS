@@ -269,4 +269,25 @@ Tests:
   batch_count: [ 3 ]
   stride_scale: [ 2 ]
   graph_test: true
+
+- name: tpmv_repeatability_check
+  category: pre_checkin
+  function:
+        - tpmv
+        - tpmv_batched
+        - tpmv_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U ]
+  transA: [ N ]
+  diag: [ N ]
+  matrix_size:
+    - { N:    10, stride_a:      55 }
+  incx: *incx_range
+  batch_count: [ 2 ]
+  stride_scale: [ 1 ]
+  initialization: hpl
+  atomics_mode : 0
+  pointer_mode_host: false
+  iters: 5
+  repeatability_check: true
 ...

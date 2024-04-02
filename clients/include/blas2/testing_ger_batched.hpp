@@ -265,12 +265,56 @@ void testing_ger_batched(const Arguments& arg)
 
             // Transfer output from device to CPU
             CHECK_HIP_ERROR(hA.transfer_from(dA));
-
-            // Transfer data from CPU to device (only need to restore if we did mode_host test)
-            if(arg.pointer_mode_device)
-                CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
         }
 
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            DAPI_CHECK(rocblas_ger_batched_fn,
+                       (handle,
+                        M,
+                        N,
+                        d_alpha,
+                        dx.ptr_on_device(),
+                        incx,
+                        dy.ptr_on_device(),
+                        incy,
+                        dA.ptr_on_device(),
+                        lda,
+                        batch_count));
+            handle.post_test(arg);
+
+            if(arg.repeatability_check)
+            {
+                host_batch_matrix<T> hA_copy(M, N, lda, batch_count);
+                CHECK_HIP_ERROR(hA_copy.memcheck());
+                CHECK_HIP_ERROR(hA.transfer_from(dA));
+
+                for(int i = 0; i < arg.iters; i++)
+                {
+                    CHECK_HIP_ERROR(dA.transfer_from(hA_gold));
+                    DAPI_CHECK(rocblas_ger_batched_fn,
+                               (handle,
+                                M,
+                                N,
+                                d_alpha,
+                                dx.ptr_on_device(),
+                                incx,
+                                dy.ptr_on_device(),
+                                incy,
+                                dA.ptr_on_device(),
+                                lda,
+                                batch_count));
+                    CHECK_HIP_ERROR(hA_copy.transfer_from(dA));
+                    unit_check_general<T>(M, N, lda, hA, hA_copy, batch_count);
+                }
+                return;
+            }
+        }
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; ++b)
@@ -303,26 +347,7 @@ void testing_ger_batched(const Arguments& arg)
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            handle.pre_test(arg);
-            DAPI_CHECK(rocblas_ger_batched_fn,
-                       (handle,
-                        M,
-                        N,
-                        d_alpha,
-                        dx.ptr_on_device(),
-                        incx,
-                        dy.ptr_on_device(),
-                        incy,
-                        dA.ptr_on_device(),
-                        lda,
-                        batch_count));
-            handle.post_test(arg);
-
             CHECK_HIP_ERROR(hA.transfer_from(dA));
-
             if(arg.unit_check)
             {
                 if(std::is_same_v<T, float> || std::is_same_v<T, double>)
