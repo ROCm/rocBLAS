@@ -559,8 +559,8 @@ ROCBLAS_EXPORT rocblas_status
 //! @}
 
 ROCBLAS_DEPRECATED_MSG(
-    "rocblas_gemm_ex3 is a beta feature and is subject to change in future releases."
-    "Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch ")
+    "rocblas_gemm_ex3 is deprecated and it will be removed in the next major release of rocBLAS."
+    "Please refer to hipBLASLT for future 8 bit float usage https://github.com/ROCm/hipBLASLt")
 /*! @{
     \brief <b> BLAS BETA API </b>
 
@@ -708,6 +708,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex3(rocblas_handle      handle,
                                                uint32_t            flags);
 //! @}
 
+ROCBLAS_DEPRECATED_MSG(
+    "gemm_strided_batched_ex3 is deprecated and it will be removed in the next major release of "
+    "rocBLAS."
+    "Please refer to hipBLASLT for future 8 bit float usage https://github.com/ROCm/hipBLASLt")
 /*! @{
     \brief <b> BLAS EX API </b>
 
@@ -885,6 +889,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex3(rocblas_handle   
                                                                uint32_t            flags);
 //! @}
 
+ROCBLAS_DEPRECATED_MSG(
+    "gemm_batched_ex3 is deprecated and it will be removed in the next major release of "
+    "rocBLAS."
+    "Please refer to hipBLASLT for future 8 bit float usage https://github.com/ROCm/hipBLASLt")
 /*! @{
     \brief <b> BLAS BETA API </b>
 
