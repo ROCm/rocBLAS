@@ -271,7 +271,7 @@ Tests:
   graph_test: true
 
 - name: tpmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - tpmv
         - tpmv_batched

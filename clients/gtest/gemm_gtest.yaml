@@ -3867,7 +3867,7 @@ Tests:
   repeatability_check: true
 
 - name: gemm_ex_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - gemm_ex: *hpa_half_precision
   matrix_size:

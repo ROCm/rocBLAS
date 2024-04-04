@@ -239,7 +239,7 @@ Tests:
 
 
 - name: symm_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - symm
     - symm_batched

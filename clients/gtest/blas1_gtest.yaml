@@ -1783,7 +1783,7 @@ Tests:
 
 
   - name: blas1_repeatability_check
-    category: pre_checkin
+    category: stress
     N: *N_range
     batch_count: [2]
     stride_scale: [ 1 ]
@@ -1793,6 +1793,7 @@ Tests:
     iters: 5
     pointer_mode_host: false
     repeatability_check: true
+    atomics_mode: 0
     function:
        - nrm2:  *single_double_precisions_complex_real
        - nrm2_batched:  *single_double_precisions_complex_real

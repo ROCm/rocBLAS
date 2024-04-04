@@ -244,6 +244,7 @@ void testing_ger(const Arguments& arg)
 
         if(arg.pointer_mode_device)
         {
+            CHECK_HIP_ERROR(hA.transfer_from(dA));
             if(arg.unit_check)
             {
                 if(std::is_same_v<T, float> || std::is_same_v<T, double>)

@@ -214,4 +214,24 @@ Tests:
   batch_count: [ 2 ]
   alpha_beta: *alpha_beta_range
   graph_test: true
+
+- name: herkx_repeatability_check
+  category: stress
+  function:
+    - herkx
+    - herkx_batched
+    - herkx_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ L ]
+  transA: [ N ]
+  matrix_size:
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
+  batch_count: [ 2 ]
+  stride_scale : [ 1 ]
+  pointer_mode_host: false
+  atomics_mode: 0
+  initialization: hpl
+  iters: 5
+  alpha_beta: *alpha_beta_range
+  repeatability_check: true
 ...

@@ -274,6 +274,7 @@ void testing_spr_strided_batched(const Arguments& arg)
         }
         if(arg.pointer_mode_device)
         {
+            CHECK_HIP_ERROR(hAp.transfer_from(dAp));
             if(arg.unit_check)
             {
                 if(std::is_same_v<

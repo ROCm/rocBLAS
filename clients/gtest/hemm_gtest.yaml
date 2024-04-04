@@ -223,7 +223,7 @@ Tests:
   graph_test: true
 
 - name: hemm_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - hemm
     - hemm_batched

@@ -216,7 +216,7 @@ Tests:
   graph_test: true
 
 - name: her2k_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - her2k
     - her2k_batched

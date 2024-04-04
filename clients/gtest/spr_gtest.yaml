@@ -249,7 +249,7 @@ Tests:
   graph_test: true
 
 - name: spr_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - spr
         - spr_batched

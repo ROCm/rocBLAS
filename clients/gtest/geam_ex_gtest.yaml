@@ -122,7 +122,7 @@ Tests:
   graph_test: true
 
 - name: geam_ex_repeatability_check
-  category: pre_checkin
+  category: stress
   function: geam_ex
   precision: *half_single_double_precisions
   transA_transB: *tiny_transA_transB_range

@@ -305,7 +305,7 @@ Tests:
   os_flags: LINUX
 
 - name: tbmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - tbmv
         - tbmv_batched

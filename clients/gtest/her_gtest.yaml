@@ -294,7 +294,7 @@ Tests:
   graph_test: true
 
 - name: her_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - her
         - her_batched

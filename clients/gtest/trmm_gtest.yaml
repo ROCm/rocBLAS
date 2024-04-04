@@ -744,7 +744,7 @@ Tests:
   outofplace: [false, true] # test both inplace and outofplace
 
 - name: trmm_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - trmm
     - trmm_batched

@@ -257,7 +257,7 @@ Tests:
   graph_test: true
 
 - name: syr2k_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - syr2k
     - syr2k_batched

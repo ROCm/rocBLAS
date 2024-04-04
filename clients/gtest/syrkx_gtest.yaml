@@ -290,4 +290,25 @@ Tests:
   batch_count: [ 2 ]
   alpha_beta: *alpha_beta_range
   graph_test: true
+
+
+- name: syrkx_repeatability_check
+  category: stress
+  function:
+    - syrkx
+    - syrkx_batched
+    - syrkx_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  transA: [ N, T ]
+  matrix_size:
+    - { N:   199, K:  290,  lda:  290,  ldb: 290,  ldc: 200 }
+  batch_count: [ 2 ]
+  stride_scale: [ 1 ]
+  initialization: hpl
+  iters : 5
+  pointer_mode_host: false
+  atomics_mode: 0
+  alpha_beta: *alpha_beta_range
+  repeatability_check: true
 ...

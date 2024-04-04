@@ -340,7 +340,7 @@ Tests:
   graph_test: true
 
 - name: symv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - symv
     - symv_batched

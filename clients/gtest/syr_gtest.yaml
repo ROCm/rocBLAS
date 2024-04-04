@@ -270,7 +270,7 @@ Tests:
   graph_test: true
 
 - name: syr_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - syr
         - syr_batched

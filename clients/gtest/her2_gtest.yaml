@@ -303,7 +303,7 @@ Tests:
   graph_test: true
 
 - name: her2_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - her2
         - her2_batched

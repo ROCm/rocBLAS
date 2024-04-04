@@ -316,7 +316,7 @@ Tests:
   gpu_arch: '9??'
 
 - name: gbmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - gbmv
         - gbmv_batched

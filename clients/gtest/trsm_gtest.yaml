@@ -1275,7 +1275,7 @@ Tests:
   graph_test: true
 
 - name: trsm_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - trsm
     - trsm_batched
