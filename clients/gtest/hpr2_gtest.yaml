@@ -255,7 +255,7 @@ Tests:
   graph_test: true
 
 - name: hpr2_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - hpr2
         - hpr2_batched

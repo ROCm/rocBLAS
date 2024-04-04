@@ -288,7 +288,7 @@ Tests:
 
 
 - name: syr2_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - syr2
         - syr2_batched

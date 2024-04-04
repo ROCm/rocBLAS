@@ -683,7 +683,7 @@ Tests:
   graph_test: true
 
 - name: gemv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - gemv
     - gemv_batched

@@ -302,7 +302,7 @@ Tests:
   graph_test: true
 
 - name: hemv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - hemv
     - hemv_batched

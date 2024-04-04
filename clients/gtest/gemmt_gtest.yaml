@@ -229,7 +229,7 @@ Tests:
 
 
 - name: gemmt_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - gemmt
     - gemmt_batched

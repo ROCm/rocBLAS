@@ -939,7 +939,7 @@ Tests:
   graph_test: true
 
 - name: gemm_strided_batched_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - gemm_strided_batched: *half_single_double_precisions_complex_real
     - gemm_strided_batched_ex: *half_single_double_precisions_complex_real

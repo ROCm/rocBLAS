@@ -307,7 +307,7 @@ Tests:
 
 
 - name: hpmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - hpmv
         - hpmv_batched

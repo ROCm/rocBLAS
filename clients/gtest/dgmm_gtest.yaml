@@ -206,7 +206,7 @@ Tests:
   graph_test: true
 
 - name: dgmm_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - dgmm
     - dgmm_batched

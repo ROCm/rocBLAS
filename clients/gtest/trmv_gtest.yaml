@@ -280,7 +280,7 @@ Tests:
   graph_test: true
 
 - name: trmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - trmv
         - trmv_batched

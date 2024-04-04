@@ -767,7 +767,7 @@ Tests:
 
 
 - name: gemm_batched_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - gemm_batched: *half_single_precisions
     - gemm_batched: *complex_precisions

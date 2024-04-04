@@ -228,7 +228,7 @@ Tests:
   graph_test: true
 
 - name: trsv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - trsv
         - trsv_batched

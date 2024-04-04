@@ -208,7 +208,7 @@ Tests:
 
 
 - name: herk_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - herk
     - herk_batched

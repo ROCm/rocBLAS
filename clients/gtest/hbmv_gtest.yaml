@@ -311,7 +311,7 @@ Tests:
   graph_test: true
 
 - name: hbmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - hbmv
         - hbmv_batched

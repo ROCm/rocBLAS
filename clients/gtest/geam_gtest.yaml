@@ -279,7 +279,7 @@ Tests:
 
 
 - name: geam_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - geam
     - geam_batched

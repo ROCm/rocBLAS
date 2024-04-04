@@ -267,7 +267,7 @@ Tests:
   graph_test: true
 
 - name: spmv_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
         - spmv
         - spmv_batched
