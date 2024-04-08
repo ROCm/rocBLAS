@@ -26,7 +26,7 @@
 #include "../blas3/Tensile/gemm_tensile.hpp"
 #endif
 
-#include "gemm.hpp"
+#include "../blas3/rocblas_gemm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 

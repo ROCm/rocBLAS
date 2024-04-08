@@ -27,9 +27,9 @@
 #ifdef BUILD_WITH_TENSILE
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #endif
-#include "Tensile/gemm.hpp"
 #include "int64_helpers.hpp"
 #include "rocblas_block_sizes.h"
+#include "rocblas_gemm.hpp"
 #include "rocblas_trsm.hpp"
 #include "trtri_trsm.hpp"
 

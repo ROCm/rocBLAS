@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
  *
  * ************************************************************************ */
 
-#include "Tensile/gemm.hpp"
 #include "definitions.hpp"
 #include "rocblas_block_sizes.h"
+#include "rocblas_gemm.hpp"
 #include "rocblas_trmm.hpp"
 
 template <typename T>
