@@ -1,5 +1,5 @@
+#include "../blas3/rocblas_gemm.hpp"
 #include "definitions.hpp"
-#include "gemm.hpp"
 #include "handle.hpp"
 #include "rocblas_blas_ex_threshold.hpp"
 #include "rocblas_block_sizes.h"

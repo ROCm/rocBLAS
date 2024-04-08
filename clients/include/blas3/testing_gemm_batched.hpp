@@ -38,7 +38,7 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-#include "blas3/Tensile/gemm.hpp"
+#include "blas3/rocblas_gemm.hpp"
 
 template <typename T>
 void testing_gemm_batched_bad_arg(const Arguments& arg)

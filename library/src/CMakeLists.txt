@@ -204,9 +204,9 @@ set( rocblas_blas3_source
     blas3/rocblas_syr2k_her2k_kernels.cpp
     blas3/rocblas_syr2k_batched.cpp
     blas3/rocblas_syr2k_strided_batched.cpp
-    blas3/Tensile/gemm.cpp
-    blas3/Tensile/gemm_batched.cpp
-    blas3/Tensile/gemm_strided_batched.cpp
+    blas3/rocblas_gemm.cpp
+    blas3/rocblas_gemm_batched.cpp
+    blas3/rocblas_gemm_strided_batched.cpp
     blas3/Tensile/gemm_templates.cpp
     blas3/rocblas_syrkx.cpp
     blas3/rocblas_syrkx_herkx_kernels.cpp

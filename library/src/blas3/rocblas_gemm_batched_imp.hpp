@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,44 +19,49 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#pragma once
 
-#include "gemm.hpp"
+#include "int64_helpers.hpp"
 #include "logging.hpp"
+#include "rocblas_gemm.hpp"
 
 namespace
 {
     template <typename>
     constexpr char rocblas_gemm_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_gemm_batched_name<rocblas_half>[] = "rocblas_hgemm_batched";
+    constexpr char rocblas_gemm_batched_name<rocblas_half>[]
+        = ROCBLAS_API_STR(rocblas_hgemm_batched);
     template <>
-    constexpr char rocblas_gemm_batched_name<float>[] = "rocblas_sgemm_batched";
+    constexpr char rocblas_gemm_batched_name<float>[] = ROCBLAS_API_STR(rocblas_sgemm_batched);
     template <>
-    constexpr char rocblas_gemm_batched_name<double>[] = "rocblas_dgemm_batched";
+    constexpr char rocblas_gemm_batched_name<double>[] = ROCBLAS_API_STR(rocblas_dgemm_batched);
     template <>
-    constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[] = "rocblas_cgemm_batched";
+    constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[]
+        = ROCBLAS_API_STR(rocblas_cgemm_batched);
     template <>
-    constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[] = "rocblas_zgemm_batched";
+    constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[]
+        = ROCBLAS_API_STR(rocblas_zgemm_batched);
 
     /*******************************************************************************
     * Batched GEMM implementation
     ******************************************************************************/
-    template <typename T>
+    template <typename API_INT, typename T>
     rocblas_status rocblas_gemm_batched_impl(rocblas_handle    handle,
                                              rocblas_operation trans_a,
                                              rocblas_operation trans_b,
-                                             rocblas_int       m,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
+                                             API_INT           m,
+                                             API_INT           n,
+                                             API_INT           k,
                                              const T*          alpha,
                                              const T* const    A[],
-                                             ptrdiff_t         lda,
+                                             API_INT           lda,
                                              const T* const    B[],
-                                             ptrdiff_t         ldb,
+                                             API_INT           ldb,
                                              const T*          beta,
                                              T* const          C[],
-                                             ptrdiff_t         ldc,
-                                             rocblas_int       batch_count)
+                                             API_INT           ldc,
+                                             API_INT           batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -98,7 +103,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f gemm_batched -r",
+                          ROCBLAS_API_BENCH " -f gemm_batched -r",
                           rocblas_precision_string<T>,
                           "--transposeA",
                           trans_a_letter,
@@ -185,30 +190,30 @@ namespace
         }
         rocblas_status status = rocblas_status_success;
 
-        rocblas_int a_n2 = rocblas_operation_none == trans_a ? k : m;
-        rocblas_int b_n2 = rocblas_operation_none == trans_b ? n : k;
+        API_INT a_n2 = rocblas_operation_none == trans_a ? k : m;
+        API_INT b_n2 = rocblas_operation_none == trans_b ? n : k;
 
-        status = rocblas_internal_gemm_batched_template(handle,
-                                                        trans_a,
-                                                        trans_b,
-                                                        m,
-                                                        n,
-                                                        k,
-                                                        alpha,
-                                                        A,
-                                                        0,
-                                                        lda,
-                                                        0,
-                                                        B,
-                                                        0,
-                                                        ldb,
-                                                        0,
-                                                        beta,
-                                                        C,
-                                                        0,
-                                                        ldc,
-                                                        0,
-                                                        batch_count);
+        status = ROCBLAS_API(rocblas_internal_gemm_batched_template)(handle,
+                                                                     trans_a,
+                                                                     trans_b,
+                                                                     m,
+                                                                     n,
+                                                                     k,
+                                                                     alpha,
+                                                                     A,
+                                                                     0,
+                                                                     lda,
+                                                                     0,
+                                                                     B,
+                                                                     0,
+                                                                     ldb,
+                                                                     0,
+                                                                     beta,
+                                                                     C,
+                                                                     0,
+                                                                     ldc,
+                                                                     0,
+                                                                     batch_count);
 
         if(status != rocblas_status_success)
             return status;
@@ -250,200 +255,50 @@ namespace
  * Batched GEMM APIs
  ******************************************************************************/
 
-extern "C" {
-rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
-                                     rocblas_operation         trans_a,
-                                     rocblas_operation         trans_b,
-                                     rocblas_int               m,
-                                     rocblas_int               n,
-                                     rocblas_int               k,
-                                     const rocblas_half*       alpha,
-                                     const rocblas_half* const A[],
-                                     rocblas_int               lda,
-                                     const rocblas_half* const B[],
-                                     rocblas_int               ldb,
-                                     const rocblas_half*       beta,
-                                     rocblas_half* const       C[],
-                                     rocblas_int               ldc,
-                                     rocblas_int               batch_count)
-try
-{
-    return rocblas_gemm_batched_impl<rocblas_half>(handle,
-                                                   trans_a,
-                                                   trans_b,
-                                                   m,
-                                                   n,
-                                                   k,
-                                                   alpha,
-                                                   A,
-                                                   ptrdiff_t(lda),
-                                                   B,
-                                                   ptrdiff_t(ldb),
-                                                   beta,
-                                                   C,
-                                                   ptrdiff_t(ldc),
-                                                   batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
-                                     rocblas_operation  trans_a,
-                                     rocblas_operation  trans_b,
-                                     rocblas_int        m,
-                                     rocblas_int        n,
-                                     rocblas_int        k,
-                                     const float*       alpha,
-                                     const float* const A[],
-                                     rocblas_int        lda,
-                                     const float* const B[],
-                                     rocblas_int        ldb,
-                                     const float*       beta,
-                                     float* const       C[],
-                                     rocblas_int        ldc,
-                                     rocblas_int        batch_count)
-try
-{
-    return rocblas_gemm_batched_impl<float>(handle,
-                                            trans_a,
-                                            trans_b,
-                                            m,
-                                            n,
-                                            k,
-                                            alpha,
-                                            A,
-                                            ptrdiff_t(lda),
-                                            B,
-                                            ptrdiff_t(ldb),
-                                            beta,
-                                            C,
-                                            ptrdiff_t(ldc),
-                                            batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(routine_name_, TI_, T_)                                                              \
+    rocblas_status routine_name_(rocblas_handle    handle,                                        \
+                                 rocblas_operation trans_a,                                       \
+                                 rocblas_operation trans_b,                                       \
+                                 TI_               m,                                             \
+                                 TI_               n,                                             \
+                                 TI_               k,                                             \
+                                 const T_*         alpha,                                         \
+                                 const T_* const   A[],                                           \
+                                 TI_               lda,                                           \
+                                 const T_* const   B[],                                           \
+                                 TI_               ldb,                                           \
+                                 const T_*         beta,                                          \
+                                 T_* const         C[],                                           \
+                                 TI_               ldc,                                           \
+                                 TI_               batch_count)                                   \
+    try                                                                                           \
+    {                                                                                             \
+        return rocblas_gemm_batched_impl<TI_, T_>(                                                \
+            handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, batch_count); \
+    }                                                                                             \
+    catch(...)                                                                                    \
+    {                                                                                             \
+        return exception_to_rocblas_status();                                                     \
+    }
 
-rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
-                                     rocblas_operation   trans_a,
-                                     rocblas_operation   trans_b,
-                                     rocblas_int         m,
-                                     rocblas_int         n,
-                                     rocblas_int         k,
-                                     const double*       alpha,
-                                     const double* const A[],
-                                     rocblas_int         lda,
-                                     const double* const B[],
-                                     rocblas_int         ldb,
-                                     const double*       beta,
-                                     double* const       C[],
-                                     rocblas_int         ldc,
-                                     rocblas_int         batch_count)
-try
-{
-    return rocblas_gemm_batched_impl<double>(handle,
-                                             trans_a,
-                                             trans_b,
-                                             m,
-                                             n,
-                                             k,
-                                             alpha,
-                                             A,
-                                             ptrdiff_t(lda),
-                                             B,
-                                             ptrdiff_t(ldb),
-                                             beta,
-                                             C,
-                                             ptrdiff_t(ldc),
-                                             batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
-                                     rocblas_operation                  trans_a,
-                                     rocblas_operation                  trans_b,
-                                     rocblas_int                        m,
-                                     rocblas_int                        n,
-                                     rocblas_int                        k,
-                                     const rocblas_float_complex*       alpha,
-                                     const rocblas_float_complex* const A[],
-                                     rocblas_int                        lda,
-                                     const rocblas_float_complex* const B[],
-                                     rocblas_int                        ldb,
-                                     const rocblas_float_complex*       beta,
-                                     rocblas_float_complex* const       C[],
-                                     rocblas_int                        ldc,
-                                     rocblas_int                        batch_count)
-try
-{
-    return rocblas_gemm_batched_impl<rocblas_float_complex>(handle,
-                                                            trans_a,
-                                                            trans_b,
-                                                            m,
-                                                            n,
-                                                            k,
-                                                            alpha,
-                                                            A,
-                                                            ptrdiff_t(lda),
-                                                            B,
-                                                            ptrdiff_t(ldb),
-                                                            beta,
-                                                            C,
-                                                            ptrdiff_t(ldc),
-                                                            batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
-                                     rocblas_operation                   trans_a,
-                                     rocblas_operation                   trans_b,
-                                     rocblas_int                         m,
-                                     rocblas_int                         n,
-                                     rocblas_int                         k,
-                                     const rocblas_double_complex*       alpha,
-                                     const rocblas_double_complex* const A[],
-                                     rocblas_int                         lda,
-                                     const rocblas_double_complex* const B[],
-                                     rocblas_int                         ldb,
-                                     const rocblas_double_complex*       beta,
-                                     rocblas_double_complex* const       C[],
-                                     rocblas_int                         ldc,
-                                     rocblas_int                         batch_count)
-try
-{
-    return rocblas_gemm_batched_impl<rocblas_double_complex>(handle,
-                                                             trans_a,
-                                                             trans_b,
-                                                             m,
-                                                             n,
-                                                             k,
-                                                             alpha,
-                                                             A,
-                                                             ptrdiff_t(lda),
-                                                             B,
-                                                             ptrdiff_t(ldb),
-                                                             beta,
-                                                             C,
-                                                             ptrdiff_t(ldc),
-                                                             batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define INST_GEMM_BATCHED_C_API(TI_)                                       \
+    extern "C" {                                                           \
+    IMPL(ROCBLAS_API(rocblas_hgemm_batched), TI_, rocblas_half);           \
+    IMPL(ROCBLAS_API(rocblas_sgemm_batched), TI_, float);                  \
+    IMPL(ROCBLAS_API(rocblas_dgemm_batched), TI_, double);                 \
+    IMPL(ROCBLAS_API(rocblas_cgemm_batched), TI_, rocblas_float_complex);  \
+    IMPL(ROCBLAS_API(rocblas_zgemm_batched), TI_, rocblas_double_complex); \
+    } // extern "C"
 
 /*******************************************************************************
  * Batched GEMM Kernel name APIs
  ******************************************************************************/
+extern "C" {
+
 rocblas_status rocblas_hgemm_batched_kernel_name(rocblas_handle      handle,
                                                  rocblas_operation   trans_a,
                                                  rocblas_operation   trans_b,
