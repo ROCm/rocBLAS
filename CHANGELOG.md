@@ -3,7 +3,30 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
-## (Unreleased) rocBLAS 4.1.0
+## (Unreleased) rocBLAS 4.2.0
+
+### Additions
+
+* Level 2 functions and level 3 trsm have additional ILP64 API for both C and FORTRAN (_64 name suffix) with int64_t function arguments
+* Cache flush timing for gemm_batched_ex, gemm_strided_batched_ex, axpy
+* Benchmark class for common timing code
+* An environment variable "ROCBLAS_DEFAULT_ATOMICS_MODE" to set default atomics mode during creation of 'rocblas_handle'
+* Extended dot_ex to support single-precision (fp32_r) input and double-precision (fp64_r) output and compute types
+
+### Optimizations
+
+* Improved performance of Level 1 dot_batched and dot_strided_batched for all precisions. Performance enhanced by 6 times for bigger problem sizes measured on MI210 GPU
+
+### Changes
+
+* Linux AOCL dependency updated to release 4.2 gcc build
+* Windows vcpkg dependencies updated to release 2024.02.14
+
+### Deprecations
+
+* rocblas_gemm_ex3, gemm_batched_ex3 and gemm_strided_batched_ex3 are deprecated and will be removed in the next major release of rocBLAS. Please refer to hipBLASLt for future 8 bit float usage https://github.com/ROCm/hipBLASLt
+
+## rocBLAS 4.1.0 for ROCm 6.1
 
 ### Additions
 
