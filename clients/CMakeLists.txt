@@ -75,9 +75,9 @@ find_package(OpenMP)
 
 if (TARGET OpenMP::OpenMP_CXX)
   set( COMMON_LINK_LIBS "OpenMP::OpenMP_CXX")
-  list( APPEND COMMON_LINK_LIBS "-L\"${HIP_CLANG_ROOT}/lib\"")
+  get_filename_component(LIBOMP_PATH "${OpenMP_omp_LIBRARY}" PATH)
   if (NOT WIN32)
-    list( APPEND COMMON_LINK_LIBS "-Wl,-rpath=${HIP_CLANG_ROOT}/lib")
+    list( APPEND COMMON_LINK_LIBS "-Wl,-rpath=${LIBOMP_PATH}")
   endif()
 endif()
 
