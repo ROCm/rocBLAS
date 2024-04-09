@@ -189,8 +189,8 @@ void testing_asum_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        real_t<T> abs_error = std::numeric_limits<real_t<T>>::epsilon() * cpu_result[0];
-        real_t<T> tolerance = 20.0;
+        double abs_error = std::numeric_limits<real_t<T>>::epsilon() * sqrt(N) * cpu_result[0];
+        double tolerance = 2.0;
         abs_error *= tolerance;
 
         // Near check for asum ILP64 bit
