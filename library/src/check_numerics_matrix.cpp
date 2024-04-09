@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -173,6 +173,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                     const int                 check_numerics,
                                                     bool                      is_input)
 {
+    //Graph capture do not support any use of sync APIs.
+    //Quick return: check numerics not supported
+    if(handle->is_stream_in_capture_mode())
+    {
+        return rocblas_status_success;
+    }
+
     //Quick return if possible. Not Argument error
     if(!m_64 || !n_64 || !batch_count_64 || !A)
         return rocblas_status_success;

@@ -104,7 +104,7 @@ def runTestCommand (platform, project, gfilter)
 
             // Enable check numerics only for checkNumericsTestCommand
             checkNumericsTestCommand = """
-                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*graph_test*:*repeatability_check*:*get_solutions*
+                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*repeatability_check*:*get_solutions*
                                  """
     }
     else

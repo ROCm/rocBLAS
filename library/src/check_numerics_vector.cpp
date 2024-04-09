@@ -170,6 +170,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                     const int      check_numerics,
                                                     bool           is_input)
 {
+    //Graph capture do not support any use of sync APIs.
+    //Quick return: check numerics not supported
+    if(handle->is_stream_in_capture_mode())
+    {
+        return rocblas_status_success;
+    }
+
     //Quick return if possible. Not Argument error
     if(n_64 <= 0 || batch_count_64 <= 0 || !x)
     {

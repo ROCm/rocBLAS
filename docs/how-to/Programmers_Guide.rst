@@ -571,6 +571,9 @@ An example usage of ``ROCBLAS_CHECK_NUMERICS`` is shown below,
 The above command will return a ``rocblas_status_check_numeric_fail`` if the input and the output matrices of BLAS level 3 GEMM function has a NaN/infinity/denormal value.
 If there are no numerical abnormalities, then ``rocblas_status_success`` is returned.
 
+.. note::
+  In stream capture mode all numerical checking will be skipped and ``rocblas_status_success`` is returned.
+
 ===============================================
 rocBLAS Order of Argument Checking and Logging
 ===============================================
