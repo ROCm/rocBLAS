@@ -128,7 +128,7 @@ Environment Variable for Preallocating
 The environment variable ``ROCBLAS_DEVICE_MEMORY_SIZE`` is used to set how much memory to preallocate:
 
 - If > 0, sets the default handle device memory size to the specified size (in bytes)
-- If == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MB), and expanding it when necessary
+- If == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MiB or 128MiB), and expanding it when necessary
 
 Functions for Manually Setting Memory Size
 ===========================================
