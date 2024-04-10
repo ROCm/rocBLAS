@@ -21,6 +21,7 @@ rocBLAS documentation is available at
 
 * Linux AOCL dependency updated to release 4.2 gcc build
 * Windows vcpkg dependencies updated to release 2024.02.14
+* Increased default device workspace from 32 to 128 MiB for architecture gfx9xx with xx >= 40
 
 ### Deprecations
 

@@ -193,7 +193,8 @@ _rocblas_handle::_rocblas_handle()
             }
             else
             {
-                device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
+
+                device_memory_size = getDefaultDeviceMemorySize();
             }
         }
     }
@@ -330,7 +331,7 @@ bool _rocblas_handle::device_allocator(size_t size)
 
         //Add an additional device memory on top of default size.
         //This is to support kernels requiring large workspace with numerical checking enabled.
-        size_t total_size = size + DEFAULT_DEVICE_MEMORY_SIZE;
+        size_t total_size = size + getDefaultDeviceMemorySize();
 
         if(!device_memory || (hipFree)(device_memory) == hipSuccess)
         {

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -233,6 +233,19 @@ public:
         return archMajorMinor;
     }
 
+    inline int getDefaultDeviceMemorySize()
+    {
+
+        if(getArchMajor() == 9 && getArchMajorMinor() >= 94)
+        {
+            return DEFAULT_DEVICE_MEMORY_SIZE_EXTENDED;
+        }
+        else
+        {
+            return DEFAULT_DEVICE_MEMORY_SIZE;
+        }
+    }
+
     // hipEvent_t pointers (for internal use only)
     hipEvent_t startEvent = nullptr;
     hipEvent_t stopEvent  = nullptr;
@@ -361,7 +374,8 @@ public:
 
 private:
     // device memory work buffer
-    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 32 * 1024 * 1024;
+    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE          = 32 * 1024 * 1024;
+    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE_EXTENDED = 128 * 1024 * 1024;
 
     // Variables holding state of device memory allocation
     void*                           device_memory              = nullptr;
