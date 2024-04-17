@@ -4748,6 +4748,165 @@ rocblas_status ROCBLAS_FAPI(rocblas_ztrsm_strided_batched)(rocblas_handle       
                                                            rocblas_stride                stride_b,
                                                            rocblas_int batch_count);
 
+/* ==========
+ *    L3
+ * ========== */
+
+// dgmm
+rocblas_status ROCBLAS_FAPI(rocblas_sdgmm)(rocblas_handle handle,
+                                           rocblas_side   side,
+                                           rocblas_int    m,
+                                           rocblas_int    n,
+                                           const float*   A,
+                                           rocblas_int    lda,
+                                           const float*   x,
+                                           rocblas_int    incx,
+                                           float*         C,
+                                           rocblas_int    ldc);
+
+rocblas_status ROCBLAS_FAPI(rocblas_ddgmm)(rocblas_handle handle,
+                                           rocblas_side   side,
+                                           rocblas_int    m,
+                                           rocblas_int    n,
+                                           const double*  A,
+                                           rocblas_int    lda,
+                                           const double*  x,
+                                           rocblas_int    incx,
+                                           double*        C,
+                                           rocblas_int    ldc);
+
+rocblas_status ROCBLAS_FAPI(rocblas_cdgmm)(rocblas_handle               handle,
+                                           rocblas_side                 side,
+                                           rocblas_int                  m,
+                                           rocblas_int                  n,
+                                           const rocblas_float_complex* A,
+                                           rocblas_int                  lda,
+                                           const rocblas_float_complex* x,
+                                           rocblas_int                  incx,
+                                           rocblas_float_complex*       C,
+                                           rocblas_int                  ldc);
+
+rocblas_status ROCBLAS_FAPI(rocblas_zdgmm)(rocblas_handle                handle,
+                                           rocblas_side                  side,
+                                           rocblas_int                   m,
+                                           rocblas_int                   n,
+                                           const rocblas_double_complex* A,
+                                           rocblas_int                   lda,
+                                           const rocblas_double_complex* x,
+                                           rocblas_int                   incx,
+                                           rocblas_double_complex*       C,
+                                           rocblas_int                   ldc);
+
+// dgmm_batched
+rocblas_status ROCBLAS_FAPI(rocblas_sdgmm_batched)(rocblas_handle     handle,
+                                                   rocblas_side       side,
+                                                   rocblas_int        m,
+                                                   rocblas_int        n,
+                                                   const float* const A[],
+                                                   rocblas_int        lda,
+                                                   const float* const x[],
+                                                   rocblas_int        incx,
+                                                   float* const       C[],
+                                                   rocblas_int        ldc,
+                                                   rocblas_int        batch_count);
+
+rocblas_status ROCBLAS_FAPI(rocblas_ddgmm_batched)(rocblas_handle      handle,
+                                                   rocblas_side        side,
+                                                   rocblas_int         m,
+                                                   rocblas_int         n,
+                                                   const double* const A[],
+                                                   rocblas_int         lda,
+                                                   const double* const x[],
+                                                   rocblas_int         incx,
+                                                   double* const       C[],
+                                                   rocblas_int         ldc,
+                                                   rocblas_int         batch_count);
+
+rocblas_status ROCBLAS_FAPI(rocblas_cdgmm_batched)(rocblas_handle                     handle,
+                                                   rocblas_side                       side,
+                                                   rocblas_int                        m,
+                                                   rocblas_int                        n,
+                                                   const rocblas_float_complex* const A[],
+                                                   rocblas_int                        lda,
+                                                   const rocblas_float_complex* const x[],
+                                                   rocblas_int                        incx,
+                                                   rocblas_float_complex* const       C[],
+                                                   rocblas_int                        ldc,
+                                                   rocblas_int                        batch_count);
+
+rocblas_status ROCBLAS_FAPI(rocblas_zdgmm_batched)(rocblas_handle                      handle,
+                                                   rocblas_side                        side,
+                                                   rocblas_int                         m,
+                                                   rocblas_int                         n,
+                                                   const rocblas_double_complex* const A[],
+                                                   rocblas_int                         lda,
+                                                   const rocblas_double_complex* const x[],
+                                                   rocblas_int                         incx,
+                                                   rocblas_double_complex* const       C[],
+                                                   rocblas_int                         ldc,
+                                                   rocblas_int                         batch_count);
+
+// dgmm_strided_batched
+rocblas_status ROCBLAS_FAPI(rocblas_sdgmm_strided_batched)(rocblas_handle handle,
+                                                           rocblas_side   side,
+                                                           rocblas_int    m,
+                                                           rocblas_int    n,
+                                                           const float*   A,
+                                                           rocblas_int    lda,
+                                                           rocblas_stride stride_a,
+                                                           const float*   x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stride_x,
+                                                           float*         C,
+                                                           rocblas_int    ldc,
+                                                           rocblas_stride stride_c,
+                                                           rocblas_int    batch_count);
+
+rocblas_status ROCBLAS_FAPI(rocblas_ddgmm_strided_batched)(rocblas_handle handle,
+                                                           rocblas_side   side,
+                                                           rocblas_int    m,
+                                                           rocblas_int    n,
+                                                           const double*  A,
+                                                           rocblas_int    lda,
+                                                           rocblas_stride stride_a,
+                                                           const double*  x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stride_x,
+                                                           double*        C,
+                                                           rocblas_int    ldc,
+                                                           rocblas_stride stride_c,
+                                                           rocblas_int    batch_count);
+
+rocblas_status ROCBLAS_FAPI(rocblas_cdgmm_strided_batched)(rocblas_handle               handle,
+                                                           rocblas_side                 side,
+                                                           rocblas_int                  m,
+                                                           rocblas_int                  n,
+                                                           const rocblas_float_complex* A,
+                                                           rocblas_int                  lda,
+                                                           rocblas_stride               stride_a,
+                                                           const rocblas_float_complex* x,
+                                                           rocblas_int                  incx,
+                                                           rocblas_stride               stride_x,
+                                                           rocblas_float_complex*       C,
+                                                           rocblas_int                  ldc,
+                                                           rocblas_stride               stride_c,
+                                                           rocblas_int batch_count);
+
+rocblas_status ROCBLAS_FAPI(rocblas_zdgmm_strided_batched)(rocblas_handle                handle,
+                                                           rocblas_side                  side,
+                                                           rocblas_int                   m,
+                                                           rocblas_int                   n,
+                                                           const rocblas_double_complex* A,
+                                                           rocblas_int                   lda,
+                                                           rocblas_stride                stride_a,
+                                                           const rocblas_double_complex* x,
+                                                           rocblas_int                   incx,
+                                                           rocblas_stride                stride_x,
+                                                           rocblas_double_complex*       C,
+                                                           rocblas_int                   ldc,
+                                                           rocblas_stride                stride_c,
+                                                           rocblas_int batch_count);
+
 #undef ROCBLAS_FAPI
 #if defined(rocblas_int)
 #undef rocblas_int

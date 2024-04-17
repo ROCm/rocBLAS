@@ -3467,10 +3467,22 @@ static rocblas_status (*rocblas_dgmm)(rocblas_handle handle,
                                       T*             C,
                                       rocblas_int    ldc);
 
-MAP2CF(rocblas_dgmm, float, rocblas_sdgmm);
-MAP2CF(rocblas_dgmm, double, rocblas_ddgmm);
-MAP2CF(rocblas_dgmm, rocblas_float_complex, rocblas_cdgmm);
-MAP2CF(rocblas_dgmm, rocblas_double_complex, rocblas_zdgmm);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_dgmm_64)(rocblas_handle handle,
+                                         rocblas_side   side,
+                                         int64_t        m,
+                                         int64_t        n,
+                                         const T*       A,
+                                         int64_t        lda,
+                                         const T*       x,
+                                         int64_t        incx,
+                                         T*             C,
+                                         int64_t        ldc);
+
+MAP2CF_D64(rocblas_dgmm, float, rocblas_sdgmm);
+MAP2CF_D64(rocblas_dgmm, double, rocblas_ddgmm);
+MAP2CF_D64(rocblas_dgmm, rocblas_float_complex, rocblas_cdgmm);
+MAP2CF_D64(rocblas_dgmm, rocblas_double_complex, rocblas_zdgmm);
 
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_dgmm_batched)(rocblas_handle handle,
@@ -3485,10 +3497,23 @@ static rocblas_status (*rocblas_dgmm_batched)(rocblas_handle handle,
                                               rocblas_int    ldc,
                                               rocblas_int    batch_count);
 
-MAP2CF(rocblas_dgmm_batched, float, rocblas_sdgmm_batched);
-MAP2CF(rocblas_dgmm_batched, double, rocblas_ddgmm_batched);
-MAP2CF(rocblas_dgmm_batched, rocblas_float_complex, rocblas_cdgmm_batched);
-MAP2CF(rocblas_dgmm_batched, rocblas_double_complex, rocblas_zdgmm_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_dgmm_batched_64)(rocblas_handle handle,
+                                                 rocblas_side   side,
+                                                 int64_t        m,
+                                                 int64_t        n,
+                                                 const T* const A[],
+                                                 int64_t        lda,
+                                                 const T* const x[],
+                                                 int64_t        incx,
+                                                 T* const       C[],
+                                                 int64_t        ldc,
+                                                 int64_t        batch_count);
+
+MAP2CF_D64(rocblas_dgmm_batched, float, rocblas_sdgmm_batched);
+MAP2CF_D64(rocblas_dgmm_batched, double, rocblas_ddgmm_batched);
+MAP2CF_D64(rocblas_dgmm_batched, rocblas_float_complex, rocblas_cdgmm_batched);
+MAP2CF_D64(rocblas_dgmm_batched, rocblas_double_complex, rocblas_zdgmm_batched);
 
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_dgmm_strided_batched)(rocblas_handle handle,
@@ -3506,10 +3531,26 @@ static rocblas_status (*rocblas_dgmm_strided_batched)(rocblas_handle handle,
                                                       rocblas_stride stride_c,
                                                       rocblas_int    batch_count);
 
-MAP2CF(rocblas_dgmm_strided_batched, float, rocblas_sdgmm_strided_batched);
-MAP2CF(rocblas_dgmm_strided_batched, double, rocblas_ddgmm_strided_batched);
-MAP2CF(rocblas_dgmm_strided_batched, rocblas_float_complex, rocblas_cdgmm_strided_batched);
-MAP2CF(rocblas_dgmm_strided_batched, rocblas_double_complex, rocblas_zdgmm_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_dgmm_strided_batched_64)(rocblas_handle handle,
+                                                         rocblas_side   side,
+                                                         int64_t        m,
+                                                         int64_t        n,
+                                                         const T*       A,
+                                                         int64_t        lda,
+                                                         rocblas_stride stride_a,
+                                                         const T*       x,
+                                                         int64_t        incx,
+                                                         rocblas_stride stride_x,
+                                                         T*             C,
+                                                         int64_t        ldc,
+                                                         rocblas_stride stride_c,
+                                                         int64_t        batch_count);
+
+MAP2CF_D64(rocblas_dgmm_strided_batched, float, rocblas_sdgmm_strided_batched);
+MAP2CF_D64(rocblas_dgmm_strided_batched, double, rocblas_ddgmm_strided_batched);
+MAP2CF_D64(rocblas_dgmm_strided_batched, rocblas_float_complex, rocblas_cdgmm_strided_batched);
+MAP2CF_D64(rocblas_dgmm_strided_batched, rocblas_double_complex, rocblas_zdgmm_strided_batched);
 
 // geam
 template <typename T, bool FORTRAN = false>

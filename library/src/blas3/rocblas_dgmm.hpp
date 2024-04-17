@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,18 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
-template <typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_dgmm_arg_check(rocblas_handle handle,
                                              rocblas_side   side,
-                                             rocblas_int    m,
-                                             rocblas_int    n,
+                                             API_INT        m,
+                                             API_INT        n,
                                              TConstPtr      A,
-                                             rocblas_int    lda,
+                                             API_INT        lda,
                                              TConstPtr      X,
-                                             rocblas_int    incx,
+                                             API_INT        incx,
                                              TPtr           C,
-                                             rocblas_int    ldc,
-                                             rocblas_int    batch_count)
+                                             API_INT        ldc,
+                                             API_INT        batch_count)
 {
     if(side != rocblas_side_left && side != rocblas_side_right)
         return rocblas_status_invalid_value;
@@ -60,39 +60,39 @@ inline rocblas_status rocblas_dgmm_arg_check(rocblas_handle handle,
  */
 
 template <typename TConstPtr, typename TPtr>
-rocblas_status rocblas_dgmm_template(rocblas_handle handle,
-                                     rocblas_side   side,
-                                     rocblas_int    m,
-                                     rocblas_int    n,
-                                     TConstPtr      A,
-                                     rocblas_stride offset_a,
-                                     rocblas_int    lda,
-                                     rocblas_stride stride_a,
-                                     TConstPtr      X,
-                                     rocblas_stride offset_x,
-                                     rocblas_int    incx,
-                                     rocblas_stride stride_x,
-                                     TPtr           C,
-                                     rocblas_stride offset_c,
-                                     rocblas_int    ldc,
-                                     rocblas_stride stride_c,
-                                     rocblas_int    batch_count);
+rocblas_status rocblas_internal_dgmm_launcher(rocblas_handle handle,
+                                              rocblas_side   side,
+                                              rocblas_int    m,
+                                              rocblas_int    n,
+                                              TConstPtr      A,
+                                              rocblas_stride offset_a,
+                                              int64_t        lda,
+                                              rocblas_stride stride_a,
+                                              TConstPtr      X,
+                                              rocblas_stride offset_x,
+                                              int64_t        incx,
+                                              rocblas_stride stride_x,
+                                              TPtr           C,
+                                              rocblas_stride offset_c,
+                                              int64_t        ldc,
+                                              rocblas_stride stride_c,
+                                              rocblas_int    batch_count);
 
 template <typename TConstPtr, typename TPtr>
 rocblas_status rocblas_dgmm_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_side   side,
-                                           rocblas_int    m,
-                                           rocblas_int    n,
+                                           int64_t        m,
+                                           int64_t        n,
                                            TConstPtr      A,
-                                           rocblas_int    lda,
+                                           int64_t        lda,
                                            rocblas_stride stride_A,
                                            TConstPtr      x,
-                                           rocblas_int    incx,
+                                           int64_t        incx,
                                            rocblas_stride stride_x,
                                            TPtr           C,
-                                           rocblas_int    ldc,
+                                           int64_t        ldc,
                                            rocblas_stride stride_c,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);

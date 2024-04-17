@@ -118,6 +118,8 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm
 
+The dgmm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sdgmm_batched
    :outline:
 .. doxygenfunction:: rocblas_ddgmm_batched
@@ -126,6 +128,8 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_batched
 
+The dgmm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sdgmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ddgmm_strided_batched
@@ -133,3 +137,5 @@ rocblas_Xdgmm + batched, strided_batched
 .. doxygenfunction:: rocblas_cdgmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_strided_batched
+
+The dgmm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
