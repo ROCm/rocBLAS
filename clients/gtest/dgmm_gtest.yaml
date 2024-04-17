@@ -191,6 +191,21 @@ Tests:
   side: [L, R]
   matrix_size: *huge_matrix_size_range
 
+- name: dgmm_64
+  category: stress
+  arguments:
+    - {  M: 2147483649, N: 1, lda: 2147483649, incx: 1,  ldc: 2147483649, batch_count: 1 }
+    - {  M: 1, N: 2147483649, lda: 1, incx: 1,  ldc: 1, batch_count: 1 }
+    - {  M: 1, N: 1, lda: 1, incx: -2147483649,  batch_count: 1 }
+    - {  M: 2, N: 2, lda: 4, incx: 2, batch_count: *c_grid_yz_require_passes }
+  api: [ C_64 ]
+  side: [L, R]
+  os_flags: [ LINUX ]
+  function:
+    - dgmm: *single_precision
+  stride_scale: 1
+  gpu_arch: '9??'
+
 - name: dgmm_graph_test
   category: pre_checkin
   function:
