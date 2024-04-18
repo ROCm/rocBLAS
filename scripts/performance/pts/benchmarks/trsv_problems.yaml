@@ -3,12 +3,7 @@ include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
   - &multiples_of_32_sizes
-    - {N:  2048, lda:  2048 }
-    - {N:  4096, lda:  4096 }
-    - {N:  6144, lda:  6144 }
-    - {N:  8192, lda:  8192 }
-    - {N: 10240, lda: 10240 }
-    - {N: 20480, lda: 20480 }
+    - { scan: [2048..10240..2048], N: *c_scan_value, lda: *c_scan_value }
 
 Tests:
   - name: trsv_upper_multiples_of_32_sizes

@@ -2,139 +2,69 @@
 include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
-  - &m_equals_n_range
-    - { scan: [32..992..32], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }
+  - &gemvN_matrix_sizes
+    # skinny n large m
+    - { scan:  [ 65536..131072..4096 ], M: *c_scan_value, N: 32, lda: *c_scan_value }
+    - { scan: [ 16384..65536..2048], M: *c_scan_value, N: 8, lda: *c_scan_value }
 
-  - &qmcpack_matrix_size_range
-    - { M:    15, N:    35, lda:   16, stride_a:     1024 }
-    - { M:    32, N:  1536, lda:   32, stride_a:    49152 }
+    # double buffered loads on gfx90a w/ float/double
+    - { scan: [ 512..8192..512], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }
 
-  - &sm_mn_matrix_size_range
-    # m && n <= 32 && batch_count >= 256 (gfx90a only) watch for overlap with qmcpack
-    - { M:    3 , N:    32, lda:    3, stride_a:       96 }
-    - { M:    24, N:    24, lda:   24, stride_a:     1024 }
-
-  - &double_buffered_loads_size_range
-    # (n %128 == 0 && m==n)
-    - { M:  1024, N:  1024, lda:  1024, stride_a:   1048576 }
-
-  - &large_matrix_size_range
+    # optimized sizes for gfx906 and gfx908, generic covered by gfx90a
+    - { scan: [ 1538..12304..1538 ], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value } # non-multiples of 128
     - { M:  4011, N:  4011,  lda: 4011,  stride_a: 16088200 }
     - { M:  8000, N:  8000,  lda: 8000,  stride_a: 64000000 }
 
-  # - &very_large_matrix_size_range
-  #   - { M:  16010, N: 16010, lda: 16010, stride_a: 256320100 }
-  #   - { M:  25020, N: 25020, lda: 25020, stride_a: 625000400 }
+  - &gemvT_matrix_sizes
+    # skinny n large m
+    - { scan:  [ 65536..131072..4096 ], M: *c_scan_value, N: 32, lda: *c_scan_value }
+    - { scan: [ 16384..65536..2048], M: *c_scan_value, N: 8, lda: *c_scan_value }
+
+    # double bufferred loads, special kernel only for gfx908
+    - { scan: [ 8192..1024..16384 ], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }
+
+    # generic square range - uses gfx10/gfx11-specific kernels, or generic kernels on other hardware
+    - { scan: [ 1024..8192..1024], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }
+
+  - &gemv_batched_matrix_sizes
+    # m && n <= 32 && batch_count >= 256 (gfx90a only) watch for overlap with qmcpack
+    - { M:    3 , N:    32, lda:    3, batch_count: [ 256..1024..256 ], stride_a:       96 }
+    - { M:    24, N:    24, lda:   24, batch_count: [ 256..1024..256 ], stride_a:     1024 }
+
+    # qmcpack few rows
+    - { M:    32, N:  [ 2048..8192..1024 ], lda:   32, batch_count: [ 8..32..8 ], stride_a:    49152 }
+
+
 
 Tests:
-  - name: gemv_bench_const_n
+  - name: gemvn_bench
     category: bench
     function: gemv
-    precision: *single_precision
-    transA: [ N, T ]
-    alpha: 1
-    incx: 1
-    incy: 1
-    N: 32
-    M: 32..480..32
-    lda: 480 # TODO: easy way to increment lda in lockstep with M?
-    iters: 20
-
-  - name: gemv_bench_const_m
-    category: bench
-    function: gemv
-    precision: *single_precision
-    transA: [ N, T ]
-    alpha: 1
-    incx: 1
-    incy: 1
-    N: 32..480..32
-    M: 32
-    lda: 32
-    iters: 20
-
-  - name: gemv_bench_m_equals_n
-    category: bench
-    function: gemv
-    precision: *single_precision
-    transA: [ N, T ]
-    alpha: 1
-    incx: 1
-    incy: 1
-    matrix_size: *m_equals_n_range
-    iters: 20
-
-  - name: gemv_batched_and_strided_batched_qmcpack
-    category: bench
-    function:
-          - gemv_batched
-          - gemv_strided_batched
     precision: *single_double_precisions_complex_real
-    transA: [ N, T ]
-    alpha: 1
-    beta: 1
-    incx: 1
-    incy: 1
-    matrix_size: *qmcpack_matrix_size_range
-    iters: 20
-    batch_count: [ 100 ] #, 1000 ]
-
-  - name: gemv_batched_and_strided_batched_sm_mn
-    category: bench
-    function:
-          - gemv_batched
-          - gemv_strided_batched
-    precision: *single_double_precisions_complex_real
-    transA: [ N, T ]
-    alpha: 1
-    beta: 1
-    incx: 1
-    incy: 1
-    matrix_size: *sm_mn_matrix_size_range
-    iters: 20
-    batch_count: [ 256 ]
-
-  # - name: gemv_batched_and_strided_batched_large_matrix
-  #   category: bench
-  #   function:
-  #         - gemv_batched
-  #         - gemv_strided_batched
-  #   precision: *single_double_precisions_complex_real
-  #   transA: [ N, T ]
-  #   alpha: 1
-  #   beta: 1
-  #   incx: 1
-  #   incy: 1
-  #   matrix_size: *large_matrix_size_range
-  #   iters: 20
-  #   batch_count: [ 3 ]
-
-  # - name: gemv_batched_and_strided_batched_very_large_matrix
-  #   category: bench
-  #   function:
-  #         - gemv_batched
-  #         - gemv_strided_batched
-  #   precision: *single_double_precisions_complex_real
-  #   transA: [ N, T ]
-  #   alpha: 1
-  #   beta: 1
-  #   incx: 1
-  #   incy: 1
-  #   matrix_size: *very_large_matrix_size_range
-  #   iters: 20
-  #   batch_count: [ 3 ]
-
-  - name: gemv_bench_const_n_complex
-    category: bench
-    function: gemv
-    precision: *single_precision_complex
     transA: [ N ]
-    alpha: 2
-    alphai: 3
+    alpha: 1
     incx: 1
     incy: 1
-    N: 32
-    M: 32..256..32
-    lda: 256
-    iters: 10
+    matrix_size: *gemvN_matrix_sizes
+
+
+  - name: gemvt_bench
+    category: bench
+    function: gemv
+    precision: *single_double_precisions_complex_real
+    transA: [ T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *gemvT_matrix_sizes
+
+  - name: gemv_batched_bench
+    category: bench
+    function: gemv_batched
+    precision: *single_double_precisions_complex_real
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *gemv_batched_matrix_sizes
 ...
