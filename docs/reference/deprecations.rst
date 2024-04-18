@@ -9,6 +9,14 @@ rocBLAS deprecations by version
 ********************************************************************
 
 
+Announced in rocBLAS 4.3
+==========================
+
+rocblas_Xgemm_kernel_name APIs deprecated
+'''''''''''''''''''''''''''''''''''''''''
+
+rocblas_Xgemm_kernel_name are deprecated and will be removed in the next major release of rocBLAS.
+
 Announced in rocBLAS 4.2
 ==========================
 
