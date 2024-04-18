@@ -40,9 +40,12 @@
 template <typename T>
 void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmm_strided_batched_fn = arg.api == FORTRAN
-                                               ? rocblas_trmm_strided_batched<T, true>
-                                               : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn    = arg.api == FORTRAN
+                                                  ? rocblas_trmm_strided_batched<T, true>
+                                                  : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                  ? rocblas_trmm_strided_batched_64<T, true>
+                                                  : rocblas_trmm_strided_batched_64<T, false>;
     // trmm has both inplace and outofplace versions.
     // inplace == true for inplace, inplace == false for outofplace
     bool inplace = !arg.outofplace;
@@ -52,13 +55,13 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        const rocblas_int M           = 100;
-        const rocblas_int N           = 101;
-        const rocblas_int lda         = 101;
-        const rocblas_int ldb         = 101;
-        const rocblas_int ldc         = 101;
-        const rocblas_int ldOut       = inplace ? ldb : ldc;
-        const rocblas_int batch_count = 2;
+        const int64_t M           = 100;
+        const int64_t N           = 101;
+        const int64_t lda         = 101;
+        const int64_t ldb         = 101;
+        const int64_t ldc         = 101;
+        const int64_t ldOut       = inplace ? ldb : ldc;
+        const int64_t batch_count = 2;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -80,7 +83,7 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-        rocblas_int          K        = side == rocblas_side_left ? M : N;
+        int64_t              K        = side == rocblas_side_left ? M : N;
         const rocblas_stride stride_a = lda * K;
         const rocblas_stride stride_b = ldb * N;
         const rocblas_stride stride_c = ldc * N;
@@ -89,9 +92,9 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
         device_strided_batch_matrix<T> dA(K, K, lda, stride_a, batch_count);
         device_strided_batch_matrix<T> dB(M, N, ldb, stride_b, batch_count);
 
-        rocblas_int dC_M   = inplace ? 1 : M;
-        rocblas_int dC_N   = inplace ? 1 : N;
-        rocblas_int dC_ldc = inplace ? 1 : ldc;
+        int64_t dC_M   = inplace ? 1 : M;
+        int64_t dC_N   = inplace ? 1 : N;
+        int64_t dC_ldc = inplace ? 1 : ldc;
 
         device_strided_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, stride_c, batch_count);
 
@@ -103,416 +106,432 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
         // check for invalid enum
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              rocblas_side_both,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     rocblas_side_both,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              (rocblas_fill)rocblas_side_both,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     (rocblas_fill)rocblas_side_both,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              (rocblas_operation)rocblas_side_both,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     (rocblas_operation)rocblas_side_both,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              (rocblas_diagonal)rocblas_side_both,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     (rocblas_diagonal)rocblas_side_both,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
         // check for invalid size
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              -1,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     -1,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              -1,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     -1,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
         // check for invalid leading dimension
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              M - 1,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     M - 1,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              M - 1,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     M - 1,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              rocblas_side_left,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              M - 1,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     rocblas_side_left,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     M - 1,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              rocblas_side_right,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              N - 1,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     rocblas_side_right,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     N - 1,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
         // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(nullptr,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_trmm_strided_batched_fn,
+                    (nullptr,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              nullptr,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     nullptr,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     nullptr,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     nullptr,
+                     ldb,
+                     stride_b,
+                     *dOut,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              alpha,
-                                                              dA,
-                                                              lda,
-                                                              stride_a,
-                                                              dB,
-                                                              ldb,
-                                                              stride_b,
-                                                              nullptr,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     alpha,
+                     dA,
+                     lda,
+                     stride_a,
+                     dB,
+                     ldb,
+                     stride_b,
+                     nullptr,
+                     ldOut,
+                     stride_c,
+                     batch_count));
 
         // quick return: If alpha==0, then A and B can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              zero,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              ldb,
-                                                              stride_b,
-                                                              *dOut,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                   (handle,
+                    side,
+                    uplo,
+                    transA,
+                    diag,
+                    M,
+                    N,
+                    zero,
+                    nullptr,
+                    lda,
+                    stride_a,
+                    nullptr,
+                    ldb,
+                    stride_b,
+                    *dOut,
+                    ldOut,
+                    stride_c,
+                    batch_count));
 
         // quick return: If M==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              0,
-                                                              N,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              ldb,
-                                                              stride_b,
-                                                              nullptr,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                   (handle,
+                    side,
+                    uplo,
+                    transA,
+                    diag,
+                    0,
+                    N,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    stride_a,
+                    nullptr,
+                    ldb,
+                    stride_b,
+                    nullptr,
+                    ldOut,
+                    stride_c,
+                    batch_count));
 
         // quick return: If N==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              0,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              ldb,
-                                                              stride_b,
-                                                              nullptr,
-                                                              ldOut,
-                                                              stride_c,
-                                                              batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                   (handle,
+                    side,
+                    uplo,
+                    transA,
+                    diag,
+                    M,
+                    0,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    stride_a,
+                    nullptr,
+                    ldb,
+                    stride_b,
+                    nullptr,
+                    ldOut,
+                    stride_c,
+                    batch_count));
 
         // quick return: If batch_count==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              ldb,
-                                                              stride_b,
-                                                              nullptr,
-                                                              ldOut,
-                                                              stride_c,
-                                                              0),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                   (handle,
+                    side,
+                    uplo,
+                    transA,
+                    diag,
+                    M,
+                    N,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    stride_a,
+                    nullptr,
+                    ldb,
+                    stride_b,
+                    nullptr,
+                    ldOut,
+                    stride_c,
+                    0));
 
         // in-place only checks
         if(inplace)
         {
             // if inplace, must have ldb == ldc
-            EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                                  side,
-                                                                  uplo,
-                                                                  transA,
-                                                                  diag,
-                                                                  M,
-                                                                  N,
-                                                                  alpha,
-                                                                  dA,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  dB,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  dB,
-                                                                  ldb + 1,
-                                                                  stride_b,
-                                                                  batch_count),
-                                  rocblas_status_invalid_value);
+            DAPI_EXPECT(rocblas_status_invalid_value,
+                        rocblas_trmm_strided_batched_fn,
+                        (handle,
+                         side,
+                         uplo,
+                         transA,
+                         diag,
+                         M,
+                         N,
+                         alpha,
+                         dA,
+                         lda,
+                         stride_a,
+                         dB,
+                         ldb,
+                         stride_b,
+                         dB,
+                         ldb + 1,
+                         stride_b,
+                         batch_count));
         }
     }
 }
@@ -520,15 +539,18 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_strided_batched(const Arguments& arg)
 {
-    auto rocblas_trmm_strided_batched_fn = arg.api == FORTRAN
-                                               ? rocblas_trmm_strided_batched<T, true>
-                                               : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn    = arg.api == FORTRAN
+                                                  ? rocblas_trmm_strided_batched<T, true>
+                                                  : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn_64 = arg.api == FORTRAN_64
+                                                  ? rocblas_trmm_strided_batched_64<T, true>
+                                                  : rocblas_trmm_strided_batched_64<T, false>;
     // trmm has both inplace and outofplace versions.
     // inplace == true for inplace, inplace == false for outofplace
     bool inplace = !arg.outofplace;
 
-    rocblas_int    M           = arg.M;
-    rocblas_int    N           = arg.N;
+    int64_t        M           = arg.M;
+    int64_t        N           = arg.N;
     int64_t        lda         = arg.lda;
     int64_t        ldb         = arg.ldb;
     int64_t        ldc         = arg.ldc;
@@ -536,7 +558,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
     rocblas_stride stride_a    = arg.stride_a;
     rocblas_stride stride_b    = arg.stride_b;
     rocblas_stride stride_c    = arg.stride_c;
-    rocblas_int    batch_count = arg.batch_count;
+    int64_t        batch_count = arg.batch_count;
 
     char char_side   = arg.side;
     char char_uplo   = arg.uplo;
@@ -549,7 +571,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K = side == rocblas_side_left ? M : N;
+    int64_t K = side == rocblas_side_left ? M : N;
 
     if(stride_a < lda * K)
     {
@@ -574,25 +596,26 @@ void testing_trmm_strided_batched(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || ldc < M || batch_count < 0;
     if(M == 0 || N == 0 || batch_count == 0 || invalid_size)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              N,
-                                                              nullptr,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              ldb,
-                                                              stride_b,
-                                                              nullptr,
-                                                              ldc,
-                                                              stride_c,
-                                                              batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_trmm_strided_batched_fn,
+                    (handle,
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     stride_a,
+                     nullptr,
+                     ldb,
+                     stride_b,
+                     nullptr,
+                     ldc,
+                     stride_c,
+                     batch_count));
         return;
     }
 
@@ -642,9 +665,9 @@ void testing_trmm_strided_batched(const Arguments& arg)
 
     // inplace    trmm is given by B <- alpha * op(A) * B so  matrix C is not used
     // outofplace trmm is given by C <- alpha * op(A) * B and matrix C is used
-    rocblas_int dC_M   = inplace ? 1 : M;
-    rocblas_int dC_N   = inplace ? 1 : N;
-    rocblas_int dC_ldc = inplace ? 1 : ldc;
+    int64_t dC_M   = inplace ? 1 : M;
+    int64_t dC_N   = inplace ? 1 : N;
+    int64_t dC_ldc = inplace ? 1 : ldc;
 
     device_strided_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, stride_c, batch_count);
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -661,25 +684,26 @@ void testing_trmm_strided_batched(const Arguments& arg)
         // if ldc != ldb inplace returns rocblas_status_invalid_value
         if(ldb != ldc)
         {
-            EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
-                                                                  side,
-                                                                  uplo,
-                                                                  transA,
-                                                                  diag,
-                                                                  M,
-                                                                  N,
-                                                                  &h_alpha[0],
-                                                                  dA,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  dB,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  dC,
-                                                                  ldc,
-                                                                  stride_c,
-                                                                  batch_count),
-                                  rocblas_status_invalid_value);
+            DAPI_EXPECT(rocblas_status_invalid_value,
+                        rocblas_trmm_strided_batched_fn,
+                        (handle,
+                         side,
+                         uplo,
+                         transA,
+                         diag,
+                         M,
+                         N,
+                         &h_alpha[0],
+                         dA,
+                         lda,
+                         stride_a,
+                         dB,
+                         ldb,
+                         stride_b,
+                         dC,
+                         ldc,
+                         stride_c,
+                         batch_count));
             return;
         }
 
@@ -698,24 +722,25 @@ void testing_trmm_strided_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_strided_batched_fn(handle,
-                                                                side,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                M,
-                                                                N,
-                                                                &h_alpha[0],
-                                                                dA,
-                                                                lda,
-                                                                stride_a,
-                                                                dB,
-                                                                ldb,
-                                                                stride_b,
-                                                                *dOut,
-                                                                ldOut,
-                                                                stride_c,
-                                                                batch_count));
+            DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                       (handle,
+                        side,
+                        uplo,
+                        transA,
+                        diag,
+                        M,
+                        N,
+                        &h_alpha[0],
+                        dA,
+                        lda,
+                        stride_a,
+                        dB,
+                        ldb,
+                        stride_b,
+                        *dOut,
+                        ldOut,
+                        stride_c,
+                        batch_count));
             handle.post_test(arg);
             CHECK_HIP_ERROR(hC.transfer_from(*dOut));
         }
@@ -725,24 +750,25 @@ void testing_trmm_strided_batched(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_strided_batched_fn(handle,
-                                                                side,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                M,
-                                                                N,
-                                                                d_alpha,
-                                                                dA,
-                                                                lda,
-                                                                stride_a,
-                                                                dB,
-                                                                ldb,
-                                                                stride_b,
-                                                                *dOut,
-                                                                ldOut,
-                                                                stride_c,
-                                                                batch_count));
+            DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                       (handle,
+                        side,
+                        uplo,
+                        transA,
+                        diag,
+                        M,
+                        N,
+                        d_alpha,
+                        dA,
+                        lda,
+                        stride_a,
+                        dB,
+                        ldb,
+                        stride_b,
+                        *dOut,
+                        ldOut,
+                        stride_c,
+                        batch_count));
 
             if(arg.repeatability_check)
             {
@@ -752,24 +778,25 @@ void testing_trmm_strided_batched(const Arguments& arg)
                 for(int i = 0; i < arg.iters; i++)
                 {
                     CHECK_HIP_ERROR((*dOut).transfer_from(hC_gold));
-                    CHECK_ROCBLAS_ERROR(rocblas_trmm_strided_batched_fn(handle,
-                                                                        side,
-                                                                        uplo,
-                                                                        transA,
-                                                                        diag,
-                                                                        M,
-                                                                        N,
-                                                                        d_alpha,
-                                                                        dA,
-                                                                        lda,
-                                                                        stride_a,
-                                                                        dB,
-                                                                        ldb,
-                                                                        stride_b,
-                                                                        *dOut,
-                                                                        ldOut,
-                                                                        stride_c,
-                                                                        batch_count));
+                    DAPI_CHECK(rocblas_trmm_strided_batched_fn,
+                               (handle,
+                                side,
+                                uplo,
+                                transA,
+                                diag,
+                                M,
+                                N,
+                                d_alpha,
+                                dA,
+                                lda,
+                                stride_a,
+                                dB,
+                                ldb,
+                                stride_b,
+                                *dOut,
+                                ldOut,
+                                stride_c,
+                                batch_count));
                     CHECK_HIP_ERROR(hC_copy.transfer_from(*dOut));
                     unit_check_general<T>(M, N, ldc, stride_c, hC, hC_copy, batch_count);
                 }
@@ -779,7 +806,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int b = 0; b < batch_count; b++)
+        for(int64_t b = 0; b < batch_count; b++)
         {
             ref_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[b], lda, hB[b], ldb);
         }
@@ -839,12 +866,18 @@ void testing_trmm_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        int total_calls       = number_cold_calls + arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        for(int i = 0; i < number_cold_calls; i++)
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+
+        for(int i = 0; i < total_calls; i++)
         {
+            if(i == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream); // in microseconds
+
             CHECK_ROCBLAS_ERROR(rocblas_trmm_strided_batched_fn(handle,
                                                                 side,
                                                                 uplo,
@@ -865,30 +898,6 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                                 batch_count));
         }
 
-        hipStream_t stream;
-        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-        for(int i = 0; i < number_hot_calls; i++)
-        {
-            rocblas_trmm_strided_batched_fn(handle,
-                                            side,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            N,
-                                            &h_alpha[0],
-                                            dA,
-                                            lda,
-                                            stride_a,
-                                            dB,
-                                            ldb,
-                                            stride_b,
-                                            *dOut,
-                                            ldOut,
-                                            stride_c,
-                                            batch_count);
-        }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_side,

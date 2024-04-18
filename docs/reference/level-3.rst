@@ -162,6 +162,8 @@ rocblas_Xtrmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrmm
 
+The trmm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_strmm_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrmm_batched
@@ -170,6 +172,8 @@ rocblas_Xtrmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrmm_batched
 
+The trmm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_strmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrmm_strided_batched
@@ -177,6 +181,8 @@ rocblas_Xtrmm + batched, strided_batched
 .. doxygenfunction:: rocblas_ctrmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrmm_strided_batched
+
+The trmm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 
 rocblas_Xtrsm + batched, strided_batched
@@ -190,7 +196,7 @@ rocblas_Xtrsm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsm
 
-The trsm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+The trsm functions support the _64 interface. Parameters larger than int32_t max value are not currently supported, however. Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_strsm_batched
    :outline:
@@ -200,7 +206,7 @@ The trsm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
    :outline:
 .. doxygenfunction:: rocblas_ztrsm_batched
 
-The trsm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+The trsm_batched functions support the _64 interface. Parameters larger than int32_t max value are not currently supported, however. Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_strsm_strided_batched
    :outline:
@@ -210,7 +216,7 @@ The trsm_batched functions support the _64 interface. Refer to section :ref:`ILP
    :outline:
 .. doxygenfunction:: rocblas_ztrsm_strided_batched
 
-The trsm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+The trsm_strided_batched functions support the _64 interface. Parameters larger than int32_t max value are not currently supported, however. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xhemm + batched, strided_batched
 =========================================
