@@ -19,6 +19,7 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_trmm_imp.hpp"
+#include "blas3/rocblas_trmm_strided_batched_imp.hpp"
+#include "rocblas_trmm_64.hpp"
 
-INST_TRMM_C_API(rocblas_int);
+INST_TRMM_STRIDED_BATCHED_C_API(int64_t);

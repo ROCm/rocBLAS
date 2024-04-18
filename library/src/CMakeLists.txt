@@ -405,9 +405,6 @@ set(rocblas64_ex_source_no_tensile
   src64/blas_ex/rocblas_nrm2_ex_kernels_64.cpp
   src64/blas_ex/rocblas_nrm2_batched_ex_64.cpp
   src64/blas_ex/rocblas_nrm2_strided_batched_ex_64.cpp
-  #     src64/blas_ex/rocblas_trmm_outofplace.cpp
-  #     src64/blas_ex/rocblas_trmm_outofplace_batched.cpp
-  #     src64/blas_ex/rocblas_trmm_outofplace_strided_batched.cpp
   #     src64/blas_ex/rocblas_geam_ex.cpp
   #     src64/blas_ex/rocblas_geam_ex_kernels.cpp
 )
@@ -456,10 +453,10 @@ set( rocblas64_blas3_source
 #     src64/blas3/rocblas_syrkx_herkx_kernels.cpp
 #     src64/blas3/rocblas_syrkx_batched.cpp
 #     src64/blas3/rocblas_syrkx_strided_batched.cpp
-#     src64/blas3/rocblas_trmm.cpp
-#     src64/blas3/rocblas_trmm_kernels.cpp
-#     src64/blas3/rocblas_trmm_batched.cpp
-#     src64/blas3/rocblas_trmm_strided_batched.cpp
+    src64/blas3/rocblas_trmm_64.cpp
+    src64/blas3/rocblas_trmm_kernels_64.cpp
+    src64/blas3/rocblas_trmm_batched_64.cpp
+    src64/blas3/rocblas_trmm_strided_batched_64.cpp
     src64/blas3/rocblas_trsm_64.cpp
     src64/blas3/rocblas_trsm_kernels_64.cpp
     src64/blas3/rocblas_trsm_batched_64.cpp

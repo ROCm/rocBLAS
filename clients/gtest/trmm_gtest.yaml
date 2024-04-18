@@ -159,7 +159,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C_64, FORTRAN_64 ]
   outofplace: [ false, true ] # test both inplace and outofplace
 
 - name: trmm_batched_bad_arg
@@ -171,7 +171,7 @@ Tests:
   uplo: [U]
   transA: [N]
   diag: [N]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [false, true] # test both inplace and outofplace
 
 - name: trmm_strided_batched_bad_arg
@@ -183,7 +183,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [false, true] # test both inplace and outofplace
 
 - name: trmm_size_t_noalias
@@ -324,7 +324,7 @@ Tests:
   diag: [N   ]
   matrix_size: *small_matrix_size_range_inplace
   alpha: *alpha_range
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [false      ] # test inplace
 
 - name: trmm_fortran_outofplace
@@ -338,7 +338,7 @@ Tests:
   diag: [N   ]
   matrix_size: *small_matrix_size_range_outofplace
   alpha: *alpha_range
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [       true] # test outofplace
 
 
@@ -355,7 +355,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [    2       ]
   batch_count: [           3  ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [false      ] # test inplace
 
 - name: trmm_batched_fortran_outofplace
@@ -371,7 +371,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [    2       ]
   batch_count: [           3  ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [       true] # test outofplace
 
 
@@ -388,7 +388,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
   batch_count: [         2 ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [false      ] # test inplace
 
 - name: trmm_strided_batched_fortran_outofplace
@@ -404,7 +404,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
   batch_count: [         2 ]
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, C, FORTRAN_64 ]
   outofplace: [       true] # test outofplace
 
 
@@ -720,6 +720,54 @@ Tests:
   alpha_beta: *complex_alpha
   outofplace: [       true] # test outofplace
 
+# - name: trmm_64
+#   category: pre_checkin #stress
+#   arguments:
+#     - { M: 4, N: 8000, lda: 2147483649, ldb: 10, ldc: 10, batch_count: 1 }
+#     - { M: 8000, N: 4, lda: 8001, ldb: 2147483649, ldc: 10, batch_count: 1 }
+#   side: [ L ]
+#   uplo: [ L, U ]
+#   transA: [ N, T ]
+#   diag: [ N ]
+#   api: [ C_64 ]
+#   os_flags: [ LINUX ]
+#   stride_scale: [ 1 ]
+#   function: trmm
+#   precision: *single_precision
+#   pointer_mode_host: false
+
+# - name: trmm_right_64
+#   category: stress
+#   arguments:
+#     # - { M: 2147483649, N: 2, lda: 10, ldb: 2147483650, batch_count: 1 }
+#     - { M: 512, N: 4, lda: 2147483649, ldb: 10, batch_count: 1 }
+#     # - { M: 2147483646, N: 2, lda: 2, ldb: 2147483646, batch_count: 1 } # non-64-bit-size
+#   side: [ R ]
+#   uplo: [ L, U ]
+#   transA: [ N, T ]
+#   diag: [ U ]
+#   api: [ C_64 ]
+#   os_flags: [ LINUX ]
+#   stride_scale: [ 1 ]
+#   function: trmm
+#   precision: *single_precision
+#   pointer_mode_host: false
+
+- name: trmm_batched_64
+  category: stress
+  arguments:
+    - { M: 4, N: 4, lda: 4, ldb: 4, batch_count: *c_grid_yz_require_passes }
+  side: [ L ]
+  uplo: [ L ]
+  transA: [ N ]
+  diag: [ U ]
+  api: [ C_64 ]
+  os_flags: [ LINUX ]
+  stride_scale: [ 1 ]
+  function:
+    trmm_batched: *single_precision
+    trmm_strided_batched: *single_precision
+  pointer_mode_host: false
 
 - name: trmm_graph_test
   category: pre_checkin
