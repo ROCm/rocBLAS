@@ -2,39 +2,9 @@
 include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
-  # TODO: Is there a way to make this easier in YAML? In rocblas_gentest.py?
-  - &m_equals_n_equals_k_range
-    - { M:  32, N:  32, K:  32, lda:  32, ldb:  32, ldc:  32, ldd:  32 }
-    - { M:  64, N:  64, K:  64, lda:  64, ldb:  64, ldc:  64, ldd:  64 }
-    - { M:  96, N:  96, K:  96, lda:  96, ldb:  96, ldc:  96, ldd:  96 }
-    - { M: 128, N: 128, K: 128, lda: 128, ldb: 128, ldc: 128, ldd: 128 }
-    - { M: 160, N: 160, K: 160, lda: 160, ldb: 160, ldc: 160, ldd: 160 }
-    - { M: 192, N: 192, K: 192, lda: 192, ldb: 192, ldc: 192, ldd: 192 }
-    - { M: 224, N: 224, K: 224, lda: 224, ldb: 224, ldc: 224, ldd: 224 }
-    - { M: 256, N: 256, K: 256, lda: 256, ldb: 256, ldc: 256, ldd: 256 }
-    - { M: 288, N: 288, K: 288, lda: 288, ldb: 288, ldc: 288, ldd: 288 }
-    - { M: 320, N: 320, K: 320, lda: 320, ldb: 320, ldc: 320, ldd: 320 }
-    - { M: 352, N: 352, K: 352, lda: 352, ldb: 352, ldc: 352, ldd: 352 }
-    - { M: 384, N: 384, K: 385, lda: 384, ldb: 384, ldc: 384, ldd: 384 }
-    - { M: 416, N: 416, K: 416, lda: 416, ldb: 416, ldc: 416, ldd: 416 }
-    - { M: 448, N: 448, K: 448, lda: 448, ldb: 448, ldc: 448, ldd: 448 }
-    - { M: 480, N: 480, K: 480, lda: 480, ldb: 480, ldc: 480, ldd: 480 }
-    - { M: 512, N: 512, K: 512, lda: 512, ldb: 512, ldc: 512, ldd: 512 }
-    - { M: 544, N: 544, K: 544, lda: 544, ldb: 544, ldc: 544, ldd: 544 }
-    - { M: 576, N: 576, K: 576, lda: 576, ldb: 576, ldc: 576, ldd: 576 }
-    - { M: 608, N: 608, K: 608, lda: 608, ldb: 608, ldc: 608, ldd: 608 }
-    - { M: 640, N: 640, K: 640, lda: 640, ldb: 640, ldc: 640, ldd: 640 }
-    - { M: 672, N: 672, K: 672, lda: 672, ldb: 672, ldc: 672, ldd: 672 }
-    - { M: 705, N: 705, K: 705, lda: 705, ldb: 705, ldc: 705, ldd: 705 }
-    - { M: 736, N: 736, K: 736, lda: 736, ldb: 736, ldc: 736, ldd: 736 }
-    - { M: 768, N: 768, K: 768, lda: 768, ldb: 768, ldc: 768, ldd: 768 }
-    - { M: 800, N: 800, K: 800, lda: 800, ldb: 800, ldc: 800, ldd: 800 }
-    - { M: 832, N: 832, K: 832, lda: 832, ldb: 832, ldc: 832, ldd: 832 }
-    - { M: 864, N: 864, K: 864, lda: 864, ldb: 864, ldc: 864, ldd: 864 }
-    - { M: 896, N: 896, K: 896, lda: 896, ldb: 896, ldc: 896, ldd: 896 }
-    - { M: 928, N: 928, K: 928, lda: 928, ldb: 928, ldc: 928, ldd: 928 }
-    - { M: 960, N: 960, K: 960, lda: 960, ldb: 960, ldc: 960, ldd: 960 }
-    - { M: 992, N: 992, K: 992, lda: 992, ldb: 992, ldc: 992, ldd: 992 }
+  - &square_sizes
+    - { scan: [ 512..8192..512 ], N: *c_scan_value, M: *c_scan_value, K: *c_scan_value, lda: *c_scan_value, ldb: *c_scan_value, ldc: *c_scan_value }
+
 
 Tests:
   - name: gemm_ex_bench_const_nk
@@ -49,14 +19,13 @@ Tests:
     alpha: 1
     incx: 1
     incy: 1
-    N: 32
-    M: 32..480..8
-    K: 32
-    lda: 480 # m or k, depends on transA
-    ldb: 32 # k or n, depends on transB
-    ldc: 480
-    ldd: 480
-    iters: 20
+    N: 384
+    M: 2048..24576..2048
+    K: 384
+    lda: 24576 # m or k, depends on transA
+    ldb: 384 # k or n, depends on transB
+    ldc: 24576
+    ldd: 24576
 
   - name: gemm_ex_bench_const_mk
     category: bench
@@ -70,14 +39,13 @@ Tests:
     alpha: 1
     incx: 1
     incy: 1
-    N: 32..480..32
-    M: 32
-    K: 32
-    lda: 32
-    ldb: 480
-    ldc: 32
-    ldd: 32
-    iters: 20
+    N: 2048..24576..2048
+    M: 384
+    K: 384
+    lda: 384
+    ldb: 24576
+    ldc: 384
+    ldd: 384
 
   - name: gemm_ex_bench_const_mn
     category: bench
@@ -91,14 +59,13 @@ Tests:
     alpha: 1
     incx: 1
     incy: 1
-    N: 32
-    M: 32
-    K: 32..48..32
-    lda: 480
-    ldb: 480
-    ldc: 32
-    ldd: 32
-    iters: 20
+    N: 384
+    M: 384
+    K: 2048..24576..2048
+    lda: 24576
+    ldb: 24576
+    ldc: 384
+    ldd: 384
 
   - name: gemm_ex_bench_m_equals_n_equals_k
     category: bench
@@ -112,6 +79,5 @@ Tests:
     alpha: 1
     incx: 1
     incy: 1
-    matrix_size: *m_equals_n_equals_k_range
-    iters: 20
+    matrix_size: *square_sizes
 ...
