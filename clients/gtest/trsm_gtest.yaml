@@ -234,6 +234,25 @@ Definitions:
     - { M:  44928,  N: 384,  lda: 44928, ldb:   44928 }
     - { M:  53376,  N: 384,  lda: 53376, ldb:   53376 }
 
+  - &testsize_internal_workspace_range
+    # substitution kernels depending on side
+    - { M: 33, N: 8191, batch_count: 5 }
+    - { M: 31, N: 8000, batch_count: 1 }
+    - { M: 8001, N: 31, batch_count: 5 }
+    - { M: 8000, N: 33, batch_count: 1 }
+    - { M: 300, N: 100, batch_count: 5 }
+
+    # always substitution kernel
+    - { M: 30, N: 15, batch_count: 64 }
+
+    # "special" kernel
+    - { M: 8192, N: 8192, batch_count: 5 }
+
+    # non-special kernel
+    - { M: 7999, N: 3001, batch_count: 5 }
+
+    # quick-return
+    - { M: 1024, N: 1024, batch_count: 0 }
 
 Tests:
 
@@ -249,6 +268,20 @@ Tests:
   transA: [N]
   diag: [N]
   api: [ C, FORTRAN, FORTRAN_64 ]
+
+# explicit tests for trsm max_size interface
+- name: trsm_internal_interfaces_tests
+  category: quick
+  function:
+    - trsm_internal_interfaces
+    - trsm_batched_internal_interfaces
+  precision: *single_double_precisions_complex_real
+  matrix_size: *testsize_internal_workspace_range
+  side: [ L, R ]
+  uplo: [ L ]
+  transA: [ N ]
+  diag: [ N ]
+  # api implied to be internal
 
 # alpha = 0 tests
 - name: trsm_zero
