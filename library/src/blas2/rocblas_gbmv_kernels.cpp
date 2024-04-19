@@ -24,171 +24,144 @@
 #include "check_numerics_vector.hpp"
 #include "rocblas_gbmv.hpp"
 
-/**
-  *  Helper for the non-transpose case. Iterates through each diagonal
-  *  and creates partial sums for each ty.
-  */
-template <int DIM_Y, typename T>
-__device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
-                                         rocblas_int ind,
-                                         rocblas_int m,
-                                         rocblas_int n,
-                                         rocblas_int kl,
-                                         rocblas_int ku,
-                                         const T*    A,
-                                         int64_t     lda,
-                                         const T*    x,
-                                         int64_t     incx)
-{
-    T           res_A = 0.0;
-    rocblas_int col;
-
-    // Since the column is consistent, we can iterate up the diagonal
-    // ty defines the column of banded & regular matrix
-    for(col = ty; col < n; col += DIM_Y)
-    {
-        // We have to convert ind to banded matrix row
-        rocblas_int row = ind + (ku - col);
-
-        if(ind < m)
-        {
-            if(row <= kl + ku && row >= 0)
-            {
-                if(row <= ku && col >= (ku - row) && col < (ku - row + m))
-                {
-                    res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
-                }
-                if(row > ku && col < m - (row - ku))
-                {
-                    res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
-                }
-            }
-        }
-    }
-    return res_A;
-}
+// uses shuffle reductions
+#include "../blas1/rocblas_reduction.hpp"
 
 /**
-  *  Helper for the (conjugate-)transpose case. Iterates through each diagonal
-  *  and creates partial sums for each ty.
-  *  The conjugate basically switches A from upper -> lower or lower -> upper
-  *  triangular matrix. Since A is compressed, the indexing changes, and we
-  *  basically just iterate down columns.
+  *  Two kernels to handle all gbmv cases (transpose & conjugate, normal).
   */
-template <int DIM_Y, typename T>
-__device__ T rocblas_gbmvt_kernel_helper(bool        is_conj,
-                                         rocblas_int ty,
-                                         rocblas_int ind,
-                                         rocblas_int m,
-                                         rocblas_int n,
-                                         rocblas_int kl,
-                                         rocblas_int ku,
-                                         const T*    A,
-                                         int64_t     lda,
-                                         const T*    x,
-                                         int64_t     incx)
+
+template <int WARP, int DIM_Y, typename T>
+__forceinline__ __device__ void rocblas_gbmvn_kernel_calc(rocblas_int m,
+                                                          rocblas_int n,
+                                                          rocblas_int kl,
+                                                          rocblas_int ku,
+                                                          T           alpha,
+                                                          const T*    A,
+                                                          int64_t     lda,
+                                                          const T*    x,
+                                                          int64_t     incx,
+                                                          T           beta,
+                                                          T*          y,
+                                                          int64_t     incy)
 {
-    T           res_A = 0.0;
-    rocblas_int row;
-
-    // for transpose case, ty defines the row
-    for(row = ty; row < lda; row += DIM_Y)
-    {
-        // We have to convert ind to banded matrix row
-        rocblas_int col = ind;
-
-        if(col < n)
-        {
-            if(row <= kl + ku && row >= 0)
-            {
-                if(row <= ku && col >= (ku - row) && col < (ku - row + m))
-                {
-                    res_A += ((is_conj ? conj(A[row + col * size_t(lda)])
-                                       : A[row + col * size_t(lda)])
-                              * x[(row - ku + col) * int64_t(incx)]);
-                }
-                else if((row > ku && row <= kl + ku) && col < m - (row - ku))
-                {
-                    res_A += ((is_conj ? conj(A[row + col * size_t(lda)])
-                                       : A[row + col * size_t(lda)])
-                              * x[(row - ku + col) * int64_t(incx)]);
-                }
-            }
-        }
-    }
-    return res_A;
-}
-
-/**
-  *  A combined kernel to handle all gbmv cases (transpose, conjugate, normal).
-  */
-template <int DIM_X, int DIM_Y, typename T>
-__device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
-                                          rocblas_int       m,
-                                          rocblas_int       n,
-                                          rocblas_int       kl,
-                                          rocblas_int       ku,
-                                          T                 alpha,
-                                          const T*          A,
-                                          int64_t           lda,
-                                          const T*          x,
-                                          int64_t           incx,
-                                          T                 beta,
-                                          T*                y,
-                                          int64_t           incy)
-{
-    rocblas_int thread_id = threadIdx.x + threadIdx.y * DIM_X;
-
-    // threads are all configurated locally
-    // Create "tilted" blocks. With the compaction, each diagonal,
-    // (from top right to bottom left) is like a row in a normal
+    // With the banded format, each diagonal,
+    // (from bottom left to top right) is like a row in a normal
     // matrix, so the blocks are "tilted" to the right.
-    rocblas_int tx = threadIdx.x;
-    rocblas_int ty = threadIdx.y;
 
-    rocblas_int ind = blockIdx.x * DIM_X + tx;
+    // y thread specifies row to process
+    rocblas_int row = blockIdx.x * DIM_Y + threadIdx.y;
+    if(row >= m)
+        return;
 
-    __shared__ T sdata[DIM_X * DIM_Y];
-
-    T res_A;
+    T res_A = T(0);
 
     if(alpha)
     {
-        // Indexing is different for transpose/non-transpose case. To keep it clean
-        // it's separated in two helper functions. They could potentially be combined
-        // if more elegant logic is used.
-        if(transA == rocblas_operation_none)
+        int bands_minus_1 = kl + ku;
+
+        int brow = row + ku;
+        if(brow > bands_minus_1)
+            brow = bands_minus_1;
+
+        int bcol = row - kl;
+        if(bcol < 0)
+            bcol = 0;
+
+        // witin warp x threads compute a row dot product so move to adjacent band (unbanded matrix next column)
+        brow -= threadIdx.x;
+        bcol += threadIdx.x;
+
+        // accumulate all bands partial results
+        for(; brow >= 0; brow -= WARP, bcol += WARP)
         {
-            res_A = rocblas_gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
+            if(bcol < n)
+                res_A += A[brow + bcol * lda] * x[bcol * incx];
         }
-        else
-        {
-            bool is_conj = transA == rocblas_operation_conjugate_transpose;
-            res_A        = rocblas_gbmvt_kernel_helper<DIM_Y>(
-                is_conj, ty, ind, m, n, kl, ku, A, lda, x, incx);
-        }
-        // Store partial sums for the diagonal
-        sdata[tx + ty * DIM_X] = res_A;
         __syncthreads();
+
+        res_A = rocblas_wavefront_reduce<WARP>(res_A);
+        res_A *= alpha;
     }
 
-    thread_id           = threadIdx.x + threadIdx.y * blockDim.x;
-    ind                 = blockIdx.x * DIM_X + thread_id;
-    rocblas_int max_ind = transA == rocblas_operation_none ? m : n;
-    if(thread_id < DIM_X && ind < max_ind)
+    if(threadIdx.x == 0)
     {
-        // Add the partial sums of each diagonal and store
-        if(alpha)
-            for(rocblas_int i = 1; i < DIM_Y; i++)
-                sdata[thread_id] += sdata[thread_id + DIM_X * i];
-
-        // Update y.
         if(beta != 0)
-            y[ind * int64_t(incy)] = alpha
-                                         ? alpha * sdata[thread_id] + beta * y[ind * int64_t(incy)]
-                                         : beta * y[ind * int64_t(incy)];
+            y[row * incy] = res_A + beta * y[row * incy];
         else
-            y[ind * int64_t(incy)] = alpha ? alpha * sdata[thread_id] : 0;
+            y[row * incy] = res_A;
+    }
+}
+
+/**
+  * For the (conjugate-)transpose case. Iterates through each diagonal
+  *  and creates partial sums for each tx.
+  *  The conjugate basically switches A from upper -> lower or lower -> upper
+  *  triangular matrix. Since A is banded format, the indexing changes, and we
+  *  basically just iterate down columns.
+  */
+template <int WARP, int DIM_Y, typename T>
+__forceinline__ __device__ void rocblas_gbmvt_kernel_calc(rocblas_operation transA,
+                                                          rocblas_int       m,
+                                                          rocblas_int       n,
+                                                          rocblas_int       kl,
+                                                          rocblas_int       ku,
+                                                          T                 alpha,
+                                                          const T*          A,
+                                                          int64_t           lda,
+                                                          const T*          x,
+                                                          int64_t           incx,
+                                                          T                 beta,
+                                                          T*                y,
+                                                          int64_t           incy)
+{
+    rocblas_int col = blockIdx.x * DIM_Y + threadIdx.y;
+    if(col >= n)
+        return;
+
+    // With the banded format each diagonal
+    // (from bottom left to top right) is like a row in a normal
+    // matrix, so the blocks are "tilted" to the right.
+
+    T res_A(0);
+
+    if(alpha)
+    {
+        bool is_conj = transA == rocblas_operation_conjugate_transpose;
+
+        // We have to convert banded to unbanded
+
+        int tx = threadIdx.x;
+
+        int nbands = kl + ku + 1;
+
+        A += col * lda;
+
+        // create WARP number of partial results
+        for(int row = tx; row < nbands; row += WARP)
+        {
+            int ku_minus_row = ku - row;
+
+            if(col < (m + ku_minus_row))
+            {
+                if(row > ku || (row <= ku && col >= ku_minus_row))
+                {
+                    res_A += ((is_conj ? conj(A[row]) : A[row]) * x[(col - ku_minus_row) * incx]);
+                }
+            }
+        }
+        __syncthreads();
+
+        res_A = rocblas_wavefront_reduce<WARP>(res_A);
+        res_A *= alpha;
+    }
+
+    if(threadIdx.x == 0)
+    {
+        if(beta != 0)
+            y[col * incy] = res_A + beta * y[col * incy];
+        else
+            y[col * incy] = res_A;
     }
 }
 
@@ -216,34 +189,32 @@ __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
   *  of each element is preserved in the compaction, and the diagonals are "pushed" upwards and
   *  reside on the same row as the other elements of the same diagonal.
   */
-template <int DIM_X, int DIM_Y, typename U, typename V, typename W>
-ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_gbmvx_kernel(rocblas_operation transA,
-                     rocblas_int       m,
-                     rocblas_int       n,
-                     rocblas_int       kl,
-                     rocblas_int       ku,
-                     U                 alphaa,
-                     V                 Aa,
-                     rocblas_stride    shifta,
-                     int64_t           lda,
-                     rocblas_stride    strideA,
-                     V                 xa,
-                     rocblas_stride    shiftx,
-                     int64_t           incx,
-                     rocblas_stride    stridex,
-                     U                 betaa,
-                     W                 ya,
-                     rocblas_stride    shifty,
-                     int64_t           incy,
-                     rocblas_stride    stridey)
+template <int WARP, int DIM_Y, typename TStruct, typename V, typename W>
+ROCBLAS_KERNEL(WARP* DIM_Y)
+rocblas_gbmvn_kernel(bool           host_ptr_mode,
+                     rocblas_int    m,
+                     rocblas_int    n,
+                     rocblas_int    kl,
+                     rocblas_int    ku,
+                     TStruct        alpha_device_host,
+                     V              Aa,
+                     rocblas_stride shifta,
+                     int64_t        lda,
+                     rocblas_stride strideA,
+                     V              xa,
+                     rocblas_stride shiftx,
+                     int64_t        incx,
+                     rocblas_stride stridex,
+                     TStruct        beta_device_host,
+                     W              ya,
+                     rocblas_stride shifty,
+                     int64_t        incy,
+                     rocblas_stride stridey)
 {
-    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
-    if(DIM_X * DIM_Y != num_threads)
-        return; // need to launch exactly the same number of threads as template parameters indicate
-
-    auto alpha = load_scalar(alphaa, blockIdx.y, 0);
-    auto beta  = load_scalar(betaa, blockIdx.y, 0);
+    const auto alpha = host_ptr_mode ? alpha_device_host.value
+                                     : load_scalar(alpha_device_host.ptr, blockIdx.y, 0);
+    const auto beta
+        = host_ptr_mode ? beta_device_host.value : load_scalar(beta_device_host.ptr, blockIdx.y, 0);
 
     if(!alpha && beta == 1)
         return;
@@ -253,7 +224,46 @@ rocblas_gbmvx_kernel(rocblas_operation transA,
 
     auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    rocblas_gbmvx_kernel_calc<DIM_X, DIM_Y>(
+    rocblas_gbmvn_kernel_calc<WARP, DIM_Y>(m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+template <int DIM_X, int DIM_Y, typename TStruct, typename V, typename W>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+rocblas_gbmvt_kernel(bool              host_ptr_mode,
+                     rocblas_operation transA,
+                     rocblas_int       m,
+                     rocblas_int       n,
+                     rocblas_int       kl,
+                     rocblas_int       ku,
+                     TStruct           alpha_device_host,
+                     V                 Aa,
+                     rocblas_stride    shifta,
+                     int64_t           lda,
+                     rocblas_stride    strideA,
+                     V                 xa,
+                     rocblas_stride    shiftx,
+                     int64_t           incx,
+                     rocblas_stride    stridex,
+                     TStruct           beta_device_host,
+                     W                 ya,
+                     rocblas_stride    shifty,
+                     int64_t           incy,
+                     rocblas_stride    stridey)
+{
+    const auto alpha = host_ptr_mode ? alpha_device_host.value
+                                     : load_scalar(alpha_device_host.ptr, blockIdx.y, 0);
+    const auto beta
+        = host_ptr_mode ? beta_device_host.value : load_scalar(beta_device_host.ptr, blockIdx.y, 0);
+
+    if(!alpha && beta == 1)
+        return;
+
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+
+    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+
+    rocblas_gbmvt_kernel_calc<DIM_X, DIM_Y>(
         transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
 }
 
@@ -296,73 +306,100 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
         = incy < 0 ? offsety - ptrdiff_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
                    : offsety;
 
-    // (gemv) GBMVX_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
-    rocblas_int          block_dim   = transA == rocblas_operation_none ? m : n;
-    static constexpr int GBMVX_DIM_X = 64;
-    static constexpr int GBMVX_DIM_Y = 16;
-    rocblas_int          blocks      = (block_dim - 1) / (GBMVX_DIM_X) + 1;
-    dim3                 gbmvx_grid(blocks, batch_count);
-    dim3                 gbmvx_threads(GBMVX_DIM_X, GBMVX_DIM_Y);
-
-    // Launch a modified gemv kernel. The logic is similar to gemv just with modified
+    // The logic is similar to gemv just with modified
     // indices for the banded matrices.
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvx_kernel<GBMVX_DIM_X, GBMVX_DIM_Y>),
-                              gbmvx_grid,
-                              gbmvx_threads,
-                              0,
-                              handle->get_stream(),
-                              transA,
-                              m,
-                              n,
-                              kl,
-                              ku,
-                              alpha,
-                              A,
-                              offseta,
-                              lda,
-                              strideA,
-                              x,
-                              shiftx,
-                              incx,
-                              stridex,
-                              beta,
-                              y,
-                              shifty,
-                              incy,
-                              stridey);
-    }
-    else
+
+    bool                        host_ptr_mode = handle->pointer_mode == rocblas_pointer_mode_host;
+    rocblas_internal_val_ptr<T> alpha_device_host(host_ptr_mode, alpha);
+    rocblas_internal_val_ptr<T> beta_device_host(host_ptr_mode, beta);
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
         if(!*alpha && *beta == 1)
             return rocblas_status_success;
-
-        ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvx_kernel<GBMVX_DIM_X, GBMVX_DIM_Y>),
-                              gbmvx_grid,
-                              gbmvx_threads,
-                              0,
-                              handle->get_stream(),
-                              transA,
-                              m,
-                              n,
-                              kl,
-                              ku,
-                              *alpha,
-                              A,
-                              offseta,
-                              lda,
-                              strideA,
-                              x,
-                              shiftx,
-                              incx,
-                              stridex,
-                              *beta,
-                              y,
-                              shifty,
-                              incy,
-                              stridey);
     }
+
+    int  arch_major       = handle->getArchMajor();
+    bool is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
+
+#define GBMV_COMMON_ARGS                                                                 \
+    m, n, kl, ku, alpha_device_host, A, offseta, lda, strideA, x, shiftx, incx, stridex, \
+        beta_device_host, y, shifty, incy, stridey
+
+    if(transA == rocblas_operation_none)
+    {
+        if(is_arch_10_or_11)
+        {
+            static constexpr int WARP        = 32; // warp size as using warp reduce for bands
+            static constexpr int GBMVN_DIM_Y = 32; // problem sub block
+            rocblas_int          blocks      = (m - 1) / (GBMVN_DIM_Y) + 1;
+            dim3                 gbmvn_grid(blocks, batch_count);
+            dim3                 gbmvn_threads(WARP, GBMVN_DIM_Y);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvn_kernel<WARP, GBMVN_DIM_Y>),
+                                  gbmvn_grid,
+                                  gbmvn_threads,
+                                  0,
+                                  handle->get_stream(),
+                                  host_ptr_mode,
+                                  GBMV_COMMON_ARGS);
+        }
+        else
+        {
+            static constexpr int WARP        = 64;
+            static constexpr int GBMVN_DIM_Y = 16;
+            rocblas_int          blocks      = (m - 1) / (GBMVN_DIM_Y) + 1;
+            dim3                 gbmvn_grid(blocks, batch_count);
+            dim3                 gbmvn_threads(WARP, GBMVN_DIM_Y);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvn_kernel<WARP, GBMVN_DIM_Y>),
+                                  gbmvn_grid,
+                                  gbmvn_threads,
+                                  0,
+                                  handle->get_stream(),
+                                  host_ptr_mode,
+                                  GBMV_COMMON_ARGS);
+        }
+    }
+    else // trans/conj
+    {
+        if(is_arch_10_or_11)
+        {
+            static constexpr int WARP        = 32; // warp size as using warp reduce for bands
+            static constexpr int GBMVT_DIM_Y = 32; // problem sub block
+            rocblas_int          blocks      = (n - 1) / (GBMVT_DIM_Y) + 1;
+            dim3                 gbmvt_grid(blocks, batch_count);
+            dim3                 gbmvt_threads(WARP, GBMVT_DIM_Y);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvt_kernel<WARP, GBMVT_DIM_Y>),
+                                  gbmvt_grid,
+                                  gbmvt_threads,
+                                  0,
+                                  handle->get_stream(),
+                                  host_ptr_mode,
+                                  transA,
+                                  GBMV_COMMON_ARGS);
+        }
+        else
+        {
+            static constexpr int WARP        = 64;
+            static constexpr int GBMVT_DIM_Y = 16;
+            rocblas_int          blocks      = (n - 1) / (GBMVT_DIM_Y) + 1;
+            dim3                 gbmvt_grid(blocks, batch_count);
+            dim3                 gbmvt_threads(WARP, GBMVT_DIM_Y);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvt_kernel<WARP, GBMVT_DIM_Y>),
+                                  gbmvt_grid,
+                                  gbmvt_threads,
+                                  0,
+                                  handle->get_stream(),
+                                  host_ptr_mode,
+                                  transA,
+                                  GBMV_COMMON_ARGS);
+        }
+    }
+
+#undef GBMV_COMMON_ARGS
 
     return rocblas_status_success;
 }
