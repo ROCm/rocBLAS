@@ -65,22 +65,22 @@ rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(
 /*******************************************************************************
  * Validate Arguments
  ******************************************************************************/
-template <typename T>
-inline rocblas_status rocblas_validateArgs(rocblas_handle    handle,
-                                           rocblas_operation trans_a,
-                                           rocblas_operation trans_b,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
-                                           rocblas_int       k,
-                                           const T*          alpha,
-                                           const void*       a,
-                                           rocblas_int       lda,
-                                           const void*       b,
-                                           rocblas_int       ldb,
-                                           const T*          beta,
-                                           const void*       c,
-                                           rocblas_int       ldc,
-                                           rocblas_int       batch_count = 1)
+template <typename API_INT, typename T>
+inline rocblas_status rocblas_gemm_arg_check(rocblas_handle    handle,
+                                             rocblas_operation trans_a,
+                                             rocblas_operation trans_b,
+                                             API_INT           m,
+                                             API_INT           n,
+                                             API_INT           k,
+                                             const T*          alpha,
+                                             const void*       a,
+                                             API_INT           lda,
+                                             const void*       b,
+                                             API_INT           ldb,
+                                             const T*          beta,
+                                             const void*       c,
+                                             API_INT           ldc,
+                                             API_INT           batch_count = 1)
 {
     // handle must be valid
     if(!handle)
@@ -97,9 +97,9 @@ inline rocblas_status rocblas_validateArgs(rocblas_handle    handle,
     if(m < 0 || n < 0 || k < 0 || batch_count < 0)
         return rocblas_status_invalid_size;
 
-    rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : k;
-    rocblas_int num_rows_b = trans_b == rocblas_operation_none ? k : n;
-    rocblas_int num_rows_c = m;
+    API_INT num_rows_a = trans_a == rocblas_operation_none ? m : k;
+    API_INT num_rows_b = trans_b == rocblas_operation_none ? k : n;
+    API_INT num_rows_c = m;
 
     // leading dimensions must be valid
     if(num_rows_a > lda || num_rows_b > ldb || num_rows_c > ldc)
@@ -146,27 +146,27 @@ inline rocblas_status rocblas_validateArgs(rocblas_handle    handle,
  * ===========================================================================
  */
 template <bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_internal_gemm_template(rocblas_handle    handle,
-                                              rocblas_operation trans_a,
-                                              rocblas_operation trans_b,
-                                              rocblas_int       m,
-                                              rocblas_int       n,
-                                              rocblas_int       k,
-                                              const TScal*      alpha,
-                                              TConstPtr         A,
-                                              rocblas_stride    offset_a,
-                                              rocblas_int       lda,
-                                              rocblas_stride    stride_a,
-                                              TConstPtr         B,
-                                              rocblas_stride    offset_b,
-                                              rocblas_int       ldb,
-                                              rocblas_stride    stride_b,
-                                              const TScal*      beta,
-                                              TPtr              C,
-                                              rocblas_stride    offset_c,
-                                              rocblas_int       ldc,
-                                              rocblas_stride    stride_c,
-                                              rocblas_int       batch_count);
+rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
+                                     rocblas_operation trans_a,
+                                     rocblas_operation trans_b,
+                                     rocblas_int       m,
+                                     rocblas_int       n,
+                                     rocblas_int       k,
+                                     const TScal*      alpha,
+                                     TConstPtr         A,
+                                     rocblas_stride    offset_a,
+                                     rocblas_int       lda,
+                                     rocblas_stride    stride_a,
+                                     TConstPtr         B,
+                                     rocblas_stride    offset_b,
+                                     rocblas_int       ldb,
+                                     rocblas_stride    stride_b,
+                                     const TScal*      beta,
+                                     TPtr              C,
+                                     rocblas_stride    offset_c,
+                                     rocblas_int       ldc,
+                                     rocblas_stride    stride_c,
+                                     rocblas_int       batch_count);
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -221,22 +221,22 @@ rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
                                            rocblas_operation trans_b,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
-                                           rocblas_int       k,
+                                           int64_t           m,
+                                           int64_t           n,
+                                           int64_t           k,
                                            TConstPtrA        A,
                                            rocblas_stride    offset_a,
-                                           rocblas_int       lda,
+                                           int64_t           lda,
                                            rocblas_stride    stride_a,
                                            TConstPtrB        B,
                                            rocblas_stride    offset_b,
-                                           rocblas_int       ldb,
+                                           int64_t           ldb,
                                            rocblas_stride    stride_b,
                                            TPtr              C,
                                            rocblas_stride    offset_c,
-                                           rocblas_int       ldc,
+                                           int64_t           ldc,
                                            rocblas_stride    stride_c,
-                                           rocblas_int       batch_count,
+                                           int64_t           batch_count,
                                            const int         check_numerics,
                                            bool              is_input)
 {

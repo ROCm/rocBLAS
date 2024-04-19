@@ -206,10 +206,17 @@ Definitions:
 
 
 Tests:
-- name: gemm_xx_batched_bad_arg
+- name: gemm_batched_bad_arg
   category: quick
   function:
     - gemm_batched_bad_arg: *half_single_double_complex_real_precisions
+  transA: N
+  transB: N
+  api: [ FORTRAN, FORTRAN_64 ]
+
+- name: gemm_xx_batched_bad_arg
+  category: quick
+  function:
     - gemm_batched_ex_bad_arg: *real_precisions
     - gemm_batched_ex_bad_arg: *complex_precisions
     - gemm_batched_ex3_bad_arg: *float8_float8_float8
@@ -765,6 +772,20 @@ Tests:
   batch_count: [ 3 ]
   graph_test: true
 
+- name: gemm_batched_64_API
+  category: stress
+  function:
+    - gemm_batched: *half_precision
+  matrix_size:
+    - { M: 2, N: 2, K: 2, lda: 2, ldb:    2, ldc:    2 }
+  pointer_mode_device: false
+  transA: [ T ]
+  transB: [ N ]
+  batch_count: *c_grid_yz_require_passes
+  alpha: 1
+  beta: 1
+  api: [ C_64 ]
+  os_flags: LINUX
 
 - name: gemm_batched_repeatability_check
   category: stress

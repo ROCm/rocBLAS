@@ -239,10 +239,17 @@ Definitions:
     - { alpha: 2, alphai: 2, beta: -1.0, betai: 2.0 }
 
 Tests:
-- name: gemm_strided_batched_xx_bad_arg
+- name: gemm_strided_batched_bad_arg
   category: quick
   function:
     - gemm_strided_batched_bad_arg: *half_single_double_complex_real_precisions
+  transA: N
+  transB: N
+  api: [ FORTRAN, FORTRAN_64 ]
+
+- name: gemm_strided_batched_xx_bad_arg
+  category: quick
+  function:
     - gemm_strided_batched_ex_bad_arg: *real_precisions
     - gemm_strided_batched_ex_bad_arg: *complex_precisions
     - gemm_strided_batched_ex3_bad_arg: *float8_float8_float8
@@ -937,6 +944,21 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
   graph_test: true
+
+- name: gemm_strided_batched_64_API
+  category: stress
+  function:
+    - gemm_strided_batched: *half_precision
+  arguments:
+    - { M: 2, N: 2, K: 2, lda: 2, ldb: 2, ldc: 2, strid_a: 4, stride_b: 4, stride_c: 4, stride_d: 4 }
+  pointer_mode_device: false
+  transA: [ T ]
+  transB: [ N ]
+  batch_count: *c_grid_yz_require_passes
+  alpha: 1
+  beta: 1
+  api: [ C_64 ]
+  os_flags: LINUX
 
 - name: gemm_strided_batched_repeatability_check
   category: stress
