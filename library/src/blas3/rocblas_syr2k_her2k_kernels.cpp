@@ -232,7 +232,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         if(rocblas_fill_lower == uplo)
         {
             // clang-format off
-            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                  handle, trans_orig, trans_opp, nb, nb, k, alpha,
                  da, OFFSET_A(i_start),    lda, stride * a_s1,
                  db, OFFSET_B(0),          ldb, stride * b_s1, TWOK ? &beta_1<T> : (T*) beta,
@@ -241,7 +241,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             // a second call to gemm in the TWOK case
             if(TWOK)
             {
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                     handle, trans_orig, trans_opp, nb, nb, k, (HERK? &alpha_conj : alpha),
                     db, OFFSET_B(i_start),    ldb, stride * b_s1,
                     da, OFFSET_A(0),          lda, stride * a_s1, &beta_1<T>,
@@ -252,7 +252,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         else
         {
             // clang-format off
-            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                  handle, trans_orig, trans_opp, nb, nb, k, alpha,
                  da, OFFSET_A(0),          lda, stride * a_s1,
                  db, OFFSET_B(i_start),    ldb, stride * b_s1,   TWOK ? &beta_1<T> : (T*) beta,
@@ -260,7 +260,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
 
             if(TWOK)
             {
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                     handle, trans_orig, trans_opp, nb, nb, k, (HERK? &alpha_conj : alpha),
                     db, OFFSET_B(0),          ldb, stride * b_s1,
                     da, OFFSET_A(i_start),    lda, stride * a_s1, &beta_1<T>,
@@ -279,7 +279,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                      handle, trans_orig, trans_opp, n1, nb, k, alpha,
                      da, OFFSET_A(i1),     lda, stride_a,
                      db, OFFSET_B(i2),     ldb, stride_b, TWOK ? &beta_1<T> : (T*) beta,
@@ -287,7 +287,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
 
                 if(TWOK)
                 {
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                         handle, trans_orig, trans_opp, n1, nb, k, (HERK? &alpha_conj : alpha),
                         db, OFFSET_B(i1),     ldb, stride_b,
                         da, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
@@ -298,7 +298,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                      handle, trans_orig, trans_opp, nb, n1, k, alpha,
                      da, OFFSET_A(i2),     lda, stride_a,
                      db, OFFSET_B(i1),     ldb, stride_b, TWOK ? &beta_1<T> : (T*) beta,
@@ -306,7 +306,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
 
                 if(TWOK)
                 {
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                         handle, trans_orig, trans_opp, nb, n1, k, (HERK? &alpha_conj : alpha),
                         db, OFFSET_B(i2),     ldb, stride_b,
                         da, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
@@ -667,7 +667,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                      handle, trans_orig, trans_opp, nb, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, &beta_1<T>,
@@ -677,7 +677,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
                 if(TWOK)
                 {
                     // clang-format off
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                         handle, trans_orig, trans_opp, nb, nb, k, (HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i1),     ldb, stride_b,
                         dA, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
@@ -688,7 +688,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                      handle, trans_orig, trans_opp, nb, nb, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, &beta_1<T>,
@@ -698,7 +698,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
                 if(TWOK)
                 {
                     // clang-format off
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                         handle, trans_orig, trans_opp, nb, nb, k,(HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i2),     ldb, stride_b,
                         dA, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
@@ -718,7 +718,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                      handle, trans_orig, trans_opp, n1, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, &beta_1<T>,
@@ -728,7 +728,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
                 if(TWOK)
                 {
                     // clang-format off
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                         handle, trans_orig, trans_opp, n1, nb, k,  (HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i1),     ldb, stride_b,
                         dA, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
@@ -739,7 +739,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                      handle, trans_orig, trans_opp, nb, n1, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, &beta_1<T>,
@@ -749,7 +749,7 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
                 if(TWOK)
                 {
                     // clang-format off
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(
                         handle, trans_orig, trans_opp, nb, n1, k, (HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i2),     ldb, stride_b,
                         dA, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,

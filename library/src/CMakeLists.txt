@@ -446,9 +446,10 @@ set( rocblas64_blas3_source
 #     src64/blas3/rocblas_syr2k_her2k_kernels.cpp
 #     src64/blas3/rocblas_syr2k_batched.cpp
 #     src64/blas3/rocblas_syr2k_strided_batched.cpp
-#     src64/blas3/Tensile/gemm.cpp
-#     src64/blas3/Tensile/gemm_batched.cpp
-#     src64/blas3/Tensile/gemm_strided_batched.cpp
+    src64/blas3/rocblas_gemm_64.cpp
+    src64/blas3/rocblas_gemm_kernels_64.cpp
+    src64/blas3/rocblas_gemm_batched_64.cpp
+    src64/blas3/rocblas_gemm_strided_batched_64.cpp
 #     src64/blas3/rocblas_syrkx.cpp
 #     src64/blas3/rocblas_syrkx_herkx_kernels.cpp
 #     src64/blas3/rocblas_syrkx_batched.cpp

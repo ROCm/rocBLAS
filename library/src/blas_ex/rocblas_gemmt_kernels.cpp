@@ -688,7 +688,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
         if(rocblas_fill_lower == uplo)
         {
             // clang-format off
-            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                  handle, transA, transB, nb, nb, k, alpha,
                  dA, OFFSET_A(i_start),    lda, stride * a_s1,
                  dB, OFFSET_B(0),          ldb, stride * b_s1, beta,
@@ -698,7 +698,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
         else
         {
             // clang-format off
-            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                  handle, transA, transB, nb, nb, k, alpha,
                  dA, OFFSET_A(0),          lda, stride * a_s1,
                  dB, OFFSET_B(i_start),    ldb, stride * b_s1, beta,
@@ -716,7 +716,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                      handle, transA, transB, n1, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, beta,
@@ -726,7 +726,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
                      handle, transA, transB, nb, n1, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, beta,
@@ -836,7 +836,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
                      handle, transA, transB, nb, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, beta,
@@ -846,7 +846,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
                      handle, transA, transB, nb, nb, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, beta,
@@ -865,7 +865,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
                      handle, transA, transB, n1, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, beta,
@@ -875,7 +875,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
                      handle, transA, transB, nb, n1, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, beta,

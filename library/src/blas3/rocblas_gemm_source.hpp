@@ -23,9 +23,94 @@
 #pragma once
 
 #include "handle.hpp"
+#include "int64_helpers.hpp"
 
 namespace
 {
+
+    // Special (non-tensile) gemm kernel when K == 0 or alpha == 0
+    template <typename T, typename U>
+    ROCBLAS_KERNEL_ILF void
+        rocblas_gemm_scale_device(rocblas_int m, rocblas_int n, T beta, U* C, int64_t ldc)
+    {
+        auto tx = blockIdx.x * blockDim.x + threadIdx.x;
+        auto ty = blockIdx.y * blockDim.y + threadIdx.y;
+
+        if(tx < m && ty < n)
+        {
+            C[ty * (ldc) + tx] = beta ? (beta * C[ty * (ldc) + tx]) : T(0);
+        }
+    }
+
+    /**
+  *  Loads pointers and launches the actual calculation kernel.
+  */
+    template <int DIM_X, int DIM_Y, typename T, typename TPtr>
+    ROCBLAS_KERNEL(DIM_X* DIM_Y)
+    rocblas_gemm_scale_kernel(rocblas_int    m,
+                              rocblas_int    n,
+                              T              beta_host_device,
+                              TPtr           dC,
+                              rocblas_stride shift_c,
+                              int64_t        ldc,
+                              rocblas_stride stride_c)
+    {
+        auto beta = load_scalar(beta_host_device);
+
+        auto C = load_ptr_batch(dC, blockIdx.z, shift_c, stride_c);
+        rocblas_gemm_scale_device(m, n, beta, C, ldc);
+    }
+
+    template <typename TScal, typename TConstPtr>
+    rocblas_status rocblas_gemm_scale_launcher_64(int64_t        m_64,
+                                                  int64_t        n_64,
+                                                  TScal          beta,
+                                                  TConstPtr      C,
+                                                  rocblas_stride offset_c,
+                                                  int64_t        ldc_64,
+                                                  rocblas_stride stride_c,
+                                                  rocblas_int    batch_count,
+                                                  hipStream_t    rocblas_stream)
+    {
+        static constexpr int GEMM_DIM_X = 32;
+        static constexpr int GEMM_DIM_Y = 32;
+
+        for(int64_t n_base = 0; n_base < n_64; n_base += c_i64_grid_X_chunk)
+        {
+            int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_X_chunk));
+
+            int64_t n_shift = n_base * ldc_64;
+
+            int blocksY = (n - 1) / GEMM_DIM_Y + 1;
+
+            for(int64_t m_base = 0; m_base < m_64; m_base += c_i64_grid_X_chunk)
+            {
+                int32_t m = int32_t(std::min(m_64 - m_base, c_i64_grid_X_chunk));
+
+                int blocksX = (m - 1) / GEMM_DIM_X + 1;
+
+                dim3 gemm_grid(blocksX, blocksY, batch_count);
+                dim3 gemm_threads(GEMM_DIM_X, GEMM_DIM_Y);
+
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
+                                      gemm_grid,
+                                      gemm_threads,
+                                      0,
+                                      rocblas_stream,
+                                      m,
+                                      n,
+                                      beta,
+                                      C,
+                                      offset_c + n_shift + m_base,
+                                      ldc_64,
+                                      stride_c);
+
+            } // m
+        } // n
+
+        return rocblas_status_success;
+    }
+
     // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // general alpha, beta, m, n, k
     template <typename T,
@@ -44,32 +129,32 @@ namespace
               typename TConstPtr,
               typename TPtr>
     ROCBLAS_KERNEL(DIM_M* DIM_N)
-    rocblas_gemm_batched_general_kernel(rocblas_int    M,
-                                        rocblas_int    N,
-                                        rocblas_int    K,
+    rocblas_gemm_batched_general_kernel(int64_t        M,
+                                        int64_t        N,
+                                        int64_t        K,
                                         const T        alpha,
                                         TConstPtr*     dA_input,
-                                        rocblas_int    lda,
+                                        int64_t        lda,
                                         rocblas_stride a_st_or_of,
                                         TConstPtr*     dB_input,
-                                        rocblas_int    ldb,
+                                        int64_t        ldb,
                                         rocblas_stride b_st_or_of,
                                         const T        beta,
                                         TPtr*          dC_input,
-                                        rocblas_int    ldc,
+                                        int64_t        ldc,
                                         rocblas_stride c_st_or_of,
                                         rocblas_int    batch_count)
     {
-        int thx  = threadIdx.x; // thread's m position in C
-        int thy  = threadIdx.y; // thread's n position in C
-        int idt  = DIM_M * thy + thx; // thread's number
-        int blx  = blockIdx.x; // block's m position
-        int bly  = blockIdx.y; // block's n position
-        int blz  = blockIdx.z; // block's matrix in the batch
-        int thxA = idt % DIM_M_A; // thread's m position for loading A
-        int thyA = idt / DIM_M_A; // thread's n position for loading A
-        int thxB = idt % DIM_M_B; // thread's m position for loading B
-        int thyB = idt / DIM_M_B; // thread's n position for loading B
+        int     thx  = threadIdx.x; // thread's m position in C
+        int     thy  = threadIdx.y; // thread's n position in C
+        int64_t idt  = int64_t(DIM_M) * thy + thx; // thread's number
+        int     blx  = blockIdx.x; // block's m position
+        int     bly  = blockIdx.y; // block's n position
+        int     blz  = blockIdx.z; // block's matrix in the batch
+        int     thxA = idt % DIM_M_A; // thread's m position for loading A
+        int64_t thyA = idt / DIM_M_A; // thread's n position for loading A
+        int     thxB = idt % DIM_M_B; // thread's m position for loading B
+        int64_t thyB = idt / DIM_M_B; // thread's n position for loading B
 
         auto* dA = load_ptr_batch(dA_input, blz, a_st_or_of);
         auto* dB = load_ptr_batch(dB_input, blz, b_st_or_of);
@@ -79,24 +164,24 @@ namespace
         __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
         T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
 
-        int a_i_offset = thxA + BLK_M * blx;
-        int a_j_offset = thyA;
-        int b_i_offset = thxB;
-        int b_j_offset = thyB + BLK_N * bly;
+        int64_t a_i_offset = thxA + int64_t(BLK_M) * blx;
+        int64_t a_j_offset = thyA;
+        int64_t b_i_offset = thxB;
+        int64_t b_j_offset = thyB + int64_t(BLK_N) * bly;
 
         for(int n = 0; n < BLK_N / DIM_N; ++n)
             for(int m = 0; m < BLK_M / DIM_M; ++m)
                 rC[n][m] = 0.0;
 
-        int kk = 0;
+        int64_t kk = 0;
         for(; kk < K; kk += BLK_K)
         {
             for(int n = 0; n < BLK_K; n += DIM_N_A)
             {
                 for(int m = 0; m < BLK_M; m += DIM_M_A)
                 {
-                    int i = m + a_i_offset;
-                    int j = n + kk + a_j_offset;
+                    int64_t i = m + a_i_offset;
+                    int64_t j = n + kk + a_j_offset;
                     if(i < M && j < K)
                     {
                         if(TRANS_A == 'N')
@@ -123,8 +208,8 @@ namespace
             {
                 for(int m = 0; m < BLK_K; m += DIM_M_B)
                 {
-                    int i = m + kk + b_i_offset;
-                    int j = n + b_j_offset;
+                    int64_t i = m + kk + b_i_offset;
+                    int64_t j = n + b_j_offset;
                     if(i < K && j < N)
                     {
                         if(TRANS_B == 'N')
@@ -161,8 +246,8 @@ namespace
         {
             for(int m = 0; m < BLK_M / DIM_M; ++m)
             {
-                int coord_dCm = blx * BLK_M + m * DIM_M + thx;
-                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
+                int64_t coord_dCm = int64_t(blx) * BLK_M + m * DIM_M + thx;
+                int64_t coord_dCn = int64_t(bly) * BLK_N + n * DIM_N + thy;
                 if(coord_dCn < N && coord_dCm < M)
                 {
                     if(BETA_EQ_ZERO)
@@ -179,7 +264,6 @@ namespace
         }
     }
 
-    // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // general alpha, beta, restricted m, n, k
     template <typename T,
               int  DIM_M,
@@ -197,32 +281,32 @@ namespace
               typename TConstPtr,
               typename TPtr>
     ROCBLAS_KERNEL(DIM_M* DIM_N)
-    rocblas_gemm_batched_kernel(rocblas_int    M,
-                                rocblas_int    N,
-                                rocblas_int    K,
+    rocblas_gemm_batched_kernel(int64_t        M,
+                                int64_t        N,
+                                int64_t        K,
                                 const T        alpha,
                                 TConstPtr*     dA_input,
-                                rocblas_int    lda,
+                                int64_t        lda,
                                 rocblas_stride a_st_or_of,
                                 TConstPtr*     dB_input,
-                                rocblas_int    ldb,
+                                int64_t        ldb,
                                 rocblas_stride b_st_or_of,
                                 const T        beta,
                                 TPtr*          dC_input,
-                                rocblas_int    ldc,
+                                int64_t        ldc,
                                 rocblas_stride c_st_or_of,
                                 rocblas_int    batch_count)
     {
-        int thx  = threadIdx.x; // thread's m position in C
-        int thy  = threadIdx.y; // thread's n position in C
-        int idt  = DIM_M * thy + thx; // thread's number
-        int blx  = blockIdx.x; // block's m position
-        int bly  = blockIdx.y; // block's n position
-        int blz  = blockIdx.z; // block's matrix in the batch
-        int thxA = idt % DIM_M_A; // thread's m position for loading A
-        int thyA = idt / DIM_M_A; // thread's n position for loading A
-        int thxB = idt % DIM_M_B; // thread's m position for loading B
-        int thyB = idt / DIM_M_B; // thread's n position for loading B
+        int     thx  = threadIdx.x; // thread's m position in C
+        int     thy  = threadIdx.y; // thread's n position in C
+        int64_t idt  = int64_t(DIM_M) * thy + thx; // thread's number
+        int     blx  = blockIdx.x; // block's m position
+        int     bly  = blockIdx.y; // block's n position
+        int     blz  = blockIdx.z; // block's matrix in the batch
+        int     thxA = idt % DIM_M_A; // thread's m position for loading A
+        int64_t thyA = idt / DIM_M_A; // thread's n position for loading A
+        int     thxB = idt % DIM_M_B; // thread's m position for loading B
+        int64_t thyB = idt / DIM_M_B; // thread's n position for loading B
 
         auto* dA = load_ptr_batch(dA_input, blz, a_st_or_of);
         auto* dB = load_ptr_batch(dB_input, blz, b_st_or_of);
@@ -238,16 +322,16 @@ namespace
 
         size_t coord_A, coord_B;
         if(TRANS_A == 'N')
-            coord_A = (thxA + blx * BLK_M) + (thyA)*size_t(lda);
+            coord_A = (thxA + int64_t(blx) * BLK_M) + (thyA)*size_t(lda);
         else if(TRANS_A == 'T' || TRANS_A == 'C')
-            coord_A = (thxA + blx * BLK_M) * size_t(lda) + (thyA);
+            coord_A = (thxA + int64_t(blx) * BLK_M) * size_t(lda) + (thyA);
 
         if(TRANS_B == 'N')
-            coord_B = thxB + (bly * BLK_N + thyB) * size_t(ldb);
+            coord_B = thxB + (int64_t(bly) * BLK_N + thyB) * size_t(ldb);
         else if(TRANS_B == 'T' || TRANS_B == 'C')
-            coord_B = thxB * size_t(ldb) + (bly * BLK_N + thyB);
+            coord_B = thxB * size_t(ldb) + (int64_t(bly) * BLK_N + thyB);
 
-        int kk = 0;
+        int64_t kk = 0;
         for(; kk < K; kk += BLK_K)
         {
             for(int n = 0; n < BLK_K; n += DIM_N_A)
@@ -304,8 +388,8 @@ namespace
         {
             for(int m = 0; m < BLK_M / DIM_M; ++m)
             {
-                int coord_dCm = blx * BLK_M + m * DIM_M + thx;
-                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
+                int64_t coord_dCm = int64_t(blx) * BLK_M + m * DIM_M + thx;
+                int64_t coord_dCn = int64_t(bly) * BLK_N + n * DIM_N + thy;
 
                 if(BETA_EQ_ZERO)
                 {
@@ -320,7 +404,6 @@ namespace
         }
     }
 
-    // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // templated alpha, beta, restricted m, n, k
     template <typename T,
               int  DIM_M,
@@ -339,30 +422,30 @@ namespace
               typename TConstPtr,
               typename TPtr>
     ROCBLAS_KERNEL(DIM_M* DIM_N)
-    rocblas_gemm_batched_kernel(rocblas_int    M,
-                                rocblas_int    N,
-                                rocblas_int    K,
+    rocblas_gemm_batched_kernel(int64_t        M,
+                                int64_t        N,
+                                int64_t        K,
                                 TConstPtr*     dA_input,
-                                rocblas_int    lda,
+                                int64_t        lda,
                                 rocblas_stride a_st_or_of,
                                 TConstPtr*     dB_input,
-                                rocblas_int    ldb,
+                                int64_t        ldb,
                                 rocblas_stride b_st_or_of,
                                 TPtr*          dC_input,
-                                rocblas_int    ldc,
+                                int64_t        ldc,
                                 rocblas_stride c_st_or_of,
                                 rocblas_int    batch_count)
     {
-        int thx  = threadIdx.x; // thread's m position in C
-        int thy  = threadIdx.y; // thread's n position in C
-        int idt  = DIM_M * thy + thx; // thread's number
-        int blx  = blockIdx.x; // block's m position
-        int bly  = blockIdx.y; // block's n position
-        int blz  = blockIdx.z; // block's matrix in the batch
-        int thxA = idt % DIM_M_A; // thread's m position for loading A
-        int thyA = idt / DIM_M_A; // thread's n position for loading A
-        int thxB = idt % DIM_M_B; // thread's m position for loading B
-        int thyB = idt / DIM_M_B; // thread's n position for loading B
+        int     thx  = threadIdx.x; // thread's m position in C
+        int     thy  = threadIdx.y; // thread's n position in C
+        int64_t idt  = int64_t(DIM_M) * thy + thx; // thread's number
+        int     blx  = blockIdx.x; // block's m position
+        int     bly  = blockIdx.y; // block's n position
+        int     blz  = blockIdx.z; // block's matrix in the batch
+        int     thxA = idt % DIM_M_A; // thread's m position for loading A
+        int64_t thyA = idt / DIM_M_A; // thread's n position for loading A
+        int     thxB = idt % DIM_M_B; // thread's m position for loading B
+        int64_t thyB = idt / DIM_M_B; // thread's n position for loading B
 
         auto* dA = load_ptr_batch(dA_input, blz, a_st_or_of);
         auto* dB = load_ptr_batch(dB_input, blz, b_st_or_of);
@@ -374,19 +457,19 @@ namespace
 
         size_t coord_A, coord_B;
         if(TRANS_A == 'N')
-            coord_A = (blx * BLK_M + thxA) + thyA * size_t(lda);
+            coord_A = (int64_t(blx) * BLK_M + thxA) + thyA * size_t(lda);
         else if(TRANS_A == 'T' || TRANS_A == 'C')
-            coord_A = (blx * BLK_M + thxA) * size_t(lda) + thyA;
+            coord_A = (int64_t(blx) * BLK_M + thxA) * size_t(lda) + thyA;
         if(TRANS_B == 'N')
-            coord_B = (bly * BLK_N + thyB) * size_t(ldb) + thxB;
+            coord_B = (int64_t(bly) * BLK_N + thyB) * size_t(ldb) + thxB;
         else if(TRANS_B == 'T' || TRANS_B == 'C')
-            coord_B = (bly * BLK_N + thyB) + thxB * size_t(ldb);
+            coord_B = (int64_t(bly) * BLK_N + thyB) + thxB * size_t(ldb);
 
         for(int n = 0; n < BLK_N / DIM_N; ++n)
             for(int m = 0; m < BLK_M / DIM_M; ++m)
                 rC[n][m] = 0.0;
 
-        int kk = 0;
+        int64_t kk = 0;
         for(; kk < K; kk += BLK_K)
         {
             for(int n = 0; n < BLK_K; n += DIM_N_A)
@@ -431,8 +514,8 @@ namespace
         {
             for(int m = 0; m < BLK_M / DIM_M; ++m)
             {
-                int coord_dCm = blx * BLK_M + m * DIM_M + thx;
-                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
+                int64_t coord_dCm = int64_t(blx) * BLK_M + m * DIM_M + thx;
+                int64_t coord_dCn = int64_t(bly) * BLK_N + n * DIM_N + thy;
 
                 if(alpha == 1 && beta == 1)
                 {
@@ -455,97 +538,28 @@ namespace
         }
     }
 
-    // Special (non-tensile) gemm kernel when K == 0 or alpha == 0
-    template <typename T, typename U>
-    ROCBLAS_KERNEL_ILF void
-        rocblas_gemm_scale_device(rocblas_int m, rocblas_int n, T beta, U* C, rocblas_int ldc)
-    {
-        auto tx = blockIdx.x * blockDim.x + threadIdx.x;
-        auto ty = blockIdx.y * blockDim.y + threadIdx.y;
-
-        if(tx < m && ty < n)
-        {
-            C[ty * size_t(ldc) + tx] = beta ? (beta * C[ty * size_t(ldc) + tx]) : T(0);
-        }
-    }
-
-    /**
-  *  Loads pointers and launches the actual calculation kernel.
-  */
-    template <int DIM_X, int DIM_Y, typename T, typename TPtr>
-    ROCBLAS_KERNEL(DIM_X* DIM_Y)
-    rocblas_gemm_scale_kernel(rocblas_int    m,
-                              rocblas_int    n,
-                              T              beta_host_device,
-                              TPtr           dC,
-                              rocblas_stride shift_c,
-                              rocblas_int    ldc,
-                              rocblas_stride stride_c)
-    {
-        auto beta = load_scalar(beta_host_device);
-
-        auto C = load_ptr_batch(dC, blockIdx.z, shift_c, stride_c);
-        rocblas_gemm_scale_device(m, n, beta, C, ldc);
-    }
-
-    template <typename TScal, typename TConstPtr>
-    rocblas_status rocblas_gemm_scale_template(rocblas_int    m,
-                                               rocblas_int    n,
-                                               TScal          beta,
-                                               TConstPtr      C,
-                                               rocblas_stride offset_c,
-                                               rocblas_int    ldc,
-                                               rocblas_stride stride_c,
-                                               rocblas_int    batch_count,
-                                               hipStream_t    rocblas_stream)
-    {
-        static constexpr int GEMM_DIM_X = 32;
-        static constexpr int GEMM_DIM_Y = 32;
-
-        rocblas_int blocksX = (m - 1) / GEMM_DIM_X + 1;
-        rocblas_int blocksY = (n - 1) / GEMM_DIM_Y + 1;
-
-        dim3 gemm_grid(blocksX, blocksY, batch_count);
-        dim3 gemm_threads(GEMM_DIM_X, GEMM_DIM_Y);
-
-        ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
-                              gemm_grid,
-                              gemm_threads,
-                              0,
-                              rocblas_stream,
-                              m,
-                              n,
-                              beta,
-                              C,
-                              offset_c,
-                              ldc,
-                              stride_c);
-
-        return rocblas_status_success;
-    }
-
     template <bool BATCHED, typename T, typename TConstPtr, typename TPtr>
-    rocblas_status rocblas_gemm_source_solution(rocblas_operation trans_a,
-                                                rocblas_operation trans_b,
-                                                rocblas_int       m,
-                                                rocblas_int       n,
-                                                rocblas_int       k,
-                                                const T           alpha,
-                                                TConstPtr*        dA,
-                                                rocblas_int       lda,
-                                                rocblas_stride    stride_a,
-                                                rocblas_stride    offset_a,
-                                                TConstPtr*        dB,
-                                                rocblas_int       ldb,
-                                                rocblas_stride    stride_b,
-                                                rocblas_stride    offset_b,
-                                                const T           beta,
-                                                TPtr*             dC,
-                                                rocblas_int       ldc,
-                                                rocblas_stride    stride_c,
-                                                rocblas_stride    offset_c,
-                                                rocblas_int       batch_count,
-                                                hipStream_t       stream)
+    rocblas_status rocblas_gemm_source_solution_64(rocblas_operation trans_a,
+                                                   rocblas_operation trans_b,
+                                                   int64_t           m,
+                                                   int64_t           n,
+                                                   int64_t           k,
+                                                   const T           alpha,
+                                                   TConstPtr*        dA,
+                                                   int64_t           lda,
+                                                   rocblas_stride    stride_a,
+                                                   rocblas_stride    offset_a,
+                                                   TConstPtr*        dB,
+                                                   int64_t           ldb,
+                                                   rocblas_stride    stride_b,
+                                                   rocblas_stride    offset_b,
+                                                   const T           beta,
+                                                   TPtr*             dC,
+                                                   int64_t           ldc,
+                                                   rocblas_stride    stride_c,
+                                                   rocblas_stride    offset_c,
+                                                   rocblas_int       batch_count,
+                                                   hipStream_t       stream)
     {
         // gemm has same behavior for alpha == 0 and k == 0. Special code is needed
         // for alpha == 0, no special code is needed for k == 0. It is more efficient

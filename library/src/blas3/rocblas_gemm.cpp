@@ -23,3 +23,76 @@
 #include "blas3/rocblas_gemm_imp.hpp"
 
 INST_GEMM_C_API(rocblas_int);
+
+/*******************************************************************************
+ * GEMM Kernel name APIs
+ ******************************************************************************/
+extern "C" {
+
+rocblas_status rocblas_hgemm_kernel_name(rocblas_handle      handle,
+                                         rocblas_operation   trans_a,
+                                         rocblas_operation   trans_b,
+                                         rocblas_int         m,
+                                         rocblas_int         n,
+                                         rocblas_int         k,
+                                         const rocblas_half* alpha,
+                                         const rocblas_half* A,
+                                         rocblas_int         lda,
+                                         rocblas_stride      stride_a,
+                                         const rocblas_half* B,
+                                         rocblas_int         ldb,
+                                         rocblas_stride      stride_b,
+                                         const rocblas_half* beta,
+                                         rocblas_half*       C,
+                                         rocblas_int         ldc,
+                                         rocblas_stride      stride_c,
+                                         rocblas_int         b_c)
+{
+    return rocblas_status_not_implemented;
+}
+
+rocblas_status rocblas_sgemm_kernel_name(rocblas_handle    handle,
+                                         rocblas_operation trans_a,
+                                         rocblas_operation trans_b,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       k,
+                                         const float*      alpha,
+                                         const float*      A,
+                                         rocblas_int       lda,
+                                         rocblas_stride    stride_a,
+                                         const float*      B,
+                                         rocblas_int       ldb,
+                                         rocblas_stride    stride_b,
+                                         const float*      beta,
+                                         float*            C,
+                                         rocblas_int       ldc,
+                                         rocblas_stride    stride_c,
+                                         rocblas_int       b_c)
+{
+    return rocblas_status_not_implemented;
+}
+
+rocblas_status rocblas_dgemm_kernel_name(rocblas_handle    handle,
+                                         rocblas_operation trans_a,
+                                         rocblas_operation trans_b,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       k,
+                                         const double*     alpha,
+                                         const double*     A,
+                                         rocblas_int       lda,
+                                         rocblas_stride    stride_a,
+                                         const double*     B,
+                                         rocblas_int       ldb,
+                                         rocblas_stride    stride_b,
+                                         const double*     beta,
+                                         double*           C,
+                                         rocblas_int       ldc,
+                                         rocblas_stride    stride_c,
+                                         rocblas_int       b_c)
+{
+    return rocblas_status_not_implemented;
+}
+
+} // extern "C"
