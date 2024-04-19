@@ -1674,7 +1674,7 @@ rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,
 
     // no memory needed if using small kernels
     bool is_small = (k <= 32) || (m <= 64 && n <= 64);
-    if(is_small)
+    if(is_small || !batch_count)
     {
         // return rocblas_status_continue indicating no memory needed
         *w_x_tmp_size        = 0;
@@ -1716,6 +1716,8 @@ rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,
         invA_temp_bytes = BLOCK * k * sizeof(T) * batch_count;
 
         // When k < BLOCK, C is unnecessary for trtri
+        // c_temp is not scaled by batch_count as trtri kernels are currently naive and
+        // just iterate through the batches using the same workspace memory
         c_temp_bytes = ((k / BLOCK) * ((BLOCK / 2) * (BLOCK / 2))) * sizeof(T);
 
         // For the TRTRI last diagonal block we need remainder space if k % BLOCK != 0

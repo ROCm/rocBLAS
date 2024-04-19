@@ -25,6 +25,7 @@
 #include "testing_common.hpp"
 
 #include "blas3/rocblas_trsm.hpp"
+#include "src64/blas3/rocblas_trsm_64.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
@@ -287,6 +288,69 @@ void testing_trsm_batched_bad_arg(const Arguments& arg)
                      dB.ptr_on_device(),
                      ldb,
                      batch_count));
+    }
+}
+
+template <typename T>
+void testing_trsm_batched_internal_interfaces(const Arguments& arg)
+{
+    // testing rocblas_internal_trsm_workspace_max_size to ensure that the sizes it gives
+    // is large enough for all/various sizes below the sizes given
+
+    int64_t M           = arg.M;
+    int64_t N           = arg.N;
+    int64_t batch_count = arg.batch_count;
+
+    rocblas_side side = char2rocblas_side(arg.side);
+
+    size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size, w_x_tmp_size_backup;
+
+    CHECK_ROCBLAS_ERROR(
+        rocblas_internal_trsm_batched_workspace_max_size_64<T>(side,
+                                                               M,
+                                                               N,
+                                                               batch_count,
+                                                               &w_x_tmp_size,
+                                                               &w_x_tmp_arr_size,
+                                                               &w_invA_size,
+                                                               &w_invA_arr_size,
+                                                               &w_x_tmp_size_backup));
+
+    // test out below for various sizes below M and N
+    for(int64_t m_smaller = M; m_smaller > 0; m_smaller--)
+    {
+        for(int64_t n_smaller = N; n_smaller > 0; n_smaller--)
+        {
+            size_t w_x_tmp_size2, w_x_tmp_arr_size2, w_invA_size2, w_invA_arr_size2,
+                w_x_tmp_size_backup2;
+
+            // This is implementation-dependent, but currently we /may/ use less memory with "skinny"
+            // matrices when transA == non-transpose.
+            // Setting this to transpose will always allocate >= non-transpose invokations, so good
+            // for this test
+            rocblas_operation transA     = rocblas_operation_transpose;
+            rocblas_status    mem_status = rocblas_internal_trsm_workspace_size<T>(
+                side,
+                transA,
+                m_smaller,
+                n_smaller,
+                batch_count, // not bothering to test smaller batch_counts
+                0, // not supporting supplied invA for max_size fn
+                &w_x_tmp_size2,
+                &w_x_tmp_arr_size2,
+                &w_invA_size2,
+                &w_invA_arr_size2,
+                &w_x_tmp_size_backup2);
+
+            if(mem_status != rocblas_status_success && mem_status != rocblas_status_continue)
+                CHECK_ROCBLAS_ERROR(mem_status);
+
+#ifdef GOOGLE_TEST
+            ASSERT_TRUE(w_x_tmp_size2 <= w_x_tmp_size && w_x_tmp_arr_size2 <= w_x_tmp_arr_size
+                        && w_invA_size2 <= w_invA_size && w_invA_arr_size2 <= w_invA_arr_size
+                        && w_x_tmp_size_backup2 <= w_x_tmp_size_backup);
+#endif
+        }
     }
 }
 
