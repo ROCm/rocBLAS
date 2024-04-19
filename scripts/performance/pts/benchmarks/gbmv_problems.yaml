@@ -3,13 +3,13 @@ include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
   - &scan_m_range
-    - { scan: [256..2048..256], M: *c_scan_value }
+    - { scan: [1024..8192..1024], M: *c_scan_value }
 
   - &scan_n_range
-    - { scan: [256..2048..256], N: *c_scan_value }
+    - { scan: [1024..8192..1024], N: *c_scan_value }
 
   - &m_equals_n_range
-    - { scan: [256..2048..256], M: *c_scan_value, N: *c_scan_value }
+    - { scan: [1024..8192..1024], M: *c_scan_value, N: *c_scan_value }
 
 Tests:
   - name: gbmv_bench_const_n
@@ -22,15 +22,15 @@ Tests:
     incx: 1
     incy: 1
     arguments: *scan_m_range
-    N: 512
-    KL: 5
-    KU: 5
-    lda: 11
+    N: 4096
+    KL: 100
+    KU: 100
+    lda: 201
     iters: 20
 
   - name: gbmv_bench_const_m
     category: bench
-    function: gemv
+    function: gbmv
     precision: *single_precision
     transA: [ N, T ]
     alpha: 1
@@ -38,25 +38,25 @@ Tests:
     incx: 1
     incy: 1
     arguments: *scan_n_range
-    M: 256
-    KL: 5
-    KU: 5
-    lda: 11
+    M: 4096
+    KL: 100
+    KU: 100
+    lda: 201
     iters: 20
 
   - name: gbmv_bench_m_equals_n
     category: bench
-    function: gemv
-    precision: *single_precision
+    function: gbmv
+    precision: *single_double_precisions_complex_real
     transA: [ N, T ]
     alpha: 1
     beta: 1
     incx: 1
     incy: 1
     arguments: *m_equals_n_range
-    KL: 10
-    KU: 10
-    lda: 21
+    KL: 100
+    KU: 100
+    lda: 201
     iters: 20
 
 
