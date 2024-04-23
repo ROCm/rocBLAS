@@ -224,41 +224,6 @@ void testing_syrk(const Arguments& arg)
     size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
     size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
 
-    // Information on flush_memory_size and flush_batch_count
-    // - To time syrk it is called number_hot_calls times.
-    // - if the size of dA and dC are small enough they will be cached
-    //   and reused number_hot_calls-1 times.
-    // - This "hot-cache" timing will give higher performance than if the
-    //   cache is flushed
-    // - arg.flush_batch_count or arg.flush_memory_size can be used to avoid
-    //   caching of dA and dC.
-    // - if arg.flush_memory_size is specified, then flush_batch_count is calculated.
-    // - only one of arg.flush_memory_size or arg.flush_batch_count can be
-    //   used, not both.
-    // - Note that this is only used in timing code, not in testing code.
-    // - The method is as outlined in
-    //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
-    // - In the number_hot_calls timing loop it cycles through the arg.flush_batch_count copies
-    //   of dA and dC, and if flush_memory_size is large enough they will be evicted
-    //   from cache before they are reused.
-    // - The individual matrices are aligned on byte boundaries used by hipMalloc
-    size_t stride_a = lda * cols;
-    size_t stride_c = ldc * N;
-
-    size_t aligned_stride_a = align_stride<T>(stride_a);
-    size_t aligned_stride_c = align_stride<T>(stride_c);
-
-    size_t flush_batch_count = 1;
-    if(arg.timing)
-    {
-        size_t a_size          = rows * cols * sizeof(T);
-        size_t c_size          = N * N * sizeof(T);
-        size_t a_c_cached_size = a_size + c_size;
-
-        flush_batch_count = calculate_flush_batch_count(
-            arg.flush_batch_count, arg.flush_memory_size, a_c_cached_size);
-    }
-
     // Allocate host memory
     host_matrix<T> hA(rows, cols, lda);
     host_matrix<T> hC(N, N, ldc);
@@ -271,21 +236,17 @@ void testing_syrk(const Arguments& arg)
     CHECK_HIP_ERROR(hC.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    // Allocate device memory
-    device_strided_batch_matrix<T> dA(rows, cols, lda, aligned_stride_a, flush_batch_count);
-    device_strided_batch_matrix<T> dC(N, N, ldc, aligned_stride_c, flush_batch_count);
-    device_vector<T>               d_alpha(1);
-    device_vector<T>               d_beta(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
+
+    // Allocate device memory
+    device_vector<T> d_alpha(1);
+    device_vector<T> d_beta(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -294,46 +255,56 @@ void testing_syrk(const Arguments& arg)
         hC, arg, rocblas_client_beta_sets_nan, rocblas_client_symmetric_matrix, false, true);
     hC_gold = hC;
 
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
-
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        device_matrix<T> dA(rows, cols, lda);
+        device_matrix<T> dC(N, N, ldc);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
+
         if(arg.pointer_mode_host)
         {
             // host alpha/beta
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
+            CHECK_HIP_ERROR(dC.transfer_from(hC));
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
-                handle, uplo, transA, N, K, &h_alpha[0], dA[0], lda, &h_beta[0], dC[0], ldc));
+                handle, uplo, transA, N, K, &h_alpha[0], dA, lda, &h_beta[0], dC, ldc));
             handle.post_test(arg);
             // copy output from device to CPU
-            CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
         }
 
         if(arg.pointer_mode_device)
         {
             // device alpha/beta
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
+            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
             CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
             CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-            CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
-                handle, uplo, transA, N, K, d_alpha, dA[0], lda, d_beta, dC[0], ldc));
+            CHECK_ROCBLAS_ERROR(
+                rocblas_syrk_fn(handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
 
             if(arg.repeatability_check)
             {
+                CHECK_HIP_ERROR(hC.transfer_from(dC));
+
                 host_matrix<T> hC_copy(N, N, ldc);
-                CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
+                CHECK_HIP_ERROR(hC_copy.memcheck());
 
                 for(int i = 0; i < arg.iters; i++)
                 {
-                    CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
+                    CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
                     CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
-                        handle, uplo, transA, N, K, d_alpha, dA[0], lda, d_beta, dC[0], ldc));
-                    CHECK_HIP_ERROR(hC_copy.transfer_one_matrix_from(dC));
+                        handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
+                    CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
                     unit_check_general<T>(N, N, ldc, hC, hC_copy);
                 }
                 return;
@@ -373,7 +344,7 @@ void testing_syrk(const Arguments& arg)
         if(arg.pointer_mode_device)
         {
             // copy output from device to CPU
-            CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
 
             if(arg.unit_check)
             {
@@ -401,6 +372,50 @@ void testing_syrk(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
+
+        // Information on flush_memory_size and flush_batch_count
+        // - To time syrk it is called number_hot_calls times.
+        // - if the size of dA and dC are small enough they will be cached
+        //   and reused number_hot_calls-1 times.
+        // - This "hot-cache" timing will give higher performance than if the
+        //   cache is flushed
+        // - arg.flush_batch_count or arg.flush_memory_size can be used to avoid
+        //   caching of dA and dC.
+        // - if arg.flush_memory_size is specified, then flush_batch_count is calculated.
+        // - only one of arg.flush_memory_size or arg.flush_batch_count can be
+        //   used, not both.
+        // - Note that this is only used in timing code, not in testing code.
+        // - The method is as outlined in
+        //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
+        // - In the number_hot_calls timing loop it cycles through the arg.flush_batch_count copies
+        //   of dA and dC, and if flush_memory_size is large enough they will be evicted
+        //   from cache before they are reused.
+        // - The individual matrices are aligned on byte boundaries used by hipMalloc
+        size_t stride_a = lda * cols;
+        size_t stride_c = ldc * N;
+
+        size_t aligned_stride_a = align_stride<T>(stride_a);
+        size_t aligned_stride_c = align_stride<T>(stride_c);
+
+        size_t flush_batch_count = 1;
+        size_t a_size            = rows * cols * sizeof(T);
+        size_t c_size            = N * N * sizeof(T);
+        size_t a_c_cached_size   = a_size + c_size;
+
+        flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, a_c_cached_size);
+
+        // Allocate device memory
+        device_strided_batch_matrix<T> dA(rows, cols, lda, aligned_stride_a, flush_batch_count);
+        device_strided_batch_matrix<T> dC(N, N, ldc, aligned_stride_c, flush_batch_count);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
+        CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
