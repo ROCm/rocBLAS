@@ -165,10 +165,6 @@ else()
 endif()
 target_link_libraries( rocblas-test PRIVATE ${COMMON_LINK_LIBS} )
 
-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # GCC or hip-clang needs specific flag to turn on f16c intrinsics
-  target_compile_options( rocblas-test PRIVATE -mf16c )
-endif( )
 target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 
 target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )

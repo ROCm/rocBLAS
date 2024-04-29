@@ -97,14 +97,6 @@ if( BUILD_WITH_TENSILE )
   target_link_libraries( rocblas-gemm-tune PRIVATE ${COMMON_LINK_LIBS} )
 endif()
 
-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
-  target_compile_options( rocblas-bench PRIVATE -mf16c )
-  if( BUILD_WITH_TENSILE )
-    target_compile_options( rocblas-gemm-tune PRIVATE -mf16c )
-  endif()
-endif()
-
 target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 if( BUILD_WITH_TENSILE )
   target_compile_options(rocblas-gemm-tune PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
