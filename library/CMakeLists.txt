@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,9 +59,6 @@ function( rocblas_library_settings lib_target_ )
     $<BUILD_INTERFACE:${Tensile_INC}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
-
-  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
-  target_compile_options( ${lib_target_} PRIVATE -mf16c )
 
   # Do not allow Variable Length Arrays (use unique_ptr instead)
   target_compile_options( ${lib_target_} PRIVATE -Werror=vla )
