@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_geam.hpp"
 
-#include "rocblas_geam_imp.hpp"
+#include "blas3/rocblas_geam_strided_batched_imp.hpp"
+#include "rocblas_geam_64.hpp"
 
-INST_GEAM_C_API(rocblas_int);
+INST_GEAM_STRIDED_BATCHED_C_API(int64_t);

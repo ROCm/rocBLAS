@@ -261,6 +261,21 @@ Tests:
   alpha_beta: *huge_complex_alpha_beta_range
   pointer_mode_device: false
 
+- name: geam_64
+  category: stress
+  arguments:
+    - {  M: 2147483649, N: 1, lda: 2147483659, ldb: 2147483669,  ldc: 2147483689, batch_count: 1, transA: N, transB: N}
+    - {  M: 1, N: 2147483649, lda: 2147483649, ldb: 1, ldc: 1, batch_count: 1, transA: T, transB: N }
+    - {  M: 2147483649, N: 1, lda: 2147483659, ldb: 1,  ldc: 2147483689, batch_count: 1, transA: N, transB: T}
+    - {  M: 2, N: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T, transB: T }
+  api: [ C_64 ]
+  alpha_beta: *huge_alpha_beta_range
+  os_flags: [ LINUX ]
+  function:
+    - geam_strided_batched: *single_precision
+  stride_scale: 1
+  gpu_arch: '9??'
+
 - name: geam_graph_test
   category: pre_checkin
   function:

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +24,21 @@
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_geam_arg_check(rocblas_handle    handle,
                                              rocblas_operation transA,
                                              rocblas_operation transB,
-                                             rocblas_int       m,
-                                             rocblas_int       n,
+                                             API_INT           m,
+                                             API_INT           n,
                                              TScal             alpha,
                                              TConstPtr         A,
-                                             rocblas_int       lda,
+                                             API_INT           lda,
                                              TScal             beta,
                                              TConstPtr         B,
-                                             rocblas_int       ldb,
+                                             API_INT           ldb,
                                              TPtr              C,
-                                             rocblas_int       ldc,
-                                             rocblas_int       batch_count)
+                                             API_INT           ldc,
+                                             API_INT           batch_count)
 {
 
     if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
@@ -83,7 +83,7 @@ inline rocblas_status rocblas_geam_arg_check(rocblas_handle    handle,
  */
 
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_geam_template(rocblas_handle    handle,
+rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int       m,
@@ -91,16 +91,16 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
                                      TScal             alpha,
                                      TConstPtr         A,
                                      rocblas_stride    offset_a,
-                                     rocblas_int       lda,
+                                     int64_t           lda,
                                      rocblas_stride    stride_a,
                                      TScal             beta,
                                      TConstPtr         B,
                                      rocblas_stride    offset_b,
-                                     rocblas_int       ldb,
+                                     int64_t           ldb,
                                      rocblas_stride    stride_b,
                                      TPtr              C,
                                      rocblas_stride    offset_c,
-                                     rocblas_int       ldc,
+                                     int64_t           ldc,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count);
 
@@ -109,17 +109,17 @@ rocblas_status rocblas_geam_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
                                            rocblas_operation trans_b,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
+                                           int64_t           m,
+                                           int64_t           n,
                                            T                 A,
-                                           rocblas_int       lda,
+                                           int64_t           lda,
                                            rocblas_stride    stride_a,
                                            T                 B,
-                                           rocblas_int       ldb,
+                                           int64_t           ldb,
                                            rocblas_stride    stride_b,
                                            U                 C,
-                                           rocblas_int       ldc,
+                                           int64_t           ldc,
                                            rocblas_stride    stride_c,
-                                           rocblas_int       batch_count,
+                                           int64_t           batch_count,
                                            const int         check_numerics,
                                            bool              is_input);

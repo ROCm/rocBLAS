@@ -3568,10 +3568,25 @@ static rocblas_status (*rocblas_geam)(rocblas_handle    handle,
                                       T*                C,
                                       rocblas_int       ldc);
 
-MAP2CF(rocblas_geam, float, rocblas_sgeam);
-MAP2CF(rocblas_geam, double, rocblas_dgeam);
-MAP2CF(rocblas_geam, rocblas_float_complex, rocblas_cgeam);
-MAP2CF(rocblas_geam, rocblas_double_complex, rocblas_zgeam);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_geam_64)(rocblas_handle    handle,
+                                         rocblas_operation transA,
+                                         rocblas_operation transB,
+                                         int64_t           m,
+                                         int64_t           n,
+                                         const T*          alpha,
+                                         const T*          A,
+                                         int64_t           lda,
+                                         const T*          beta,
+                                         const T*          B,
+                                         int64_t           ldb,
+                                         T*                C,
+                                         int64_t           ldc);
+
+MAP2CF_D64(rocblas_geam, float, rocblas_sgeam);
+MAP2CF_D64(rocblas_geam, double, rocblas_dgeam);
+MAP2CF_D64(rocblas_geam, rocblas_float_complex, rocblas_cgeam);
+MAP2CF_D64(rocblas_geam, rocblas_double_complex, rocblas_zgeam);
 
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_geam_batched)(rocblas_handle    handle,
@@ -3589,10 +3604,26 @@ static rocblas_status (*rocblas_geam_batched)(rocblas_handle    handle,
                                               rocblas_int       ldc,
                                               rocblas_int       batch_count);
 
-MAP2CF(rocblas_geam_batched, float, rocblas_sgeam_batched);
-MAP2CF(rocblas_geam_batched, double, rocblas_dgeam_batched);
-MAP2CF(rocblas_geam_batched, rocblas_float_complex, rocblas_cgeam_batched);
-MAP2CF(rocblas_geam_batched, rocblas_double_complex, rocblas_zgeam_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_geam_batched_64)(rocblas_handle    handle,
+                                                 rocblas_operation transA,
+                                                 rocblas_operation transB,
+                                                 int64_t           m,
+                                                 int64_t           n,
+                                                 const T*          alpha,
+                                                 const T* const    A[],
+                                                 int64_t           lda,
+                                                 const T*          beta,
+                                                 const T* const    B[],
+                                                 int64_t           ldb,
+                                                 T* const          C[],
+                                                 int64_t           ldc,
+                                                 int64_t           batch_count);
+
+MAP2CF_D64(rocblas_geam_batched, float, rocblas_sgeam_batched);
+MAP2CF_D64(rocblas_geam_batched, double, rocblas_dgeam_batched);
+MAP2CF_D64(rocblas_geam_batched, rocblas_float_complex, rocblas_cgeam_batched);
+MAP2CF_D64(rocblas_geam_batched, rocblas_double_complex, rocblas_zgeam_batched);
 
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_geam_strided_batched)(rocblas_handle    handle,
@@ -3613,10 +3644,29 @@ static rocblas_status (*rocblas_geam_strided_batched)(rocblas_handle    handle,
                                                       rocblas_stride    stride_c,
                                                       rocblas_int       batch_count);
 
-MAP2CF(rocblas_geam_strided_batched, float, rocblas_sgeam_strided_batched);
-MAP2CF(rocblas_geam_strided_batched, double, rocblas_dgeam_strided_batched);
-MAP2CF(rocblas_geam_strided_batched, rocblas_float_complex, rocblas_cgeam_strided_batched);
-MAP2CF(rocblas_geam_strided_batched, rocblas_double_complex, rocblas_zgeam_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_geam_strided_batched_64)(rocblas_handle    handle,
+                                                         rocblas_operation transA,
+                                                         rocblas_operation transB,
+                                                         int64_t           m,
+                                                         int64_t           n,
+                                                         const T*          alpha,
+                                                         const T*          A,
+                                                         int64_t           lda,
+                                                         rocblas_stride    stride_a,
+                                                         const T*          beta,
+                                                         const T*          B,
+                                                         rocblas_int       ldb,
+                                                         int64_t           stride_b,
+                                                         T*                C,
+                                                         int64_t           ldc,
+                                                         rocblas_stride    stride_c,
+                                                         int64_t           batch_count);
+
+MAP2CF_D64(rocblas_geam_strided_batched, float, rocblas_sgeam_strided_batched);
+MAP2CF_D64(rocblas_geam_strided_batched, double, rocblas_dgeam_strided_batched);
+MAP2CF_D64(rocblas_geam_strided_batched, rocblas_float_complex, rocblas_cgeam_strided_batched);
+MAP2CF_D64(rocblas_geam_strided_batched, rocblas_double_complex, rocblas_zgeam_strided_batched);
 
 // gemm
 template <typename T, bool FORTRAN = false>
