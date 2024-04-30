@@ -90,6 +90,8 @@ rocblas_Xgeam + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgeam
 
+The geam functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sgeam_batched
    :outline:
 .. doxygenfunction:: rocblas_dgeam_batched
@@ -97,6 +99,8 @@ rocblas_Xgeam + batched, strided_batched
 .. doxygenfunction:: rocblas_cgeam_batched
    :outline:
 .. doxygenfunction:: rocblas_zgeam_batched
+
+The geam_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_sgeam_strided_batched
    :outline:
@@ -106,6 +110,7 @@ rocblas_Xgeam + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgeam_strided_batched
 
+The geam_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xdgmm + batched, strided_batched
 ============================================

@@ -410,14 +410,14 @@ set(rocblas64_ex_source_no_tensile
 )
 
 set( rocblas64_blas3_source_no_tensile
-     src64/blas3/rocblas_dgmm_64.cpp
-     src64/blas3/rocblas_dgmm_kernels_64.cpp
-     src64/blas3/rocblas_dgmm_batched_64.cpp
-     src64/blas3/rocblas_dgmm_strided_batched_64.cpp
-#     src64/blas3/rocblas_geam.cpp
-#     src64/blas3/rocblas_geam_kernels.cpp
-#     src64/blas3/rocblas_geam_batched.cpp
-#     src64/blas3/rocblas_geam_strided_batched.cpp
+  src64/blas3/rocblas_dgmm_64.cpp
+  src64/blas3/rocblas_dgmm_kernels_64.cpp
+  src64/blas3/rocblas_dgmm_batched_64.cpp
+  src64/blas3/rocblas_dgmm_strided_batched_64.cpp
+  src64/blas3/rocblas_geam_64.cpp
+  src64/blas3/rocblas_geam_kernels_64.cpp
+  src64/blas3/rocblas_geam_batched_64.cpp
+  src64/blas3/rocblas_geam_strided_batched_64.cpp
 )
 
 # rocblas L3 that use tensile but can use source gemm as fallback
