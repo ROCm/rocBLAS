@@ -508,6 +508,9 @@ Definitions:
   - &c_grid_yz_require_passes
     - [65539] # force looping over y/z chunks 65536.  TODO track constant c_i64_grid_YZ_chunk in int64_helpers.hpp
 
+  - &c_grid_x_require_passes
+    - [268435459] # force looping over x chunks 268435456.  TODO track constant c_i64_grid_X_chunk in int64_helpers.hpp
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes
