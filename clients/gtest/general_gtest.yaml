@@ -60,7 +60,7 @@ Tests:
   function : check_numerics_vector
   N : [ 1 ]
   incx : [ 1 ]
-  batch_count : [ -1, 666666 ]
+  batch_count : [ -1, *c_grid_yz_require_passes ]
   stride_x : [ 0 ]
   precision : *half_precision
   os_flags: [ LINUX ]
@@ -82,9 +82,9 @@ Tests:
 - name : check_numerics_matrix_64
   category : stress
   function : check_numerics_matrix
-  M : [ 2147486720 ]
+  M : [ *c_grid_x_require_passes ]
   N : [ 1 ]
-  lda: 2147486720
+  lda: *c_grid_x_require_passes
   batch_count : [ 1 ]
   stride_x : [ 0 ]
   uplo: [ U ]
@@ -98,7 +98,7 @@ Tests:
   M : [ 3 ]
   N : [ 3 ]
   lda: 3
-  batch_count : [ 666666 ]
+  batch_count : [ *c_grid_yz_require_passes ]
   stride_x : [ 0 ]
   uplo: [ U ]
   transA: [ T ]
