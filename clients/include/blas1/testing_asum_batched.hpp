@@ -22,18 +22,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_asum_batched_bad_arg(const Arguments& arg)
@@ -48,11 +37,13 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        int64_t    N                = 100;
-        int64_t    incx             = 1;
-        int64_t    batch_count      = 2;
-        real_t<T>  rocblas_result   = 10;
-        real_t<T>* h_rocblas_result = &rocblas_result;
+        int64_t N           = 100;
+        int64_t incx        = 1;
+        int64_t batch_count = 2;
+
+        using RT             = real_t<T>;
+        RT  rocblas_result   = 10;
+        RT* h_rocblas_result = &rocblas_result;
 
         // Allocate device memory
         device_batch_vector<T> dx(N, incx, batch_count);
@@ -85,6 +76,8 @@ void testing_asum_batched(const Arguments& arg)
     int64_t incx        = arg.incx;
     int64_t batch_count = arg.batch_count;
 
+    using RT = real_t<T>;
+
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -93,14 +86,14 @@ void testing_asum_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<real_t<T>> hr_1(std::max(int64_t(1), std::abs(batch_count)));
-        host_vector<real_t<T>> hr_2(std::max(int64_t(1), std::abs(batch_count)));
-        host_vector<real_t<T>> result_0(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> hr_1(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> hr_2(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> result_0(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_HIP_ERROR(hr_1.memcheck());
         CHECK_HIP_ERROR(hr_2.memcheck());
         CHECK_HIP_ERROR(result_0.memcheck());
 
-        device_vector<real_t<T>> dr(std::max(int64_t(1), std::abs(batch_count)));
+        device_vector<RT> dr(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -113,8 +106,8 @@ void testing_asum_batched(const Arguments& arg)
 
         if(batch_count > 0)
         {
-            unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, result_0, hr_1);
-            unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, result_0, hr_2);
+            unit_check_general<RT, RT>(1, batch_count, 1, result_0, hr_1);
+            unit_check_general<RT, RT>(1, batch_count, 1, result_0, hr_2);
         }
 
         return;
@@ -122,16 +115,16 @@ void testing_asum_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T>   hx(N, incx, batch_count);
-    host_vector<real_t<T>> hr_1(batch_count);
-    host_vector<real_t<T>> hr_2(batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_vector<RT>      hr_1(batch_count);
+    host_vector<RT>      hr_2(batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Allocate device memory
-    device_batch_vector<T>   dx(N, incx, batch_count);
-    device_vector<real_t<T>> dr(batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_vector<RT>      dr(batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -163,7 +156,7 @@ void testing_asum_batched(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<real_t<T>> hr_copy(batch_count);
+                host_vector<RT> hr_copy(batch_count);
                 // Transfer from device to host.
                 CHECK_HIP_ERROR(hr_2.transfer_from(dr));
 
@@ -173,14 +166,14 @@ void testing_asum_batched(const Arguments& arg)
                                (handle, N, dx.ptr_on_device(), incx, batch_count, dr));
                     // Transfer from device to host.
                     CHECK_HIP_ERROR(hr_copy.transfer_from(dr));
-                    unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, hr_2, hr_copy);
+                    unit_check_general<RT, RT>(1, batch_count, 1, hr_2, hr_copy);
                 }
                 return;
             }
         }
 
         // CPU BLAS
-        host_vector<real_t<T>> cpu_result(batch_count);
+        host_vector<RT> cpu_result(batch_count);
 
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
@@ -189,9 +182,7 @@ void testing_asum_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        double abs_error = std::numeric_limits<real_t<T>>::epsilon() * sqrt(N) * cpu_result[0];
-        double tolerance = 2.0;
-        abs_error *= tolerance;
+        double abs_error = sum_near_tolerance<T>(N, cpu_result[0]);
 
         // Near check for asum ILP64 bit
         bool near_check = arg.initialization == rocblas_initialization::hpl;
@@ -201,10 +192,9 @@ void testing_asum_batched(const Arguments& arg)
             if(arg.unit_check)
             {
                 if(near_check)
-                    near_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, cpu_result, hr_1, abs_error);
+                    near_check_general<RT, RT>(batch_count, 1, 1, cpu_result, hr_1, abs_error);
                 else
-                    unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, cpu_result, hr_1);
+                    unit_check_general<RT, RT>(1, batch_count, 1, cpu_result, hr_1);
             }
 
             if(arg.norm_check)
@@ -221,10 +211,9 @@ void testing_asum_batched(const Arguments& arg)
             if(arg.unit_check)
             {
                 if(near_check)
-                    near_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, cpu_result, hr_2, abs_error);
+                    near_check_general<RT, RT>(batch_count, 1, 1, cpu_result, hr_2, abs_error);
                 else
-                    unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, cpu_result, hr_2);
+                    unit_check_general<RT, RT>(1, batch_count, 1, cpu_result, hr_2);
             }
 
             if(arg.norm_check)

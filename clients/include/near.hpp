@@ -108,6 +108,13 @@ ROCBLAS_CLANG_STATIC constexpr double
                                   rocblas_double_complex,
                                   rocblas_double_complex> = 1 / 1000000.0;
 
+template <typename T>
+double sum_near_tolerance(int64_t n, real_t<T> sum)
+{
+    int64_t count = (n == 1 || n > 4) ? sqrt(n) : 2;
+    return sum_error_tolerance<T> * 2.0 * count * sum;
+}
+
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT)
 #define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)
