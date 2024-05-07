@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,72 +112,6 @@ struct RocblasContractionProblem
 
     size_t batch_count;
     bool   strided_batch;
-
-    // gemm
-    // gemm_strided_batched
-    RocblasContractionProblem(rocblas_handle     handle,
-                              rocblas_operation  trans_a,
-                              rocblas_operation  trans_b,
-                              rocblas_int        m,
-                              rocblas_int        n,
-                              rocblas_int        k,
-                              const Tc*          alpha,
-                              const TiA*         A,
-                              const TiA* const*  batch_A,
-                              rocblas_int        ld_a,
-                              rocblas_stride     batch_stride_a,
-                              rocblas_stride     offset_a,
-                              const TiB*         B,
-                              const TiB* const*  batch_B,
-                              rocblas_int        ld_b,
-                              rocblas_stride     batch_stride_b,
-                              rocblas_stride     offset_b,
-                              const Tc*          beta,
-                              To*                C,
-                              To* const*         batch_C,
-                              rocblas_int        ld_c,
-                              rocblas_stride     batch_stride_c,
-                              rocblas_stride     offset_c,
-                              rocblas_int        batch_count,
-                              bool               strided_batch,
-                              rocblas_gemm_flags flags)
-        : handle(handle)
-        , flags(flags)
-        , trans_a(trans_a)
-        , trans_b(trans_b)
-        , m(m)
-        , n(n)
-        , k(k)
-        , alpha(alpha)
-        , A(A)
-        , batch_A(batch_A)
-        , row_stride_a(1)
-        , col_stride_a(ld_a)
-        , batch_stride_a(batch_stride_a)
-        , buffer_offset_a(offset_a)
-        , B(B)
-        , batch_B(batch_B)
-        , row_stride_b(1)
-        , col_stride_b(ld_b)
-        , batch_stride_b(batch_stride_b)
-        , buffer_offset_b(offset_b)
-        , beta(beta)
-        , C(C)
-        , batch_C(batch_C)
-        , row_stride_c(1)
-        , col_stride_c(ld_c)
-        , batch_stride_c(batch_stride_c)
-        , buffer_offset_c(offset_c)
-        , D(C)
-        , batch_D(batch_C)
-        , row_stride_d(1)
-        , col_stride_d(ld_c)
-        , batch_stride_d(batch_stride_c)
-        , buffer_offset_d(offset_c)
-        , batch_count(batch_count)
-        , strided_batch(strided_batch)
-    {
-    }
 
     // gemm_ex
     // gemm_strided_batched_ex
