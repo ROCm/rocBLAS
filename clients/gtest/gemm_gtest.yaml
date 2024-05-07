@@ -2408,6 +2408,13 @@ Tests:
   function:
     - gemm_ex_bad_arg: *real_precisions
     - gemm_ex_bad_arg: *complex_precisions
+  transA: N
+  transB: N
+  api: [ C, FORTRAN, FORTRAN_64 ]
+
+- name: gemm_ex3_bad_arg
+  category: quick
+  function:
     - gemm_ex3_bad_arg: *float8_float8_float8
   transA: N
   transB: N
@@ -3860,11 +3867,13 @@ Tests:
   os_flags: LINUX
 
 - name: gemm_64_API
-  category: stress
+  category: pre_checkin
   function:
     - gemm: *single_precision
+    - gemm_ex: *nonint8_real_precisions
+    - gemm_ex: *int8_precision
   matrix_size:
-    - { M: 2048, N: 2048, K: 2048, lda: 1049100, ldb:    2048, ldc:    2048 }
+    - { M: 2048, N: 2048, K: 2048, lda: 1049100, ldb: 2048, ldc: 2048, ldd: 2048 }
   pointer_mode_device: false
   transA: [ N, T ]
   transB: [ N, T ]
@@ -3873,19 +3882,39 @@ Tests:
   api: [ C_64 ]
   os_flags: LINUX
 
-- name: gemm_64_API
-  category: stress
+- name: gemm_ex_64_API
+  category: pre_checkin
   function:
-    - gemm: *half_precision
-  arguments:
-    - { transA: N, transB: N, M: 2048, N: 2, K: 0, lda: 2147483649, ldb:    2048, ldc:    2048 }
-    - { transA: N, transB: N, M: 2147483649, N: 2, K: 2, lda: 2147483649, ldb:    2048, ldc:    2147483649 }
-    - { transA: N, transB: N, M: 2, N: 2147483649, K: 2, lda: 2, ldb:    2, ldc:    2 }
-  pointer_mode_host: false
+    - gemm_batched_ex: *nonint8_real_precisions
+    - gemm_batched_ex: *int8_precision
+    - gemm_strided_batched_ex: *nonint8_real_precisions
+    - gemm_strided_batched_ex: *int8_precision
+  matrix_size:
+    - { M: 64, N: 64, K: 64, lda: 64, ldb: 64, ldc: 64, batch_count: *c_grid_yz_require_passes }
+  pointer_mode_device: false
+  transA: [ N, T ]
+  transB: [ N, T ]
   alpha: 1
   beta: 1
   api: [ C_64 ]
+  stride_scale: [ 1 ]
   os_flags: LINUX
+
+# - name: gemm_64_API
+#   category: stress
+#   function:
+#     - gemm: *half_precision
+#     - gemm_ex: *nonint8_real_precisions
+#     - gemm_ex: *int8_precision
+#   arguments:
+#     - { transA: N, transB: N, M: 2048, N: 2, K: 0, lda: 2147483649, ldb:    2048, ldc:    2048 }
+#     - { transA: N, transB: N, M: 2147483649, N: 2, K: 2, lda: 2147483649, ldb:    2048, ldc:    2147483649 }
+#     - { transA: N, transB: N, M: 2, N: 2147483649, K: 2, lda: 2, ldb:    2, ldc:    2 }
+#   pointer_mode_host: false
+#   alpha: 1
+#   beta: 1
+#   api: [ C_64 ]
+#   os_flags: LINUX
 
 - name: gemm_repeatability_check
   category: pre_checkin

@@ -23221,6 +23221,44 @@ module rocblas
         end function rocblas_gemm_ex
     end interface
 
+    interface
+        function rocblas_gemm_ex_64(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
+                                 b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                 compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_ex_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_ex_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_operation_none)), value :: transB
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: a
+            integer(kind(rocblas_datatype_f16_r)), value :: a_type
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: b
+            integer(kind(rocblas_datatype_f16_r)), value :: b_type
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: c
+            integer(kind(rocblas_datatype_f16_r)), value :: c_type
+            integer(c_int64_t), value :: ldc
+            type(c_ptr), value :: d
+            integer(kind(rocblas_datatype_f16_r)), value :: d_type
+            integer(c_int64_t), value :: ldd
+            integer(kind(rocblas_datatype_f16_r)), value :: compute_type
+            integer(kind(rocblas_gemm_algo_standard)), value :: algo
+            integer(c_int32_t), value :: solution_index
+            ! No unsigned types in fortran. If larger values are needed
+            ! we will need a workaround.
+            integer(c_int32_t), value :: flags
+        end function rocblas_gemm_ex_64
+    end interface
+
     ! gemm_ex3
     interface
         function rocblas_gemm_ex3(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
@@ -23297,6 +23335,45 @@ module rocblas
             ! we will need a workaround.
             integer(c_int32_t), value :: flags
         end function rocblas_gemm_batched_ex
+    end interface
+
+    interface
+        function rocblas_gemm_batched_ex_64(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
+                                         b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                         batch_count, compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_batched_ex_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_batched_ex_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_operation_none)), value :: transB
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: a
+            integer(kind(rocblas_datatype_f16_r)), value :: a_type
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: b
+            integer(kind(rocblas_datatype_f16_r)), value :: b_type
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: c
+            integer(kind(rocblas_datatype_f16_r)), value :: c_type
+            integer(c_int64_t), value :: ldc
+            type(c_ptr), value :: d
+            integer(kind(rocblas_datatype_f16_r)), value :: d_type
+            integer(c_int64_t), value :: ldd
+            integer(c_int64_t), value :: batch_count
+            integer(kind(rocblas_datatype_f16_r)), value :: compute_type
+            integer(kind(rocblas_gemm_algo_standard)), value :: algo
+            integer(c_int32_t), value :: solution_index
+            ! No unsigned types in fortran. If larger values are needed
+            ! we will need a workaround.
+            integer(c_int32_t), value :: flags
+        end function rocblas_gemm_batched_ex_64
     end interface
 
     interface
@@ -23379,6 +23456,49 @@ module rocblas
             ! we will need a workaround.
             integer(c_int32_t), value :: flags
         end function rocblas_gemm_strided_batched_ex
+    end interface
+
+    interface
+        function rocblas_gemm_strided_batched_ex_64(handle, transA, transB, m, n, k, alpha, a, a_type, lda, stride_a, &
+                                                 b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, &
+                                                 ldd, stride_d, batch_count, compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_strided_batched_ex_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_strided_batched_ex_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_operation_none)), value :: transB
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: a
+            integer(kind(rocblas_datatype_f16_r)), value :: a_type
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_a
+            type(c_ptr), value :: b
+            integer(kind(rocblas_datatype_f16_r)), value :: b_type
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_b
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: c
+            integer(kind(rocblas_datatype_f16_r)), value :: c_type
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_c
+            type(c_ptr), value :: d
+            integer(kind(rocblas_datatype_f16_r)), value :: d_type
+            integer(c_int64_t), value :: ldd
+            integer(c_int64_t), value :: stride_d
+            integer(c_int64_t), value :: batch_count
+            integer(kind(rocblas_datatype_f16_r)), value :: compute_type
+            integer(kind(rocblas_gemm_algo_standard)), value :: algo
+            integer(c_int32_t), value :: solution_index
+            ! No unsigned types in fortran. If larger values are needed
+            ! we will need a workaround.
+            integer(c_int32_t), value :: flags
+        end function rocblas_gemm_strided_batched_ex_64
     end interface
 
     interface

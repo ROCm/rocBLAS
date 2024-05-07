@@ -20758,6 +20758,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                               rocblas_gemm_algo algo,
                                               int32_t           solution_index,
                                               uint32_t          flags);
+
+// 64-bit interface
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_64(rocblas_handle    handle,
+                                                 rocblas_operation transA,
+                                                 rocblas_operation transB,
+                                                 int64_t           m,
+                                                 int64_t           n,
+                                                 int64_t           k,
+                                                 const void*       alpha,
+                                                 const void*       a,
+                                                 rocblas_datatype  a_type,
+                                                 int64_t           lda,
+                                                 const void*       b,
+                                                 rocblas_datatype  b_type,
+                                                 int64_t           ldb,
+                                                 const void*       beta,
+                                                 const void*       c,
+                                                 rocblas_datatype  c_type,
+                                                 int64_t           ldc,
+                                                 void*             d,
+                                                 rocblas_datatype  d_type,
+                                                 int64_t           ldd,
+                                                 rocblas_datatype  compute_type,
+                                                 rocblas_gemm_algo algo,
+                                                 int32_t           solution_index,
+                                                 uint32_t          flags);
 //! @}
 
 /*! For backward compatiblity, unused workspace_size and workspace arguments are ignored */
@@ -20954,6 +20980,33 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
                                                       rocblas_gemm_algo algo,
                                                       int32_t           solution_index,
                                                       uint32_t          flags);
+
+// 64-bit interface
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_64(rocblas_handle    handle,
+                                                         rocblas_operation transA,
+                                                         rocblas_operation transB,
+                                                         int64_t           m,
+                                                         int64_t           n,
+                                                         int64_t           k,
+                                                         const void*       alpha,
+                                                         const void*       a,
+                                                         rocblas_datatype  a_type,
+                                                         int64_t           lda,
+                                                         const void*       b,
+                                                         rocblas_datatype  b_type,
+                                                         int64_t           ldb,
+                                                         const void*       beta,
+                                                         const void*       c,
+                                                         rocblas_datatype  c_type,
+                                                         int64_t           ldc,
+                                                         void*             d,
+                                                         rocblas_datatype  d_type,
+                                                         int64_t           ldd,
+                                                         int64_t           batch_count,
+                                                         rocblas_datatype  compute_type,
+                                                         rocblas_gemm_algo algo,
+                                                         int32_t           solution_index,
+                                                         uint32_t          flags);
 //! @}
 
 /*! @{
@@ -21117,6 +21170,37 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                                               rocblas_gemm_algo algo,
                                                               int32_t           solution_index,
                                                               uint32_t          flags);
+
+// 64-bit interface
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex_64(rocblas_handle    handle,
+                                                                 rocblas_operation transA,
+                                                                 rocblas_operation transB,
+                                                                 int64_t           m,
+                                                                 int64_t           n,
+                                                                 int64_t           k,
+                                                                 const void*       alpha,
+                                                                 const void*       a,
+                                                                 rocblas_datatype  a_type,
+                                                                 int64_t           lda,
+                                                                 rocblas_stride    stride_a,
+                                                                 const void*       b,
+                                                                 rocblas_datatype  b_type,
+                                                                 int64_t           ldb,
+                                                                 rocblas_stride    stride_b,
+                                                                 const void*       beta,
+                                                                 const void*       c,
+                                                                 rocblas_datatype  c_type,
+                                                                 int64_t           ldc,
+                                                                 rocblas_stride    stride_c,
+                                                                 void*             d,
+                                                                 rocblas_datatype  d_type,
+                                                                 int64_t           ldd,
+                                                                 rocblas_stride    stride_d,
+                                                                 int64_t           batch_count,
+                                                                 rocblas_datatype  compute_type,
+                                                                 rocblas_gemm_algo algo,
+                                                                 int32_t           solution_index,
+                                                                 uint32_t          flags);
 //! @}
 
 /*! For backward compatiblity, unused workspace_size and workspace arguments are ignored */
