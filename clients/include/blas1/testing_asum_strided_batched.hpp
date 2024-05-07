@@ -22,18 +22,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_asum_strided_batched_bad_arg(const Arguments& arg)
@@ -54,7 +43,10 @@ void testing_asum_strided_batched_bad_arg(const Arguments& arg)
         int64_t        incx        = 1;
         rocblas_stride stridex     = N;
         int64_t        batch_count = 2;
-        real_t<T>      h_rocblas_result[1];
+
+        using RT = real_t<T>;
+
+        RT h_rocblas_result[1];
 
         // Allocate device memory
         device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
@@ -90,6 +82,8 @@ void testing_asum_strided_batched(const Arguments& arg)
     rocblas_stride stridex     = arg.stride_x;
     int64_t        batch_count = arg.batch_count;
 
+    using RT = real_t<T>;
+
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -98,14 +92,14 @@ void testing_asum_strided_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<real_t<T>> hr_1(std::max(int64_t(1), std::abs(batch_count)));
-        host_vector<real_t<T>> hr_2(std::max(int64_t(1), std::abs(batch_count)));
-        host_vector<real_t<T>> result_0(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> hr_1(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> hr_2(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> result_0(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_HIP_ERROR(hr_1.memcheck());
         CHECK_HIP_ERROR(hr_2.memcheck());
         CHECK_HIP_ERROR(result_0.memcheck());
 
-        device_vector<real_t<T>> dr(std::max(int64_t(1), std::abs(batch_count)));
+        device_vector<RT> dr(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -120,8 +114,8 @@ void testing_asum_strided_batched(const Arguments& arg)
 
         if(batch_count > 0)
         {
-            unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, result_0, hr_1);
-            unit_check_general<real_t<T>, real_t<T>>(1, batch_count, 1, result_0, hr_2);
+            unit_check_general<RT, RT>(1, batch_count, 1, result_0, hr_1);
+            unit_check_general<RT, RT>(1, batch_count, 1, result_0, hr_2);
         }
 
         return;
@@ -130,16 +124,16 @@ void testing_asum_strided_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
     host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
-    host_vector<real_t<T>>       hr_1(batch_count);
-    host_vector<real_t<T>>       hr_2(batch_count);
-    host_vector<real_t<T>>       hr_gold(batch_count);
+    host_vector<RT>              hr_1(batch_count);
+    host_vector<RT>              hr_2(batch_count);
+    host_vector<RT>              hr_gold(batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Allocate device memory
     device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-    device_vector<real_t<T>>       dr(batch_count);
+    device_vector<RT>              dr(batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -172,14 +166,14 @@ void testing_asum_strided_batched(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<real_t<T>> hr_copy(batch_count);
+                host_vector<RT> hr_copy(batch_count);
                 CHECK_HIP_ERROR(hr_2.transfer_from(dr));
                 for(int i = 0; i < arg.iters; i++)
                 {
                     DAPI_CHECK(rocblas_asum_strided_batched_fn,
                                (handle, N, dx, incx, stridex, batch_count, dr));
                     CHECK_HIP_ERROR(hr_copy.transfer_from(dr));
-                    unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_2, hr_copy);
+                    unit_check_general<RT, RT>(batch_count, 1, 1, hr_2, hr_copy);
                 }
                 return;
             }
@@ -193,9 +187,7 @@ void testing_asum_strided_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        double abs_error = std::numeric_limits<real_t<T>>::epsilon() * sqrt(N) * hr_gold[0];
-        double tolerance = 2.0;
-        abs_error *= tolerance;
+        double abs_error = sum_near_tolerance<T>(N, hr_gold[0]);
 
         // Near check for asum ILP64 bit
         bool near_check = arg.initialization == rocblas_initialization::hpl;
@@ -205,10 +197,9 @@ void testing_asum_strided_batched(const Arguments& arg)
             if(arg.unit_check)
             {
                 if(near_check)
-                    near_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, hr_gold, hr_1, abs_error);
+                    near_check_general<RT, RT>(batch_count, 1, 1, hr_gold, hr_1, abs_error);
                 else
-                    unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_gold, hr_1);
+                    unit_check_general<RT, RT>(batch_count, 1, 1, hr_gold, hr_1);
             }
 
             if(arg.norm_check)
@@ -224,10 +215,9 @@ void testing_asum_strided_batched(const Arguments& arg)
             if(arg.unit_check)
             {
                 if(near_check)
-                    near_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, hr_gold, hr_2, abs_error);
+                    near_check_general<RT, RT>(batch_count, 1, 1, hr_gold, hr_2, abs_error);
                 else
-                    unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_gold, hr_2);
+                    unit_check_general<RT, RT>(batch_count, 1, 1, hr_gold, hr_2);
             }
 
             if(arg.norm_check)
