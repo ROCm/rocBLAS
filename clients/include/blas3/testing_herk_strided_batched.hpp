@@ -22,21 +22,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_herk_strided_batched_bad_arg(const Arguments& arg)
@@ -44,6 +30,9 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
     auto rocblas_herk_strided_batched_fn = arg.api == FORTRAN
                                                ? rocblas_herk_strided_batched<T, real_t<T>, true>
                                                : rocblas_herk_strided_batched<T, real_t<T>, false>;
+    auto rocblas_herk_strided_batched_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_herk_strided_batched<T, real_t<T>, true>
+                                : rocblas_herk_strided_batched<T, real_t<T>, false>; // TODO
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -52,13 +41,13 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
 
         const rocblas_fill      uplo        = rocblas_fill_upper;
         const rocblas_operation transA      = rocblas_operation_none;
-        const rocblas_int       N           = 100;
-        const rocblas_int       K           = 99;
-        const rocblas_int       lda         = 100;
-        const rocblas_int       ldc         = 100;
+        const int64_t           N           = 100;
+        const int64_t           K           = 99;
+        const int64_t           lda         = 100;
+        const int64_t           ldc         = 100;
         rocblas_stride          strideA     = 1;
         rocblas_stride          strideC     = 1;
-        rocblas_int             batch_count = 2;
+        int64_t                 batch_count = 2;
 
         using U = real_t<T>;
 
@@ -85,8 +74,8 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
             one = one_d;
         }
 
-        size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-        size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+        size_t cols = (transA == rocblas_operation_none ? std::max(K, int64_t(1)) : N);
+        size_t rows = (transA != rocblas_operation_none ? std::max(K, int64_t(1)) : N);
 
         // Allocate device memory
         device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
@@ -96,241 +85,250 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(nullptr,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                beta,
-                                                                dC,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_herk_strided_batched_fn,
+                    (nullptr,
+                     uplo,
+                     transA,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
         // values
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                rocblas_fill_full,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                beta,
-                                                                dC,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     rocblas_fill_full,
+                     transA,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS(
-            (rocblas_herk_strided_batched_fn)(handle,
-                                              uplo,
-                                              (rocblas_operation)rocblas_fill_full,
-                                              N,
-                                              K,
-                                              alpha,
-                                              dA,
-                                              lda,
-                                              strideA,
-                                              beta,
-                                              dC,
-                                              ldc,
-                                              strideC,
-                                              batch_count),
-            rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     (rocblas_operation)rocblas_fill_full,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                rocblas_operation_transpose,
-                                                                N,
-                                                                K,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                beta,
-                                                                dC,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_value);
+        DAPI_EXPECT(rocblas_status_invalid_value,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     rocblas_operation_transpose,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
         // size
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                alpha,
-                                                                dA,
-                                                                lda - 1,
-                                                                strideA,
-                                                                beta,
-                                                                dC,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     transA,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda - 1,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                beta,
-                                                                dC,
-                                                                ldc - 1,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_size);
+        DAPI_EXPECT(rocblas_status_invalid_size,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     transA,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc - 1,
+                     strideC,
+                     batch_count));
 
         // alpha/beta
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                nullptr,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                beta,
-                                                                dC,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     transA,
+                     N,
+                     K,
+                     nullptr,
+                     dA,
+                     lda,
+                     strideA,
+                     beta,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                alpha,
-                                                                dA,
-                                                                lda,
-                                                                strideA,
-                                                                nullptr,
-                                                                dC,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     transA,
+                     N,
+                     K,
+                     alpha,
+                     dA,
+                     lda,
+                     strideA,
+                     nullptr,
+                     dC,
+                     ldc,
+                     strideC,
+                     batch_count));
 
         // invalid pointers
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                    uplo,
-                                                                    transA,
-                                                                    N,
-                                                                    K,
-                                                                    alpha,
-                                                                    nullptr,
-                                                                    lda,
-                                                                    strideA,
-                                                                    beta,
-                                                                    dC,
-                                                                    ldc,
-                                                                    strideC,
-                                                                    batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_herk_strided_batched_fn,
+                        (handle,
+                         uplo,
+                         transA,
+                         N,
+                         K,
+                         alpha,
+                         nullptr,
+                         lda,
+                         strideA,
+                         beta,
+                         dC,
+                         ldc,
+                         strideC,
+                         batch_count));
 
-            EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                    uplo,
-                                                                    transA,
-                                                                    N,
-                                                                    K,
-                                                                    alpha,
-                                                                    dA,
-                                                                    lda,
-                                                                    strideA,
-                                                                    beta,
-                                                                    nullptr,
-                                                                    ldc,
-                                                                    strideC,
-                                                                    batch_count),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_herk_strided_batched_fn,
+                        (handle,
+                         uplo,
+                         transA,
+                         N,
+                         K,
+                         alpha,
+                         dA,
+                         lda,
+                         strideA,
+                         beta,
+                         nullptr,
+                         ldc,
+                         strideC,
+                         batch_count));
         }
 
         // batch_count==0 quick return for no ops with null pointers
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                nullptr,
-                                                                nullptr,
-                                                                lda,
-                                                                strideA,
-                                                                nullptr,
-                                                                nullptr,
-                                                                ldc,
-                                                                strideC,
-                                                                0),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                   (handle,
+                    uplo,
+                    transA,
+                    N,
+                    K,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    strideA,
+                    nullptr,
+                    nullptr,
+                    ldc,
+                    strideC,
+                    0));
 
         // N==0 quick return for no ops with null pointers
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                0,
-                                                                K,
-                                                                nullptr,
-                                                                nullptr,
-                                                                lda,
-                                                                strideA,
-                                                                nullptr,
-                                                                nullptr,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                   (handle,
+                    uplo,
+                    transA,
+                    0,
+                    K,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    strideA,
+                    nullptr,
+                    nullptr,
+                    ldc,
+                    strideC,
+                    batch_count));
 
         // k==0 and beta==1 quick return with null pointers
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                0,
-                                                                nullptr,
-                                                                nullptr,
-                                                                lda,
-                                                                strideA,
-                                                                one,
-                                                                nullptr,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                   (handle,
+                    uplo,
+                    transA,
+                    N,
+                    0,
+                    nullptr,
+                    nullptr,
+                    lda,
+                    strideA,
+                    one,
+                    nullptr,
+                    ldc,
+                    strideC,
+                    batch_count));
 
         // alpha==0 and beta==1 quick return with null pointers
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                zero,
-                                                                nullptr,
-                                                                lda,
-                                                                strideA,
-                                                                one,
-                                                                nullptr,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              rocblas_status_success);
+        DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                   (handle,
+                    uplo,
+                    transA,
+                    N,
+                    K,
+                    zero,
+                    nullptr,
+                    lda,
+                    strideA,
+                    one,
+                    nullptr,
+                    ldc,
+                    strideC,
+                    batch_count));
     }
 }
 
@@ -340,22 +338,25 @@ void testing_herk_strided_batched(const Arguments& arg)
     auto rocblas_herk_strided_batched_fn = arg.api == FORTRAN
                                                ? rocblas_herk_strided_batched<T, real_t<T>, true>
                                                : rocblas_herk_strided_batched<T, real_t<T>, false>;
+    auto rocblas_herk_strided_batched_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_herk_strided_batched<T, real_t<T>, true>
+                                : rocblas_herk_strided_batched<T, real_t<T>, false>; // TODO
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
-    rocblas_int          N      = arg.N;
-    rocblas_int          K      = arg.K;
-    rocblas_int          lda    = arg.lda;
-    rocblas_int          ldc    = arg.ldc;
+    int64_t              N      = arg.N;
+    int64_t              K      = arg.K;
+    int64_t              lda    = arg.lda;
+    int64_t              ldc    = arg.ldc;
     using U                     = real_t<T>;
     U              alpha        = arg.get_alpha<U>();
     U              beta         = arg.get_beta<U>();
     rocblas_stride strideA      = arg.stride_a;
     rocblas_stride strideC      = arg.stride_c;
-    rocblas_int    batch_count  = arg.batch_count;
+    int64_t        batch_count  = arg.batch_count;
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
     double error_host   = 0.0;
     double error_device = 0.0;
 
@@ -365,27 +366,28 @@ void testing_herk_strided_batched(const Arguments& arg)
     if(N == 0 || batch_count == 0 || invalid_size)
     {
         // ensure invalid sizes checked before pointer check
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
-                                                                uplo,
-                                                                transA,
-                                                                N,
-                                                                K,
-                                                                nullptr,
-                                                                nullptr,
-                                                                lda,
-                                                                strideA,
-                                                                nullptr,
-                                                                nullptr,
-                                                                ldc,
-                                                                strideC,
-                                                                batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        DAPI_EXPECT(invalid_size ? rocblas_status_invalid_size : rocblas_status_success,
+                    rocblas_herk_strided_batched_fn,
+                    (handle,
+                     uplo,
+                     transA,
+                     N,
+                     K,
+                     nullptr,
+                     nullptr,
+                     lda,
+                     strideA,
+                     nullptr,
+                     nullptr,
+                     ldc,
+                     strideC,
+                     batch_count));
 
         return;
     }
 
-    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-    size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+    size_t cols = (transA == rocblas_operation_none ? std::max(K, int64_t(1)) : N);
+    size_t rows = (transA != rocblas_operation_none ? std::max(K, int64_t(1)) : N);
 
     strideA = std::max(strideA, rocblas_stride(size_t(lda) * cols));
     strideC = std::max(strideC, rocblas_stride(size_t(ldc) * N));
@@ -439,20 +441,21 @@ void testing_herk_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dC.transfer_from(hC));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched_fn)(handle,
-                                                                  uplo,
-                                                                  transA,
-                                                                  N,
-                                                                  K,
-                                                                  &h_alpha[0],
-                                                                  dA,
-                                                                  lda,
-                                                                  strideA,
-                                                                  &h_beta[0],
-                                                                  dC,
-                                                                  ldc,
-                                                                  strideC,
-                                                                  batch_count));
+            DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                       (handle,
+                        uplo,
+                        transA,
+                        N,
+                        K,
+                        &h_alpha[0],
+                        dA,
+                        lda,
+                        strideA,
+                        &h_beta[0],
+                        dC,
+                        ldc,
+                        strideC,
+                        batch_count));
             handle.post_test(arg);
             // copy output from device to CPU
             CHECK_HIP_ERROR(hC.transfer_from(dC));
@@ -466,20 +469,21 @@ void testing_herk_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
             CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-            CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched_fn)(handle,
-                                                                  uplo,
-                                                                  transA,
-                                                                  N,
-                                                                  K,
-                                                                  d_alpha,
-                                                                  dA,
-                                                                  lda,
-                                                                  strideA,
-                                                                  d_beta,
-                                                                  dC,
-                                                                  ldc,
-                                                                  strideC,
-                                                                  batch_count));
+            DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                       (handle,
+                        uplo,
+                        transA,
+                        N,
+                        K,
+                        d_alpha,
+                        dA,
+                        lda,
+                        strideA,
+                        d_beta,
+                        dC,
+                        ldc,
+                        strideC,
+                        batch_count));
             if(arg.repeatability_check)
             {
                 host_strided_batch_matrix<T> hC_copy(N, N, ldc, strideC, batch_count);
@@ -489,20 +493,21 @@ void testing_herk_strided_batched(const Arguments& arg)
                 for(int i = 0; i < arg.iters; i++)
                 {
                     CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
-                    CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched_fn)(handle,
-                                                                          uplo,
-                                                                          transA,
-                                                                          N,
-                                                                          K,
-                                                                          d_alpha,
-                                                                          dA,
-                                                                          lda,
-                                                                          strideA,
-                                                                          d_beta,
-                                                                          dC,
-                                                                          ldc,
-                                                                          strideC,
-                                                                          batch_count));
+                    DAPI_CHECK(rocblas_herk_strided_batched_fn,
+                               (handle,
+                                uplo,
+                                transA,
+                                N,
+                                K,
+                                d_alpha,
+                                dA,
+                                lda,
+                                strideA,
+                                d_beta,
+                                dC,
+                                ldc,
+                                strideC,
+                                batch_count));
                     CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
                     unit_check_general<T>(N, N, ldc, strideC, hC, hC_copy, batch_count);
                 }
@@ -521,8 +526,7 @@ void testing_herk_strided_batched(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.pointer_mode_host)
-        {
+        auto compare_hC_to_gold = [&] {
             if(arg.unit_check)
             {
                 if(std::is_same_v<
@@ -538,38 +542,25 @@ void testing_herk_strided_batched(const Arguments& arg)
                 }
             }
 
+            double error = 0;
             if(arg.norm_check)
             {
-                error_host = std::abs(
+                error = std::abs(
                     norm_check_general<T>('F', N, N, ldc, strideC, hC_gold, hC, batch_count));
             }
+            return error;
+        };
+
+        if(arg.pointer_mode_host)
+        {
+            error_host = compare_hC_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
             // copy output from device to CPU
             CHECK_HIP_ERROR(hC.transfer_from(dC));
-
-            if(arg.unit_check)
-            {
-                if(std::is_same_v<
-                       T,
-                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
-                {
-                    const double tol = K * sum_error_tolerance<T>;
-                    near_check_general<T>(N, N, ldc, strideC, hC_gold, hC, batch_count, tol);
-                }
-                else
-                {
-                    unit_check_general<T>(N, N, ldc, strideC, hC_gold, hC, batch_count);
-                }
-            }
-
-            if(arg.norm_check)
-            {
-                error_device = std::abs(
-                    norm_check_general<T>('F', N, N, ldc, strideC, hC_gold, hC, batch_count));
-            }
+            error_device = compare_hC_to_gold();
         }
     }
     else
@@ -579,48 +570,35 @@ void testing_herk_strided_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        for(int i = 0; i < number_cold_calls; i++)
-        {
-            rocblas_herk_strided_batched_fn(handle,
-                                            uplo,
-                                            transA,
-                                            N,
-                                            K,
-                                            h_alpha,
-                                            dA,
-                                            lda,
-                                            strideA,
-                                            h_beta,
-                                            dC,
-                                            ldc,
-                                            strideC,
-                                            batch_count);
-        }
-
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-        for(int i = 0; i < number_hot_calls; i++)
+
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_herk_strided_batched_fn(handle,
-                                            uplo,
-                                            transA,
-                                            N,
-                                            K,
-                                            h_alpha,
-                                            dA,
-                                            lda,
-                                            strideA,
-                                            h_beta,
-                                            dC,
-                                            ldc,
-                                            strideC,
-                                            batch_count);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_herk_strided_batched_fn,
+                          (handle,
+                           uplo,
+                           transA,
+                           N,
+                           K,
+                           h_alpha,
+                           dA,
+                           lda,
+                           strideA,
+                           h_beta,
+                           dC,
+                           ldc,
+                           strideC,
+                           batch_count));
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
