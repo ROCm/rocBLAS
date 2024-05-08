@@ -433,9 +433,9 @@ set( rocblas64_blas3_source
 #     src64/blas3/rocblas_hemm.cpp
 #     src64/blas3/rocblas_hemm_batched.cpp
 #     src64/blas3/rocblas_hemm_strided_batched.cpp
-#     src64/blas3/rocblas_herk.cpp
-#     src64/blas3/rocblas_herk_batched.cpp
-#     src64/blas3/rocblas_herk_strided_batched.cpp
+    src64/blas3/rocblas_herk_64.cpp
+    src64/blas3/rocblas_herk_batched_64.cpp
+    src64/blas3/rocblas_herk_strided_batched_64.cpp
 #     src64/blas3/rocblas_her2k.cpp
 #     src64/blas3/rocblas_her2k_batched.cpp
 #     src64/blas3/rocblas_her2k_strided_batched.cpp
