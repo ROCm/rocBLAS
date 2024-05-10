@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -754,6 +754,38 @@ struct rocblas_real_t_impl<std::complex<T>>
 
 template <typename T>
 using real_t = typename rocblas_real_t_impl<T>::type;
+
+// Batched datatype
+template <typename T, bool BATCHED, typename = void>
+struct rocblas_batched_t_impl
+{
+    using type = T*;
+};
+
+template <typename T>
+struct rocblas_batched_t_impl<T, true>
+{
+    using type = T* const*;
+};
+
+template <typename T, bool BATCHED>
+using rocblas_batched_t = typename rocblas_batched_t_impl<T, BATCHED>::type;
+
+// Const Batched datatype
+template <typename T, bool BATCHED, typename = void>
+struct rocblas_const_batched_t_impl
+{
+    using type = const T*;
+};
+
+template <typename T>
+struct rocblas_const_batched_t_impl<T, true>
+{
+    using type = const T* const*;
+};
+
+template <typename T, bool BATCHED>
+using rocblas_const_batched_t = typename rocblas_const_batched_t_impl<T, BATCHED>::type;
 
 // Get array2 types from base type
 template <typename T, typename = void>
