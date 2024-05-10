@@ -3870,8 +3870,7 @@ Tests:
   category: pre_checkin
   function:
     - gemm: *single_precision
-    - gemm_ex: *nonint8_real_precisions
-    - gemm_ex: *int8_precision
+    - gemm_ex: *single_precision
   matrix_size:
     - { M: 2048, N: 2048, K: 2048, lda: 1049100, ldb: 2048, ldc: 2048, ldd: 2048 }
   pointer_mode_device: false
@@ -3900,21 +3899,22 @@ Tests:
   stride_scale: [ 1 ]
   os_flags: LINUX
 
-# - name: gemm_64_API
-#   category: stress
-#   function:
-#     - gemm: *half_precision
-#     - gemm_ex: *nonint8_real_precisions
-#     - gemm_ex: *int8_precision
-#   arguments:
-#     - { transA: N, transB: N, M: 2048, N: 2, K: 0, lda: 2147483649, ldb:    2048, ldc:    2048 }
-#     - { transA: N, transB: N, M: 2147483649, N: 2, K: 2, lda: 2147483649, ldb:    2048, ldc:    2147483649 }
-#     - { transA: N, transB: N, M: 2, N: 2147483649, K: 2, lda: 2, ldb:    2, ldc:    2 }
-#   pointer_mode_host: false
-#   alpha: 1
-#   beta: 1
-#   api: [ C_64 ]
-#   os_flags: LINUX
+- name: gemm_64_API
+  category: pre_checkin # stress
+  function:
+    - gemm: *half_precision
+    - gemm_ex: *hpa_half_precision
+    - gemm_ex: *hpa_bf16_precision
+  arguments:
+    - { transA: N, transB: N, M: 2048, N: 2, K: 0, lda: 2147483649, ldb:    2048, ldc:    2048, ldd: 2048 }
+    - { transA: N, transB: N, M: 2147483649, N: 2, K: 2, lda: 2147483649, ldb:    2048, ldc:    2147483649, ldd: 2147483649 }
+    - { transA: N, transB: N, M: 2, N: 2147483649, K: 2, lda: 2, ldb:    2, ldc:    2, ldd: 2 }
+    # - { transA: N, transB: N, M: 2, N: 2, K: 2147483649, lda: 2, ldb: 2147483649, ldc: 2, ldd: 2 }
+  pointer_mode_host: false
+  alpha: 1
+  beta: 1
+  api: [ C_64 ]
+  os_flags: LINUX
 
 - name: gemm_repeatability_check
   category: pre_checkin

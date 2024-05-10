@@ -70,17 +70,17 @@ rocblas_gemm_ex + batched, strided_batched
 
 .. doxygenfunction:: rocblas_gemm_ex
 
-gemm_ex functions support the _64 interface.  However, no arguments larger than int32_t max value are currently supported.
+gemm_ex functions support the _64 interface.  However, no arguments larger than (int32_t max value * 16) are currently supported.
 Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_gemm_batched_ex
 
-gemm_batched_ex functions support the _64 interface.  Only the parameter `batch_count` larger than int32_t max value is currently supported.
+gemm_batched_ex functions support the _64 interface.  Only the parameter `batch_count` larger than (int32_t max value * 16) is currently supported.
 Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex
 
-gemm_strided_batched_ex functions support the _64 interface.  Only the parameter `batch_count` larger than int32_t max value is currently supported.
+gemm_strided_batched_ex functions support the _64 interface.  Only the parameter `batch_count` larger than (int32_t max value * 16) is currently supported.
 Refer to section :ref:`ILP64 API`.
 
 rocblas_trsm_ex + batched, strided_batched

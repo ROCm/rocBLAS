@@ -25,7 +25,192 @@
 
 #include "rocblas_gemm_ex_64.hpp"
 
+#include "blas3/rocblas_gemm_source.hpp"
 #include "blas_ex/rocblas_gemm_ex.hpp" // int32 API called
+
+template <bool BATCHED, typename Ti, typename To = Ti, typename TScal = To>
+rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle,
+                                                       rocblas_operation  trans_a,
+                                                       rocblas_operation  trans_b,
+                                                       int64_t            m_64,
+                                                       int64_t            n_64,
+                                                       int64_t            k_64,
+                                                       const void*        alpha,
+                                                       const void*        a,
+                                                       rocblas_stride     offsetAin,
+                                                       int64_t            lda_64,
+                                                       rocblas_stride     stride_a,
+                                                       const void*        b,
+                                                       rocblas_stride     offsetBin,
+                                                       int64_t            ldb_64,
+                                                       rocblas_stride     stride_b,
+                                                       const void*        beta,
+                                                       const void*        c,
+                                                       rocblas_stride     offsetCin,
+                                                       int64_t            ldc_64,
+                                                       rocblas_stride     stride_c,
+                                                       void*              d,
+                                                       rocblas_stride     offsetDin,
+                                                       int64_t            ldd_64,
+                                                       rocblas_stride     stride_d,
+                                                       int64_t            batch_count_64,
+                                                       rocblas_gemm_algo  algo,
+                                                       int32_t            solution_index,
+                                                       rocblas_gemm_flags flags)
+{
+    using Ta = rocblas_const_batched_t<Ti, BATCHED>;
+    using Tb = Ta;
+    using Tc = rocblas_const_batched_t<To, BATCHED>;
+    using Td = rocblas_batched_t<To, BATCHED>;
+
+    TScal alpha_h, beta_h;
+    RETURN_IF_ROCBLAS_ERROR(
+        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k_64));
+
+    auto           check_numerics = handle->check_numerics;
+    rocblas_status status         = rocblas_status_success;
+
+    // check alignment of pointers before casting
+    if(!isAligned(a, sizeof(Ta)) || !isAligned(b, sizeof(Tb)) || !isAligned(c, sizeof(Tc))
+       || !isAligned(d, sizeof(Td)))
+        return rocblas_status_invalid_size;
+
+    auto rocblas_gemm_ex_name
+        = BATCHED ? "rocblas_gemm_batched_ex_64"
+                  : (stride_a ? "rocblas_gemm_strided_batched_ex_64" : "rocblas_gemm_ex_64");
+
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    if(check_numerics && !std::is_same_v<Ti, signed char>)
+    {
+        bool           is_input = true;
+        rocblas_status gemm_ex_check_numerics_status
+            = rocblas_gemm_check_numerics(rocblas_gemm_ex_name,
+                                          handle,
+                                          trans_a,
+                                          trans_b,
+                                          m_64,
+                                          n_64,
+                                          k_64,
+                                          (Ta)a,
+                                          offsetAin,
+                                          lda_64,
+                                          stride_a,
+                                          (Tb)b,
+                                          offsetBin,
+                                          ldb_64,
+                                          stride_b,
+                                          (Tc)c,
+                                          offsetCin,
+                                          ldc_64,
+                                          stride_c,
+                                          batch_count_64,
+                                          check_numerics,
+                                          is_input);
+        if(gemm_ex_check_numerics_status != rocblas_status_success)
+            return gemm_ex_check_numerics_status;
+    }
+
+    for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
+    {
+        rocblas_stride offsetA = offsetAin;
+        rocblas_stride offsetB = offsetBin;
+        rocblas_stride offsetC = offsetCin;
+        rocblas_stride offsetD = offsetDin;
+        auto           Aptr    = a;
+        auto           Bptr    = b;
+        auto           Cptr    = c;
+        auto           Dptr    = d;
+
+        int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
+
+        constexpr int64_t limit = c_i32_max * 16; // source kernels must have m and n blocks >= 16
+        bool              source_dims_supported = m_64 <= limit && n_64 <= limit;
+
+        auto APtr = adjust_ptr_batch((Ta)a, b_base, stride_a);
+        auto BPtr = adjust_ptr_batch((Tb)b, b_base, stride_b);
+        auto CPtr = adjust_ptr_batch((Tc)c, b_base, stride_c);
+        auto DPtr = adjust_ptr_batch((Td)d, b_base, stride_d);
+
+        if(k_64 == 0 || (alpha && *(TScal*)alpha == 0))
+        {
+            status = rocblas_gemm_scale_launcher_64(m_64,
+                                                    n_64,
+                                                    *(TScal*)beta,
+                                                    DPtr,
+                                                    offsetD,
+                                                    ldd_64,
+                                                    stride_d,
+                                                    batch_count,
+                                                    rocblas_stream);
+        }
+        else
+        {
+            if(!source_dims_supported)
+                return rocblas_status_invalid_size;
+
+            status = rocblas_gemm_source_solution_64<BATCHED>(trans_a,
+                                                              trans_b,
+                                                              m_64,
+                                                              n_64,
+                                                              k_64,
+                                                              *(TScal*)alpha,
+                                                              (Ta)Aptr,
+                                                              lda_64,
+                                                              stride_a,
+                                                              offsetA,
+                                                              (Tb)Bptr,
+                                                              ldb_64,
+                                                              stride_b,
+                                                              offsetB,
+                                                              *(TScal*)beta,
+                                                              (Tc)Cptr,
+                                                              ldc_64,
+                                                              stride_c,
+                                                              offsetC,
+                                                              (Td)Dptr,
+                                                              ldd_64,
+                                                              stride_d,
+                                                              offsetD,
+                                                              batch_count,
+                                                              rocblas_stream);
+        }
+        if(status != rocblas_status_success)
+            return status;
+    }
+
+    if(check_numerics && !std::is_same_v<Ti, signed char>)
+    {
+        bool           is_input = false;
+        rocblas_status gemm_ex_check_numerics_status
+            = rocblas_gemm_check_numerics(rocblas_gemm_ex_name,
+                                          handle,
+                                          trans_a,
+                                          trans_b,
+                                          m_64,
+                                          n_64,
+                                          k_64,
+                                          (Ta)a,
+                                          offsetAin,
+                                          lda_64,
+                                          stride_a,
+                                          (Tb)b,
+                                          offsetBin,
+                                          ldb_64,
+                                          stride_b,
+                                          (Td)d,
+                                          offsetDin,
+                                          ldd_64,
+                                          stride_d,
+                                          batch_count_64,
+                                          check_numerics,
+                                          is_input);
+        if(gemm_ex_check_numerics_status != rocblas_status_success)
+            return gemm_ex_check_numerics_status;
+    }
+
+    return status;
+}
 
 template <bool BATCHED>
 rocblas_status rocblas_gemm_ex_template_64(rocblas_handle    handle,
@@ -66,78 +251,186 @@ rocblas_status rocblas_gemm_ex_template_64(rocblas_handle    handle,
                       && lda_64 <= c_i32_max && ldb_64 <= c_i32_max && ldc_64 <= c_i32_max
                       && ldd_64 <= c_i32_max;
 
-    if(!dims_32bit)
-    {
-        // TODO: not yet supported, will support in another PR soon
-        return rocblas_status_invalid_size;
-    }
-
     // if all dims are 32-bit, can use regular gemm_ex
-    for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
+    if(dims_32bit)
     {
-        rocblas_stride offsetA = offsetAin;
-        rocblas_stride offsetB = offsetBin;
-        rocblas_stride offsetC = offsetCin;
-        rocblas_stride offsetD = offsetDin;
-        auto           Aptr    = A;
-        auto           Bptr    = B;
-        auto           Cptr    = C;
-        auto           Dptr    = D;
-
-        int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
-
-        if constexpr(BATCHED)
+        for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
         {
-            // avoiding typecasting
-            Aptr = (void**)Aptr + b_base;
-            Bptr = (void**)Bptr + b_base;
-            Cptr = (void**)Cptr + b_base;
-            Dptr = (void**)Dptr + b_base;
+            rocblas_stride offsetA = offsetAin;
+            rocblas_stride offsetB = offsetBin;
+            rocblas_stride offsetC = offsetCin;
+            rocblas_stride offsetD = offsetDin;
+            auto           Aptr    = A;
+            auto           Bptr    = B;
+            auto           Cptr    = C;
+            auto           Dptr    = D;
+
+            int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
+
+            if constexpr(BATCHED)
+            {
+                // avoiding typecasting
+                Aptr = (void**)Aptr + b_base;
+                Bptr = (void**)Bptr + b_base;
+                Cptr = (void**)Cptr + b_base;
+                Dptr = (void**)Dptr + b_base;
+            }
+            else if(batch_count > 1)
+            {
+                offsetA += b_base * stride_a;
+                offsetB += b_base * stride_b;
+                offsetC += b_base * stride_c;
+                offsetD += b_base * stride_d;
+            }
+
+            rocblas_status status = rocblas_gemm_ex_template<BATCHED>(handle,
+                                                                      trans_a,
+                                                                      trans_b,
+                                                                      m_64,
+                                                                      n_64,
+                                                                      k_64,
+                                                                      alpha,
+                                                                      Aptr,
+                                                                      a_type,
+                                                                      offsetA,
+                                                                      lda_64,
+                                                                      stride_a,
+                                                                      Bptr,
+                                                                      b_type,
+                                                                      offsetB,
+                                                                      ldb_64,
+                                                                      stride_b,
+                                                                      beta,
+                                                                      Cptr,
+                                                                      c_type,
+                                                                      offsetC,
+                                                                      ldc_64,
+                                                                      stride_c,
+                                                                      Dptr,
+                                                                      d_type,
+                                                                      offsetD,
+                                                                      ldd_64,
+                                                                      stride_d,
+                                                                      batch_count,
+                                                                      compute_type,
+                                                                      algo,
+                                                                      solution_index,
+                                                                      flags);
+
+            if(status != rocblas_status_success)
+                return status;
         }
-        else if(batch_count > 1)
+    }
+    else
+    {
+        if(!m_64 || !n_64 || !batch_count_64)
+            return rocblas_status_success;
+
+        if(BATCHED)
         {
-            offsetA += b_base * stride_a;
-            offsetB += b_base * stride_b;
-            offsetC += b_base * stride_c;
-            offsetD += b_base * stride_d;
+            stride_a = lda_64 * (trans_a == rocblas_operation_none ? k_64 : m_64);
+            stride_b = ldb_64 * (trans_b == rocblas_operation_none ? n_64 : k_64);
+            stride_c = ldc_64 * n_64;
+            stride_d = ldd_64 * n_64;
         }
 
-        rocblas_status status = rocblas_gemm_ex_template<BATCHED>(handle,
-                                                                  trans_a,
-                                                                  trans_b,
-                                                                  m_64,
-                                                                  n_64,
-                                                                  k_64,
-                                                                  alpha,
-                                                                  Aptr,
-                                                                  a_type,
-                                                                  offsetA,
-                                                                  lda_64,
-                                                                  stride_a,
-                                                                  Bptr,
-                                                                  b_type,
-                                                                  offsetB,
-                                                                  ldb_64,
-                                                                  stride_b,
-                                                                  beta,
-                                                                  Cptr,
-                                                                  c_type,
-                                                                  offsetC,
-                                                                  ldc_64,
-                                                                  stride_c,
-                                                                  Dptr,
-                                                                  d_type,
-                                                                  offsetD,
-                                                                  ldd_64,
-                                                                  stride_d,
-                                                                  batch_count,
-                                                                  compute_type,
-                                                                  algo,
-                                                                  solution_index,
-                                                                  flags);
+        rocblas_status rb_status = rocblas_status_not_implemented;
 
-        if(status != rocblas_status_success)
-            return status;
+#define EX_TYPECASTING_PARM                                                                      \
+    handle, trans_a, trans_b, m_64, n_64, k_64, alpha, A, offsetAin, lda_64, stride_a, B,        \
+        offsetBin, ldb_64, stride_b, beta, C, offsetCin, ldc_64, stride_c, D, offsetDin, ldd_64, \
+        stride_d, batch_count_64, algo, solution_index, rocblas_gemm_flags(flags)
+
+        if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
+           && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
+           && compute_type == rocblas_datatype_f64_r)
+        {
+            rb_status
+                = rocblas_internal_gemm_ex_typecasting_64<BATCHED, double>(EX_TYPECASTING_PARM);
+        }
+        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+                && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+                && compute_type == rocblas_datatype_f32_r)
+        {
+            rb_status
+                = rocblas_internal_gemm_ex_typecasting_64<BATCHED, float>(EX_TYPECASTING_PARM);
+        }
+        else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r)
+        {
+            if(c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+            {
+                if(compute_type == rocblas_datatype_f16_r)
+                {
+                    rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED, rocblas_half>(
+                        EX_TYPECASTING_PARM);
+                }
+                else if(compute_type == rocblas_datatype_f32_r)
+                {
+                    rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                        rocblas_half,
+                                                                        rocblas_half,
+                                                                        float>(EX_TYPECASTING_PARM);
+                }
+            }
+            else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+                    && compute_type == rocblas_datatype_f32_r)
+            {
+                rb_status
+                    = rocblas_internal_gemm_ex_typecasting_64<BATCHED, rocblas_half, float, float>(
+                        EX_TYPECASTING_PARM);
+            }
+        }
+        else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+                && compute_type == rocblas_datatype_f32_r)
+        {
+            if(c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+            {
+                rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                    rocblas_bfloat16,
+                                                                    rocblas_bfloat16,
+                                                                    float>(EX_TYPECASTING_PARM);
+            }
+            else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+            {
+                rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                    rocblas_bfloat16,
+                                                                    float,
+                                                                    float>(EX_TYPECASTING_PARM);
+            }
+        }
+        else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
+                && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
+                && compute_type == rocblas_datatype_i32_r)
+        {
+            rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED, int8_t, int32_t>(
+                EX_TYPECASTING_PARM);
+        }
+        else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c
+                && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
+                && compute_type == rocblas_datatype_f32_c)
+        {
+            rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                rocblas_float_complex,
+                                                                rocblas_float_complex,
+                                                                rocblas_float_complex>(
+                EX_TYPECASTING_PARM);
+        }
+        else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
+                && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
+                && compute_type == rocblas_datatype_f64_c)
+        {
+            rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                rocblas_double_complex,
+                                                                rocblas_double_complex,
+                                                                rocblas_double_complex>(
+                EX_TYPECASTING_PARM);
+        }
+        else
+        {
+            rb_status = rocblas_status_not_implemented;
+        }
+
+        return rb_status;
     }
 
     return rocblas_status_success;

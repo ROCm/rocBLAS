@@ -38,7 +38,7 @@ namespace
 
         if(tx < m && ty < n)
         {
-            C[ty * (ldc) + tx] = beta ? (beta * C[ty * (ldc) + tx]) : T(0);
+            C[ty * (ldc) + tx] = U(beta ? (beta * C[ty * (ldc) + tx]) : T(0));
         }
     }
 
@@ -113,7 +113,7 @@ namespace
 
     // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // general alpha, beta, m, n, k
-    template <typename T,
+    template <typename Tc,
               int  DIM_M,
               int  DIM_N,
               int  BLK_M,
@@ -126,23 +126,27 @@ namespace
               bool BETA_EQ_ZERO,
               char TRANS_A,
               char TRANS_B,
-              typename TConstPtr,
-              typename TPtr>
+              typename TiConstPtr,
+              typename ToConstPtr,
+              typename ToPtr>
     ROCBLAS_KERNEL(DIM_M* DIM_N)
     rocblas_gemm_batched_general_kernel(int64_t        M,
                                         int64_t        N,
                                         int64_t        K,
-                                        const T        alpha,
-                                        TConstPtr*     dA_input,
+                                        const Tc       alpha,
+                                        TiConstPtr*    dA_input,
                                         int64_t        lda,
                                         rocblas_stride a_st_or_of,
-                                        TConstPtr*     dB_input,
+                                        TiConstPtr*    dB_input,
                                         int64_t        ldb,
                                         rocblas_stride b_st_or_of,
-                                        const T        beta,
-                                        TPtr*          dC_input,
+                                        const Tc       beta,
+                                        ToConstPtr*    dC_input,
                                         int64_t        ldc,
                                         rocblas_stride c_st_or_of,
+                                        ToPtr*         dD_input,
+                                        int64_t        ldd,
+                                        rocblas_stride d_st_or_of,
                                         rocblas_int    batch_count)
     {
         int     thx  = threadIdx.x; // thread's m position in C
@@ -159,10 +163,14 @@ namespace
         auto* dA = load_ptr_batch(dA_input, blz, a_st_or_of);
         auto* dB = load_ptr_batch(dB_input, blz, b_st_or_of);
         auto* dC = load_ptr_batch(dC_input, blz, c_st_or_of);
+        auto* dD = load_ptr_batch(dD_input, blz, c_st_or_of);
 
-        __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
-        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
-        T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
+        auto tmp = *dD;
+        using To = decltype(tmp);
+
+        __shared__ Tc sA[BLK_K][BLK_M]; // shared memory for A
+        __shared__ Tc sB[BLK_N][BLK_K]; // shared memory for B
+        Tc            rD[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for D
 
         int64_t a_i_offset = thxA + int64_t(BLK_M) * blx;
         int64_t a_j_offset = thyA;
@@ -171,7 +179,7 @@ namespace
 
         for(int n = 0; n < BLK_N / DIM_N; ++n)
             for(int m = 0; m < BLK_M / DIM_M; ++m)
-                rC[n][m] = 0.0;
+                rD[n][m] = 0.0;
 
         int64_t kk = 0;
         for(; kk < K; kk += BLK_K)
@@ -237,7 +245,7 @@ namespace
             for(int k = 0; k < BLK_K; ++k)
                 for(int n = 0; n < BLK_N / DIM_N; ++n)
                     for(int m = 0; m < BLK_M / DIM_M; ++m)
-                        rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
+                        rD[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
 
             __syncthreads();
         }
@@ -252,12 +260,12 @@ namespace
                 {
                     if(BETA_EQ_ZERO)
                     {
-                        dC[coord_dCn * size_t(ldc) + coord_dCm] = alpha * rC[n][m];
+                        dD[coord_dCn * size_t(ldc) + coord_dCm] = To(alpha * rD[n][m]);
                     }
                     else
                     {
-                        dC[coord_dCn * size_t(ldc) + coord_dCm]
-                            = alpha * rC[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm];
+                        dD[coord_dCn * size_t(ldc) + coord_dCm]
+                            = To(alpha * rD[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm]);
                     }
                 }
             }
@@ -265,7 +273,7 @@ namespace
     }
 
     // general alpha, beta, restricted m, n, k
-    template <typename T,
+    template <typename Tc,
               int  DIM_M,
               int  DIM_N,
               int  BLK_M,
@@ -278,23 +286,27 @@ namespace
               bool BETA_EQ_ZERO,
               char TRANS_A,
               char TRANS_B,
-              typename TConstPtr,
-              typename TPtr>
+              typename TiConstPtr,
+              typename ToConstPtr,
+              typename ToPtr>
     ROCBLAS_KERNEL(DIM_M* DIM_N)
     rocblas_gemm_batched_kernel(int64_t        M,
                                 int64_t        N,
                                 int64_t        K,
-                                const T        alpha,
-                                TConstPtr*     dA_input,
+                                const Tc       alpha,
+                                TiConstPtr*    dA_input,
                                 int64_t        lda,
                                 rocblas_stride a_st_or_of,
-                                TConstPtr*     dB_input,
+                                TiConstPtr*    dB_input,
                                 int64_t        ldb,
                                 rocblas_stride b_st_or_of,
-                                const T        beta,
-                                TPtr*          dC_input,
+                                const Tc       beta,
+                                ToConstPtr*    dC_input,
                                 int64_t        ldc,
                                 rocblas_stride c_st_or_of,
+                                ToPtr*         dD_input,
+                                int64_t        ldd,
+                                rocblas_stride d_st_or_of,
                                 rocblas_int    batch_count)
     {
         int     thx  = threadIdx.x; // thread's m position in C
@@ -311,14 +323,18 @@ namespace
         auto* dA = load_ptr_batch(dA_input, blz, a_st_or_of);
         auto* dB = load_ptr_batch(dB_input, blz, b_st_or_of);
         auto* dC = load_ptr_batch(dC_input, blz, c_st_or_of);
+        auto* dD = load_ptr_batch(dD_input, blz, d_st_or_of);
 
-        __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
-        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
-        T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
+        auto tmp = *dD;
+        using To = decltype(tmp);
+
+        __shared__ Tc sA[BLK_K][BLK_M]; // shared memory for A
+        __shared__ Tc sB[BLK_N][BLK_K]; // shared memory for B
+        Tc            rD[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for D
 
         for(int n = 0; n < BLK_N / DIM_N; ++n)
             for(int m = 0; m < BLK_M / DIM_M; ++m)
-                rC[n][m] = 0.0;
+                rD[n][m] = 0.0;
 
         size_t coord_A, coord_B;
         if(TRANS_A == 'N')
@@ -369,7 +385,7 @@ namespace
             for(int k = 0; k < BLK_K; ++k)
                 for(int n = 0; n < BLK_N / DIM_N; ++n)
                     for(int m = 0; m < BLK_M / DIM_M; ++m)
-                        rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
+                        rD[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
 
             __syncthreads();
 
@@ -393,19 +409,19 @@ namespace
 
                 if(BETA_EQ_ZERO)
                 {
-                    dC[coord_dCn * size_t(ldc) + coord_dCm] = alpha * rC[n][m];
+                    dD[coord_dCn * size_t(ldc) + coord_dCm] = To(alpha * rD[n][m]);
                 }
                 else
                 {
-                    dC[coord_dCn * size_t(ldc) + coord_dCm]
-                        = alpha * rC[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm];
+                    dD[coord_dCn * size_t(ldc) + coord_dCm]
+                        = To(alpha * rD[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm]);
                 }
             }
         }
     }
 
     // templated alpha, beta, restricted m, n, k
-    template <typename T,
+    template <typename Tc,
               int  DIM_M,
               int  DIM_N,
               int  BLK_M,
@@ -419,21 +435,25 @@ namespace
               int  beta,
               char TRANS_A,
               char TRANS_B,
-              typename TConstPtr,
-              typename TPtr>
+              typename TiConstPtr,
+              typename ToConstPtr,
+              typename ToPtr>
     ROCBLAS_KERNEL(DIM_M* DIM_N)
     rocblas_gemm_batched_kernel(int64_t        M,
                                 int64_t        N,
                                 int64_t        K,
-                                TConstPtr*     dA_input,
+                                TiConstPtr*    dA_input,
                                 int64_t        lda,
                                 rocblas_stride a_st_or_of,
-                                TConstPtr*     dB_input,
+                                TiConstPtr*    dB_input,
                                 int64_t        ldb,
                                 rocblas_stride b_st_or_of,
-                                TPtr*          dC_input,
+                                ToConstPtr*    dC_input,
                                 int64_t        ldc,
                                 rocblas_stride c_st_or_of,
+                                ToPtr*         dD_input,
+                                int64_t        ldd,
+                                rocblas_stride d_st_or_of,
                                 rocblas_int    batch_count)
     {
         int     thx  = threadIdx.x; // thread's m position in C
@@ -450,10 +470,14 @@ namespace
         auto* dA = load_ptr_batch(dA_input, blz, a_st_or_of);
         auto* dB = load_ptr_batch(dB_input, blz, b_st_or_of);
         auto* dC = load_ptr_batch(dC_input, blz, c_st_or_of);
+        auto* dD = load_ptr_batch(dD_input, blz, d_st_or_of);
 
-        __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
-        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
-        T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
+        __shared__ Tc sA[BLK_K][BLK_M]; // shared memory for A
+        __shared__ Tc sB[BLK_N][BLK_K]; // shared memory for B
+        Tc            rD[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for D
+
+        auto tmp = *dD;
+        using To = decltype(tmp);
 
         size_t coord_A, coord_B;
         if(TRANS_A == 'N')
@@ -467,7 +491,7 @@ namespace
 
         for(int n = 0; n < BLK_N / DIM_N; ++n)
             for(int m = 0; m < BLK_M / DIM_M; ++m)
-                rC[n][m] = 0.0;
+                rD[n][m] = 0.0;
 
         int64_t kk = 0;
         for(; kk < K; kk += BLK_K)
@@ -495,7 +519,7 @@ namespace
             for(int k = 0; k < BLK_K; ++k)
                 for(int n = 0; n < BLK_N / DIM_N; ++n)
                     for(int m = 0; m < BLK_M / DIM_M; ++m)
-                        rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
+                        rD[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
 
             __syncthreads();
 
@@ -519,45 +543,49 @@ namespace
 
                 if(alpha == 1 && beta == 1)
                 {
-                    dC[coord_dCn * size_t(ldc) + coord_dCm] += rC[n][m];
+                    dD[coord_dCn * size_t(ldc) + coord_dCm] += To(rD[n][m]);
                 }
                 else if(alpha == 1 && beta == -1)
                 {
-                    dC[coord_dCn * size_t(ldc) + coord_dCm]
-                        = -dC[coord_dCn * size_t(ldc) + coord_dCm] + rC[n][m];
+                    dD[coord_dCn * size_t(ldc) + coord_dCm]
+                        = -dC[coord_dCn * size_t(ldc) + coord_dCm] + To(rD[n][m]);
                 }
                 else if(alpha == -1 && beta == 0)
                 {
-                    dC[coord_dCn * size_t(ldc) + coord_dCm] = -rC[n][m];
+                    dD[coord_dCn * size_t(ldc) + coord_dCm] = To(-rD[n][m]);
                 }
                 else if(alpha == 1 && beta == 0)
                 {
-                    dC[coord_dCn * size_t(ldc) + coord_dCm] = rC[n][m];
+                    dD[coord_dCn * size_t(ldc) + coord_dCm] = To(rD[n][m]);
                 }
             }
         }
     }
 
-    template <bool BATCHED, typename T, typename TConstPtr, typename TPtr>
+    template <bool BATCHED, typename T, typename TiConstPtr, typename ToConstPtr, typename ToPtr>
     rocblas_status rocblas_gemm_source_solution_64(rocblas_operation trans_a,
                                                    rocblas_operation trans_b,
                                                    int64_t           m,
                                                    int64_t           n,
                                                    int64_t           k,
                                                    const T           alpha,
-                                                   TConstPtr*        dA,
+                                                   TiConstPtr*       dA,
                                                    int64_t           lda,
                                                    rocblas_stride    stride_a,
                                                    rocblas_stride    offset_a,
-                                                   TConstPtr*        dB,
+                                                   TiConstPtr*       dB,
                                                    int64_t           ldb,
                                                    rocblas_stride    stride_b,
                                                    rocblas_stride    offset_b,
                                                    const T           beta,
-                                                   TPtr*             dC,
+                                                   ToConstPtr*       dC,
                                                    int64_t           ldc,
                                                    rocblas_stride    stride_c,
                                                    rocblas_stride    offset_c,
+                                                   ToPtr*            dD,
+                                                   int64_t           ldd,
+                                                   rocblas_stride    stride_d,
+                                                   rocblas_stride    offset_d,
                                                    rocblas_int       batch_count,
                                                    hipStream_t       stream)
     {
@@ -567,31 +595,45 @@ namespace
         if(alpha == 0)
             k = 0;
 
-        TConstPtr*     dA_krn;
-        TConstPtr*     dB_krn;
-        TPtr*          dC_krn;
+        TiConstPtr*    dA_krn;
+        TiConstPtr*    dB_krn;
+        ToConstPtr*    dC_krn;
+        ToPtr*         dD_krn;
         rocblas_stride a_st_or_of;
         rocblas_stride b_st_or_of;
         rocblas_stride c_st_or_of;
+        rocblas_stride d_st_or_of;
 
         if(BATCHED)
         {
             dA_krn     = dA;
             dB_krn     = dB;
             dC_krn     = dC;
+            dD_krn     = dD;
             a_st_or_of = offset_a;
             b_st_or_of = offset_b;
             c_st_or_of = offset_c;
+            d_st_or_of = offset_d;
         }
         else
         {
             dA_krn     = dA + offset_a;
             dB_krn     = dB + offset_b;
             dC_krn     = dC + offset_c;
+            dD_krn     = dD + offset_d;
             a_st_or_of = stride_a;
             b_st_or_of = stride_b;
             c_st_or_of = stride_c;
+            d_st_or_of = stride_d;
         }
+
+#define GEMM_SOURCE_PARAM                                                                    \
+    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of, dB_krn, ldb, b_st_or_of, \
+        dC_krn, ldc, c_st_or_of, dD_krn, ldd, d_st_or_of, batch_count
+
+#define GEMM_SOURCE_PARAM_SCALARS                                                       \
+    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of, dB_krn, ldb, \
+        b_st_or_of, beta, dC_krn, ldc, c_st_or_of, dD_krn, ldd, d_st_or_of, batch_count
 
         if((m % 64 == 0) && (n % 64 == 0) && (k % 4 == 0))
         {
@@ -608,49 +650,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'T'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'T'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(alpha == 1.0 && beta == -1.0)
@@ -658,49 +682,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'T'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'T'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 else if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(alpha == 1.0 && beta == 0.0)
@@ -708,49 +714,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(alpha == -1.0 && beta == 0.0)
@@ -758,49 +746,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(beta == 0)
@@ -809,49 +779,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T' , 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T' , 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 // clang-format on
             }
             else
@@ -860,49 +812,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 // clang-format on
             }
         }
@@ -921,49 +855,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 1, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(alpha == 1.0 && beta == -1.0)
@@ -971,49 +887,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, -1, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(alpha == 1.0 && beta == 0.0)
@@ -1021,49 +919,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, 1, 0, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(alpha == -1.0 && beta == 0.0)
@@ -1071,49 +951,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'T' >), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'N'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'C', 'T'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'N', 'C'>), GEMM_SOURCE_PARAM);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, -1, 0, 'T', 'C'>), GEMM_SOURCE_PARAM);
                 // clang-format on
             }
             else if(beta == 0)
@@ -1122,49 +984,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'T' >), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'T' >), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'C' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'C' >), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'N' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'N' >), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'T' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'T' >), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'C' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'C' >), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'C' >),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'C' >), GEMM_SOURCE_PARAM_SCALARS);
                 // clang-format on
             }
             else
@@ -1173,49 +1017,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 // clang-format on
             }
         }
@@ -1234,49 +1060,31 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true,'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true,'N', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'C', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'N', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, true, 'T', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 // clang-format on
             }
             else
@@ -1285,52 +1093,37 @@ namespace
                 // clang-format off
                 if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'N'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'N'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'T'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'C', 'T'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'N', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
                     ROCBLAS_LAUNCH_KERNEL((rocblas_gemm_batched_general_kernel
-                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'C'>),
-                    dimGrid, dimBlock, 0, stream, m, n, k, alpha, dA_krn, lda, a_st_or_of,
-                    dB_krn, ldb, b_st_or_of, beta, dC_krn, ldc, c_st_or_of, batch_count);
+                    <T, dim_m, dim_n, blk_m, blk_n, blk_k, blk_m, blk_k, blk_k, blk_n, false, 'T', 'C'>), GEMM_SOURCE_PARAM_SCALARS);
                 // clang-format on
             }
         }
+
+#undef GEMM_SOURCE_PARAM
+#undef GEMM_SOURCE_PARAM_SCALARS
         return rocblas_status_success;
     }
 }
