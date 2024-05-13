@@ -194,7 +194,7 @@ set( rocblas_blas3_source
     blas3/rocblas_herkx_batched.cpp
     blas3/rocblas_herkx_strided_batched.cpp
     blas3/rocblas_symm.cpp
-    blas3/rocblas_symm_kernels.cpp
+    blas3/rocblas_symm_hemm_kernels.cpp
     blas3/rocblas_symm_batched.cpp
     blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
@@ -430,9 +430,9 @@ set( rocblas64_blas3_source_no_tensile
 
 # rocblas L3 that use tensile but can use source gemm as fallback
 set( rocblas64_blas3_source
-#     src64/blas3/rocblas_hemm.cpp
-#     src64/blas3/rocblas_hemm_batched.cpp
-#     src64/blas3/rocblas_hemm_strided_batched.cpp
+    src64/blas3/rocblas_hemm_64.cpp
+    src64/blas3/rocblas_hemm_batched_64.cpp
+    src64/blas3/rocblas_hemm_strided_batched_64.cpp
     src64/blas3/rocblas_herk_64.cpp
     src64/blas3/rocblas_herk_batched_64.cpp
     src64/blas3/rocblas_herk_strided_batched_64.cpp
@@ -442,10 +442,10 @@ set( rocblas64_blas3_source
 #     src64/blas3/rocblas_herkx.cpp
 #     src64/blas3/rocblas_herkx_batched.cpp
 #     src64/blas3/rocblas_herkx_strided_batched.cpp
-#     src64/blas3/rocblas_symm.cpp
-#     src64/blas3/rocblas_symm_kernels.cpp
-#     src64/blas3/rocblas_symm_batched.cpp
-#     src64/blas3/rocblas_symm_strided_batched.cpp
+    src64/blas3/rocblas_symm_64.cpp
+    src64/blas3/rocblas_symm_hemm_kernels_64.cpp
+    src64/blas3/rocblas_symm_batched_64.cpp
+    src64/blas3/rocblas_symm_strided_batched_64.cpp
 #     src64/blas3/rocblas_syrk.cpp
 #     src64/blas3/rocblas_syrk_herk_kernels.cpp
 #     src64/blas3/rocblas_syrk_batched.cpp

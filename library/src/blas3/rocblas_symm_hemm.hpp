@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,27 +25,27 @@
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_symm_arg_check(rocblas_handle handle,
                                              rocblas_side   side,
                                              rocblas_fill   uplo,
-                                             rocblas_int    m,
-                                             rocblas_int    n,
+                                             API_INT        m,
+                                             API_INT        n,
                                              TScal          alpha,
                                              TConstPtr      AP,
                                              rocblas_stride offsetA,
-                                             rocblas_int    lda,
+                                             API_INT        lda,
                                              rocblas_stride strideA,
                                              TConstPtr      BP,
                                              rocblas_stride offsetB,
-                                             rocblas_int    ldb,
+                                             API_INT        ldb,
                                              rocblas_stride strideB,
                                              TScal          beta,
                                              const TPtr     CP,
                                              rocblas_stride offsetC,
-                                             rocblas_int    ldc,
+                                             API_INT        ldc,
                                              rocblas_stride strideC,
-                                             rocblas_int    batch_count)
+                                             API_INT        batch_count)
 {
 
     if(side != rocblas_side_left && side != rocblas_side_right)
@@ -122,6 +122,50 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride  strideC,
                                            rocblas_int     batch_count);
 
+template <bool HERM, typename T>
+rocblas_status rocblas_internal_symm_hemm_launcher(rocblas_handle handle,
+                                                   rocblas_side   side,
+                                                   rocblas_fill   uplo,
+                                                   rocblas_int    m,
+                                                   rocblas_int    n,
+                                                   const T*       alpha,
+                                                   const T*       A,
+                                                   rocblas_stride offsetA,
+                                                   int64_t        lda,
+                                                   rocblas_stride strideA,
+                                                   const T*       B,
+                                                   rocblas_stride offsetB,
+                                                   int64_t        ldb,
+                                                   rocblas_stride strideB,
+                                                   const T*       beta,
+                                                   T*             C,
+                                                   rocblas_stride offsetC,
+                                                   int64_t        ldc,
+                                                   rocblas_stride strideC,
+                                                   rocblas_int    batch_count);
+
+template <bool HERM, typename T>
+rocblas_status rocblas_internal_symm_hemm_batched_launcher(rocblas_handle  handle,
+                                                           rocblas_side    side,
+                                                           rocblas_fill    uplo,
+                                                           rocblas_int     m,
+                                                           rocblas_int     n,
+                                                           const T*        alpha,
+                                                           const T* const* A,
+                                                           rocblas_stride  offsetA,
+                                                           int64_t         lda,
+                                                           rocblas_stride  strideA,
+                                                           const T* const* B,
+                                                           rocblas_stride  offsetB,
+                                                           int64_t         ldb,
+                                                           rocblas_stride  strideB,
+                                                           const T*        beta,
+                                                           T* const*       C,
+                                                           rocblas_stride  offsetC,
+                                                           int64_t         ldc,
+                                                           rocblas_stride  strideC,
+                                                           rocblas_int     batch_count);
+
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_hemm_template(rocblas_handle handle,
@@ -173,17 +217,17 @@ rocblas_status rocblas_hemm_symm_check_numerics(const char*    function_name,
                                                 rocblas_handle handle,
                                                 rocblas_side   side,
                                                 rocblas_fill   uplo,
-                                                rocblas_int    m,
-                                                rocblas_int    n,
+                                                int64_t        m,
+                                                int64_t        n,
                                                 TConstPtr      A,
-                                                rocblas_int    lda,
+                                                int64_t        lda,
                                                 rocblas_stride strideA,
                                                 TConstPtr      B,
-                                                rocblas_int    ldb,
+                                                int64_t        ldb,
                                                 rocblas_stride strideB,
                                                 TPtr           C,
-                                                rocblas_int    ldc,
+                                                int64_t        ldc,
                                                 rocblas_stride strideC,
-                                                rocblas_int    batch_count,
+                                                int64_t        batch_count,
                                                 const int      check_numerics,
                                                 bool           is_input);

@@ -46,7 +46,7 @@ Tests:
   - hemm_batched_bad_arg
   - hemm_strided_batched_bad_arg
   precision: *single_double_precisions_complex
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 
 - name: hemm_quick
@@ -240,5 +240,51 @@ Tests:
   atomics_mode: 0
   iters: 5
   repeatability_check: true
-...
-...
+
+- name: hemm_64_L
+  category: stress
+  api: [C_64]
+  function:
+    - hemm
+    - hemm_strided_batched
+  precision: *single_precision
+  uplo: [ U, L ]
+  side: [ L ]
+  matrix_size:
+    - { M: 2, N: 2147483649, lda: 2147483649, ldb: 2 , ldc: 2 }
+    - { M: 4096, N: 2, lda: 4096, ldb: 2147483649, ldc: 4096 }
+
+  alpha: [ 2 ]
+  beta: [ 2 ]
+  os_flags: LINUX
+  gpu_arch: '9??'
+
+- name: hemm_64_R
+  category: stress
+  api: [C_64]
+  function:
+    - hemm
+    - hemm_strided_batched
+  precision: *single_precision
+  arguments:
+     - { M: 2147483649, N: 2, lda: 2147483649, ldb: 2147483649, ldc: 2147483649 } # N can't be 32-bit for side == R
+  uplo: [ U, L ]
+  side: [ R ]
+  alpha: [ 2 ]
+  beta: [ 2 ]
+  stride_scale: [1]
+  os_flags: LINUX
+  gpu_arch: '9??'
+
+- name: hemm_batched_64
+  category: stress
+  function: hemm_batched
+  precision: *single_precision
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size:
+    - {  M: 2, N: 2, lda: 4, ldb: 2, ldc : 4 , batch_count: *c_grid_yz_require_passes }
+  alpha_beta: *alpha_beta_range
+  api : [ C_64 ]
+  os_flags: LINUX
+  gpu_arch: '9??'
