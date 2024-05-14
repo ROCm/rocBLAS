@@ -24,6 +24,7 @@
 #include "rocblas_block_sizes.h"
 #include "rocblas_gemm.hpp"
 #include "rocblas_trmm.hpp"
+#include "src64/blas3/rocblas_gemm_64.hpp"
 
 template <typename T>
 static const T beta_1 = T(1);
@@ -78,7 +79,7 @@ rocblas_set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                              TScal          alpha_device_host,
                                              rocblas_stride stride_alpha,
                                              TPtr           Aa,
-                                             rocblas_int    lda,
+                                             int64_t        lda,
                                              rocblas_stride a_st_or_of)
 {
     ptrdiff_t tx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -101,7 +102,7 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
                                                               TScal          alpha,
                                                               rocblas_stride stride_alpha,
                                                               TPtr           A,
-                                                              rocblas_int    lda,
+                                                              int64_t        lda,
                                                               rocblas_stride a_st_or_of,
                                                               rocblas_int    batch_count)
 {
@@ -169,15 +170,15 @@ rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
                                rocblas_stride   stride_alpha,
                                TConstPtr*       A_arg,
                                rocblas_stride   offset_a,
-                               rocblas_int      lda,
+                               int64_t          lda,
                                rocblas_stride   stride_a,
                                TConstPtr*       B_arg,
                                rocblas_stride   offset_b,
-                               rocblas_int      ldb,
+                               int64_t          ldb,
                                rocblas_stride   stride_b,
                                TPtr*            C_arg,
                                rocblas_stride   offset_c,
-                               rocblas_int      ldc,
+                               int64_t          ldc,
                                rocblas_stride   stride_c,
                                rocblas_int      batch_count)
 {
@@ -346,15 +347,15 @@ rocblas_status rocblas_trmm_outofplace_dispatch(rocblas_handle   handle,
                                                 rocblas_stride   stride_alpha,
                                                 TConstPtr*       dA,
                                                 rocblas_stride   offset_a,
-                                                rocblas_int      lda,
+                                                int64_t          lda,
                                                 rocblas_stride   stride_a,
                                                 TConstPtr*       dB,
                                                 rocblas_stride   offset_b,
-                                                rocblas_int      ldb,
+                                                int64_t          ldb,
                                                 rocblas_stride   stride_b,
                                                 TPtr*            dC,
                                                 rocblas_stride   offset_c,
-                                                rocblas_int      lddc,
+                                                int64_t          lddc,
                                                 rocblas_stride   stride_c,
                                                 rocblas_int      batch_count)
 {
@@ -439,13 +440,13 @@ rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
                         TScal            alpha_device_host,
                         rocblas_stride   stride_alpha,
                         TConstPtr*       A_arg,
-                        rocblas_int      lda,
+                        int64_t          lda,
                         rocblas_stride   a_st_or_of,
                         TConstPtr*       B_arg,
-                        rocblas_int      ldb,
+                        int64_t          ldb,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
-                        rocblas_int      ldc,
+                        int64_t          ldc,
                         rocblas_stride   c_st_or_of)
 {
     const int tx = threadIdx.x;
@@ -459,7 +460,7 @@ rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
     auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
     auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
-    const int nblocks = (n + NB - 1) / NB;
+    const int nblocks = (n - 1) / NB + 1;
     const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
     B += bx * NB * size_t(ldb);
     C += bx * NB * size_t(ldc);
@@ -516,13 +517,13 @@ rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
                         TScal            alpha_device_host,
                         rocblas_stride   stride_alpha,
                         TConstPtr*       A_arg,
-                        rocblas_int      lda,
+                        int64_t          lda,
                         rocblas_stride   a_st_or_of,
                         TConstPtr*       B_arg,
-                        rocblas_int      ldb,
+                        int64_t          ldb,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
-                        rocblas_int      ldc,
+                        int64_t          ldc,
                         rocblas_stride   c_st_or_of)
 {
     const int tx = threadIdx.x;
@@ -536,7 +537,7 @@ rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
     auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
     auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
-    const int nblocks = (n + NB - 1) / NB;
+    const int nblocks = (n - 1) / NB + 1;
     const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
     B += bx * NB * size_t(ldb);
     C += bx * NB * size_t(ldc);
@@ -606,13 +607,13 @@ rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
                         TScal            alpha_device_host,
                         rocblas_stride   stride_alpha,
                         TConstPtr*       A_arg,
-                        rocblas_int      lda,
+                        int64_t          lda,
                         rocblas_stride   a_st_or_of,
                         TConstPtr*       B_arg,
-                        rocblas_int      ldb,
+                        int64_t          ldb,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
-                        rocblas_int      ldc,
+                        int64_t          ldc,
                         rocblas_stride   c_st_or_of)
 {
     const int tx = threadIdx.x;
@@ -626,7 +627,7 @@ rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
     auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
     auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
-    const int nblocks = (m + NB - 1) / NB;
+    const int nblocks = (m - 1) / NB + 1;
     const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
     B += bx * NB;
     C += bx * NB;
@@ -684,13 +685,13 @@ rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
                         TScal            alpha_device_host,
                         rocblas_stride   stride_alpha,
                         TConstPtr*       A_arg,
-                        rocblas_int      lda,
+                        int64_t          lda,
                         rocblas_stride   a_st_or_of,
                         TConstPtr*       B_arg,
-                        rocblas_int      ldb,
+                        int64_t          ldb,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
-                        rocblas_int      ldc,
+                        int64_t          ldc,
                         rocblas_stride   c_st_or_of)
 {
     const int tx = threadIdx.x;
@@ -704,7 +705,7 @@ rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
     auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
     auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
-    const int nblocks = (m + NB - 1) / NB;
+    const int nblocks = (m - 1) / NB + 1;
     const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
     B += bx * NB;
     C += bx * NB;
@@ -771,15 +772,15 @@ rocblas_status rocblas_trmm_template_lNx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, rocblas_int lda, rocblas_stride a_st_or_of,
-                       TConstPtr*       dB, rocblas_int ldb, rocblas_stride b_st_or_of,
-                       TPtr*            dC, rocblas_int ldc, rocblas_stride c_st_or_of,
+                       TConstPtr*       dA, int64_t lda, rocblas_stride a_st_or_of,
+                       TConstPtr*       dB, int64_t ldb, rocblas_stride b_st_or_of,
+                       TPtr*            dC, int64_t ldc, rocblas_stride c_st_or_of,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
 
     dim3 threads(NB, NB, 1);
-    dim3 grid((n + NB - 1) / NB, 1, batch_count);
+    dim3 grid((n  - 1) / NB + 1, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
@@ -808,15 +809,15 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, rocblas_int lda, rocblas_stride a_st_or_of,
-                       TConstPtr*       dB, rocblas_int ldb, rocblas_stride b_st_or_of,
-                       TPtr*            dC, rocblas_int ldc, rocblas_stride c_st_or_of,
+                       TConstPtr*       dA, int64_t lda, rocblas_stride a_st_or_of,
+                       TConstPtr*       dB, int64_t ldb, rocblas_stride b_st_or_of,
+                       TPtr*            dC, int64_t ldc, rocblas_stride c_st_or_of,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
 
     dim3 threads(NB, NB, 1);
-    dim3 grid((n + NB - 1) / NB, 1, batch_count);
+    dim3 grid(((n - 1) / NB) + 1, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
@@ -845,15 +846,15 @@ rocblas_status rocblas_trmm_template_rNx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, rocblas_int lda, rocblas_stride a_st_or_of,
-                       TConstPtr*       dB, rocblas_int ldb, rocblas_stride b_st_or_of,
-                       TPtr*            dC, rocblas_int ldc, rocblas_stride c_st_or_of,
+                       TConstPtr*       dA, int64_t lda, rocblas_stride a_st_or_of,
+                       TConstPtr*       dB, int64_t ldb, rocblas_stride b_st_or_of,
+                       TPtr*            dC, int64_t ldc, rocblas_stride c_st_or_of,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
 
     dim3 threads(NB, NB, 1);
-    dim3 grid((m + NB - 1) / NB, 1, batch_count);
+    dim3 grid((m - 1) / NB + 1, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
@@ -882,15 +883,15 @@ rocblas_status rocblas_trmm_template_rTx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, rocblas_int lda, rocblas_stride a_st_or_of,
-                       TConstPtr*       dB, rocblas_int ldb, rocblas_stride b_st_or_of,
-                       TPtr*            dC, rocblas_int ldc, rocblas_stride c_st_or_of,
+                       TConstPtr*       dA, int64_t lda, rocblas_stride a_st_or_of,
+                       TConstPtr*       dB, int64_t ldb, rocblas_stride b_st_or_of,
+                       TPtr*            dC, int64_t ldc, rocblas_stride c_st_or_of,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
 
     dim3 threads(NB, NB, 1);
-    dim3 grid((m + NB - 1) / NB, 1, batch_count);
+    dim3 grid((m - 1) / NB + 1, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
@@ -985,15 +986,15 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
                                   rocblas_stride    stride_alpha,
                                   TConstPtr         dA,
                                   rocblas_stride    offset_a,
-                                  rocblas_int       lda,
+                                  int64_t           lda,
                                   rocblas_stride    stride_a,
                                   TConstPtr         dB,
                                   rocblas_stride    offset_b,
-                                  rocblas_int       ldb,
+                                  int64_t           ldb,
                                   rocblas_stride    stride_b,
                                   TPtr              dC,
                                   rocblas_stride    offset_c,
-                                  rocblas_int       ldc,
+                                  int64_t           ldc,
                                   rocblas_stride    stride_c,
                                   rocblas_int       batch_count)
 {
@@ -1153,13 +1154,13 @@ rocblas_status rocblas_trmm_outofplace_template(rocblas_handle   handle,
                                                 TScal*           alpha,
                                                 TConstPtr*       dA,
                                                 rocblas_stride   offset_a,
-                                                rocblas_int      lda,
+                                                int64_t          lda,
                                                 TConstPtr*       dB,
                                                 rocblas_stride   offset_b,
-                                                rocblas_int      ldb,
+                                                int64_t          ldb,
                                                 TPtr*            dC,
                                                 rocblas_stride   offset_c,
-                                                rocblas_int      ldc)
+                                                int64_t          ldc)
 {
     // using template params to indicate transpose type
     // declaring constexpr here for easier use in gemm calls
@@ -1222,10 +1223,10 @@ rocblas_status rocblas_trmm_outofplace_template(rocblas_handle   handle,
     if(rem)
     {
         // offset is number of full blocks
-        rocblas_int k_norem = k - rem;
-        offsetAin           = offset_a + k_norem * a_block_stride;
-        offsetBin           = offset_b + k_norem * b_block_stride;
-        offsetCin           = offset_c + k_norem * c_block_stride;
+        int64_t k_norem = k - rem;
+        offsetAin       = offset_a + k_norem * a_block_stride;
+        offsetBin       = offset_b + k_norem * b_block_stride;
+        offsetCin       = offset_c + k_norem * c_block_stride;
 
         RETURN_IF_ROCBLAS_ERROR(
             (rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>)(handle,
@@ -1249,16 +1250,16 @@ rocblas_status rocblas_trmm_outofplace_template(rocblas_handle   handle,
                                                                                 1));
     }
 
-    for(rocblas_int k_sub = NB; k_sub < k; k_sub *= 2)
+    for(int64_t k_sub = NB; k_sub < k; k_sub *= 2)
     {
         if(LEFT)
             m_sub = k_sub;
         else
             n_sub = k_sub;
 
-        rocblas_int k_stride         = k_sub * 2;
-        rocblas_int gemm_batch_count = (k - k_sub) / k_stride;
-        rem                          = (k - k_sub) % k_stride;
+        int64_t k_stride         = k_sub * 2;
+        int64_t gemm_batch_count = (k - k_sub) / k_stride;
+        rem                      = (k - k_sub) % k_stride;
         if(rem >= k_sub)
         {
             rem = 0;
@@ -1273,27 +1274,28 @@ rocblas_status rocblas_trmm_outofplace_template(rocblas_handle   handle,
         rocblas_stride strideCgemm = k_stride * c_block_stride;
 
         // already zeroed out C, so set beta to 1
-        RETURN_IF_ROCBLAS_ERROR(rocblas_internal_gemm<false>(handle,
-                                                             LEFT ? transA : rocblas_operation_none,
-                                                             LEFT ? rocblas_operation_none : transA,
-                                                             m_sub,
-                                                             n_sub,
-                                                             k_sub,
-                                                             alpha,
-                                                             LEFT ? dA : dB,
-                                                             LEFT ? offsetAin : offsetBin,
-                                                             LEFT ? lda : ldb,
-                                                             LEFT ? strideAgemm : strideBgemm,
-                                                             LEFT ? dB : dA,
-                                                             LEFT ? offsetBin : offsetAin,
-                                                             LEFT ? ldb : lda,
-                                                             LEFT ? strideBgemm : strideAgemm,
-                                                             &beta_1<T>,
-                                                             dC,
-                                                             offsetCin,
-                                                             ldc,
-                                                             strideCgemm,
-                                                             gemm_batch_count));
+        RETURN_IF_ROCBLAS_ERROR(
+            rocblas_internal_gemm_launcher_64<false>(handle,
+                                                     LEFT ? transA : rocblas_operation_none,
+                                                     LEFT ? rocblas_operation_none : transA,
+                                                     m_sub,
+                                                     n_sub,
+                                                     k_sub,
+                                                     alpha,
+                                                     LEFT ? dA : dB,
+                                                     LEFT ? offsetAin : offsetBin,
+                                                     LEFT ? lda : ldb,
+                                                     LEFT ? strideAgemm : strideBgemm,
+                                                     LEFT ? dB : dA,
+                                                     LEFT ? offsetBin : offsetAin,
+                                                     LEFT ? ldb : lda,
+                                                     LEFT ? strideBgemm : strideAgemm,
+                                                     &beta_1<T>,
+                                                     dC,
+                                                     offsetCin,
+                                                     ldc,
+                                                     strideCgemm,
+                                                     gemm_batch_count));
 
         if(rem)
         {
@@ -1309,27 +1311,27 @@ rocblas_status rocblas_trmm_outofplace_template(rocblas_handle   handle,
             offsetCin = offset_c + (TRI_OFFSET ? i2 * c_block_stride : i1 * c_block_stride);
 
             RETURN_IF_ROCBLAS_ERROR(
-                rocblas_internal_gemm<false>(handle,
-                                             LEFT ? transA : rocblas_operation_none,
-                                             LEFT ? rocblas_operation_none : transA,
-                                             m_rem,
-                                             n_rem,
-                                             k_rem,
-                                             alpha,
-                                             LEFT ? dA : dB,
-                                             LEFT ? offsetAin : offsetBin,
-                                             LEFT ? lda : ldb,
-                                             0,
-                                             LEFT ? dB : dA,
-                                             LEFT ? offsetBin : offsetAin,
-                                             LEFT ? ldb : lda,
-                                             0,
-                                             &beta_1<T>,
-                                             dC,
-                                             offsetCin,
-                                             ldc,
-                                             0,
-                                             1));
+                rocblas_internal_gemm_launcher_64<false>(handle,
+                                                         LEFT ? transA : rocblas_operation_none,
+                                                         LEFT ? rocblas_operation_none : transA,
+                                                         m_rem,
+                                                         n_rem,
+                                                         k_rem,
+                                                         alpha,
+                                                         LEFT ? dA : dB,
+                                                         LEFT ? offsetAin : offsetBin,
+                                                         LEFT ? lda : ldb,
+                                                         0,
+                                                         LEFT ? dB : dA,
+                                                         LEFT ? offsetBin : offsetAin,
+                                                         LEFT ? ldb : lda,
+                                                         0,
+                                                         &beta_1<T>,
+                                                         dC,
+                                                         offsetCin,
+                                                         ldc,
+                                                         0,
+                                                         1));
         }
     }
 
@@ -1348,13 +1350,13 @@ rocblas_status rocblas_internal_trmm_outofplace_template(rocblas_handle    handl
                                                          const T*          alpha,
                                                          const T*          dA,
                                                          rocblas_stride    offset_a,
-                                                         rocblas_int       lda,
+                                                         int64_t           lda,
                                                          const T*          dB,
                                                          rocblas_stride    offset_b,
-                                                         rocblas_int       ldb,
+                                                         int64_t           ldb,
                                                          T*                dC,
                                                          rocblas_stride    offset_c,
-                                                         rocblas_int       ldc)
+                                                         int64_t           ldc)
 {
 #define trmm_out_KARGS \
     handle, diag, m, n, alpha, dA, offset_a, lda, dB, offset_b, ldb, dC, offset_c, ldc
@@ -1469,15 +1471,15 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                         rocblas_stride    stride_alpha,
                                                         TConstPtr*        dA,
                                                         rocblas_stride    offset_a,
-                                                        rocblas_int       lda,
+                                                        int64_t           lda,
                                                         rocblas_stride    stride_a,
                                                         TConstPtr*        dB,
                                                         rocblas_stride    offset_b,
-                                                        rocblas_int       ldb,
+                                                        int64_t           ldb,
                                                         rocblas_stride    stride_b,
                                                         TPtr*             dC,
                                                         rocblas_stride    offset_c,
-                                                        rocblas_int       ldc,
+                                                        int64_t           ldc,
                                                         rocblas_stride    stride_c,
                                                         rocblas_int       batch_count)
 {
@@ -1548,27 +1550,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                               stride_c,
                                                                               batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   rocblas_operation_none,
-                                                                   rocblas_operation_none,
-                                                                   m2,
-                                                                   n,
-                                                                   m1,
-                                                                   alpha,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(m1, 0),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(0, 0),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(m1, 0),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           rocblas_operation_none,
+                                                           rocblas_operation_none,
+                                                           m2,
+                                                           n,
+                                                           m1,
+                                                           alpha,
+                                                           dA,
+                                                           CALC_OFFSET_A(m1, 0),
+                                                           lda,
+                                                           stride_a,
+                                                           dB,
+                                                           CALC_OFFSET_B(0, 0),
+                                                           ldb,
+                                                           stride_b,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(m1, 0),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR(
             (rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -1623,27 +1626,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                                stride_c,
                                                                                batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   rocblas_operation_none,
-                                                                   rocblas_operation_none,
-                                                                   m1,
-                                                                   n,
-                                                                   m2,
-                                                                   alpha,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(0, m1),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(m1, 0),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(0, 0),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           rocblas_operation_none,
+                                                           rocblas_operation_none,
+                                                           m1,
+                                                           n,
+                                                           m2,
+                                                           alpha,
+                                                           dA,
+                                                           CALC_OFFSET_A(0, m1),
+                                                           lda,
+                                                           stride_a,
+                                                           dB,
+                                                           CALC_OFFSET_B(m1, 0),
+                                                           ldb,
+                                                           stride_b,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(0, 0),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((
             rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -1698,27 +1702,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                                stride_c,
                                                                                batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   trans_a,
-                                                                   rocblas_operation_none,
-                                                                   m1,
-                                                                   n,
-                                                                   m2,
-                                                                   alpha,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(m1, 0),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(m1, 0),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(0, 0),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           trans_a,
+                                                           rocblas_operation_none,
+                                                           m1,
+                                                           n,
+                                                           m2,
+                                                           alpha,
+                                                           dA,
+                                                           CALC_OFFSET_A(m1, 0),
+                                                           lda,
+                                                           stride_a,
+                                                           dB,
+                                                           CALC_OFFSET_B(m1, 0),
+                                                           ldb,
+                                                           stride_b,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(0, 0),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((
             rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -1773,27 +1778,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                               stride_c,
                                                                               batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   trans_a,
-                                                                   rocblas_operation_none,
-                                                                   m2,
-                                                                   n,
-                                                                   m1,
-                                                                   alpha,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(0, m1),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(0, 0),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(m1, 0),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           trans_a,
+                                                           rocblas_operation_none,
+                                                           m2,
+                                                           n,
+                                                           m1,
+                                                           alpha,
+                                                           dA,
+                                                           CALC_OFFSET_A(0, m1),
+                                                           lda,
+                                                           stride_a,
+                                                           dB,
+                                                           CALC_OFFSET_B(0, 0),
+                                                           ldb,
+                                                           stride_b,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(m1, 0),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR(
             (rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -1848,27 +1854,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                                stride_c,
                                                                                batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   rocblas_operation_none,
-                                                                   trans_a,
-                                                                   m,
-                                                                   n1,
-                                                                   n2,
-                                                                   alpha,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(0, n1),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(n1, 0),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(0, 0),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           rocblas_operation_none,
+                                                           trans_a,
+                                                           m,
+                                                           n1,
+                                                           n2,
+                                                           alpha,
+                                                           dB,
+                                                           CALC_OFFSET_B(0, n1),
+                                                           ldb,
+                                                           stride_b,
+                                                           dA,
+                                                           CALC_OFFSET_A(n1, 0),
+                                                           lda,
+                                                           stride_a,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(0, 0),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((
             rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -1923,27 +1930,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                               stride_c,
                                                                               batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   rocblas_operation_none,
-                                                                   trans_a,
-                                                                   m,
-                                                                   n2,
-                                                                   n1,
-                                                                   alpha,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(0, 0),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(0, n1),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(0, n1),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           rocblas_operation_none,
+                                                           trans_a,
+                                                           m,
+                                                           n2,
+                                                           n1,
+                                                           alpha,
+                                                           dB,
+                                                           CALC_OFFSET_B(0, 0),
+                                                           ldb,
+                                                           stride_b,
+                                                           dA,
+                                                           CALC_OFFSET_A(0, n1),
+                                                           lda,
+                                                           stride_a,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(0, n1),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR(
             (rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -1998,27 +2006,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                               stride_c,
                                                                               batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   rocblas_operation_none,
-                                                                   trans_a,
-                                                                   m,
-                                                                   n2,
-                                                                   n1,
-                                                                   alpha,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(0, 0),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(n1, 0),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(0, n1),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           rocblas_operation_none,
+                                                           trans_a,
+                                                           m,
+                                                           n2,
+                                                           n1,
+                                                           alpha,
+                                                           dB,
+                                                           CALC_OFFSET_B(0, 0),
+                                                           ldb,
+                                                           stride_b,
+                                                           dA,
+                                                           CALC_OFFSET_A(n1, 0),
+                                                           lda,
+                                                           stride_a,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(0, n1),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR(
             (rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -2073,27 +2082,28 @@ rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle
                                                                                stride_c,
                                                                                batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm<BATCHED, T>(handle,
-                                                                   rocblas_operation_none,
-                                                                   trans_a,
-                                                                   m,
-                                                                   n1,
-                                                                   n2,
-                                                                   alpha,
-                                                                   dB,
-                                                                   CALC_OFFSET_B(0, n1),
-                                                                   ldb,
-                                                                   stride_b,
-                                                                   dA,
-                                                                   CALC_OFFSET_A(0, n1),
-                                                                   lda,
-                                                                   stride_a,
-                                                                   &beta_1<T>,
-                                                                   dC,
-                                                                   CALC_OFFSET_C(0, 0),
-                                                                   ldc,
-                                                                   stride_c,
-                                                                   batch_count)));
+        RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_internal_gemm_launcher_64<BATCHED, T>(handle,
+                                                           rocblas_operation_none,
+                                                           trans_a,
+                                                           m,
+                                                           n1,
+                                                           n2,
+                                                           alpha,
+                                                           dB,
+                                                           CALC_OFFSET_B(0, n1),
+                                                           ldb,
+                                                           stride_b,
+                                                           dA,
+                                                           CALC_OFFSET_A(0, n1),
+                                                           lda,
+                                                           stride_a,
+                                                           &beta_1<T>,
+                                                           dC,
+                                                           CALC_OFFSET_C(0, 0),
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((
             rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle,
@@ -2138,15 +2148,15 @@ rocblas_status rocblas_internal_trmm_launcher(rocblas_handle    handle,
                                               rocblas_stride    stride_alpha,
                                               TConstPtr*        dA,
                                               rocblas_stride    offset_a,
-                                              rocblas_int       lda,
+                                              int64_t           lda,
                                               rocblas_stride    stride_a,
                                               TConstPtr*        dB,
                                               rocblas_stride    offset_b,
-                                              rocblas_int       ldb,
+                                              int64_t           ldb,
                                               rocblas_stride    stride_b,
                                               TPtr*             dC,
                                               rocblas_stride    offset_c,
-                                              rocblas_int       ldc,
+                                              int64_t           ldc,
                                               rocblas_stride    stride_c,
                                               rocblas_int       batch_count)
 {
@@ -2163,8 +2173,9 @@ rocblas_status rocblas_internal_trmm_launcher(rocblas_handle    handle,
         // always !BATCHED here so avoiding reference to uninstantiated code
         if constexpr(!BATCHED)
         {
+            // single bathc so applying offset here
             rocblas_set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, &alpha_0<T>, 0, dC, ldc, 0, 1);
+                handle, m, n, &alpha_0<T>, 0, dC + offset_c, ldc, 0, 1);
             return rocblas_internal_trmm_outofplace_template<T>(handle,
                                                                 side,
                                                                 uplo,
@@ -2373,15 +2384,15 @@ rocblas_status rocblas_trmm_check_numerics(const char*       function_name,
         rocblas_stride    stride_alpha,                                        \
         TConstPtr_        dA,                                                  \
         rocblas_stride    offset_a,                                            \
-        rocblas_int       lda,                                                 \
+        int64_t           lda,                                                 \
         rocblas_stride    stride_a,                                            \
         TConstPtr_        dB,                                                  \
         rocblas_stride    offset_b,                                            \
-        rocblas_int       ldb,                                                 \
+        int64_t           ldb,                                                 \
         rocblas_stride    stride_b,                                            \
         TPtr_             dC,                                                  \
         rocblas_stride    offset_c,                                            \
-        rocblas_int       lddc,                                                \
+        int64_t           lddc,                                                \
         rocblas_stride    stride_c,                                            \
         rocblas_int       batch_count);
 
@@ -2496,7 +2507,7 @@ template rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template  \
                          TScal_         alpha,                  \
                          rocblas_stride stride_alpha,           \
                          TPtr_          A,                      \
-                         rocblas_int    lda,                    \
+                         int64_t        lda,                    \
                          rocblas_stride a_st_or_of,             \
                          rocblas_int    batch_count);
 
