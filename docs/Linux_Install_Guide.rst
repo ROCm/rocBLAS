@@ -43,6 +43,7 @@ dependent for the user application.
 The header files rocblas.h and rocblas_module.f90 are installed in /opt/rocm/include/rocblas.
 The library file librocblas.so is installed in /opt/rocm/lib.
 
+Some client executables like rocblas-test, rocblas-bench, and rocblas-example-sscal can be installed by rocblas-clients package. They are installed in /opt/rocm/bin.
 
 -------------------------------
 Building and Installing rocBLAS
