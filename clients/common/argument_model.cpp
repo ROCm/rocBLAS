@@ -53,18 +53,36 @@ void ArgumentModel_log_frequencies(rocblas_internal_ostream& name_line,
 {
 
     FrequencyMonitor& frequency_monitor = getFrequencyMonitor();
-    if(frequency_monitor.enabled())
+    if(!frequency_monitor.enabled())
+        return;
+    if(!frequency_monitor.detailedReport())
     {
-        name_line << ",avg-freq";
-        val_line << "," << frequency_monitor.getAverageSYSCLK();
+        name_line << ",lowest-avg-freq";
+        val_line << "," << frequency_monitor.getLowestAverageSYSCLK();
 
-        name_line << ",median-freq";
-        val_line << "," << frequency_monitor.getMedianSYSCLK();
-
-        name_line << ",avg-MCLK";
-        val_line << "," << frequency_monitor.getAverageMEMCLK();
-
-        name_line << ",median-MCLK";
-        val_line << "," << frequency_monitor.getMedianMEMCLK();
+        name_line << ",lowest-median-freq";
+        val_line << "," << frequency_monitor.getLowestMedianSYSCLK();
     }
+    else
+    {
+        auto allAvgSYSCLK = frequency_monitor.getAllAverageSYSCLK();
+        for(int i = 0; i < allAvgSYSCLK.size(); i++)
+        {
+            name_line << ",avg-freq_" << i;
+            val_line << "," << allAvgSYSCLK[i];
+        }
+
+        auto allMedianSYSCLK = frequency_monitor.getAllMedianSYSCLK();
+        for(int i = 0; i < allMedianSYSCLK.size(); i++)
+        {
+            name_line << ",median-freq_" << i;
+            val_line << "," << allMedianSYSCLK[i];
+        }
+    }
+
+    name_line << ",avg-MCLK";
+    val_line << "," << frequency_monitor.getAverageMEMCLK();
+
+    name_line << ",median-MCLK";
+    val_line << "," << frequency_monitor.getMedianMEMCLK();
 }
