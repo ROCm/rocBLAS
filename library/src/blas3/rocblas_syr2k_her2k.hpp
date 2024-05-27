@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,38 @@
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 #include "herk_syrk_device.hpp"
+#include "rocblas_gemm.hpp"
+
+template <typename API_INT,
+          rocblas_int MIN_NB,
+          bool        BATCHED,
+          bool        TWOK,
+          bool        HERK,
+          typename T,
+          typename TScala,
+          typename TScalb,
+          typename TConstPtr,
+          typename TPtr>
+rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
+                                                     rocblas_fill      uplo,
+                                                     rocblas_operation trans,
+                                                     rocblas_int       n,
+                                                     API_INT           k,
+                                                     const TScala*     alpha_in,
+                                                     TConstPtr         dA_in,
+                                                     rocblas_stride    offset_a,
+                                                     API_INT           lda,
+                                                     rocblas_stride    stride_a,
+                                                     TConstPtr         dB_in,
+                                                     rocblas_stride    offset_b,
+                                                     API_INT           ldb,
+                                                     rocblas_stride    stride_b,
+                                                     const TScalb*     beta_in,
+                                                     TPtr              dC_in,
+                                                     rocblas_stride    offset_c,
+                                                     API_INT           ldc,
+                                                     rocblas_stride    stride_c,
+                                                     rocblas_int       batch_count);
 
 template <bool        BATCHED,
           bool        TWOK,
@@ -53,27 +85,27 @@ syr2k_her2k_kernel(bool              upper,
                    rocblas_int       ldc,
                    rocblas_stride    stride_c);
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
                                               rocblas_fill      uplo,
                                               rocblas_operation trans,
-                                              rocblas_int       n,
-                                              rocblas_int       k,
+                                              API_INT           n,
+                                              API_INT           k,
                                               TScal             alpha,
                                               TConstPtr         AP,
                                               rocblas_stride    offsetA,
-                                              rocblas_int       lda,
+                                              API_INT           lda,
                                               rocblas_stride    strideA,
                                               TConstPtr         BP,
                                               rocblas_stride    offsetB,
-                                              rocblas_int       ldb,
+                                              API_INT           ldb,
                                               rocblas_stride    strideB,
                                               TScal             beta,
                                               TPtr              CP,
                                               rocblas_stride    offsetC,
-                                              rocblas_int       ldc,
+                                              API_INT           ldc,
                                               rocblas_stride    strideC,
-                                              rocblas_int       batch_count)
+                                              API_INT           batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -247,6 +279,52 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syr2k_template_64(rocblas_handle    handle,
+                                       rocblas_fill      uplo,
+                                       rocblas_operation trans,
+                                       int64_t           n_64,
+                                       int64_t           k_64,
+                                       const T*          alpha,
+                                       const T*          A,
+                                       rocblas_stride    offset_A,
+                                       int64_t           lda_64,
+                                       rocblas_stride    stride_A,
+                                       const T*          B,
+                                       rocblas_stride    offset_B,
+                                       int64_t           ldb_64,
+                                       rocblas_stride    stride_B,
+                                       const T*          beta,
+                                       T*                C,
+                                       rocblas_stride    offset_C,
+                                       int64_t           ldc_64,
+                                       rocblas_stride    stride_C,
+                                       int64_t           batch_count_64);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syr2k_batched_template_64(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation trans,
+                                               int64_t           n_64,
+                                               int64_t           k_64,
+                                               const T*          alpha,
+                                               const T* const*   A,
+                                               rocblas_stride    offset_A,
+                                               int64_t           lda_64,
+                                               rocblas_stride    stride_A,
+                                               const T* const*   B,
+                                               rocblas_stride    offset_B,
+                                               int64_t           ldb_64,
+                                               rocblas_stride    stride_B,
+                                               const T*          beta,
+                                               T* const*         C,
+                                               rocblas_stride    offset_C,
+                                               int64_t           ldc_64,
+                                               rocblas_stride    stride_C,
+                                               int64_t           batch_count_64);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_her2k_template(rocblas_handle    handle,
                                     rocblas_fill      uplo,
                                     rocblas_operation trans,
@@ -296,18 +374,18 @@ rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_nam
                                                   rocblas_handle    handle,
                                                   rocblas_fill      uplo,
                                                   rocblas_operation trans,
-                                                  rocblas_int       n,
-                                                  rocblas_int       k,
+                                                  int64_t           n,
+                                                  int64_t           k,
                                                   TConstPtr         A,
-                                                  rocblas_int       lda,
+                                                  int64_t           lda,
                                                   rocblas_stride    strideA,
                                                   TConstPtr         B,
-                                                  rocblas_int       ldb,
+                                                  int64_t           ldb,
                                                   rocblas_stride    strideB,
                                                   TPtr              C,
-                                                  rocblas_int       ldc,
+                                                  int64_t           ldc,
                                                   rocblas_stride    strideC,
-                                                  rocblas_int       batch_count,
+                                                  int64_t           batch_count,
                                                   const int         check_numerics,
                                                   bool              is_input);
 
