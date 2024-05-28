@@ -117,6 +117,8 @@ rocblas_Xsyr2k + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyr2k
 
+The syr2k functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_ssyr2k_batched
    :outline:
 .. doxygenfunction:: rocblas_dsyr2k_batched
@@ -125,6 +127,8 @@ rocblas_Xsyr2k + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyr2k_batched
 
+The syr2k_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_ssyr2k_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dsyr2k_strided_batched
@@ -132,6 +136,8 @@ rocblas_Xsyr2k + batched, strided_batched
 .. doxygenfunction:: rocblas_csyr2k_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyr2k_strided_batched
+
+The syr2k_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xsyrkx + batched, strided_batched
 =========================================
@@ -144,6 +150,8 @@ rocblas_Xsyrkx + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyrkx
 
+The syrkx functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_ssyrkx_batched
    :outline:
 .. doxygenfunction:: rocblas_dsyrkx_batched
@@ -152,6 +160,8 @@ rocblas_Xsyrkx + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyrkx_batched
 
+The syrkx_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_ssyrkx_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dsyrkx_strided_batched
@@ -159,6 +169,8 @@ rocblas_Xsyrkx + batched, strided_batched
 .. doxygenfunction:: rocblas_csyrkx_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyrkx_strided_batched
+
+The syrkx_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xtrmm + batched, strided_batched
 =========================================

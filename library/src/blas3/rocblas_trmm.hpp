@@ -43,7 +43,7 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
                                                               TScal          alpha,
                                                               rocblas_stride stride_alpha,
                                                               TPtr           A,
-                                                              rocblas_int    lda,
+                                                              int64_t        lda,
                                                               rocblas_stride a_st_or_of,
                                                               rocblas_int    batch_count);
 
@@ -108,15 +108,15 @@ rocblas_status rocblas_internal_trmm_launcher(rocblas_handle    handle,
                                               rocblas_stride    stride_alpha,
                                               TConstPtr*        dA,
                                               rocblas_stride    offset_a,
-                                              rocblas_int       lda,
+                                              int64_t           lda,
                                               rocblas_stride    stride_a,
                                               TConstPtr*        dB,
                                               rocblas_stride    offset_b,
-                                              rocblas_int       ldb,
+                                              int64_t           ldb,
                                               rocblas_stride    stride_b,
                                               TPtr*             dC,
                                               rocblas_stride    offset_c,
-                                              rocblas_int       ldc,
+                                              int64_t           ldc,
                                               rocblas_stride    stride_c,
                                               rocblas_int       batch_count);
 

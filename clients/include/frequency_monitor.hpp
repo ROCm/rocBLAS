@@ -23,20 +23,24 @@
  * ************************************************************************/
 #pragma once
 
+#include <vector>
 class FrequencyMonitor
 {
 public:
-    virtual bool enabled() = 0;
+    virtual bool enabled()        = 0;
+    virtual bool detailedReport() = 0;
 
     virtual void set_device_id(int deviceId) = 0;
 
     virtual void start() = 0;
     virtual void stop()  = 0;
 
-    virtual double getAverageSYSCLK() = 0;
-    virtual double getMedianSYSCLK()  = 0;
-    virtual double getAverageMEMCLK() = 0;
-    virtual double getMedianMEMCLK()  = 0;
+    virtual double              getLowestAverageSYSCLK() = 0;
+    virtual double              getLowestMedianSYSCLK()  = 0;
+    virtual std::vector<double> getAllAverageSYSCLK()    = 0;
+    virtual std::vector<double> getAllMedianSYSCLK()     = 0;
+    virtual double              getAverageMEMCLK()       = 0;
+    virtual double              getMedianMEMCLK()        = 0;
 };
 
 FrequencyMonitor& getFrequencyMonitor();

@@ -246,9 +246,14 @@ try
     if(stream == handle->stream)
         return rocblas_status_success;
 
-    // The new stream must be valid
-    if(stream != 0 && hipStreamQuery(stream) == hipErrorInvalidResourceHandle)
-        return rocblas_status_invalid_value;
+    // Stream capture does not allow use of hipStreamQuery
+    // If the current stream is in capture mode, skip use of hipStreamQuery()
+    if(!handle->is_stream_in_capture_mode())
+    {
+        // The new stream must be valid
+        if(stream != 0 && hipStreamQuery(stream) == hipErrorInvalidHandle)
+            return rocblas_status_invalid_value;
+    }
 
     // Set the new stream
     handle->stream = stream;

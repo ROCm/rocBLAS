@@ -16909,6 +16909,164 @@ module rocblas
             integer(c_int), value :: batch_count
         end function rocblas_zhemm_strided_batched
     end interface
+    
+    ! hemm_64
+    interface
+        function rocblas_chemm_64(handle, side, uplo, n, k, alpha, &
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_chemm_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemm_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_chemm_64
+    end interface
+
+    interface
+        function rocblas_zhemm_64(handle, side, uplo, n, k, alpha, &
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zhemm_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemm_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_zhemm_64
+    end interface
+
+    ! hemm_batched
+    interface
+        function rocblas_chemm_batched_64(handle, side, uplo, n, k, alpha, &
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_chemm_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemm_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_chemm_batched_64
+    end interface
+
+    interface
+        function rocblas_zhemm_batched_64(handle, side, uplo, n, k, alpha, &
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zhemm_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemm_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zhemm_batched_64
+    end interface
+
+    ! hemm_strided_batched_64
+    interface
+        function rocblas_chemm_strided_batched_64(handle, side, uplo, n, k, alpha, &
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_chemm_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemm_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_chemm_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zhemm_strided_batched_64(handle, side, uplo, n, k, alpha, &
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zhemm_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemm_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zhemm_strided_batched_64
+    end interface
+
 
     ! herk
     interface
@@ -17678,6 +17836,317 @@ module rocblas
         end function rocblas_zsymm_strided_batched
     end interface
 
+! symm_64
+    interface
+        function rocblas_ssymm_64(handle, side, uplo, m, n, alpha, &
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_ssymm_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymm_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_ssymm_64
+    end interface
+
+    interface
+        function rocblas_dsymm_64(handle, side, uplo, m, n, alpha, &
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dsymm_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymm_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_dsymm_64
+    end interface
+
+    interface
+        function rocblas_csymm_64(handle, side, uplo, m, n, alpha, &
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_csymm_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymm_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_csymm_64
+    end interface
+
+    interface
+        function rocblas_zsymm_64(handle, side, uplo, m, n, alpha, &
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zsymm_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymm_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_zsymm_64
+    end interface
+
+    ! symm_batched_64
+    interface
+        function rocblas_ssymm_batched_64(handle, side, uplo, m, n, alpha, &
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssymm_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymm_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ssymm_batched_64
+    end interface
+
+    interface
+        function rocblas_dsymm_batched_64(handle, side, uplo, m, n, alpha, &
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsymm_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymm_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dsymm_batched_64
+    end interface
+
+    interface
+        function rocblas_csymm_batched_64(handle, side, uplo, m, n, alpha, &
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csymm_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymm_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_csymm_batched_64
+    end interface
+
+    interface
+        function rocblas_zsymm_batched_64(handle, side, uplo, m, n, alpha, &
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsymm_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymm_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zsymm_batched_64
+    end interface
+
+    ! symm_strided_batched_64
+    interface
+        function rocblas_ssymm_strided_batched_64(handle, side, uplo, m, n, alpha, &
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssymm_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymm_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ssymm_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dsymm_strided_batched_64(handle, side, uplo, m, n, alpha, &
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsymm_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymm_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dsymm_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_csymm_strided_batched_64(handle, side, uplo, m, n, alpha, &
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csymm_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymm_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_csymm_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zsymm_strided_batched_64(handle, side, uplo, m, n, alpha, &
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsymm_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymm_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_side_left)), value :: side
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(c_int64_t), value :: m
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zsymm_strided_batched_64
+    end interface
+
     ! syrk
     interface
         function rocblas_ssyrk(handle, uplo, transA, n, k, alpha, &
@@ -18272,6 +18741,317 @@ module rocblas
         end function rocblas_zsyr2k_strided_batched
     end interface
 
+    ! syr2k_64
+    interface
+        function rocblas_ssyr2k_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_ssyr2k_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2k_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_ssyr2k_64
+    end interface
+
+    interface
+        function rocblas_dsyr2k_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dsyr2k_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2k_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_dsyr2k_64
+    end interface
+
+    interface
+        function rocblas_csyr2k_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_csyr2k_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2k_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_csyr2k_64
+    end interface
+
+    interface
+        function rocblas_zsyr2k_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zsyr2k_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2k_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_zsyr2k_64
+    end interface
+
+    ! syr2k_batched_64
+    interface
+        function rocblas_ssyr2k_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssyr2k_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2k_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ssyr2k_batched_64
+    end interface
+
+    interface
+        function rocblas_dsyr2k_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsyr2k_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2k_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dsyr2k_batched_64
+    end interface
+
+    interface
+        function rocblas_csyr2k_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csyr2k_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2k_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_csyr2k_batched_64
+    end interface
+
+    interface
+        function rocblas_zsyr2k_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsyr2k_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2k_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zsyr2k_batched_64
+    end interface
+
+    ! syr2k_strided_batched_64
+    interface
+        function rocblas_ssyr2k_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssyr2k_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2k_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ssyr2k_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dsyr2k_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsyr2k_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2k_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dsyr2k_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_csyr2k_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csyr2k_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2k_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_csyr2k_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zsyr2k_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsyr2k_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2k_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zsyr2k_strided_batched_64
+    end interface
+
     ! syrkx
     interface
         function rocblas_ssyrkx(handle, uplo, transA, n, k, alpha, &
@@ -18583,6 +19363,316 @@ module rocblas
         end function rocblas_zsyrkx_strided_batched
     end interface
 
+    ! syrkx_64
+    interface
+        function rocblas_ssyrkx_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_ssyrkx_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrkx_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_ssyrkx_64
+    end interface
+
+    interface
+        function rocblas_dsyrkx_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dsyrkx_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrkx_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_dsyrkx_64
+    end interface
+
+    interface
+        function rocblas_csyrkx_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_csyrkx_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrkx_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_csyrkx_64
+    end interface
+
+    interface
+        function rocblas_zsyrkx_64(handle, uplo, transA, n, k, alpha, &
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zsyrkx_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrkx_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+        end function rocblas_zsyrkx_64
+    end interface
+
+    ! syrkx_batched_64
+    interface
+        function rocblas_ssyrkx_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssyrkx_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrkx_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ssyrkx_batched_64
+    end interface
+
+    interface
+        function rocblas_dsyrkx_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsyrkx_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrkx_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dsyrkx_batched_64
+    end interface
+
+    interface
+        function rocblas_csyrkx_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csyrkx_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrkx_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_csyrkx_batched_64
+    end interface
+
+    interface
+        function rocblas_zsyrkx_batched_64(handle, uplo, transA, n, k, alpha, &
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsyrkx_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrkx_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zsyrkx_batched_64
+    end interface
+
+    ! syrkx_strided_batched_64
+    interface
+        function rocblas_ssyrkx_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssyrkx_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrkx_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ssyrkx_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dsyrkx_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsyrkx_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrkx_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dsyrkx_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_csyrkx_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csyrkx_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrkx_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_csyrkx_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zsyrkx_strided_batched_64(handle, uplo, transA, n, k, alpha, &
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsyrkx_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrkx_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_fill_full)), value :: uplo
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(c_int64_t), value :: n
+            integer(c_int64_t), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: A
+            integer(c_int64_t), value :: lda
+            integer(c_int64_t), value :: stride_A
+            type(c_ptr), value :: B
+            integer(c_int64_t), value :: ldb
+            integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: C
+            integer(c_int64_t), value :: ldc
+            integer(c_int64_t), value :: stride_C
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zsyrkx_strided_batched_64
+    end interface
 
     ! trmm
     interface
