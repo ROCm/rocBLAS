@@ -29,27 +29,27 @@
 #include "blas3/rocblas_gemm_source.hpp"
 
 template <bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_internal_gemm_launcher_64(rocblas_handle    handle,
-                                                 rocblas_operation trans_a,
-                                                 rocblas_operation trans_b,
-                                                 int64_t           m_64,
-                                                 int64_t           n_64,
-                                                 int64_t           k_64,
-                                                 const TScal*      alpha,
-                                                 TConstPtr         A,
-                                                 rocblas_stride    offset_a,
-                                                 int64_t           lda_64,
-                                                 rocblas_stride    stride_a,
-                                                 TConstPtr         B,
-                                                 rocblas_stride    offset_b,
-                                                 int64_t           ldb_64,
-                                                 rocblas_stride    stride_b,
-                                                 const TScal*      beta,
-                                                 TPtr              C,
-                                                 rocblas_stride    offset_c,
-                                                 int64_t           ldc_64,
-                                                 rocblas_stride    stride_c,
-                                                 int64_t           batch_count_64)
+rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
+                                        rocblas_operation trans_a,
+                                        rocblas_operation trans_b,
+                                        int64_t           m_64,
+                                        int64_t           n_64,
+                                        int64_t           k_64,
+                                        const TScal*      alpha,
+                                        TConstPtr         A,
+                                        rocblas_stride    offset_a,
+                                        int64_t           lda_64,
+                                        rocblas_stride    stride_a,
+                                        TConstPtr         B,
+                                        rocblas_stride    offset_b,
+                                        int64_t           ldb_64,
+                                        rocblas_stride    stride_b,
+                                        const TScal*      beta,
+                                        TPtr              C,
+                                        rocblas_stride    offset_c,
+                                        int64_t           ldc_64,
+                                        rocblas_stride    stride_c,
+                                        int64_t           batch_count_64)
 {
     // Note: k==0 is not a quick return, because C must still be multiplied by beta
     if(!m_64 || !n_64 || !batch_count_64)
@@ -182,27 +182,27 @@ rocblas_status rocblas_internal_gemm_template_64(rocblas_handle    handle,
                                                  rocblas_stride    stride_c,
                                                  int64_t           batch_count)
 {
-    return rocblas_internal_gemm_launcher_64<false>(handle,
-                                                    trans_a,
-                                                    trans_b,
-                                                    m,
-                                                    n,
-                                                    k,
-                                                    alpha,
-                                                    A,
-                                                    offset_a,
-                                                    lda,
-                                                    stride_a,
-                                                    B,
-                                                    offset_b,
-                                                    ldb,
-                                                    stride_b,
-                                                    beta,
-                                                    C,
-                                                    offset_c,
-                                                    ldc,
-                                                    stride_c,
-                                                    batch_count);
+    return rocblas_internal_gemm_64<false>(handle,
+                                           trans_a,
+                                           trans_b,
+                                           m,
+                                           n,
+                                           k,
+                                           alpha,
+                                           A,
+                                           offset_a,
+                                           lda,
+                                           stride_a,
+                                           B,
+                                           offset_b,
+                                           ldb,
+                                           stride_b,
+                                           beta,
+                                           C,
+                                           offset_c,
+                                           ldc,
+                                           stride_c,
+                                           batch_count);
 }
 
 template <typename T>
@@ -228,27 +228,27 @@ rocblas_status rocblas_internal_gemm_batched_template_64(rocblas_handle    handl
                                                          rocblas_stride    stride_c,
                                                          int64_t           batch_count)
 {
-    return rocblas_internal_gemm_launcher_64<true>(handle,
-                                                   trans_a,
-                                                   trans_b,
-                                                   m,
-                                                   n,
-                                                   k,
-                                                   alpha,
-                                                   A,
-                                                   offset_a,
-                                                   lda,
-                                                   stride_a,
-                                                   B,
-                                                   offset_b,
-                                                   ldb,
-                                                   stride_b,
-                                                   beta,
-                                                   C,
-                                                   offset_c,
-                                                   ldc,
-                                                   stride_c,
-                                                   batch_count);
+    return rocblas_internal_gemm_64<true>(handle,
+                                          trans_a,
+                                          trans_b,
+                                          m,
+                                          n,
+                                          k,
+                                          alpha,
+                                          A,
+                                          offset_a,
+                                          lda,
+                                          stride_a,
+                                          B,
+                                          offset_b,
+                                          ldb,
+                                          stride_b,
+                                          beta,
+                                          C,
+                                          offset_c,
+                                          ldc,
+                                          stride_c,
+                                          batch_count);
 }
 
 #ifdef INST_GEMM_TEMPLATE_64
@@ -259,30 +259,32 @@ rocblas_status rocblas_internal_gemm_batched_template_64(rocblas_handle    handl
     template rocblas_status rocblas_internal_gemm_template_64<T_>(rocblas_handle    handle,   \
                                                                   rocblas_operation trans_a,  \
                                                                   rocblas_operation trans_b,  \
-                                                                  int64_t           m,        \
-                                                                  int64_t           n,        \
-                                                                  int64_t           k,        \
+                                                                  int64_t           m_64,     \
+                                                                  int64_t           n_64,     \
+                                                                  int64_t           k_64,     \
                                                                   const T_*         alpha,    \
                                                                   const T_*         A,        \
                                                                   rocblas_stride    offset_a, \
-                                                                  int64_t           lda,      \
+                                                                  int64_t           lda_64,   \
                                                                   rocblas_stride    stride_a, \
                                                                   const T_*         B,        \
                                                                   rocblas_stride    offset_b, \
-                                                                  int64_t           ldb,      \
+                                                                  int64_t           ldb_64,   \
                                                                   rocblas_stride    stride_b, \
                                                                   const T_*         beta,     \
                                                                   T_*               C,        \
                                                                   rocblas_stride    offset_c, \
-                                                                  int64_t           ldc,      \
+                                                                  int64_t           ldc_64,   \
                                                                   rocblas_stride    stride_c, \
-                                                                  int64_t           batch_count);
+                                                                  int64_t           batch_count_64);
 
 INST_GEMM_TEMPLATE_64(rocblas_half)
 INST_GEMM_TEMPLATE_64(float)
 INST_GEMM_TEMPLATE_64(double)
 INST_GEMM_TEMPLATE_64(rocblas_float_complex)
 INST_GEMM_TEMPLATE_64(rocblas_double_complex)
+
+#undef INST_GEMM_TEMPLATE_64
 
 #ifdef INST_GEMM_BATCHED_TEMPLATE_64
 #error INST_GEMM_BATCHED_TEMPLATE_64 already defined
@@ -293,22 +295,22 @@ INST_GEMM_TEMPLATE_64(rocblas_double_complex)
         rocblas_handle    handle,                                          \
         rocblas_operation trans_a,                                         \
         rocblas_operation trans_b,                                         \
-        int64_t           m,                                               \
-        int64_t           n,                                               \
-        int64_t           k,                                               \
+        int64_t           m_64,                                            \
+        int64_t           n_64,                                            \
+        int64_t           k_64,                                            \
         const T_*         alpha,                                           \
         const T_* const*  A,                                               \
         rocblas_stride    offset_a,                                        \
-        int64_t           lda,                                             \
+        int64_t           lda_64,                                          \
         rocblas_stride    stride_a,                                        \
         const T_* const*  B,                                               \
         rocblas_stride    offset_b,                                        \
-        int64_t           ldb,                                             \
+        int64_t           ldb_64,                                          \
         rocblas_stride    stride_b,                                        \
         const T_*         beta,                                            \
         T_* const*        C,                                               \
         rocblas_stride    offset_c,                                        \
-        int64_t           ldc,                                             \
+        int64_t           ldc_64,                                          \
         rocblas_stride    stride_c,                                        \
         int64_t           batch_count);
 
@@ -317,3 +319,5 @@ INST_GEMM_BATCHED_TEMPLATE_64(float)
 INST_GEMM_BATCHED_TEMPLATE_64(double)
 INST_GEMM_BATCHED_TEMPLATE_64(rocblas_float_complex)
 INST_GEMM_BATCHED_TEMPLATE_64(rocblas_double_complex)
+
+#undef INST_GEMM_BATCHED_TEMPLATE_64

@@ -56,40 +56,18 @@ rocblas_status rocblas_internal_trmm_launcher_64(rocblas_handle    handle,
     if(!m_64 || !n_64 || !batch_count_64)
         return rocblas_status_success;
 
-    if((m_64 > c_i32_max && side == rocblas_side_left)
-       || (n_64 > c_i32_max && side == rocblas_side_right))
+    int64_t k  = (side == rocblas_side_left) ? m_64 : n_64;
+    int64_t k1 = (side == rocblas_side_left) ? n_64 : m_64;
+
+    // Need reduction to chunk over K dimension, so for now not supporting K sizes greater
+    // than X_chunk size (2^28), these sizes aren't feasible in memory anyway
+    if(k > c_i64_grid_X_chunk)
     {
         // exceeds practical memory
         return rocblas_status_invalid_size;
     }
 
     constexpr int NB = rocblas_is_complex<T> ? ROCBLAS_CZTRMM_NB : ROCBLAS_SDTRMM_NB;
-
-    // may be able to call 32-bit trmm
-    if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-       && ldc_64 < c_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
-        return rocblas_internal_trmm_launcher<NB, BATCHED, T>(handle,
-                                                              side,
-                                                              uplo,
-                                                              trans_a,
-                                                              diag,
-                                                              m_64,
-                                                              n_64,
-                                                              alpha,
-                                                              stride_alpha,
-                                                              dA,
-                                                              offset_a,
-                                                              lda_64,
-                                                              stride_a,
-                                                              dB,
-                                                              offset_b,
-                                                              ldb_64,
-                                                              stride_b,
-                                                              dC,
-                                                              offset_c,
-                                                              ldc_64,
-                                                              stride_c,
-                                                              batch_count_64);
 
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
     {
@@ -100,39 +78,65 @@ rocblas_status rocblas_internal_trmm_launcher_64(rocblas_handle    handle,
         auto C_ptr = adjust_ptr_batch(dC, b_base, stride_c);
 
         // may be able to call 32-bit trmm while only iterating through batches.
-        if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-           && ldc_64 < c_i32_max)
+        if(m_64 < c_i32_max && n_64 < c_i32_max)
         {
-            auto status = rocblas_internal_trmm_launcher<NB, BATCHED, T>(handle,
-                                                                         side,
-                                                                         uplo,
-                                                                         trans_a,
-                                                                         diag,
-                                                                         m_64,
-                                                                         n_64,
-                                                                         alpha,
-                                                                         stride_alpha,
-                                                                         A_ptr,
-                                                                         offset_a,
-                                                                         lda_64,
-                                                                         stride_a,
-                                                                         B_ptr,
-                                                                         offset_b,
-                                                                         ldb_64,
-                                                                         stride_b,
-                                                                         C_ptr,
-                                                                         offset_c,
-                                                                         ldc_64,
-                                                                         stride_c,
-                                                                         batch_count);
-
-            if(status != rocblas_status_success)
-                return status;
+            RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_launcher<NB, BATCHED, T>(handle,
+                                                                                    side,
+                                                                                    uplo,
+                                                                                    trans_a,
+                                                                                    diag,
+                                                                                    m_64,
+                                                                                    n_64,
+                                                                                    alpha,
+                                                                                    stride_alpha,
+                                                                                    A_ptr,
+                                                                                    offset_a,
+                                                                                    lda_64,
+                                                                                    stride_a,
+                                                                                    B_ptr,
+                                                                                    offset_b,
+                                                                                    ldb_64,
+                                                                                    stride_b,
+                                                                                    C_ptr,
+                                                                                    offset_c,
+                                                                                    ldc_64,
+                                                                                    stride_c,
+                                                                                    batch_count)));
         }
         else
         {
-            // for now, we aren't supporting this
-            return rocblas_status_not_implemented;
+            // K is 32-bit size, only K1 may need chunking
+
+            for(int64_t k1_base = 0; k1_base < k1; k1_base += c_i64_grid_X_chunk)
+            {
+                int32_t k1_32 = int32_t(std::min(k1 - k1_base, int64_t(c_i64_grid_X_chunk)));
+                int32_t m     = side == rocblas_side_left ? int32_t(m_64) : k1_32;
+                int32_t n     = side == rocblas_side_left ? k1_32 : int32_t(n_64);
+
+                RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_launcher<NB, BATCHED, T>(
+                    handle,
+                    side,
+                    uplo,
+                    trans_a,
+                    diag,
+                    m,
+                    n,
+                    alpha,
+                    stride_alpha,
+                    A_ptr,
+                    offset_a, // blocking over k1 doesn't affect A matrix
+                    lda_64,
+                    stride_a,
+                    B_ptr,
+                    offset_b + (k1_base * (side == rocblas_side_left ? ldb_64 : 1)),
+                    ldb_64,
+                    stride_b,
+                    C_ptr,
+                    offset_c + (k1_base * (side == rocblas_side_left ? ldc_64 : 1)),
+                    ldc_64,
+                    stride_c,
+                    batch_count)));
+            }
         }
     }
 

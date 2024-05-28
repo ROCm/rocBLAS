@@ -260,34 +260,33 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                         batch_count);
 }
 
-// clang-format off
 #ifdef INSTANTIATE_GEMM_TEMPLATE
 #error INSTANTIATE_GEMM_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_GEMM_TEMPLATE(T_)                               \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status            \
-    rocblas_internal_gemm_template(rocblas_handle    handle,        \
-                                   rocblas_operation trans_a,       \
-                                   rocblas_operation trans_b,       \
-                                   rocblas_int       m,             \
-                                   rocblas_int       n,             \
-                                   rocblas_int       k,             \
-                                   const T_*         alpha,         \
-                                   const T_*         A,             \
-                                   rocblas_stride    offset_a,      \
-                                   rocblas_int       lda,           \
-                                   rocblas_stride    stride_a,      \
-                                   const T_*         B,             \
-                                   rocblas_stride    offset_b,      \
-                                   rocblas_int       ldb,           \
-                                   rocblas_stride    stride_b,      \
-                                   const T_*         beta,          \
-                                   T_*               C,             \
-                                   rocblas_stride    offset_c,      \
-                                   rocblas_int       ldc,           \
-                                   rocblas_stride    stride_c,      \
-                                   rocblas_int       batch_count);
+#define INSTANTIATE_GEMM_TEMPLATE(T_)                                                        \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gemm_template( \
+        rocblas_handle    handle,                                                            \
+        rocblas_operation trans_a,                                                           \
+        rocblas_operation trans_b,                                                           \
+        rocblas_int       m,                                                                 \
+        rocblas_int       n,                                                                 \
+        rocblas_int       k,                                                                 \
+        const T_*         alpha,                                                             \
+        const T_*         A,                                                                 \
+        rocblas_stride    offset_a,                                                          \
+        rocblas_int       lda,                                                               \
+        rocblas_stride    stride_a,                                                          \
+        const T_*         B,                                                                 \
+        rocblas_stride    offset_b,                                                          \
+        rocblas_int       ldb,                                                               \
+        rocblas_stride    stride_b,                                                          \
+        const T_*         beta,                                                              \
+        T_*               C,                                                                 \
+        rocblas_stride    offset_c,                                                          \
+        rocblas_int       ldc,                                                               \
+        rocblas_stride    stride_c,                                                          \
+        rocblas_int       batch_count);
 
 INSTANTIATE_GEMM_TEMPLATE(rocblas_half)
 INSTANTIATE_GEMM_TEMPLATE(float)
@@ -302,28 +301,28 @@ INSTANTIATE_GEMM_TEMPLATE(rocblas_double_complex)
 #endif
 
 #define INSTANTIATE_GEMM_BATCHED_TEMPLATE(T_)                              \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                   \
-    rocblas_internal_gemm_batched_template(rocblas_handle    handle,       \
-                                           rocblas_operation trans_a,      \
-                                           rocblas_operation trans_b,      \
-                                           rocblas_int       m,            \
-                                           rocblas_int       n,            \
-                                           rocblas_int       k,            \
-                                           const T_*         alpha,        \
-                                           const T_* const*  A,            \
-                                           rocblas_stride    offset_a,     \
-                                           rocblas_int       lda,          \
-                                           rocblas_stride    stride_a,     \
-                                           const T_* const*  B,            \
-                                           rocblas_stride    offset_b,     \
-                                           rocblas_int       ldb,          \
-                                           rocblas_stride    stride_b,     \
-                                           const T_*         beta,         \
-                                           T_* const*        C,            \
-                                           rocblas_stride    offset_c,     \
-                                           rocblas_int       ldc,          \
-                                           rocblas_stride    stride_c,     \
-                                           rocblas_int       batch_count);
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status               \
+        rocblas_internal_gemm_batched_template(rocblas_handle    handle,   \
+                                               rocblas_operation trans_a,  \
+                                               rocblas_operation trans_b,  \
+                                               rocblas_int       m,        \
+                                               rocblas_int       n,        \
+                                               rocblas_int       k,        \
+                                               const T_*         alpha,    \
+                                               const T_* const*  A,        \
+                                               rocblas_stride    offset_a, \
+                                               rocblas_int       lda,      \
+                                               rocblas_stride    stride_a, \
+                                               const T_* const*  B,        \
+                                               rocblas_stride    offset_b, \
+                                               rocblas_int       ldb,      \
+                                               rocblas_stride    stride_b, \
+                                               const T_*         beta,     \
+                                               T_* const*        C,        \
+                                               rocblas_stride    offset_c, \
+                                               rocblas_int       ldc,      \
+                                               rocblas_stride    stride_c, \
+                                               rocblas_int       batch_count);
 
 INSTANTIATE_GEMM_BATCHED_TEMPLATE(rocblas_half)
 INSTANTIATE_GEMM_BATCHED_TEMPLATE(float)
@@ -332,4 +331,3 @@ INSTANTIATE_GEMM_BATCHED_TEMPLATE(rocblas_float_complex)
 INSTANTIATE_GEMM_BATCHED_TEMPLATE(rocblas_double_complex)
 
 #undef INSTANTIATE_GEMM_BATCHED_TEMPLATE
-// clang-format on

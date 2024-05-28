@@ -34,6 +34,7 @@
 #include "handle.hpp"
 #include "rocblas_gemm.hpp"
 #include "rocblas_symm_hemm.hpp"
+#include "src64/blas3/rocblas_gemm_64.hpp"
 #include <type_traits>
 
 template <typename T>
@@ -41,14 +42,14 @@ static const T beta_1 = T(1);
 
 template <typename T>
 ROCBLAS_KERNEL_ILF void
-    rocblas_symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
+    rocblas_symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, int64_t ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
-        C[ty * size_t(ldc) + tx] = beta ? beta * C[ty * size_t(ldc) + tx] : 0;
+        C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
     }
 }
 
@@ -62,7 +63,7 @@ rocblas_symm_scale_kernel(rocblas_int    m,
                           T              beta_host_device,
                           U              CP_array,
                           rocblas_stride shift_c,
-                          rocblas_int    ldc,
+                          int64_t        ldc,
                           rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
@@ -82,11 +83,11 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
                                                           rocblas_int n,
                                                           T           alpha,
                                                           const T* __restrict__ A,
-                                                          rocblas_int lda,
+                                                          int64_t lda,
                                                           const T* __restrict__ B,
-                                                          rocblas_int ldb,
+                                                          int64_t ldb,
                                                           T* __restrict__ C,
-                                                          rocblas_int ldc)
+                                                          int64_t ldc)
 {
     // function not called when !alpha
 
@@ -127,14 +128,14 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
 
             if(!HERM)
             {
-                atile[threadIdx.x][threadIdx.y] = (r < m && c < m) ? A[c * size_t(lda) + r] : 0;
+                atile[threadIdx.x][threadIdx.y] = (r < m && c < m) ? A[c * lda + r] : 0;
             }
             else
             {
                 // clang-format off
                 T e = (r < m && c < m)
-                          ? (from > to ? conj(A[c * size_t(lda) + r])
-                                       : (from == to ? std::real(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r]))
+                          ? (from > to ? conj(A[c * lda + r])
+                                       : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
                           : 0;
                 // clang-format on
                 atile[threadIdx.x][threadIdx.y] = e;
@@ -146,7 +147,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
             r       = row_loc;
             c       = col_loc;
 
-            btile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * size_t(ldb) + r] : 0;
+            btile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
 
             __syncthreads();
         }
@@ -160,7 +161,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
             r       = row_loc;
             c       = col_loc;
 
-            atile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * size_t(ldb) + r] : 0;
+            atile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
 
             // fetch tile of symm matrix A into tileB
             row_loc = k_pos + threadIdx.x;
@@ -174,14 +175,14 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
 
             if(!HERM)
             {
-                btile[threadIdx.x][threadIdx.y] = (r < n && c < n) ? A[c * size_t(lda) + r] : 0;
+                btile[threadIdx.x][threadIdx.y] = (r < n && c < n) ? A[c * lda + r] : 0;
             }
             else
             {
                 // clang-format off
                 T e = (r < n && c < n)
-                          ? (from > to ? conj(A[c * size_t(lda) + r])
-                                       : (from == to ? std::real(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r]))
+                          ? (from > to ? conj(A[c * lda + r])
+                                       : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
                           : 0;
                 // clang-format on
                 btile[threadIdx.x][threadIdx.y] = e;
@@ -198,7 +199,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
             {
                 sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
             }
-            C[col * size_t(ldc) + row] += alpha * sum;
+            C[col * ldc + row] += alpha * sum;
         }
 
         __syncthreads();
@@ -222,15 +223,15 @@ rocblas_symm_hemm_kernel(bool           is_upper,
                          TScal          alpha_host_device,
                          TConstPtr      AP_array,
                          rocblas_stride shift_a,
-                         rocblas_int    lda,
+                         int64_t        lda,
                          rocblas_stride stride_a,
                          TConstPtr      BP_array,
                          rocblas_stride shift_b,
-                         rocblas_int    ldb,
+                         int64_t        ldb,
                          rocblas_stride stride_b,
                          TPtr           CP_array,
                          rocblas_stride shift_c,
-                         rocblas_int    ldc,
+                         int64_t        ldc,
                          rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
@@ -253,26 +254,26 @@ rocblas_symm_hemm_kernel(bool           is_upper,
   *  TPtr      is either:       T* OR       T* const*
   */
 template <bool HERM, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
-                                     rocblas_side   side,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    m,
-                                     rocblas_int    n,
-                                     TScal          alpha,
-                                     TConstPtr      AP,
-                                     rocblas_stride offsetA,
-                                     rocblas_int    lda,
-                                     rocblas_stride strideA,
-                                     TConstPtr      BP,
-                                     rocblas_stride offsetB,
-                                     rocblas_int    ldb,
-                                     rocblas_stride strideB,
-                                     TScal          beta,
-                                     TPtr           CP,
-                                     rocblas_stride offsetC,
-                                     rocblas_int    ldc,
-                                     rocblas_stride strideC,
-                                     rocblas_int    batch_count)
+rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
+                                          rocblas_side   side,
+                                          rocblas_fill   uplo,
+                                          rocblas_int    m,
+                                          rocblas_int    n,
+                                          TScal          alpha,
+                                          TConstPtr      AP,
+                                          rocblas_stride offsetA,
+                                          int64_t        lda,
+                                          rocblas_stride strideA,
+                                          TConstPtr      BP,
+                                          rocblas_stride offsetB,
+                                          int64_t        ldb,
+                                          rocblas_stride strideB,
+                                          TScal          beta,
+                                          TPtr           CP,
+                                          rocblas_stride offsetC,
+                                          int64_t        ldc,
+                                          rocblas_stride strideC,
+                                          rocblas_int    batch_count)
 {
     // quick return
     if(!m || !n || !batch_count)
@@ -429,22 +430,22 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
 }
 
 template <bool BATCHED, bool HERM, typename T, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
-                                                 rocblas_side   side,
-                                                 rocblas_fill   uplo,
-                                                 rocblas_int    m,
-                                                 rocblas_int    n,
-                                                 TScal          alpha,
-                                                 TConstPtr      a,
-                                                 rocblas_stride offsetA,
-                                                 rocblas_int    lda,
-                                                 TConstPtr      b,
-                                                 rocblas_stride offsetB,
-                                                 rocblas_int    ldb,
-                                                 TScal          beta,
-                                                 TPtr           c,
-                                                 rocblas_stride offsetC,
-                                                 rocblas_int    ldc)
+rocblas_status rocblas_symm_hemm_template_non_batched(rocblas_handle handle,
+                                                      rocblas_side   side,
+                                                      rocblas_fill   uplo,
+                                                      rocblas_int    m,
+                                                      rocblas_int    n,
+                                                      TScal          alpha,
+                                                      TConstPtr      a,
+                                                      rocblas_stride offsetA,
+                                                      int64_t        lda,
+                                                      TConstPtr      b,
+                                                      rocblas_stride offsetB,
+                                                      int64_t        ldb,
+                                                      TScal          beta,
+                                                      TPtr           c,
+                                                      rocblas_stride offsetC,
+                                                      int64_t        ldc)
 {
     // nb_diag is a tuning parameter. It is the size of the diagonal blocks in the matrix
     // a. It is also the starting size for subdiagonal blocks in calls to gemm.
@@ -498,7 +499,7 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
 
     // calls to symm_strided_batched for diagonal blocks of size nb_diag
     // clang-format off
-    RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+    RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_hemm_dispatch<HERM>(handle,
              side, uplo, symm_m, symm_n, alpha,
              a, offsetA, lda, nb_diag * diag_a_stride,
              b, offsetB, ldb, nb_diag * diag_b_stride, beta,
@@ -511,7 +512,7 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
         symm_m = rocblas_side_left == side ? nb_rem : m;
         symm_n = rocblas_side_left == side ? n : nb_rem;
 
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_hemm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
                  a, i_diag * diag_a_stride + offsetA, lda, 0,
                  b, i_diag * diag_b_stride + offsetB, ldb, 0, beta,
@@ -538,19 +539,23 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
         int64_t i1       = i_start;
         int64_t i2       = i_start - nb;
 
+        // Note:
+        // SYMM, HEMM and other GEMM based functions, will follow the pattern of using 64-bit GEMM launcher for both 32-bit and 64-bit input sizes.
+        // This is to avoid multiple instantiation of functions to call 32-bit & 64-bit.
+        // The use of 64-bit GEMM API does not cause any performance degrade for 32-bit inputs.
         if(rocblas_side_right == side)
         {
             if(rocblas_fill_lower == uplo)
             {
                 // lower sub-diagonal (from stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
                          b,      i1 * ldb + offsetB, ldb,          stride * ldb,
                          a, i1 + i2 * lda + offsetA, lda, stride + stride * lda, &beta_1<T>,
                          c,      i2 * ldc + offsetC, ldc,          stride * ldc, n_nb)));
 
                 // upper sub-diagonal (from transpose of stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          rocblas_operation_none, trans_a, m, nb, nb, alpha,
                          b,      i2 * ldb + offsetB, ldb,          stride * ldb,
                          a, i1 + i2 * lda + offsetA, lda, stride + stride * lda, &beta_1<T>,
@@ -559,14 +564,14 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
             else
             {
                 // upper sub-diagonal (from stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
                          b, i2*ldb         + offsetB, ldb, stride*ldb,
                          a, i1-nb + i1*lda + offsetA, lda, stride*(1+lda), &beta_1<T>,
                          c, i1*ldc         + offsetC, ldc, stride*ldc, n_nb)));
 
                 // lower sub-diagonal (from transpose of stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          rocblas_operation_none, trans_a, m, nb, nb, alpha,
                          b, i1*ldb         + offsetB, ldb, stride*ldb,
                          a, i1-nb + i1*lda + offsetA, lda, stride*(1+lda),  &beta_1<T>,
@@ -578,14 +583,14 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
             if(rocblas_fill_lower == uplo)
             {
                 // lower sub-diagonal (from stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
                          a, i1 + i2*lda + offsetA, lda, stride*(1+lda),
                          b, i2          + offsetB, ldb, stride,  &beta_1<T>,
                          c, i1          + offsetC, ldc, stride, n_nb)));
 
                 // upper sub-diagonal (from transpose of stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          trans_a, rocblas_operation_none, nb, n, nb, alpha,
                          a, i1 + i2*lda + offsetA, lda, stride*(1+lda),
                          b, i1          + offsetB, ldb, stride,  &beta_1<T>,
@@ -594,21 +599,20 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
             else
             {
                 // upper sub-diagonal (from stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
                          a, i2 + i1*lda + offsetA, lda, stride*(1+lda),
                          b, i1          + offsetB, ldb, stride,  &beta_1<T>,
                          c, i2          + offsetC, ldc, stride, n_nb)));
 
                 // lower sub-diagonal (from transpose of stored part of a)
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                          trans_a, rocblas_operation_none, nb, n, nb, alpha,
                          a, i2 + i1*lda + offsetA, lda, stride*(1+lda),
                          b, i2          + offsetB, ldb, stride,  &beta_1<T>,
                          c, i1          + offsetC, ldc, stride, n_nb)));
             }
         }
-
         // remainder gemm block of size nb_rem x nb where n_rem < nb
         if(stride_rem != 0)
         {
@@ -621,14 +625,14 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
                 if(rocblas_fill_lower == uplo)
                 {
                     // lower sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, m, nb, nb_rem, alpha,
                              b,      i1 * ldb + offsetB, ldb, 0,
                              a, i1 + i2 * lda + offsetA, lda, 0,  &beta_1<T>,
                              c,      i2 * ldc + offsetC, ldc, 0, 1)));
 
                     // upper sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, trans_a, m, nb_rem, nb, alpha,
                              b,      i2 * ldb + offsetB, ldb, 0,
                              a, i1 + i2 * lda + offsetA, lda, 0,  &beta_1<T>,
@@ -637,14 +641,14 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
                 else
                 {
                     // upper sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, m, nb_rem, nb, alpha,
                              b,      i2*ldb + offsetB, ldb, 0,
                              a, i2 + i1*lda + offsetA, lda, 0,  &beta_1<T>,
                              c,      i1*ldc + offsetC, ldc, 0, 1)));
 
                     // lower sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, trans_a, m, nb, nb_rem, alpha,
                              b,      i1*ldb + offsetB, ldb, 0,
                              a, i2 + i1*lda + offsetA, lda, 0,  &beta_1<T>,
@@ -656,14 +660,14 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
                 if(rocblas_fill_lower == uplo)
                 {
                     // lower sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, nb_rem, n, nb, alpha,
                              a, i2*lda + i1 + offsetA, lda, 0,
                              b,          i2 + offsetB, ldb, 0,  &beta_1<T>,
                              c,          i1 + offsetC, ldc, 0, 1)));
 
                     // upper sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              trans_a, rocblas_operation_none, nb, n, nb_rem, alpha,
                              a, i2*lda + i1 + offsetA, lda, 0,
                              b,          i1 + offsetB, ldb, 0,  &beta_1<T>,
@@ -672,14 +676,14 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
                 else
                 {
                     // upper sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, nb, n, nb_rem, alpha,
                              a, i1*lda + i2 + offsetA, lda, 0,
                              b,          i1 + offsetB, ldb, 0,  &beta_1<T>,
                              c,          i2 + offsetC, ldc, 0, 1)));
 
                     // lower sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              trans_a, rocblas_operation_none, nb_rem, n, nb, alpha,
                              a, i1*lda + i2 + offsetA, lda, 0,
                              b,          i2 + offsetB, ldb, 0,  &beta_1<T>,
@@ -688,6 +692,7 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
             }
         }
     }
+
     return rocblas_status_success;
 }
 
@@ -696,18 +701,18 @@ rocblas_status rocblas_hemm_symm_check_numerics(const char*    function_name,
                                                 rocblas_handle handle,
                                                 rocblas_side   side,
                                                 rocblas_fill   uplo,
-                                                rocblas_int    m,
-                                                rocblas_int    n,
+                                                int64_t    m,
+                                                int64_t    n,
                                                 TConstPtr      A,
-                                                rocblas_int    lda,
+                                                int64_t    lda,
                                                 rocblas_stride stride_a,
                                                 TConstPtr      B,
-                                                rocblas_int    ldb,
+                                                int64_t    ldb,
                                                 rocblas_stride stride_b,
                                                 TPtr           C,
-                                                rocblas_int    ldc,
+                                                int64_t    ldc,
                                                 rocblas_stride stride_c,
-                                                rocblas_int    batch_count,
+                                                int64_t    batch_count,
                                                 const int      check_numerics,
                                                 bool           is_input)
 {
@@ -774,7 +779,7 @@ rocblas_status rocblas_hemm_symm_check_numerics(const char*    function_name,
 }
 
 template <bool BATCHED, bool HERM, typename T, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
+rocblas_status rocblas_symm_hemm_template_batched(rocblas_handle handle,
                                              rocblas_side   side,
                                              rocblas_fill   uplo,
                                              rocblas_int    m,
@@ -782,16 +787,16 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                                              TScal          alpha,
                                              TConstPtr      a,
                                              rocblas_stride offsetA,
-                                             rocblas_int    lda,
+                                             int64_t    lda,
                                              rocblas_stride strideA,
                                              TConstPtr      b,
                                              rocblas_stride offsetB,
-                                             rocblas_int    ldb,
+                                             int64_t    ldb,
                                              rocblas_stride strideB,
                                              TScal          beta,
                                              TPtr           c,
                                              rocblas_stride offsetC,
-                                             rocblas_int    ldc,
+                                             int64_t    ldc,
                                              rocblas_stride strideC,
                                              rocblas_int    batch_count)
 {
@@ -836,7 +841,7 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     // calls to symm_strided_batched for diagonal blocks of size nb_diag
     for(int i_nb = 0; i_nb < n_nb; i_nb++)
     {
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_hemm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
                  a, i_nb * (nb_diag * diag_a_stride) + offsetA, lda, strideA,
                  b, i_nb * (nb_diag * diag_b_stride) + offsetB, ldb, strideB, beta,
@@ -850,7 +855,7 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
         symm_m = rocblas_side_left == side ? nb_rem : m;
         symm_n = rocblas_side_left == side ? n : nb_rem;
 
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_hemm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
                  a, i_diag * diag_a_stride + offsetA, lda, strideA,
                  b, i_diag * diag_b_stride + offsetB, ldb, strideB, beta,
@@ -876,6 +881,10 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
         int64_t i1       = i_start;
         int64_t i2       = i_start - nb;
 
+        // Note:
+        // SYMM, HEMM and other GEMM based functions, will follow the pattern of using 64-bit GEMM launcher for both 32-bit and 64-bit input sizes.
+        // This is to avoid multiple instantiation of functions to call 32-bit & 64-bit.
+        // The use of 64-bit GEMM API does not cause any performance degrade for 32-bit inputs.
         for(int i_nb = 0; i_nb < n_nb; i_nb++)
         {
             if(rocblas_side_right == side)
@@ -883,14 +892,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 if(rocblas_fill_lower == uplo)
                 {
                     // lower sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
                              b,      i1*ldb + offsetB + i_nb * stride * ldb    , ldb, strideB,
                              a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA, &beta_1<T>,
                              c,      i2*ldc + offsetC + i_nb * stride * ldc    , ldc, strideC, batch_count)));
 
                     // upper sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, trans_a, m, nb, nb, alpha,
                              b,      i2*ldb + offsetB + i_nb * stride * ldb    , ldb, strideB,
                              a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA, &beta_1<T>,
@@ -899,14 +908,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 else
                 {
                     // upper sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
                              b, i2*ldb         + offsetB + i_nb * stride * ldb    , ldb, strideB,
                              a, i1*lda + i1-nb + offsetA + i_nb * stride * (1+lda), lda, strideA, &beta_1<T>,
                              c, i1*ldc         + offsetC + i_nb * stride * ldc    , ldc, strideC, batch_count)));
 
                     // lower sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, trans_a, m, nb, nb, alpha,
                              b, i1*ldb         + offsetB + i_nb * stride * ldb    , ldb, strideB,
                              a, i1*lda + i1-nb + offsetA + i_nb * stride * (1+lda), lda, strideA, &beta_1<T>,
@@ -918,14 +927,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 if(rocblas_fill_lower == uplo)
                 {
                     // lower sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
                              a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
                              b, i2          + offsetB + i_nb * stride          , ldb, strideB, &beta_1<T>,
                              c, i1          + offsetC + i_nb * stride          , ldc, strideC, batch_count)));
 
                     // upper sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              trans_a, rocblas_operation_none, nb, n, nb, alpha,
                              a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
                              b, i1          + offsetB + i_nb * stride          , ldb, strideB, &beta_1<T>,
@@ -934,14 +943,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 else
                 {
                     // upper sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
                              a, i2 + i1*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
                              b, i1          + offsetB + i_nb * stride          , ldb, strideB, &beta_1<T>,
                              c, i2          + offsetC + i_nb * stride          , ldc, strideC, batch_count)));
 
                     // lower sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              trans_a, rocblas_operation_none, nb, n, nb, alpha,
                              a, i2 + i1*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
                              b, i2          + offsetB + i_nb * stride          , ldb, strideB, &beta_1<T>,
@@ -961,14 +970,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 if(rocblas_fill_lower == uplo)
                 {
                     // lower sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, m, nb, nb_rem, alpha,
                              b,      i1*ldb + offsetB, ldb, strideB,
                              a, i1 + i2*lda + offsetA, lda, strideA, &beta_1<T>,
                              c,      i2*ldc + offsetC, ldc, strideC, batch_count)));
 
                     // upper sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, trans_a, m, nb_rem, nb, alpha,
                              b,      i2*ldb + offsetB, ldb, strideB,
                              a, i1 + i2*lda + offsetA, lda, strideA, &beta_1<T>,
@@ -977,14 +986,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 else
                 {
                     // upper sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, m, nb_rem, nb, alpha,
                              b,      i2*ldb + offsetB, ldb, strideB,
                              a, i2 + i1*lda + offsetA, lda, strideA, &beta_1<T>,
                              c,      i1*ldc + offsetC, ldc, strideC, batch_count)));
 
                     // lower sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, trans_a, m, nb, nb_rem, alpha,
                              b,      i1*ldb + offsetB, ldb, strideB,
                              a, i2 + i1*lda + offsetA, lda, strideA, &beta_1<T>,
@@ -996,14 +1005,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 if(rocblas_fill_lower == uplo)
                 {
                     // lower sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, nb_rem, n, nb, alpha,
                              a, i2*lda + i1 + offsetA, lda, strideA,
                              b,          i2 + offsetB, ldb, strideB, &beta_1<T>,
                              c,          i1 + offsetC, ldc, strideC, batch_count)));
 
                     // upper sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              trans_a, rocblas_operation_none, nb, n, nb_rem, alpha,
                              a, i2*lda + i1 + offsetA, lda, strideA,
                              b,          i1 + offsetB, ldb, strideB, &beta_1<T>,
@@ -1012,14 +1021,14 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                 else
                 {
                     // upper sub-diagonal (from stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              rocblas_operation_none, rocblas_operation_none, nb, n, nb_rem, alpha,
                              a, i1*lda + i2 + offsetA, lda, strideA,
                              b,          i1 + offsetB, ldb, strideB, &beta_1<T>,
                              c,          i2 + offsetC, ldc, strideC, batch_count)));
 
                     // lower sub-diagonal (from transpose of stored part of a)
-                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, T>(handle,
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(handle,
                              trans_a, rocblas_operation_none, nb_rem, n, nb, alpha,
                              a, i1*lda + i2 + offsetA, lda, strideA,
                              b,          i2 + offsetB, ldb, strideB, &beta_1<T>,
@@ -1054,23 +1063,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride strideC,
                                    rocblas_int    batch_count)
 {
+
     constexpr bool HERM = false;
-    constexpr bool BATCHED = false;
-    if(batch_count == 1)
-    {
-        return rocblas_symm_template_non_batched<BATCHED, HERM, T>(
+    return  rocblas_internal_symm_hemm_launcher<HERM>(
             handle, side, uplo, m, n, alpha,
-            A, offsetA, lda,
-            B, offsetB, ldb, beta,
-            C, offsetC, ldc);
-    }
-    else
-    {
-        return rocblas_symm_template_batched<BATCHED, HERM, T>(handle, side, uplo, m, n, alpha,
-            A, offsetA, lda, strideA,
-            B, offsetB, ldb, strideB, beta,
-            C, offsetC, ldc, strideC, batch_count);
-    }
+            A, offsetA, (int64_t)lda, strideA,
+            B, offsetB, (int64_t)ldb, strideB, beta,
+            C, offsetC, (int64_t)ldc, strideC, batch_count);
 }
 
 template <typename T>
@@ -1097,11 +1096,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int    batch_count)
 {
     constexpr bool HERM = false;
-    constexpr bool BATCHED = true;
-    return rocblas_symm_template_batched<BATCHED, HERM, T>(handle, side, uplo, m, n, alpha,
-        A, offsetA, lda, strideA,
-        B, offsetB, ldb, strideB, beta,
-        C, offsetC, ldc, strideC, batch_count);
+    return rocblas_internal_symm_hemm_batched_launcher<HERM>(handle, side, uplo, m, n, alpha,
+        A, offsetA, (int64_t)lda, strideA,
+        B, offsetB, (int64_t)ldb, strideB, beta,
+        C, offsetC, (int64_t)ldc, strideC, batch_count);
 }
 
 template <typename T>
@@ -1128,22 +1126,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int    batch_count)
 {
     constexpr bool HERM = true;
-    constexpr bool BATCHED = false;
-    if(batch_count == 1)
-    {
-        return rocblas_symm_template_non_batched<BATCHED, HERM, T>(
+    return  rocblas_internal_symm_hemm_launcher<HERM>(
             handle, side, uplo, m, n, alpha,
-            A, offsetA, lda,
-            B, offsetB, ldb, beta,
-            C, offsetC, ldc);
-    }
-    else
-    {
-        return rocblas_symm_template_batched<BATCHED, HERM, T>(handle, side, uplo, m, n, alpha,
-            A, offsetA, lda, strideA,
-            B, offsetB, ldb, strideB, beta,
-            C, offsetC, ldc, strideC, batch_count);
-    }
+            A, offsetA, (int64_t)lda,strideA,
+            B, offsetB, (int64_t)ldb, strideB, beta,
+            C, offsetC, (int64_t)ldc,strideC, batch_count);
 }
 
 template <typename T>
@@ -1170,22 +1157,93 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int    batch_count)
 {
     constexpr bool HERM = true;
-    constexpr bool BATCHED = true;
-    return rocblas_symm_template_batched<BATCHED, HERM, T>(handle, side, uplo, m, n, alpha,
+    return rocblas_internal_symm_hemm_batched_launcher<HERM>(handle, side, uplo, m, n, alpha,
+        A, offsetA, (int64_t)lda, strideA,
+        B, offsetB, (int64_t)ldb, strideB, beta,
+        C, offsetC, (int64_t)ldc, strideC, batch_count);
+}
+
+
+template <bool HERM , typename T>
+rocblas_status rocblas_internal_symm_hemm_launcher(rocblas_handle handle,
+                                              rocblas_side   side,
+                                              rocblas_fill   uplo,
+                                              rocblas_int        m,
+                                              rocblas_int        n,
+                                              const T*       alpha,
+                                              const T*       A,
+                                              rocblas_stride offsetA,
+                                              int64_t        lda,
+                                              rocblas_stride strideA,
+                                              const T*       B,
+                                              rocblas_stride offsetB,
+                                              int64_t        ldb,
+                                              rocblas_stride strideB,
+                                              const T*       beta,
+                                              T*             C,
+                                              rocblas_stride offsetC,
+                                              int64_t        ldc,
+                                              rocblas_stride strideC,
+                                              rocblas_int        batch_count)
+{
+
+    if(batch_count == 1 )
+    {
+        return rocblas_symm_hemm_template_non_batched<false, HERM, T>(
+            handle, side, uplo, m, n, alpha,
+            A, offsetA, lda,
+            B, offsetB, ldb, beta,
+            C, offsetC, ldc);
+    }
+    else
+    {
+
+        return rocblas_symm_hemm_template_batched<false, HERM, T>(handle, side, uplo, m, n, alpha,
+        A, offsetA, lda, strideA,
+        B, offsetB, ldb, strideB, beta,
+        C, offsetC, ldc, strideC, batch_count);
+    }
+
+}
+
+template <bool HERM, typename T>
+rocblas_status rocblas_internal_symm_hemm_batched_launcher(rocblas_handle  handle,
+                                                           rocblas_side    side,
+                                                           rocblas_fill    uplo,
+                                                           rocblas_int     m,
+                                                           rocblas_int     n,
+                                                           const T*        alpha,
+                                                           const T* const* A,
+                                                           rocblas_stride  offsetA,
+                                                           int64_t         lda,
+                                                           rocblas_stride  strideA,
+                                                           const T* const* B,
+                                                           rocblas_stride  offsetB,
+                                                           int64_t         ldb,
+                                                           rocblas_stride  strideB,
+                                                           const T*        beta,
+                                                           T* const*       C,
+                                                           rocblas_stride  offsetC,
+                                                           int64_t         ldc,
+                                                           rocblas_stride  strideC,
+                                                           rocblas_int     batch_count)
+{
+    return rocblas_symm_hemm_template_batched<true, HERM, T>(handle, side, uplo, m, n, alpha,
         A, offsetA, lda, strideA,
         B, offsetB, ldb, strideB, beta,
         C, offsetC, ldc, strideC, batch_count);
 }
 
+
+
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files symm*.cpp
 
-// clang-format off
-#ifdef INSTANTIATE_SYMM_TEMPLATE
-#error INSTANTIATE_SYMM_TEMPLATE already defined
+#ifdef INST_SYMM_TEMPLATE
+#error INST_SYMM_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYMM_TEMPLATE(T_)                                                       \
+#define INST_SYMM_TEMPLATE(T_)                                                       \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symm_template<T_> \
                                         (rocblas_handle handle,                             \
                                         rocblas_side   side,                                \
@@ -1208,18 +1266,18 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symm_t
                                         rocblas_stride strideC,                             \
                                         rocblas_int    batch_count);
 
-INSTANTIATE_SYMM_TEMPLATE(float)
-INSTANTIATE_SYMM_TEMPLATE(double)
-INSTANTIATE_SYMM_TEMPLATE(rocblas_float_complex)
-INSTANTIATE_SYMM_TEMPLATE(rocblas_double_complex)
+INST_SYMM_TEMPLATE(float)
+INST_SYMM_TEMPLATE(double)
+INST_SYMM_TEMPLATE(rocblas_float_complex)
+INST_SYMM_TEMPLATE(rocblas_double_complex)
 
-#undef INSTANTIATE_SYMM_TEMPLATE
+#undef INST_SYMM_TEMPLATE
 
-#ifdef INSTANTIATE_SYMM_BATCHED_TEMPLATE
-#error INSTANTIATE_SYMM_BATCHED_TEMPLATE already defined
+#ifdef INST_SYMM_BATCHED_TEMPLATE
+#error INST_SYMM_BATCHED_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYMM_BATCHED_TEMPLATE(T_)                                                       \
+#define INST_SYMM_BATCHED_TEMPLATE(T_)                                                       \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symm_batched_template<T_> \
                                                 (rocblas_handle handle,                             \
                                                 rocblas_side    side,                               \
@@ -1242,18 +1300,18 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symm_b
                                                 rocblas_stride  strideC,                            \
                                                 rocblas_int     batch_count);
 
-INSTANTIATE_SYMM_BATCHED_TEMPLATE(float)
-INSTANTIATE_SYMM_BATCHED_TEMPLATE(double)
-INSTANTIATE_SYMM_BATCHED_TEMPLATE(rocblas_float_complex)
-INSTANTIATE_SYMM_BATCHED_TEMPLATE(rocblas_double_complex)
+INST_SYMM_BATCHED_TEMPLATE(float)
+INST_SYMM_BATCHED_TEMPLATE(double)
+INST_SYMM_BATCHED_TEMPLATE(rocblas_float_complex)
+INST_SYMM_BATCHED_TEMPLATE(rocblas_double_complex)
 
-#undef INSTANTIATE_SYMM_BATCHED_TEMPLATE
+#undef INST_SYMM_BATCHED_TEMPLATE
 
-#ifdef INSTANTIATE_HEMM_TEMPLATE
-#error INSTANTIATE_HEMM_TEMPLATE already defined
+#ifdef INST_HEMM_TEMPLATE
+#error INST_HEMM_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_HEMM_TEMPLATE(T_)                                                       \
+#define INST_HEMM_TEMPLATE(T_)                                                       \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_hemm_template<T_> \
                                         (rocblas_handle handle,                             \
                                         rocblas_side   side,                                \
@@ -1276,16 +1334,16 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_hemm_t
                                         rocblas_stride strideC,                             \
                                         rocblas_int    batch_count);
 
-INSTANTIATE_HEMM_TEMPLATE(rocblas_float_complex)
-INSTANTIATE_HEMM_TEMPLATE(rocblas_double_complex)
+INST_HEMM_TEMPLATE(rocblas_float_complex)
+INST_HEMM_TEMPLATE(rocblas_double_complex)
 
-#undef INSTANTIATE_HEMM_TEMPLATE
+#undef INST_HEMM_TEMPLATE
 
-#ifdef INSTANTIATE_HEMM_BATCHED_TEMPLATE
-#error INSTANTIATE_HEMM_BATCHED_TEMPLATE already defined
+#ifdef INST_HEMM_BATCHED_TEMPLATE
+#error INST_HEMM_BATCHED_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_HEMM_BATCHED_TEMPLATE(T_)                                                       \
+#define INST_HEMM_BATCHED_TEMPLATE(T_)                                                             \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_hemm_batched_template<T_> \
                                                 (rocblas_handle handle,                             \
                                                 rocblas_side    side,                               \
@@ -1308,10 +1366,80 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_hemm_b
                                                 rocblas_stride  strideC,                            \
                                                 rocblas_int     batch_count);
 
-INSTANTIATE_HEMM_BATCHED_TEMPLATE(rocblas_float_complex)
-INSTANTIATE_HEMM_BATCHED_TEMPLATE(rocblas_double_complex)
+INST_HEMM_BATCHED_TEMPLATE(rocblas_float_complex)
+INST_HEMM_BATCHED_TEMPLATE(rocblas_double_complex)
 
-#undef INSTANTIATE_HEMM_BATCHED_TEMPLATE
+#undef INST_HEMM_BATCHED_TEMPLATE
+
+#ifdef INST_SYMM_HEMM_LAUNCHER
+#error INST_SYMM_HEMM_LAUNCHER already defined
+#endif
+
+#define INST_SYMM_HEMM_LAUNCHER(HERM_, T_) \
+    template rocblas_status rocblas_internal_symm_hemm_launcher<HERM_, T_> \
+                                             (rocblas_handle handle,       \
+                                              rocblas_side   side,         \
+                                              rocblas_fill   uplo,         \
+                                              rocblas_int        m,        \
+                                              rocblas_int        n,        \
+                                              const T_*       alpha,        \
+                                              const T_*       A,            \
+                                              rocblas_stride offsetA,      \
+                                              int64_t        lda,          \
+                                              rocblas_stride strideA,      \
+                                              const T_*       B,            \
+                                              rocblas_stride offsetB,      \
+                                              int64_t        ldb,          \
+                                              rocblas_stride strideB,      \
+                                              const T_*       beta,         \
+                                              T_*             C,            \
+                                              rocblas_stride offsetC,      \
+                                              int64_t        ldc,          \
+                                              rocblas_stride strideC,      \
+                                              rocblas_int        batch_count);
+INST_SYMM_HEMM_LAUNCHER(false, float)
+INST_SYMM_HEMM_LAUNCHER(false, double)
+INST_SYMM_HEMM_LAUNCHER(false, rocblas_float_complex)
+INST_SYMM_HEMM_LAUNCHER(false, rocblas_double_complex)
+INST_SYMM_HEMM_LAUNCHER(true, rocblas_float_complex)
+INST_SYMM_HEMM_LAUNCHER(true, rocblas_double_complex)
+
+#undef INST_SYMM_HEMM_LAUNCHER
+
+#ifdef INST_SYMM_HEMM_BATCHED_LAUNCHER
+#error INST_SYMM_HEMM_BATCHED_LAUNCHER already defined
+#endif
+
+#define INST_SYMM_HEMM_BATCHED_LAUNCHER(HERM_, T_)                                 \
+    template rocblas_status rocblas_internal_symm_hemm_batched_launcher<HERM_, T_> \
+                                             (rocblas_handle   handle,             \
+                                              rocblas_side     side,               \
+                                              rocblas_fill     uplo,               \
+                                              rocblas_int      m,                  \
+                                              rocblas_int      n,                  \
+                                              const T_*        alpha,              \
+                                              const T_* const* A,                  \
+                                              rocblas_stride   offsetA,            \
+                                              int64_t          lda,                \
+                                              rocblas_stride   strideA,            \
+                                              const T_* const* B,                  \
+                                              rocblas_stride   offsetB,            \
+                                              int64_t          ldb,                \
+                                              rocblas_stride   strideB,            \
+                                              const T_*        beta,               \
+                                              T_* const*       C,                  \
+                                              rocblas_stride   offsetC,            \
+                                              int64_t          ldc,                \
+                                              rocblas_stride   strideC,            \
+                                              rocblas_int      batch_count);
+INST_SYMM_HEMM_BATCHED_LAUNCHER(false, float)
+INST_SYMM_HEMM_BATCHED_LAUNCHER(false, double)
+INST_SYMM_HEMM_BATCHED_LAUNCHER(false, rocblas_float_complex)
+INST_SYMM_HEMM_BATCHED_LAUNCHER(false, rocblas_double_complex)
+INST_SYMM_HEMM_BATCHED_LAUNCHER(true, rocblas_float_complex)
+INST_SYMM_HEMM_BATCHED_LAUNCHER(true, rocblas_double_complex)
+
+#undef INST_SYMM_HEMM_BATCHED_LAUNCHER
 
 #ifdef INSTANTIATE_HEMM_SYMM_NUMERICS
 #error INSTANTIATE_HEMM_SYMM_NUMERICS already defined
@@ -1324,18 +1452,18 @@ template rocblas_status rocblas_hemm_symm_check_numerics                        
                                    rocblas_handle handle,                               \
                                    rocblas_side   side,                                 \
                                    rocblas_fill   uplo,                                 \
-                                   rocblas_int    m,                                    \
-                                   rocblas_int    n,                                    \
+                                   int64_t    m,                                    \
+                                   int64_t    n,                                    \
                                    TConstPtr_     A,                                    \
-                                   rocblas_int    lda,                                  \
+                                   int64_t    lda,                                  \
                                    rocblas_stride strideA,                              \
                                    TConstPtr_     B,                                    \
-                                   rocblas_int    ldb,                                  \
+                                   int64_t    ldb,                                  \
                                    rocblas_stride strideB,                              \
                                    TPtr_          C,                                    \
-                                   rocblas_int    ldc,                                  \
+                                   int64_t    ldc,                                  \
                                    rocblas_stride strideC,                              \
-                                   rocblas_int    batch_count,                          \
+                                   int64_t    batch_count,                          \
                                    const int      check_numerics,                       \
                                    bool           is_input);
 
@@ -1369,4 +1497,3 @@ INSTANTIATE_HEMM_SYMM_NUMERICS( true, rocblas_double_complex const* const*, rocb
 #undef CSYMM_BATCHED_MIN_NB
 #undef ZSYMM_BATCHED_MIN_NB
 
-// clang-format on

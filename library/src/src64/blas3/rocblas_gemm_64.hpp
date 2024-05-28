@@ -72,3 +72,26 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                               int64_t           ldc,
                                               rocblas_stride    stride_c,
                                               int64_t           batch_count);
+
+template <bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
+                                        rocblas_operation trans_a,
+                                        rocblas_operation trans_b,
+                                        int64_t           m_64,
+                                        int64_t           n_64,
+                                        int64_t           k_64,
+                                        const TScal*      alpha,
+                                        TConstPtr         A,
+                                        rocblas_stride    offset_a,
+                                        int64_t           lda_64,
+                                        rocblas_stride    stride_a,
+                                        TConstPtr         B,
+                                        rocblas_stride    offset_b,
+                                        int64_t           ldb_64,
+                                        rocblas_stride    stride_b,
+                                        const TScal*      beta,
+                                        TPtr              C,
+                                        rocblas_stride    offset_c,
+                                        int64_t           ldc_64,
+                                        rocblas_stride    stride_c,
+                                        int64_t           batch_count_64);

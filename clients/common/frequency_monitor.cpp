@@ -97,6 +97,7 @@ class FrequencyMonitorImp : public FrequencyMonitor
 {
 public:
     const double cHzToMHz = 0.000001;
+    const double cMhzToHz = 1000000;
 
     // deleting copy constructor
     FrequencyMonitorImp(const FrequencyMonitorImp& obj) = delete;
@@ -105,8 +106,15 @@ public:
 
     bool enabled()
     {
-        static const char* env = getenv("ROCBLAS_BENCH_FREQ");
-        return env != nullptr;
+        static const char* env1 = getenv("ROCBLAS_BENCH_FREQ");
+        static const char* env2 = getenv("ROCBLAS_BENCH_FREQ_ALL");
+        return env1 != nullptr || (env2 != nullptr && m_isMultiXCDSupported);
+    }
+
+    bool detailedReport()
+    {
+        static const char* env2 = getenv("ROCBLAS_BENCH_FREQ_ALL");
+        return (env2 != nullptr && m_isMultiXCDSupported);
     }
 
     FrequencyMonitorImp()
@@ -126,6 +134,13 @@ public:
     void set_device_id(int deviceId)
     {
         m_smiDeviceIndex = GetROCmSMIIndex(deviceId);
+
+        auto status2 = rsmi_dev_metrics_xcd_counter_get(m_smiDeviceIndex, &m_XCDCount);
+
+        if(status2 != RSMI_STATUS_SUCCESS)
+        {
+            m_XCDCount = 1;
+        }
     }
 
     void start()
@@ -179,14 +194,50 @@ public:
         return median * cHzToMHz;
     }
 
-    double getAverageSYSCLK()
+    double getLowestAverageSYSCLK()
     {
-        return averageValueMHz(m_SYSCLK_sum, m_SYSCLK_array);
+        std::vector<double> allAvgSYSCLK = getAllAverageSYSCLK();
+        double              minAvgSYSCLK = allAvgSYSCLK[0];
+        for(int i = 1; i < m_XCDCount; i++)
+        {
+            if(allAvgSYSCLK[i] <= 0)
+                continue;
+            minAvgSYSCLK = min(minAvgSYSCLK, allAvgSYSCLK[i]);
+        }
+        return minAvgSYSCLK;
     }
 
-    double getMedianSYSCLK()
+    double getLowestMedianSYSCLK()
     {
-        return medianValueMHz(m_SYSCLK_array);
+        std::vector<double> allMedianSYSCLK = getAllMedianSYSCLK();
+        double              minMedianSYSCLK = allMedianSYSCLK[0];
+        for(int i = 1; i < m_XCDCount; i++)
+        {
+            if(allMedianSYSCLK[i] <= 0)
+                continue;
+            minMedianSYSCLK = min(minMedianSYSCLK, allMedianSYSCLK[i]);
+        }
+        return minMedianSYSCLK;
+    }
+
+    std::vector<double> getAllAverageSYSCLK()
+    {
+        std::vector<double> avgSYSCLK(m_XCDCount, 0.0);
+        for(int i = 0; i < m_XCDCount; i++)
+        {
+            avgSYSCLK[i] = averageValueMHz(m_SYSCLK_sum[i], m_SYSCLK_array[i]);
+        }
+        return avgSYSCLK;
+    }
+
+    std::vector<double> getAllMedianSYSCLK()
+    {
+        std::vector<double> medianSYSCLK(m_XCDCount, 0.0);
+        for(int i = 0; i < m_XCDCount; i++)
+        {
+            medianSYSCLK[i] = medianValueMHz(m_SYSCLK_array[i]);
+        }
+        return medianSYSCLK;
     }
 
     double getAverageMEMCLK()
@@ -202,8 +253,17 @@ public:
 private:
     void initThread()
     {
-        m_stop   = false;
-        m_exit   = false;
+        m_stop = false;
+        m_exit = false;
+
+        rsmi_version_t version;
+        auto           status1 = rsmi_version_get(&version);
+        m_isMultiXCDSupported  = false;
+        if(status1 == RSMI_STATUS_SUCCESS)
+        {
+            m_isMultiXCDSupported = (version.major >= 7);
+        }
+
         m_thread = std::thread([=]() { this->runLoop(); });
         return;
     }
@@ -248,15 +308,33 @@ private:
     void collect()
     {
         rsmi_frequencies_t freq;
+        rsmi_gpu_metrics_t gpuMetrics;
 
         do
         {
-            //XCD 0
-            auto status1 = rsmi_dev_gpu_clk_freq_get(m_smiDeviceIndex, RSMI_CLK_TYPE_SYS, &freq);
-            if(status1 == RSMI_STATUS_SUCCESS)
+            if(m_isMultiXCDSupported)
             {
-                m_SYSCLK_sum += freq.frequency[freq.current];
-                m_SYSCLK_array.push_back(freq.frequency[freq.current]);
+                // multi_XCD
+                auto status1 = rsmi_dev_gpu_metrics_info_get(m_smiDeviceIndex, &gpuMetrics);
+                if(status1 == RSMI_STATUS_SUCCESS)
+                {
+                    for(int i = 0; i < m_XCDCount; i++)
+                    {
+                        m_SYSCLK_sum[i] += gpuMetrics.current_gfxclks[i] * cMhzToHz;
+                        m_SYSCLK_array[i].push_back(gpuMetrics.current_gfxclks[i] * cMhzToHz);
+                    }
+                }
+            }
+            else
+            {
+                //XCD 0
+                auto status1
+                    = rsmi_dev_gpu_clk_freq_get(m_smiDeviceIndex, RSMI_CLK_TYPE_SYS, &freq);
+                if(status1 == RSMI_STATUS_SUCCESS)
+                {
+                    m_SYSCLK_sum[0] += freq.frequency[freq.current];
+                    m_SYSCLK_array[0].push_back(freq.frequency[freq.current]);
+                }
             }
 
             auto status2 = rsmi_dev_gpu_clk_freq_get(m_smiDeviceIndex, RSMI_CLK_TYPE_MEM, &freq);
@@ -286,9 +364,9 @@ private:
 
     void clearValues()
     {
-        m_SYSCLK_sum = 0;
-        m_SYSCLK_array.clear();
-        m_MEMCLK_sum = 0;
+        m_SYSCLK_sum   = std::vector<uint64_t>(m_XCDCount, 0);
+        m_SYSCLK_array = std::vector<std::vector<uint64_t>>(m_XCDCount, std::vector<uint64_t>{});
+        m_MEMCLK_sum   = 0;
         m_MEMCLK_array.clear();
     }
 
@@ -379,11 +457,13 @@ private:
     std::condition_variable m_cv;
     std::mutex              m_mutex;
     uint32_t                m_smiDeviceIndex;
+    bool                    m_isMultiXCDSupported;
+    uint16_t                m_XCDCount;
 
-    uint64_t              m_SYSCLK_sum;
-    std::vector<uint64_t> m_SYSCLK_array;
-    uint64_t              m_MEMCLK_sum;
-    std::vector<uint64_t> m_MEMCLK_array;
+    std::vector<uint64_t>              m_SYSCLK_sum;
+    std::vector<std::vector<uint64_t>> m_SYSCLK_array;
+    uint64_t                           m_MEMCLK_sum;
+    std::vector<uint64_t>              m_MEMCLK_array;
 
 #else // WIN32
 
@@ -405,14 +485,29 @@ public:
         return false;
     }
 
-    double getAverageSYSCLK()
+    bool detailedReport()
+    {
+        return false;
+    }
+
+    double getLowestAverageSYSCLK()
     {
         return 0.0;
     }
 
-    double getMedianSYSCLK()
+    double getLowestMedianSYSCLK()
     {
         return 0.0;
+    }
+
+    std::vector<double> getAllAverageSYSCLK()
+    {
+        return std::vector<double>();
+    }
+
+    std::vector<double> getAllMedianSYSCLK()
+    {
+        return std::vector<double>();
     }
 
     double getAverageMEMCLK()

@@ -756,29 +756,30 @@ void ref_geam(rocblas_operation       transa,
 
 // legacy BLAS implementation
 // gemm for dim and leading dims <= 600 so no int64 multiplies
-void small_sgemm(rocblas_operation transA,
-                 rocblas_operation transB,
-                 int               m,
-                 int               n,
-                 int               k,
-                 float             alpha,
-                 const float*      A,
-                 int               lda,
-                 const float*      B,
-                 int               ldb,
-                 float             beta,
-                 float*            C,
-                 int               ldc)
+template <typename T>
+void small_gemm(rocblas_operation transA,
+                rocblas_operation transB,
+                int               m,
+                int               n,
+                int               k,
+                T                 alpha,
+                const T*          A,
+                int               lda,
+                const T*          B,
+                int               ldb,
+                T                 beta,
+                T*                C,
+                int               ldc)
 {
     bool notTA = (transA == rocblas_operation_none);
     bool notTB = (transB == rocblas_operation_none);
 
-    if(!m or !n or (alpha == 0.0f or !k) && (beta == 1.0f))
+    if(!m or !n or (alpha == 0.0 or !k) && (beta == 1.0))
         return;
 
-    if(alpha == 0.0f)
+    if(alpha == 0.0)
     {
-        if(beta == 0.0f)
+        if(beta == 0.0)
         {
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -787,7 +788,7 @@ void small_sgemm(rocblas_operation transA,
             {
                 for(int i = 0; i < m; ++i)
                 {
-                    C[j * ldc + i] = 0.0f;
+                    C[j * ldc + i] = 0.0;
                 }
             }
         }
@@ -817,14 +818,14 @@ void small_sgemm(rocblas_operation transA,
 #endif
             for(int j = 0; j < n; ++j)
             {
-                if(beta == 0.0f)
+                if(beta == 0.0)
                 {
                     for(int i = 0; i < m; ++i)
                     {
-                        C[j * ldc + i] = 0.0f;
+                        C[j * ldc + i] = 0.0;
                     }
                 }
-                else if(beta != 1.0f)
+                else if(beta != 1.0)
                 {
                     for(int i = 0; i < m; ++i)
                     {
@@ -879,14 +880,14 @@ void small_sgemm(rocblas_operation transA,
 #endif
             for(int j = 0; j < n; ++j)
             {
-                if(beta == 0.0f)
+                if(beta == 0.0)
                 {
                     for(int i = 0; i < m; ++i)
                     {
-                        C[j * ldc + i] = 0.0f;
+                        C[j * ldc + i] = 0.0;
                     }
                 }
-                else if(beta != 1.0f)
+                else if(beta != 1.0)
                 {
                     for(int i = 0; i < m; ++i)
                     {
@@ -914,13 +915,13 @@ void small_sgemm(rocblas_operation transA,
             {
                 for(int i = 0; i < m; ++i)
                 {
-                    float temp = 0.0f;
+                    float temp = 0.0;
                     for(int l = 0; l < k; ++l)
                     {
                         temp += A[i * lda + l] * B[l * ldb + j];
                     }
 
-                    if(beta == 0.0f)
+                    if(beta == 0.0)
                     {
                         C[j * ldc + i] = alpha * temp;
                     }
@@ -973,7 +974,7 @@ void ref_gemm(rocblas_operation                    transA,
     }
     else
     {
-        small_sgemm(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+        small_gemm<float>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
     }
 }
 
@@ -1012,20 +1013,28 @@ void ref_gemm(rocblas_operation                    transA,
               int64_t                              ldc,
               rocblas_bfloat16::rocblas_truncate_t round)
 {
-    cblas_dgemm(CblasColMajor,
-                CBLAS_TRANSPOSE(transA),
-                CBLAS_TRANSPOSE(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A,
-                lda,
-                B,
-                ldb,
-                beta,
-                C,
-                ldc);
+    static constexpr int64_t small = 600; // seeing random NaNs with blis on some small sizes
+    if(m > small || n > small || k > small || lda > small || ldb > small || ldc > small)
+    {
+        cblas_dgemm(CblasColMajor,
+                    CBLAS_TRANSPOSE(transA),
+                    CBLAS_TRANSPOSE(transB),
+                    m,
+                    n,
+                    k,
+                    alpha,
+                    A,
+                    lda,
+                    B,
+                    ldb,
+                    beta,
+                    C,
+                    ldc);
+    }
+    else
+    {
+        small_gemm<double>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
 }
 
 template <>
@@ -1159,23 +1168,6 @@ void ref_gemm<rocblas_bfloat16, float, float>(rocblas_operation                 
 
     ref_gemm(
         transA, transB, m, n, k, alpha, A_float.data(), lda, B_float.data(), ldb, beta, C, ldc);
-
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    // cblas_sgemm(CblasColMajor,
-    //             static_cast<CBLAS_TRANSPOSE>(transA),
-    //             static_cast<CBLAS_TRANSPOSE>(transB),
-    //             m,
-    //             n,
-    //             k,
-    //             alpha,
-    //             A_float,
-    //             lda,
-    //             B_float,
-    //             ldb,
-    //             beta,
-    //             C,
-    //             ldc);
 }
 
 template <>
@@ -1216,23 +1208,6 @@ void ref_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation      
              C_float.data(),
              ldc);
 
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    // cblas_sgemm(CblasColMajor,
-    //             static_cast<CBLAS_TRANSPOSE>(transA),
-    //             static_cast<CBLAS_TRANSPOSE>(transB),
-    //             m,
-    //             n,
-    //             k,
-    //             alpha,
-    //             A_float,
-    //             lda,
-    //             B_float,
-    //             ldb,
-    //             beta,
-    //             C_float,
-    //             ldc);
-
     cast_from_buffer(m, n, ldc, C_float, C);
 }
 
@@ -1261,23 +1236,6 @@ void ref_gemm<rocblas_half, float, float>(rocblas_operation                    t
 
     ref_gemm(
         transA, transB, m, n, k, alpha, A_float.data(), lda, B_float.data(), ldb, beta, C, ldc);
-
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    // cblas_sgemm(CblasColMajor,
-    //             static_cast<CBLAS_TRANSPOSE>(transA),
-    //             static_cast<CBLAS_TRANSPOSE>(transB),
-    //             m,
-    //             n,
-    //             k,
-    //             alpha,
-    //             A_float,
-    //             lda,
-    //             B_float,
-    //             ldb,
-    //             beta,
-    //             C,
-    //             ldc);
 }
 
 template <>
@@ -1335,23 +1293,6 @@ void ref_gemm<rocblas_half, rocblas_half, float>(rocblas_operation              
              C_float.data(),
              ldc);
 
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    // cblas_sgemm(CblasColMajor,
-    //             static_cast<CBLAS_TRANSPOSE>(transA),
-    //             static_cast<CBLAS_TRANSPOSE>(transB),
-    //             m,
-    //             n,
-    //             k,
-    //             alpha,
-    //             A_float,
-    //             lda,
-    //             B_float,
-    //             ldb,
-    //             beta,
-    //             C_float,
-    //             ldc);
-
     cast_from_buffer(m, n, ldc, C_float, C);
 }
 
@@ -1396,23 +1337,6 @@ void ref_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation       
              C_float.data(),
              ldc);
 
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
-    // cblas_sgemm(CblasColMajor,
-    //             static_cast<CBLAS_TRANSPOSE>(transA),
-    //             static_cast<CBLAS_TRANSPOSE>(transB),
-    //             m,
-    //             n,
-    //             k,
-    //             alpha_float,
-    //             A_float,
-    //             lda,
-    //             B_float,
-    //             ldb,
-    //             beta_float,
-    //             C_float,
-    //             ldc);
-
     cast_from_buffer(m, n, ldc, C_float, C);
 }
 
@@ -1444,21 +1368,19 @@ void ref_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    tra
     cast_to_buffer(transB, k, n, ldb, B, B_double);
     cast_to_buffer(rocblas_operation_none, m, n, ldc, C, C_double);
 
-    // just directly cast, since transA, transB are integers in the enum
-    cblas_dgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
-                m,
-                n,
-                k,
-                alpha,
-                A_double,
-                lda,
-                B_double,
-                ldb,
-                beta,
-                C_double,
-                ldc);
+    ref_gemm(transA,
+             transB,
+             m,
+             n,
+             k,
+             (double)alpha,
+             A_double.data(),
+             lda,
+             B_double.data(),
+             ldb,
+             (double)beta,
+             C_double.data(),
+             ldc);
 
     cast_from_buffer(m, n, ldc, C_double, C);
 }
