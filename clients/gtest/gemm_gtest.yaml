@@ -3882,7 +3882,7 @@ Tests:
   os_flags: LINUX
 
 - name: gemm_PyTorch_offset_overflow
-  category: known_bug
+  category: known_bugs
   function:
     - gemm: *single_precision
   matrix_size:
