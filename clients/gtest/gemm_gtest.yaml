@@ -3912,7 +3912,7 @@ Tests:
   os_flags: LINUX
 
 - name: gemm_64_API
-  category: pre_checkin # stress
+  category: stress
   function:
     - gemm: *half_precision
     - gemm_ex: *hpa_half_precision
