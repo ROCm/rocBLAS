@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -107,30 +107,6 @@ try:
 except ImportError:
     BytesIO = None
 
-# Install dependent modules
-smi = None
-smi_imported = False
-def import_rocm_smi(install_path):
-    global smi
-    global smi_imported
-    if not smi_imported:
-        smi_imported = True
-        host_rocm_ver = Decimal('.'.join(getspecs.getrocmversion().split('.')[0:2])) # get host's rocm major.minor version
-        rocm_5_2_ver = Decimal('5.2')
-        try:
-            if rocm_5_2_ver.compare(host_rocm_ver) == 1:
-                sys.path.append(os.path.join(install_path, 'bin')) # For versions below ROCm 5.2
-            else:
-                sys.path.append(os.path.join(install_path, 'libexec/rocm_smi')) # For versions equal or above ROCm 5.2
-            import rocm_smi
-            smi = rocm_smi
-
-            # The following is needed to call rsmi_init() before other calls as documented in /opt/rocm/rocm_smi/docs/README.md
-            smi.initializeRsmi()
-        except ImportError:
-            print('WARNING - rocm_smi.py not found!')
-    return smi
-
 class SystemMonitor(object):
     supported_metrics = [
             'used_memory_percent',
@@ -142,8 +118,6 @@ class SystemMonitor(object):
             'fan_speed_percent',
             ]
     def __init__(self, metrics = supported_metrics, cuda = False):
-        if not smi_imported and not cuda:
-            raise RuntimeError('import_rocm_smi(install_path) must be called before consturcting a SystemMonitor')
         if len(metrics) == 0:
             raise ValueError('SystemMonitor must record at least one metric')
         self.metrics = metrics
@@ -156,19 +130,17 @@ class SystemMonitor(object):
 
     def measure(self, metric, cuda, device=None):
         if device is None:
-            device = getspecs.listdevices(cuda, smi)[0]
-        if smi is None:
-            return 0.0
+            device = getspecs.listdevices(cuda)[0]
         elif metric == 'fan_speed_percent':
             gfx = getspecs.getgfx(device, cuda)
             # Not querying fan speed on 908 or 90a
             if gfx == 'gfx908' or gfx == 'gfx90a' or gfx == 'N/A':
                 return 'N/A'
-            return getspecs.getfanspeedpercent(device, cuda, smi)[1]
-        elif metric.find('clk') >=0 and metric.split('_')[0] in getspecs.validclocknames(cuda, smi):
-            return int(getspecs.getcurrentclockfreq(device, metric.split('_')[0], cuda, smi).strip('Mhz'))
+            return getspecs.getfanspeedpercent(device, cuda)[1]
+        elif metric.find('clk') >=0 and metric.split('_')[0] in getspecs.validclocknames(cuda):
+            return int(getspecs.getcurrentclockfreq(device, metric.split('_')[0], cuda).strip('Mhz'))
         elif 'used_memory_percent':
-            used_bytes, total_bytes = getspecs.getmeminfo(device, 'vram', cuda, smi)
+            used_bytes, total_bytes = getspecs.getmeminfo(device, 'vram', cuda)
             used_bytes_int = used_bytes.split()[0] if cuda else used_bytes
             total_bytes_int = total_bytes.split()[0] if cuda else total_bytes
             return int(used_bytes_int)*100.0/int(total_bytes_int)
@@ -468,7 +440,6 @@ class ArgumentSetABC(object):
             return os.path.abspath(os.path.join(run_configuration.output_directory, basename + '.info'))
 
     def get_system_monitor(self, run_configuration):
-        import_rocm_smi(self.user_args.install_path)
         info_filename = self._get_system_monitor_filename(run_configuration)
         return SystemMonitor.from_file(info_filename) if os.path.exists(info_filename) else None
 
@@ -512,8 +483,6 @@ class ArgumentSetABC(object):
                     out_file.write(cmd_str + '\n')
                     out_file.flush()
 
-                if not self.user_args.cuda:
-                    import_rocm_smi(self.user_args.install_path)
                 system_monitor = SystemMonitor(cuda = self.user_args.cuda)
 
                 is_shell_only = self.is_shell_only()
@@ -525,8 +494,7 @@ class ArgumentSetABC(object):
                 poll_metric_count = 0
                 try:
                     while proc.poll() is None:
-                        if smi is not None and poll_metric_count % 20 == 0:
-                            system_monitor.record_line(self.user_args.cuda)
+                        system_monitor.record_line(self.user_args.cuda)
                         time.sleep(0.01)
                         poll_metric_count += 1
                 except Exception as e:
@@ -640,38 +608,33 @@ class MachineSpecs(dict):
             device_info['device'] = getspecs.getdeviceinfo(device_num, cuda)
             device_info['vbios version'] = getspecs.getvbios(device_num, cuda)
             device_info['vram'] = getspecs.getvram(device_num, cuda)
-            device_info['performance level'] = getspecs.getperflevel(device_num, cuda)
             device_info['system clock'] = getspecs.getsclk(device_num, cuda)
             device_info['memory clock'] = getspecs.getmclk(device_num, cuda)
             rv['Device {0:2d}'.format(device_num)] = device_info
-        smi = None
-        if not cuda:
-            smi = import_rocm_smi(install_path)
-        devices = getspecs.listdevices(cuda, smi)
+        devices = getspecs.listdevices(cuda)
         for device in devices:
             smi_info = {}
-            smi_info['Bus'] = getspecs.getbus(device, cuda, smi)
+            smi_info['Bus'] = getspecs.getbus(device, cuda)
             smi_info['Profile'] = getspecs.getprofile(device, cuda)
-            smi_info['Start Fan Speed'] = getspecs.getfanspeedpercent(device, cuda, smi) + '%'
-            for clock in getspecs.validclocknames(cuda, smi):
+            smi_info['Start Fan Speed'] = getspecs.getfanspeedpercent(device, cuda) + '%'
+            for clock in getspecs.validclocknames(cuda):
                 freq = getspecs.getcurrentclockfreq(device, clock, cuda)
-                measured_level = getspecs.getcurrentclocklevel(device, clock, cuda)
-                max_level = getspecs.getmaxlevel(device, clock, cuda)
-                smi_info['Start ' + clock] = '{} - Level {}/{}'.format(freq, measured_level, max_level)
-            for mem_type in getspecs.validmemtypes(cuda, smi):
+                if 'MEM' in clock:
+                    clock = 'mclk'
+                if 'clk' == clock or 'cur_clk' == clock:
+                    clock = 'sclk'
+                smi_info['Start ' + clock] = '{}'.format(freq)
+            for mem_type in getspecs.validmemtypes(cuda):
                 key = 'Start {} Memory'.format(mem_type)
-                used_bytes, total_bytes = getspecs.getmeminfo(device, mem_type, cuda, smi)
-                print('used, total')
-                print (used_bytes)
-                print (total_bytes)
+                used_bytes, total_bytes = getspecs.getmeminfo(device, mem_type, cuda)
                 used_bytes_int = used_bytes.split()[0] if cuda else used_bytes
                 total_bytes_int = total_bytes.split()[0] if cuda else total_bytes
                 smi_info[key] = '{} / {}'.format(to_mem_units(used_bytes_int), to_mem_units(total_bytes_int))
-            for component in getspecs.validversioncomponents(cuda, smi):
+            for component in getspecs.validversioncomponents(cuda):
                 if cuda:
-                    smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda, smi)
+                    smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda)
                 else:
-                    smi_info[smi.component_str(component).capitalize() + ' Version'] = getspecs.getversion(device, component, cuda, smi)
+                    smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda)
             rv['Card' + str(device)] = smi_info
 
         return rv

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
   * TConstPtr is either: const T* OR const T* const*
   * TPtr      is either:       T* OR       T* const*
   */
-template <rocblas_int NB,
+template <typename API_INT,
+          rocblas_int NB,
           bool        BATCHED,
           bool        HERM,
           typename T,
@@ -42,41 +43,41 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
                                                    rocblas_fill      uplo,
                                                    rocblas_operation trans_a,
                                                    rocblas_int       n,
-                                                   rocblas_int       k,
+                                                   API_INT           k,
                                                    const TScal*      alpha,
                                                    TConstPtr         A,
                                                    rocblas_stride    offset_a,
-                                                   rocblas_int       lda,
+                                                   API_INT           lda,
                                                    rocblas_stride    stride_a,
                                                    const TScal*      beta,
                                                    TPtr              C,
                                                    rocblas_stride    offset_c,
-                                                   rocblas_int       ldc,
+                                                   API_INT           ldc,
                                                    rocblas_stride    stride_c,
                                                    rocblas_int       batch_count)
 {
     // quick returns handled in rocblas_internal_syr2k_her2k_template
     constexpr bool TWOK = false;
-    return rocblas_internal_syr2k_her2k_template<NB, BATCHED, TWOK, HERM, T>(handle,
-                                                                             uplo,
-                                                                             trans_a,
-                                                                             n,
-                                                                             k,
-                                                                             alpha,
-                                                                             A,
-                                                                             offset_a,
-                                                                             lda,
-                                                                             stride_a,
-                                                                             A,
-                                                                             offset_a,
-                                                                             lda,
-                                                                             stride_a,
-                                                                             beta,
-                                                                             C,
-                                                                             offset_c,
-                                                                             ldc,
-                                                                             stride_c,
-                                                                             batch_count);
+    return rocblas_internal_syr2k_her2k_template<API_INT, NB, BATCHED, TWOK, HERM, T>(handle,
+                                                                                      uplo,
+                                                                                      trans_a,
+                                                                                      n,
+                                                                                      k,
+                                                                                      alpha,
+                                                                                      A,
+                                                                                      offset_a,
+                                                                                      lda,
+                                                                                      stride_a,
+                                                                                      A,
+                                                                                      offset_a,
+                                                                                      lda,
+                                                                                      stride_a,
+                                                                                      beta,
+                                                                                      C,
+                                                                                      offset_c,
+                                                                                      ldc,
+                                                                                      stride_c,
+                                                                                      batch_count);
 }
 
 #define ROCBLAS_INTERNAL_SYRK_HERK_PARAMS                                                   \
@@ -105,17 +106,26 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool BATCHED = false;
     constexpr bool HERM    = false;
     if constexpr(std::is_same_v<T, float>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_SDZSYRK_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_SDZSYRK_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, double>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_SDZSYRK_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_SDZSYRK_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_float_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_CSYRK_NB, BATCHED, HERM, T>(
+        return rocblas_internal_syrk_herk_template<rocblas_int, ROCBLAS_CSYRK_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_double_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_SDZSYRK_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_SDZSYRK_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
 
     return rocblas_status_not_implemented;
 }
@@ -142,17 +152,29 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool BATCHED = true;
     constexpr bool HERM    = false;
     if constexpr(std::is_same_v<T, float>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_SDSYRK_BATCHED_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_SDSYRK_BATCHED_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, double>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_SDSYRK_BATCHED_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_SDSYRK_BATCHED_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_float_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_CZSYRK_BATCHED_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_CZSYRK_BATCHED_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_double_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_CZSYRK_BATCHED_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_CZSYRK_BATCHED_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
 
     return rocblas_status_not_implemented;
 }
@@ -179,10 +201,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool BATCHED = false;
     constexpr bool HERM    = true;
     if constexpr(std::is_same_v<T, rocblas_float_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_CHERK_NB, BATCHED, HERM, T>(
+        return rocblas_internal_syrk_herk_template<rocblas_int, ROCBLAS_CHERK_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_double_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_ZHERK_NB, BATCHED, HERM, T>(
+        return rocblas_internal_syrk_herk_template<rocblas_int, ROCBLAS_ZHERK_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
 
     return rocblas_status_not_implemented;
@@ -210,11 +232,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool BATCHED = true;
     constexpr bool HERM    = true;
     if constexpr(std::is_same_v<T, rocblas_float_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_HERK_BATCHED_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_HERK_BATCHED_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
     else if constexpr(std::is_same_v<T, rocblas_double_complex>)
-        return rocblas_internal_syrk_herk_template<ROCBLAS_HERK_BATCHED_NB, BATCHED, HERM, T>(
-            ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
+        return rocblas_internal_syrk_herk_template<rocblas_int,
+                                                   ROCBLAS_HERK_BATCHED_NB,
+                                                   BATCHED,
+                                                   HERM,
+                                                   T>(ROCBLAS_INTERNAL_SYRK_HERK_PARAMS);
 
     return rocblas_status_not_implemented;
 }
