@@ -168,7 +168,7 @@
 #include "testing_trsv.hpp"
 #include "testing_trsv_batched.hpp"
 #include "testing_trsv_strided_batched.hpp"
-// blas3 with no tensile, some may use source gemm
+// for blas3 with no tensile, some will use source gemms
 #include "testing_dgmm.hpp"
 #include "testing_dgmm_batched.hpp"
 #include "testing_dgmm_strided_batched.hpp"
@@ -176,6 +176,12 @@
 #include "testing_geam_batched.hpp"
 #include "testing_geam_ex.hpp"
 #include "testing_geam_strided_batched.hpp"
+#include "testing_gemm.hpp"
+#include "testing_gemm_batched.hpp"
+#include "testing_gemm_batched_ex.hpp"
+#include "testing_gemm_ex.hpp"
+#include "testing_gemm_strided_batched.hpp"
+#include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_gemmt.hpp"
 #include "testing_gemmt_batched.hpp"
 #include "testing_gemmt_strided_batched.hpp"
@@ -197,20 +203,6 @@
 #include "testing_trmm.hpp"
 #include "testing_trmm_batched.hpp"
 #include "testing_trmm_strided_batched.hpp"
-#include "type_dispatch.hpp"
-#include "utility.hpp"
-#undef I
-
-#if BUILD_WITH_TENSILE
-#include "testing_gemm.hpp"
-#include "testing_gemm_batched.hpp"
-#include "testing_gemm_batched_ex.hpp"
-#include "testing_gemm_batched_ex3.hpp"
-#include "testing_gemm_ex.hpp"
-#include "testing_gemm_ex3.hpp"
-#include "testing_gemm_strided_batched.hpp"
-#include "testing_gemm_strided_batched_ex.hpp"
-#include "testing_gemm_strided_batched_ex3.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
@@ -220,6 +212,14 @@
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #include "testing_trtri_strided_batched.hpp"
+#include "type_dispatch.hpp"
+#include "utility.hpp"
+#undef I
+
+#if BUILD_WITH_TENSILE
+#include "testing_gemm_batched_ex3.hpp"
+#include "testing_gemm_ex3.hpp"
+#include "testing_gemm_strided_batched_ex3.hpp"
 #endif
 
 using namespace roc; // For emulated program_options
@@ -245,8 +245,6 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
                                     + " --a_type "s + rocblas_datatype2string(arg.a_type) + msg);
     match->second(arg);
 }
-
-#if BUILD_WITH_TENSILE
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
@@ -276,6 +274,35 @@ struct perf_gemm_ex<
     }
 };
 
+// Template to dispatch testing_gemm_strided_batched_ex for performance tests
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
+template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
+struct perf_gemm_strided_batched_ex : rocblas_test_invalid
+{
+};
+
+template <typename Ti, typename To, typename Tc>
+struct perf_gemm_strided_batched_ex<
+    Ti,
+    To,
+    Tc,
+    std::enable_if_t<
+        !std::is_same_v<
+            Ti,
+            void> && !(std::is_same_v<Ti, To> && std::is_same_v<Ti, Tc> && std::is_same_v<Ti, rocblas_bfloat16>)>>
+    : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"gemm_strided_batched_ex", testing_gemm_strided_batched_ex<Ti, To, Tc>},
+        };
+        run_function(map, arg);
+    }
+};
+
+#if BUILD_WITH_TENSILE
+
 // Template to dispatch testing_gemm_ex3 for performance tests
 // When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename TiA, typename TiB = TiA, typename To = TiA, typename Tc = To, typename = void>
@@ -301,33 +328,6 @@ struct perf_gemm_ex3<
         static const func_map map = {
             {"gemm_ex3", testing_gemm_ex3<TiA, TiB, To, Tc>},
             {"gemm_batched_ex3", testing_gemm_batched_ex3<TiA, TiB, To, Tc>},
-        };
-        run_function(map, arg);
-    }
-};
-
-// Template to dispatch testing_gemm_strided_batched_ex for performance tests
-// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
-template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
-struct perf_gemm_strided_batched_ex : rocblas_test_invalid
-{
-};
-
-template <typename Ti, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex<
-    Ti,
-    To,
-    Tc,
-    std::enable_if_t<
-        !std::is_same_v<
-            Ti,
-            void> && !(std::is_same_v<Ti, To> && std::is_same_v<Ti, Tc> && std::is_same_v<Ti, rocblas_bfloat16>)>>
-    : rocblas_test_valid
-{
-    void operator()(const Arguments& arg)
-    {
-        static const func_map map = {
-            {"gemm_strided_batched_ex", testing_gemm_strided_batched_ex<Ti, To, Tc>},
         };
         run_function(map, arg);
     }
@@ -375,130 +375,129 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same_v<T, float> || std::is_same
 {
     void operator()(const Arguments& arg)
     {
-        static const func_map map
-            = { {"set_get_vector", testing_set_get_vector<T>},
-                {"set_get_vector_async", testing_set_get_vector_async<T>},
-                {"set_get_matrix", testing_set_get_matrix<T>},
-                {"set_get_matrix_async", testing_set_get_matrix_async<T>},
-                // L1
-                {"asum", testing_asum<T>},
-                {"asum_batched", testing_asum_batched<T>},
-                {"asum_strided_batched", testing_asum_strided_batched<T>},
-                {"axpy", testing_axpy<T>},
-                {"axpy_batched", testing_axpy_batched<T>},
-                {"axpy_strided_batched", testing_axpy_strided_batched<T>},
-                {"copy", testing_copy<T>},
-                {"copy_batched", testing_copy_batched<T>},
-                {"copy_strided_batched", testing_copy_strided_batched<T>},
-                {"dot", testing_dot<T>},
-                {"dot_batched", testing_dot_batched<T>},
-                {"dot_strided_batched", testing_dot_strided_batched<T>},
-                {"iamax", testing_iamax<T>},
-                {"iamax_batched", testing_iamax_batched<T>},
-                {"iamax_strided_batched", testing_iamax_strided_batched<T>},
-                {"iamin", testing_iamin<T>},
-                {"iamin_batched", testing_iamin_batched<T>},
-                {"iamin_strided_batched", testing_iamin_strided_batched<T>},
-                {"nrm2", testing_nrm2<T>},
-                {"nrm2_batched", testing_nrm2_batched<T>},
-                {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
-                {"rotm", testing_rotm<T>},
-                {"rotm_batched", testing_rotm_batched<T>},
-                {"rotm_strided_batched", testing_rotm_strided_batched<T>},
-                {"rotmg", testing_rotmg<T>},
-                {"rotmg_batched", testing_rotmg_batched<T>},
-                {"rotmg_strided_batched", testing_rotmg_strided_batched<T>},
-                {"swap", testing_swap<T>},
-                {"swap_batched", testing_swap_batched<T>},
-                {"swap_strided_batched", testing_swap_strided_batched<T>},
-                // L2
-                {"gbmv", testing_gbmv<T>},
-                {"gbmv_batched", testing_gbmv_batched<T>},
-                {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
-                {"geam", testing_geam<T>},
-                {"geam_batched", testing_geam_batched<T>},
-                {"geam_strided_batched", testing_geam_strided_batched<T>},
-                {"geam_ex", testing_geam_ex<T>},
-                {"gemv", testing_gemv<T>},
-                {"ger", testing_ger<T, false>},
-                {"ger_batched", testing_ger_batched<T, false>},
-                {"ger_strided_batched", testing_ger_strided_batched<T, false>},
-                {"spr", testing_spr<T>},
-                {"spr_batched", testing_spr_batched<T>},
-                {"spr_strided_batched", testing_spr_strided_batched<T>},
-                {"spr2", testing_spr2<T>},
-                {"spr2_batched", testing_spr2_batched<T>},
-                {"spr2_strided_batched", testing_spr2_strided_batched<T>},
-                {"syr", testing_syr<T>},
-                {"syr_batched", testing_syr_batched<T>},
-                {"syr_strided_batched", testing_syr_strided_batched<T>},
-                {"syr2", testing_syr2<T>},
-                {"syr2_batched", testing_syr2_batched<T>},
-                {"syr2_strided_batched", testing_syr2_strided_batched<T>},
-                {"sbmv", testing_sbmv<T>},
-                {"sbmv_batched", testing_sbmv_batched<T>},
-                {"sbmv_strided_batched", testing_sbmv_strided_batched<T>},
-                {"spmv", testing_spmv<T>},
-                {"spmv_batched", testing_spmv_batched<T>},
-                {"spmv_strided_batched", testing_spmv_strided_batched<T>},
-                {"symv", testing_symv<T>},
-                {"symv_batched", testing_symv_batched<T>},
-                {"symv_strided_batched", testing_symv_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
-                {"tbsv", testing_tbsv<T>},
-                {"tbsv_batched", testing_tbsv_batched<T>},
-                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
-                {"tpmv", testing_tpmv<T>},
-                {"tpmv_batched", testing_tpmv_batched<T>},
-                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
-                {"tpsv", testing_tpsv<T>},
-                {"tpsv_batched", testing_tpsv_batched<T>},
-                {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
-                {"trmv", testing_trmv<T>},
-                {"trmv_batched", testing_trmv_batched<T>},
-                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                // L3
-                {"dgmm", testing_dgmm<T>},
-                {"dgmm_batched", testing_dgmm_batched<T>},
-                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
-                {"gemmt", testing_gemmt<T>},
-                {"gemmt_batched", testing_gemmt_batched<T>},
-                {"gemmt_strided_batched", testing_gemmt_strided_batched<T>},
-                {"symm", testing_symm_hemm<T, false>},
-                {"symm_batched", testing_symm_hemm_batched<T, false>},
-                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
-                {"trmm", testing_trmm<T>},
-                {"trmm_batched", testing_trmm_batched<T>},
-                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
-                {"syrk", testing_syrk<T>},
-                {"syrk_batched", testing_syrk_batched<T>},
-                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
-                {"syr2k", testing_syr2k<T>},
-                {"syr2k_batched", testing_syr2k_batched<T>},
-                {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
-                {"trsv", testing_trsv<T>},
-                {"trsv_batched", testing_trsv_batched<T>},
-                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
-#if BUILD_WITH_TENSILE
-                {"syrkx", testing_syr2k<T, false>},
-                {"syrkx_batched", testing_syr2k_batched<T, false>},
-                {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-                {"trtri", testing_trtri<T>},
-                {"trtri_batched", testing_trtri_batched<T>},
-                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
-                {"gemm", testing_gemm<T>},
-                {"gemm_batched", testing_gemm_batched<T>},
-                {"gemm_strided_batched", testing_gemm_strided_batched<T>},
-                {"trsm", testing_trsm<T>},
-                {"trsm_ex", testing_trsm_ex<T>},
-                {"trsm_batched", testing_trsm_batched<T>},
-                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
-                {"trsm_strided_batched", testing_trsm_strided_batched<T>},
-                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
-#endif
-              };
+        static const func_map map = {
+            {"set_get_vector", testing_set_get_vector<T>},
+            {"set_get_vector_async", testing_set_get_vector_async<T>},
+            {"set_get_matrix", testing_set_get_matrix<T>},
+            {"set_get_matrix_async", testing_set_get_matrix_async<T>},
+            // L1
+            {"asum", testing_asum<T>},
+            {"asum_batched", testing_asum_batched<T>},
+            {"asum_strided_batched", testing_asum_strided_batched<T>},
+            {"axpy", testing_axpy<T>},
+            {"axpy_batched", testing_axpy_batched<T>},
+            {"axpy_strided_batched", testing_axpy_strided_batched<T>},
+            {"copy", testing_copy<T>},
+            {"copy_batched", testing_copy_batched<T>},
+            {"copy_strided_batched", testing_copy_strided_batched<T>},
+            {"dot", testing_dot<T>},
+            {"dot_batched", testing_dot_batched<T>},
+            {"dot_strided_batched", testing_dot_strided_batched<T>},
+            {"iamax", testing_iamax<T>},
+            {"iamax_batched", testing_iamax_batched<T>},
+            {"iamax_strided_batched", testing_iamax_strided_batched<T>},
+            {"iamin", testing_iamin<T>},
+            {"iamin_batched", testing_iamin_batched<T>},
+            {"iamin_strided_batched", testing_iamin_strided_batched<T>},
+            {"nrm2", testing_nrm2<T>},
+            {"nrm2_batched", testing_nrm2_batched<T>},
+            {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
+            {"rotm", testing_rotm<T>},
+            {"rotm_batched", testing_rotm_batched<T>},
+            {"rotm_strided_batched", testing_rotm_strided_batched<T>},
+            {"rotmg", testing_rotmg<T>},
+            {"rotmg_batched", testing_rotmg_batched<T>},
+            {"rotmg_strided_batched", testing_rotmg_strided_batched<T>},
+            {"swap", testing_swap<T>},
+            {"swap_batched", testing_swap_batched<T>},
+            {"swap_strided_batched", testing_swap_strided_batched<T>},
+            // L2
+            {"gbmv", testing_gbmv<T>},
+            {"gbmv_batched", testing_gbmv_batched<T>},
+            {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
+            {"geam", testing_geam<T>},
+            {"geam_batched", testing_geam_batched<T>},
+            {"geam_strided_batched", testing_geam_strided_batched<T>},
+            {"geam_ex", testing_geam_ex<T>},
+            {"gemv", testing_gemv<T>},
+            {"ger", testing_ger<T, false>},
+            {"ger_batched", testing_ger_batched<T, false>},
+            {"ger_strided_batched", testing_ger_strided_batched<T, false>},
+            {"spr", testing_spr<T>},
+            {"spr_batched", testing_spr_batched<T>},
+            {"spr_strided_batched", testing_spr_strided_batched<T>},
+            {"spr2", testing_spr2<T>},
+            {"spr2_batched", testing_spr2_batched<T>},
+            {"spr2_strided_batched", testing_spr2_strided_batched<T>},
+            {"syr", testing_syr<T>},
+            {"syr_batched", testing_syr_batched<T>},
+            {"syr_strided_batched", testing_syr_strided_batched<T>},
+            {"syr2", testing_syr2<T>},
+            {"syr2_batched", testing_syr2_batched<T>},
+            {"syr2_strided_batched", testing_syr2_strided_batched<T>},
+            {"sbmv", testing_sbmv<T>},
+            {"sbmv_batched", testing_sbmv_batched<T>},
+            {"sbmv_strided_batched", testing_sbmv_strided_batched<T>},
+            {"spmv", testing_spmv<T>},
+            {"spmv_batched", testing_spmv_batched<T>},
+            {"spmv_strided_batched", testing_spmv_strided_batched<T>},
+            {"symv", testing_symv<T>},
+            {"symv_batched", testing_symv_batched<T>},
+            {"symv_strided_batched", testing_symv_strided_batched<T>},
+            {"tbmv", testing_tbmv<T>},
+            {"tbmv_batched", testing_tbmv_batched<T>},
+            {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+            {"tbsv", testing_tbsv<T>},
+            {"tbsv_batched", testing_tbsv_batched<T>},
+            {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
+            {"tpmv", testing_tpmv<T>},
+            {"tpmv_batched", testing_tpmv_batched<T>},
+            {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+            {"tpsv", testing_tpsv<T>},
+            {"tpsv_batched", testing_tpsv_batched<T>},
+            {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
+            {"trmv", testing_trmv<T>},
+            {"trmv_batched", testing_trmv_batched<T>},
+            {"trmv_strided_batched", testing_trmv_strided_batched<T>},
+            // L3
+            {"dgmm", testing_dgmm<T>},
+            {"dgmm_batched", testing_dgmm_batched<T>},
+            {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
+            {"gemmt", testing_gemmt<T>},
+            {"gemmt_batched", testing_gemmt_batched<T>},
+            {"gemmt_strided_batched", testing_gemmt_strided_batched<T>},
+            {"symm", testing_symm_hemm<T, false>},
+            {"symm_batched", testing_symm_hemm_batched<T, false>},
+            {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+            {"trmm", testing_trmm<T>},
+            {"trmm_batched", testing_trmm_batched<T>},
+            {"trmm_strided_batched", testing_trmm_strided_batched<T>},
+            {"syrk", testing_syrk<T>},
+            {"syrk_batched", testing_syrk_batched<T>},
+            {"syrk_strided_batched", testing_syrk_strided_batched<T>},
+            {"syr2k", testing_syr2k<T>},
+            {"syr2k_batched", testing_syr2k_batched<T>},
+            {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
+            {"trsv", testing_trsv<T>},
+            {"trsv_batched", testing_trsv_batched<T>},
+            {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+            // allow profiling with source gemms even without BUILD_WITH_TENSILE
+            {"gemm", testing_gemm<T>},
+            {"gemm_batched", testing_gemm_batched<T>},
+            {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+            {"syrkx", testing_syr2k<T, false>},
+            {"syrkx_batched", testing_syr2k_batched<T, false>},
+            {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+            {"trtri", testing_trtri<T>},
+            {"trtri_batched", testing_trtri_batched<T>},
+            {"trtri_strided_batched", testing_trtri_strided_batched<T>},
+            {"trsm", testing_trsm<T>},
+            {"trsm_ex", testing_trsm_ex<T>},
+            {"trsm_batched", testing_trsm_batched<T>},
+            {"trsm_batched_ex", testing_trsm_batched_ex<T>},
+            {"trsm_strided_batched", testing_trsm_strided_batched<T>},
+            {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+        };
         run_function(map, arg);
     }
 };
@@ -583,153 +582,151 @@ struct perf_blas<
 {
     void operator()(const Arguments& arg)
     {
-        static const func_map map
-            = { {"set_get_vector", testing_set_get_vector<T>},
-                {"set_get_vector_async", testing_set_get_vector_async<T>},
-                {"set_get_matrix", testing_set_get_matrix<T>},
-                {"set_get_matrix_async", testing_set_get_matrix_async<T>},
-                // L1
-                {"asum", testing_asum<T>},
-                {"asum_batched", testing_asum_batched<T>},
-                {"asum_strided_batched", testing_asum_strided_batched<T>},
-                {"axpy", testing_axpy<T>},
-                {"axpy_batched", testing_axpy_batched<T>},
-                {"axpy_strided_batched", testing_axpy_strided_batched<T>},
-                {"copy", testing_copy<T>},
-                {"copy_batched", testing_copy_batched<T>},
-                {"copy_strided_batched", testing_copy_strided_batched<T>},
-                {"dot", testing_dot<T>},
-                {"dot_batched", testing_dot_batched<T>},
-                {"dot_strided_batched", testing_dot_strided_batched<T>},
-                {"dotc", testing_dotc<T>},
-                {"dotc_batched", testing_dotc_batched<T>},
-                {"dotc_strided_batched", testing_dotc_strided_batched<T>},
-                {"iamax", testing_iamax<T>},
-                {"iamax_batched", testing_iamax_batched<T>},
-                {"iamax_strided_batched", testing_iamax_strided_batched<T>},
-                {"iamin", testing_iamin<T>},
-                {"iamin_batched", testing_iamin_batched<T>},
-                {"iamin_strided_batched", testing_iamin_strided_batched<T>},
-                {"nrm2", testing_nrm2<T>},
-                {"nrm2_batched", testing_nrm2_batched<T>},
-                {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
-                {"swap", testing_swap<T>},
-                {"swap_batched", testing_swap_batched<T>},
-                {"swap_strided_batched", testing_swap_strided_batched<T>},
-                // L2
-                {"gbmv", testing_gbmv<T>},
-                {"gbmv_batched", testing_gbmv_batched<T>},
-                {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
-                {"gemv", testing_gemv<T>},
-                {"geru", testing_ger<T, false>},
-                {"geru_batched", testing_ger_batched<T, false>},
-                {"geru_strided_batched", testing_ger_strided_batched<T, false>},
-                {"gerc", testing_ger<T, true>},
-                {"gerc_batched", testing_ger_batched<T, true>},
-                {"gerc_strided_batched", testing_ger_strided_batched<T, true>},
-                {"hbmv", testing_hbmv<T>},
-                {"hbmv_batched", testing_hbmv_batched<T>},
-                {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},
-                {"hemv", testing_hemv<T>},
-                {"hemv_batched", testing_hemv_batched<T>},
-                {"hemv_strided_batched", testing_hemv_strided_batched<T>},
-                {"her", testing_her<T>},
-                {"her_batched", testing_her_batched<T>},
-                {"her_strided_batched", testing_her_strided_batched<T>},
-                {"her2", testing_her2<T>},
-                {"her2_batched", testing_her2_batched<T>},
-                {"her2_strided_batched", testing_her2_strided_batched<T>},
-                {"hpmv", testing_hpmv<T>},
-                {"hpmv_batched", testing_hpmv_batched<T>},
-                {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
-                {"hpr", testing_hpr<T>},
-                {"hpr_batched", testing_hpr_batched<T>},
-                {"hpr_strided_batched", testing_hpr_strided_batched<T>},
-                {"hpr2", testing_hpr2<T>},
-                {"hpr2_batched", testing_hpr2_batched<T>},
-                {"hpr2_strided_batched", testing_hpr2_strided_batched<T>},
-                {"spr", testing_spr<T>},
-                {"spr_batched", testing_spr_batched<T>},
-                {"spr_strided_batched", testing_spr_strided_batched<T>},
-                {"syr", testing_syr<T>},
-                {"syr_batched", testing_syr_batched<T>},
-                {"syr_strided_batched", testing_syr_strided_batched<T>},
-                {"syr2", testing_syr2<T>},
-                {"syr2_batched", testing_syr2_batched<T>},
-                {"syr2_strided_batched", testing_syr2_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
-                {"tbsv", testing_tbsv<T>},
-                {"tbsv_batched", testing_tbsv_batched<T>},
-                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
-                {"tpmv", testing_tpmv<T>},
-                {"tpmv_batched", testing_tpmv_batched<T>},
-                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
-                {"tpsv", testing_tpsv<T>},
-                {"tpsv_batched", testing_tpsv_batched<T>},
-                {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
-                {"symv", testing_symv<T>},
-                {"symv_batched", testing_symv_batched<T>},
-                {"symv_strided_batched", testing_symv_strided_batched<T>},
-                {"trmv", testing_trmv<T>},
-                {"trmv_batched", testing_trmv_batched<T>},
-                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                {"trsv", testing_trsv<T>},
-                {"trsv_batched", testing_trsv_batched<T>},
-                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
-                // L3
-                {"dgmm", testing_dgmm<T>},
-                {"dgmm_batched", testing_dgmm_batched<T>},
-                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
-                {"gemmt", testing_gemmt<T>},
-                {"gemmt_batched", testing_gemmt_batched<T>},
-                {"gemmt_strided_batched", testing_gemmt_strided_batched<T>},
-                {"geam", testing_geam<T>},
-                {"geam_batched", testing_geam_batched<T>},
-                {"geam_strided_batched", testing_geam_strided_batched<T>},
-                {"syrk", testing_syrk<T>},
-                {"syrk_batched", testing_syrk_batched<T>},
-                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
-                {"syr2k", testing_syr2k<T>},
-                {"syr2k_batched", testing_syr2k_batched<T>},
-                {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
-                {"syrkx", testing_syr2k<T, false>},
-                {"syrkx_batched", testing_syr2k_batched<T, false>},
-                {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-                {"symm", testing_symm_hemm<T, false>},
-                {"symm_batched", testing_symm_hemm_batched<T, false>},
-                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
-                {"trmm", testing_trmm<T>},
-                {"trmm_batched", testing_trmm_batched<T>},
-                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
-                {"hemm", testing_symm_hemm<T, true>},
-                {"hemm_batched", testing_symm_hemm_batched<T, true>},
-                {"hemm_strided_batched", testing_symm_hemm_strided_batched<T, true>},
-                {"herk", testing_herk<T>},
-                {"herk_batched", testing_herk_batched<T>},
-                {"herk_strided_batched", testing_herk_strided_batched<T>},
-                {"her2k", testing_her2k<T>},
-                {"her2k_batched", testing_her2k_batched<T>},
-                {"her2k_strided_batched", testing_her2k_strided_batched<T>},
-                {"herkx", testing_her2k<T, false>},
-                {"herkx_batched", testing_her2k_batched<T, false>},
-                {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
-#if BUILD_WITH_TENSILE
-                {"gemm", testing_gemm<T>},
-                {"gemm_batched", testing_gemm_batched<T>},
-                {"gemm_strided_batched", testing_gemm_strided_batched<T>},
-                {"trsm", testing_trsm<T>},
-                {"trsm_ex", testing_trsm_ex<T>},
-                {"trsm_batched", testing_trsm_batched<T>},
-                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
-                {"trsm_strided_batched", testing_trsm_strided_batched<T>},
-                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
-                {"trtri", testing_trtri<T>},
-                {"trtri_batched", testing_trtri_batched<T>},
-                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
-#endif
-              };
+        static const func_map map = {
+            {"set_get_vector", testing_set_get_vector<T>},
+            {"set_get_vector_async", testing_set_get_vector_async<T>},
+            {"set_get_matrix", testing_set_get_matrix<T>},
+            {"set_get_matrix_async", testing_set_get_matrix_async<T>},
+            // L1
+            {"asum", testing_asum<T>},
+            {"asum_batched", testing_asum_batched<T>},
+            {"asum_strided_batched", testing_asum_strided_batched<T>},
+            {"axpy", testing_axpy<T>},
+            {"axpy_batched", testing_axpy_batched<T>},
+            {"axpy_strided_batched", testing_axpy_strided_batched<T>},
+            {"copy", testing_copy<T>},
+            {"copy_batched", testing_copy_batched<T>},
+            {"copy_strided_batched", testing_copy_strided_batched<T>},
+            {"dot", testing_dot<T>},
+            {"dot_batched", testing_dot_batched<T>},
+            {"dot_strided_batched", testing_dot_strided_batched<T>},
+            {"dotc", testing_dotc<T>},
+            {"dotc_batched", testing_dotc_batched<T>},
+            {"dotc_strided_batched", testing_dotc_strided_batched<T>},
+            {"iamax", testing_iamax<T>},
+            {"iamax_batched", testing_iamax_batched<T>},
+            {"iamax_strided_batched", testing_iamax_strided_batched<T>},
+            {"iamin", testing_iamin<T>},
+            {"iamin_batched", testing_iamin_batched<T>},
+            {"iamin_strided_batched", testing_iamin_strided_batched<T>},
+            {"nrm2", testing_nrm2<T>},
+            {"nrm2_batched", testing_nrm2_batched<T>},
+            {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
+            {"swap", testing_swap<T>},
+            {"swap_batched", testing_swap_batched<T>},
+            {"swap_strided_batched", testing_swap_strided_batched<T>},
+            // L2
+            {"gbmv", testing_gbmv<T>},
+            {"gbmv_batched", testing_gbmv_batched<T>},
+            {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
+            {"gemv", testing_gemv<T>},
+            {"geru", testing_ger<T, false>},
+            {"geru_batched", testing_ger_batched<T, false>},
+            {"geru_strided_batched", testing_ger_strided_batched<T, false>},
+            {"gerc", testing_ger<T, true>},
+            {"gerc_batched", testing_ger_batched<T, true>},
+            {"gerc_strided_batched", testing_ger_strided_batched<T, true>},
+            {"hbmv", testing_hbmv<T>},
+            {"hbmv_batched", testing_hbmv_batched<T>},
+            {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},
+            {"hemv", testing_hemv<T>},
+            {"hemv_batched", testing_hemv_batched<T>},
+            {"hemv_strided_batched", testing_hemv_strided_batched<T>},
+            {"her", testing_her<T>},
+            {"her_batched", testing_her_batched<T>},
+            {"her_strided_batched", testing_her_strided_batched<T>},
+            {"her2", testing_her2<T>},
+            {"her2_batched", testing_her2_batched<T>},
+            {"her2_strided_batched", testing_her2_strided_batched<T>},
+            {"hpmv", testing_hpmv<T>},
+            {"hpmv_batched", testing_hpmv_batched<T>},
+            {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
+            {"hpr", testing_hpr<T>},
+            {"hpr_batched", testing_hpr_batched<T>},
+            {"hpr_strided_batched", testing_hpr_strided_batched<T>},
+            {"hpr2", testing_hpr2<T>},
+            {"hpr2_batched", testing_hpr2_batched<T>},
+            {"hpr2_strided_batched", testing_hpr2_strided_batched<T>},
+            {"spr", testing_spr<T>},
+            {"spr_batched", testing_spr_batched<T>},
+            {"spr_strided_batched", testing_spr_strided_batched<T>},
+            {"syr", testing_syr<T>},
+            {"syr_batched", testing_syr_batched<T>},
+            {"syr_strided_batched", testing_syr_strided_batched<T>},
+            {"syr2", testing_syr2<T>},
+            {"syr2_batched", testing_syr2_batched<T>},
+            {"syr2_strided_batched", testing_syr2_strided_batched<T>},
+            {"tbmv", testing_tbmv<T>},
+            {"tbmv_batched", testing_tbmv_batched<T>},
+            {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+            {"tbsv", testing_tbsv<T>},
+            {"tbsv_batched", testing_tbsv_batched<T>},
+            {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
+            {"tpmv", testing_tpmv<T>},
+            {"tpmv_batched", testing_tpmv_batched<T>},
+            {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+            {"tpsv", testing_tpsv<T>},
+            {"tpsv_batched", testing_tpsv_batched<T>},
+            {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
+            {"symv", testing_symv<T>},
+            {"symv_batched", testing_symv_batched<T>},
+            {"symv_strided_batched", testing_symv_strided_batched<T>},
+            {"trmv", testing_trmv<T>},
+            {"trmv_batched", testing_trmv_batched<T>},
+            {"trmv_strided_batched", testing_trmv_strided_batched<T>},
+            {"trsv", testing_trsv<T>},
+            {"trsv_batched", testing_trsv_batched<T>},
+            {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+            // L3
+            {"dgmm", testing_dgmm<T>},
+            {"dgmm_batched", testing_dgmm_batched<T>},
+            {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
+            {"gemmt", testing_gemmt<T>},
+            {"gemmt_batched", testing_gemmt_batched<T>},
+            {"gemmt_strided_batched", testing_gemmt_strided_batched<T>},
+            {"geam", testing_geam<T>},
+            {"geam_batched", testing_geam_batched<T>},
+            {"geam_strided_batched", testing_geam_strided_batched<T>},
+            {"syrk", testing_syrk<T>},
+            {"syrk_batched", testing_syrk_batched<T>},
+            {"syrk_strided_batched", testing_syrk_strided_batched<T>},
+            {"syr2k", testing_syr2k<T>},
+            {"syr2k_batched", testing_syr2k_batched<T>},
+            {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
+            {"syrkx", testing_syr2k<T, false>},
+            {"syrkx_batched", testing_syr2k_batched<T, false>},
+            {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+            {"symm", testing_symm_hemm<T, false>},
+            {"symm_batched", testing_symm_hemm_batched<T, false>},
+            {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+            {"trmm", testing_trmm<T>},
+            {"trmm_batched", testing_trmm_batched<T>},
+            {"trmm_strided_batched", testing_trmm_strided_batched<T>},
+            {"hemm", testing_symm_hemm<T, true>},
+            {"hemm_batched", testing_symm_hemm_batched<T, true>},
+            {"hemm_strided_batched", testing_symm_hemm_strided_batched<T, true>},
+            {"herk", testing_herk<T>},
+            {"herk_batched", testing_herk_batched<T>},
+            {"herk_strided_batched", testing_herk_strided_batched<T>},
+            {"her2k", testing_her2k<T>},
+            {"her2k_batched", testing_her2k_batched<T>},
+            {"her2k_strided_batched", testing_her2k_strided_batched<T>},
+            {"herkx", testing_her2k<T, false>},
+            {"herkx_batched", testing_her2k_batched<T, false>},
+            {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
+            {"gemm", testing_gemm<T>},
+            {"gemm_batched", testing_gemm_batched<T>},
+            {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+            {"trsm", testing_trsm<T>},
+            {"trsm_ex", testing_trsm_ex<T>},
+            {"trsm_batched", testing_trsm_batched<T>},
+            {"trsm_batched_ex", testing_trsm_batched_ex<T>},
+            {"trsm_strided_batched", testing_trsm_strided_batched<T>},
+            {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+            {"trtri", testing_trtri<T>},
+            {"trtri_batched", testing_trtri_batched<T>},
+            {"trtri_strided_batched", testing_trtri_strided_batched<T>},
+        };
         run_function(map, arg);
     }
 };
@@ -1120,7 +1117,7 @@ int run_bench_test(bool               init,
             return 0;
     }
 
-#if BUILD_WITH_TENSILE
+    // argument modifications
     if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
     {
         // adjust dimension for GEMM routines
@@ -1187,6 +1184,7 @@ int run_bench_test(bool               init,
         }
     }
 
+    // dispatch
     if(!strcmp(function, "gemm_ex") || !strcmp(function, "gemm_batched_ex"))
     {
         // adjust dimension for GEMM routines
@@ -1222,42 +1220,6 @@ int run_bench_test(bool               init,
             arg.batch_count = 1;
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
-    }
-    else if(!strcmp(function, "gemm_ex3") || !strcmp(function, "gemm_batched_ex3"))
-    {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-        int64_t min_ldd = arg.M;
-
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(arg.ldd < min_ldd)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
-            arg.ldd = min_ldd;
-        }
-        if(!strcmp(function, "gemm_ex3") && arg.batch_count > 1)
-        {
-            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex3"
-                         << ", set batch_count = 1" << std::endl;
-            arg.batch_count = 1;
-        }
-        rocblas_gemm_dispatch<perf_gemm_ex3>(arg);
     }
     else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
@@ -1303,6 +1265,43 @@ int run_bench_test(bool               init,
 
         rocblas_gemm_dispatch<perf_gemm_strided_batched_ex>(arg);
     }
+#if BUILD_WITH_TENSILE
+    else if(!strcmp(function, "gemm_ex3") || !strcmp(function, "gemm_batched_ex3"))
+    {
+        // adjust dimension for GEMM routines
+        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        int64_t min_ldc = arg.M;
+        int64_t min_ldd = arg.M;
+
+        if(arg.lda < min_lda)
+        {
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            arg.lda = min_lda;
+        }
+        if(arg.ldb < min_ldb)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            arg.ldb = min_ldb;
+        }
+        if(arg.ldc < min_ldc)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            arg.ldc = min_ldc;
+        }
+        if(arg.ldd < min_ldd)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            arg.ldd = min_ldd;
+        }
+        if(!strcmp(function, "gemm_ex3") && arg.batch_count > 1)
+        {
+            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex3"
+                         << ", set batch_count = 1" << std::endl;
+            arg.batch_count = 1;
+        }
+        rocblas_gemm_dispatch<perf_gemm_ex3>(arg);
+    }
     else if(!strcmp(function, "gemm_strided_batched_ex3"))
     {
         // adjust dimension for GEMM routines
@@ -1347,8 +1346,8 @@ int run_bench_test(bool               init,
 
         rocblas_gemm_dispatch<perf_gemm_strided_batched_ex3>(arg);
     }
-    else
 #endif
+    else
     {
         if(!strcmp(function, "scal") || !strcmp(function, "scal_batched")
            || !strcmp(function, "scal_strided_batched"))

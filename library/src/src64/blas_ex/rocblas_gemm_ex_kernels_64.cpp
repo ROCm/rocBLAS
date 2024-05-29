@@ -28,7 +28,7 @@
 #include "blas3/rocblas_gemm_source.hpp"
 #include "blas_ex/rocblas_gemm_ex.hpp" // int32 API called
 
-template <bool BATCHED, typename Ti, typename To = Ti, typename TScal = To>
+template <bool BATCHED, typename Ti, typename To, typename TScal>
 rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle,
                                                        rocblas_operation  trans_a,
                                                        rocblas_operation  trans_b,
@@ -66,6 +66,12 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
     TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k_64));
+    if(k_64 == 0 && !alpha)
+    {
+        // special case as rocblas_gemm_source_solution_64 needs values not pointers
+        alpha_h = 0;
+        alpha   = &alpha_h;
+    }
 
     auto           check_numerics = handle->check_numerics;
     rocblas_status status         = rocblas_status_success;
@@ -111,6 +117,11 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
             return gemm_ex_check_numerics_status;
     }
 
+    constexpr int64_t limit = c_i32_max * 16; // source kernels must have m and n blocks >= 16
+    bool              source_dims_supported = (m_64 <= limit && n_64 <= limit) || k_64 == 0;
+    if(!source_dims_supported)
+        return rocblas_status_invalid_size;
+
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
     {
         rocblas_stride offsetA = offsetAin;
@@ -124,57 +135,37 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
 
         int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
 
-        constexpr int64_t limit = c_i32_max * 16; // source kernels must have m and n blocks >= 16
-        bool              source_dims_supported = m_64 <= limit && n_64 <= limit;
-
         auto APtr = adjust_ptr_batch((Ta)a, b_base, stride_a);
         auto BPtr = adjust_ptr_batch((Tb)b, b_base, stride_b);
         auto CPtr = adjust_ptr_batch((Tc)c, b_base, stride_c);
         auto DPtr = adjust_ptr_batch((Td)d, b_base, stride_d);
 
-        if(k_64 == 0 || (alpha && *(TScal*)alpha == 0))
-        {
-            status = rocblas_gemm_scale_launcher_64(m_64,
-                                                    n_64,
-                                                    *(TScal*)beta,
-                                                    DPtr,
-                                                    offsetD,
-                                                    ldd_64,
-                                                    stride_d,
-                                                    batch_count,
-                                                    rocblas_stream);
-        }
-        else
-        {
-            if(!source_dims_supported)
-                return rocblas_status_invalid_size;
+        status = rocblas_gemm_source_solution_64<BATCHED>(trans_a,
+                                                          trans_b,
+                                                          m_64,
+                                                          n_64,
+                                                          k_64,
+                                                          *(TScal*)alpha,
+                                                          (Ta)Aptr,
+                                                          lda_64,
+                                                          stride_a,
+                                                          offsetA,
+                                                          (Tb)Bptr,
+                                                          ldb_64,
+                                                          stride_b,
+                                                          offsetB,
+                                                          *(TScal*)beta,
+                                                          (Tc)Cptr,
+                                                          ldc_64,
+                                                          stride_c,
+                                                          offsetC,
+                                                          (Td)Dptr,
+                                                          ldd_64,
+                                                          stride_d,
+                                                          offsetD,
+                                                          batch_count,
+                                                          rocblas_stream);
 
-            status = rocblas_gemm_source_solution_64<BATCHED>(trans_a,
-                                                              trans_b,
-                                                              m_64,
-                                                              n_64,
-                                                              k_64,
-                                                              *(TScal*)alpha,
-                                                              (Ta)Aptr,
-                                                              lda_64,
-                                                              stride_a,
-                                                              offsetA,
-                                                              (Tb)Bptr,
-                                                              ldb_64,
-                                                              stride_b,
-                                                              offsetB,
-                                                              *(TScal*)beta,
-                                                              (Tc)Cptr,
-                                                              ldc_64,
-                                                              stride_c,
-                                                              offsetC,
-                                                              (Td)Dptr,
-                                                              ldd_64,
-                                                              stride_d,
-                                                              offsetD,
-                                                              batch_count,
-                                                              rocblas_stream);
-        }
         if(status != rocblas_status_success)
             return status;
     }
@@ -275,7 +266,7 @@ rocblas_status rocblas_gemm_ex_template_64(rocblas_handle    handle,
                 Cptr = (void**)Cptr + b_base;
                 Dptr = (void**)Dptr + b_base;
             }
-            else if(batch_count > 1)
+            else if(b_base > 0)
             {
                 offsetA += b_base * stride_a;
                 offsetB += b_base * stride_b;
