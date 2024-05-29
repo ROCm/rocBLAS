@@ -20,11 +20,8 @@
  *
  * ************************************************************************ */
 #include "handle.hpp"
-#include "rocblas.h"
-
-#ifdef BUILD_WITH_TENSILE
-
 #include "logging.hpp"
+#include "rocblas.h"
 #include "rocblas_block_sizes.h"
 #include "rocblas_trsv_inverse.hpp"
 #include "utility.hpp"
@@ -242,8 +239,6 @@ namespace
 
 } // namespace
 
-#endif // BUILD_WITH_TENSILE
-
 /*
  * ===========================================================================
  *    C wrapper
@@ -269,7 +264,6 @@ rocblas_status rocblas_trsv_strided_batched_ex(rocblas_handle    handle,
                                                rocblas_datatype  compute_type)
 try
 {
-#ifdef BUILD_WITH_TENSILE
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
@@ -343,9 +337,6 @@ try
     default:
         return rocblas_status_not_implemented;
     }
-#else
-    return rocblas_status_excluded_from_build;
-#endif
 }
 catch(...)
 {

@@ -151,7 +151,7 @@ set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_gemmt_strided_batched.cpp
     blas_ex/rocblas_gemmt_kernels.cpp
 
-    # these require tensile but export no-op symbols to build downstream components
+    # these require may use Tensile or source gemm
     blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp

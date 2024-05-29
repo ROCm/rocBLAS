@@ -89,7 +89,6 @@ namespace
                 return !strcmp(arg.function, "gemm_strided_batched")
                        || !strcmp(arg.function, "gemm_strided_batched_bad_arg");
 
-#if(BUILD_WITH_TENSILE)
             case GEMM_EX:
                 return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
 
@@ -100,7 +99,6 @@ namespace
             case GEMM_STRIDED_BATCHED_EX:
                 return !strcmp(arg.function, "gemm_strided_batched_ex")
                        || !strcmp(arg.function, "gemm_strided_batched_ex_bad_arg");
-#endif
             }
 
             return false;
@@ -146,6 +144,11 @@ namespace
 
                 if(arg.math_mode == rocblas_xf32_xdl_math_op)
                     name << "_xf32";
+
+                if(isEx && arg.outofplace)
+                {
+                    name << "_out";
+                }
             }
 
             if(arg.api & c_API_64)
@@ -225,7 +228,6 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched);
 
-#if(BUILD_WITH_TENSILE)
     // ----------------------------------------------------------------------------
     // gemm_ex
     // gemm_batched_ex
@@ -294,7 +296,5 @@ namespace
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
-
-#endif //  BUILD_WITH_TENSILE
 
 } // namespace
