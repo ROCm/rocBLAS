@@ -802,7 +802,7 @@ if( BUILD_WITH_TENSILE )
     if( BUILD_SHARED_LIBS )
       set( TENSILE_DATA_COMPONENT_NAME ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME} )
     else()
-      set( TENSILE_DATA_COMPONENT_NAME clients-common )
+      set( TENSILE_DATA_COMPONENT_NAME devel )
     endif()
     rocm_install(
       DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
