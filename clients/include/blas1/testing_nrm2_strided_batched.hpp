@@ -78,8 +78,8 @@ void testing_nrm2_strided_batched(const Arguments& arg)
     rocblas_stride stridex                            = arg.stride_x;
     int64_t        batch_count                        = arg.batch_count;
 
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double error_host_ptr;
+    double error_device_ptr;
 
     rocblas_local_handle handle{arg};
 
@@ -124,8 +124,7 @@ void testing_nrm2_strided_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
     host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
-    host_vector<real_t<T>>       rocblas_result_1(batch_count);
-    host_vector<real_t<T>>       rocblas_result_2(batch_count);
+    host_vector<real_t<T>>       rocblas_result(batch_count);
     host_vector<real_t<T>>       cpu_result(batch_count);
 
     // Check host memory allocation
@@ -133,11 +132,11 @@ void testing_nrm2_strided_batched(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-    device_vector<real_t<T>>       d_rocblas_result_2(batch_count);
+    device_vector<real_t<T>>       d_rocblas_result(batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true, true);
@@ -153,7 +152,7 @@ void testing_nrm2_strided_batched(const Arguments& arg)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             DAPI_CHECK(rocblas_nrm2_strided_batched_fn,
-                       (handle, N, dx, incx, stridex, batch_count, rocblas_result_1));
+                       (handle, N, dx, incx, stridex, batch_count, rocblas_result));
         }
 
         if(arg.pointer_mode_device)
@@ -161,21 +160,21 @@ void testing_nrm2_strided_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_nrm2_strided_batched_fn,
-                       (handle, N, dx, incx, stridex, batch_count, d_rocblas_result_2));
+                       (handle, N, dx, incx, stridex, batch_count, d_rocblas_result));
             handle.post_test(arg);
 
             if(arg.repeatability_check)
             {
                 host_vector<real_t<T>> rocblas_result_copy(batch_count);
-                CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+                CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result));
 
                 for(int i = 0; i < arg.iters; i++)
                 {
                     DAPI_CHECK(rocblas_nrm2_strided_batched_fn,
-                               (handle, N, dx, incx, stridex, batch_count, d_rocblas_result_2));
-                    CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result_2));
+                               (handle, N, dx, incx, stridex, batch_count, d_rocblas_result));
+                    CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result));
                     unit_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, rocblas_result_2, rocblas_result_copy);
+                        batch_count, 1, 1, rocblas_result, rocblas_result_copy);
                 }
                 return;
             }
@@ -184,67 +183,45 @@ void testing_nrm2_strided_batched(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        for(int b = 0; b < batch_count; b++)
+        for(int64_t b = 0; b < batch_count; b++)
             ref_nrm2<T>(N, hx[b], incx, cpu_result + b);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        real_t<T> abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];
-        real_t<T> abs_error;
-        if(abs_result > 0)
-        {
-            abs_error = std::numeric_limits<real_t<T>>::epsilon() * N * abs_result;
-        }
-        else
-        {
-            abs_error = std::numeric_limits<real_t<T>>::epsilon() * N;
-        }
-        real_t<T> tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
-            //  If test fails, try decreasing n or increasing tolerance.
-        abs_error *= tolerance;
-
-        if(arg.pointer_mode_host)
-        {
+        auto compare_to_gold = [&] {
             if(!rocblas_isnan(arg.alpha))
             {
                 if(arg.unit_check)
                 {
-                    near_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
+                    for(int64_t b = 0; b < batch_count; ++b)
+                    {
+                        double abs_error = sum_near_tolerance<T>(N, cpu_result[b]);
+                        near_check_general<real_t<T>, real_t<T>>(
+                            1, 1, 1, cpu_result + b, rocblas_result + b, abs_error);
+                    }
                 }
             }
 
+            double error = 0.0;
             if(arg.norm_check)
             {
-                for(int b = 0; b < batch_count; ++b)
+                for(int64_t b = 0; b < batch_count; ++b)
                 {
-                    rocblas_error_1
-                        += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                    error += rocblas_abs((cpu_result[b] - rocblas_result[b]) / cpu_result[b]);
                 }
             }
+            return error;
+        };
+
+        if(arg.pointer_mode_host)
+        {
+            error_host_ptr = compare_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
-
-            if(!rocblas_isnan(arg.alpha))
-            {
-                if(arg.unit_check)
-                {
-                    near_check_general<real_t<T>, real_t<T>>(
-                        batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
-                }
-            }
-
-            if(arg.norm_check)
-            {
-                for(int b = 0; b < batch_count; ++b)
-                {
-                    rocblas_error_2
-                        += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
-                }
-            }
+            CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result));
+            error_device_ptr = compare_to_gold();
         }
     }
 
@@ -265,7 +242,7 @@ void testing_nrm2_strided_batched(const Arguments& arg)
                 gpu_time_used = get_time_us_sync(stream); // in microseconds
 
             DAPI_DISPATCH(rocblas_nrm2_strided_batched_fn,
-                          (handle, N, dx, incx, stridex, batch_count, d_rocblas_result_2));
+                          (handle, N, dx, incx, stridex, batch_count, d_rocblas_result));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -276,7 +253,7 @@ void testing_nrm2_strided_batched(const Arguments& arg)
                                                                             nrm2_gflop_count<T>(N),
                                                                             nrm2_gbyte_count<T>(N),
                                                                             cpu_time_used,
-                                                                            rocblas_error_1,
-                                                                            rocblas_error_2);
+                                                                            error_host_ptr,
+                                                                            error_device_ptr);
     }
 }

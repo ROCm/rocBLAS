@@ -402,6 +402,11 @@ bool rocblas_client_global_filters(const Arguments& args)
     if(args.gpu_arch[0] && !gpu_arch_match(gpu_arch, args.gpu_arch))
         return false;
 
+#ifndef BUILD_WITH_TENSILE
+    if(args.initialization == rocblas_initialization::denorm2)
+        return false; // source gemms don't support
+#endif
+
     return true;
 }
 

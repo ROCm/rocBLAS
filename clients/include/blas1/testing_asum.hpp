@@ -68,17 +68,18 @@ void testing_asum(const Arguments& arg)
     auto rocblas_asum_fn = arg.api == FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
     auto rocblas_asum_fn_64
         = arg.api == FORTRAN_64 ? rocblas_asum_64<T, true> : rocblas_asum_64<T, false>;
+
     int64_t N    = arg.N;
     int64_t incx = arg.incx;
 
     using RT = real_t<T>;
 
-    RT rocblas_result_1;
-    RT rocblas_result_2;
-    RT cpu_result;
+    RT rocblas_result;
+    RT hr_gold;
 
-    double               rocblas_error_1;
-    double               rocblas_error_2;
+    double error_host_ptr;
+    double error_device_ptr;
+
     rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
@@ -138,7 +139,7 @@ void testing_asum(const Arguments& arg)
         if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            DAPI_CHECK(rocblas_asum_fn, (handle, N, dx, incx, &rocblas_result_1));
+            DAPI_CHECK(rocblas_asum_fn, (handle, N, dx, incx, &rocblas_result));
         }
 
         if(arg.pointer_mode_device)
@@ -151,15 +152,14 @@ void testing_asum(const Arguments& arg)
             if(arg.repeatability_check)
             {
                 RT rocblas_result_copy;
-                CHECK_HIP_ERROR(
-                    hipMemcpy(&rocblas_result_2, dr, sizeof(RT), hipMemcpyDeviceToHost));
+                CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, dr, sizeof(RT), hipMemcpyDeviceToHost));
 
                 for(int i = 0; i < arg.iters; i++)
                 {
                     DAPI_CHECK(rocblas_asum_fn, (handle, N, dx, incx, dr));
                     CHECK_HIP_ERROR(
                         hipMemcpy(&rocblas_result_copy, dr, sizeof(RT), hipMemcpyDeviceToHost));
-                    unit_check_general<RT, RT>(1, 1, 1, &rocblas_result_2, &rocblas_result_copy);
+                    unit_check_general<RT, RT>(1, 1, 1, &rocblas_result, &rocblas_result_copy);
                 }
                 return;
             }
@@ -167,46 +167,40 @@ void testing_asum(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        ref_asum<T>(N, hx, incx, &cpu_result);
+        ref_asum<T>(N, hx, incx, &hr_gold);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        double abs_error = sum_near_tolerance<T>(N, cpu_result);
+        auto compare_to_gold = [&] {
+            if(arg.unit_check)
+            {
+                // Near check for asum ILP64 bit
+                bool near_check = arg.initialization == rocblas_initialization::hpl;
+                if(near_check)
+                {
+                    double abs_error = sum_near_tolerance<T>(N, hr_gold);
+                    near_check_general<RT, RT>(1, 1, 1, &hr_gold, &rocblas_result, abs_error);
+                }
+                else
+                    unit_check_general<RT, RT>(1, 1, 1, &hr_gold, &rocblas_result);
+            }
 
-        // Near check for asum ILP64 bit
-        bool near_check = arg.initialization == rocblas_initialization::hpl;
+            double error = 0.0;
+            if(arg.norm_check)
+            {
+                error = std::abs((hr_gold - rocblas_result) / hr_gold);
+            }
+            return error;
+        };
 
         if(arg.pointer_mode_host)
         {
-            if(arg.unit_check)
-            {
-                if(near_check)
-                    near_check_general<RT, RT>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-                else
-                    unit_check_general<RT, RT>(1, 1, 1, &cpu_result, &rocblas_result_1);
-            }
-
-            if(arg.norm_check)
-            {
-                rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
-            }
+            error_host_ptr = compare_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, dr, sizeof(RT), hipMemcpyDeviceToHost));
-
-            if(arg.unit_check)
-            {
-                if(near_check)
-                    near_check_general<RT, RT>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
-                else
-                    unit_check_general<RT, RT>(1, 1, 1, &cpu_result, &rocblas_result_2);
-            }
-
-            if(arg.norm_check)
-            {
-                rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
-            }
+            CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, dr, sizeof(RT), hipMemcpyDeviceToHost));
+            error_device_ptr = compare_to_gold();
         }
     }
 
@@ -215,6 +209,7 @@ void testing_asum(const Arguments& arg)
         double gpu_time_used;
         int    number_cold_calls = arg.cold_iters;
         int    total_calls       = number_cold_calls + arg.iters;
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         hipStream_t stream;
@@ -236,7 +231,7 @@ void testing_asum(const Arguments& arg)
                                                  asum_gflop_count<T>(N),
                                                  asum_gflop_count<T>(N),
                                                  cpu_time_used,
-                                                 rocblas_error_1,
-                                                 rocblas_error_2);
+                                                 error_host_ptr,
+                                                 error_device_ptr);
     }
 }

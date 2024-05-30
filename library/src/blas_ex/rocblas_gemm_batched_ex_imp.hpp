@@ -57,9 +57,6 @@ namespace
                                                 int32_t           solution_index,
                                                 uint32_t          flags)
     {
-#ifndef BUILD_WITH_TENSILE
-        return rocblas_status_excluded_from_build;
-#else
         if(!handle)
             return rocblas_status_invalid_handle;
 
@@ -295,7 +292,6 @@ namespace
                                                            algo,
                                                            solution_index,
                                                            flags);
-#endif // BUILD_WITH_TENSILE
     }
 }
 // namespace
