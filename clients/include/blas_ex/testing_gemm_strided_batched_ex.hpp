@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "frequency_monitor.hpp"
 #include "testing_common.hpp"
 
 #define DEBUG_PRINT 0
