@@ -78,36 +78,34 @@ void testing_asum_batched(const Arguments& arg)
 
     using RT = real_t<T>;
 
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double error_host_ptr;
+    double error_device_ptr;
 
     rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<RT> hr_1(std::max(int64_t(1), std::abs(batch_count)));
-        host_vector<RT> hr_2(std::max(int64_t(1), std::abs(batch_count)));
+        host_vector<RT> rocblas_result(std::max(int64_t(1), std::abs(batch_count)));
         host_vector<RT> result_0(std::max(int64_t(1), std::abs(batch_count)));
-        CHECK_HIP_ERROR(hr_1.memcheck());
-        CHECK_HIP_ERROR(hr_2.memcheck());
+        CHECK_HIP_ERROR(rocblas_result.memcheck());
         CHECK_HIP_ERROR(result_0.memcheck());
 
         device_vector<RT> dr(std::max(int64_t(1), std::abs(batch_count)));
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        DAPI_CHECK(rocblas_asum_batched_fn, (handle, N, nullptr, incx, batch_count, hr_1));
+        DAPI_CHECK(rocblas_asum_batched_fn,
+                   (handle, N, nullptr, incx, batch_count, rocblas_result));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         DAPI_CHECK(rocblas_asum_batched_fn, (handle, N, nullptr, incx, batch_count, dr));
 
-        CHECK_HIP_ERROR(hr_2.transfer_from(dr));
-
         if(batch_count > 0)
         {
-            unit_check_general<RT, RT>(1, batch_count, 1, result_0, hr_1);
-            unit_check_general<RT, RT>(1, batch_count, 1, result_0, hr_2);
+            unit_check_general<RT, RT>(1, batch_count, 1, result_0, rocblas_result);
+            CHECK_HIP_ERROR(rocblas_result.transfer_from(dr));
+            unit_check_general<RT, RT>(1, batch_count, 1, result_0, rocblas_result);
         }
 
         return;
@@ -116,8 +114,8 @@ void testing_asum_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
     host_batch_vector<T> hx(N, incx, batch_count);
-    host_vector<RT>      hr_1(batch_count);
-    host_vector<RT>      hr_2(batch_count);
+    host_vector<RT>      rocblas_result(batch_count);
+    host_vector<RT>      hr_gold(batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
@@ -143,7 +141,7 @@ void testing_asum_batched(const Arguments& arg)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             DAPI_CHECK(rocblas_asum_batched_fn,
-                       (handle, N, dx.ptr_on_device(), incx, batch_count, hr_1));
+                       (handle, N, dx.ptr_on_device(), incx, batch_count, rocblas_result));
         }
 
         if(arg.pointer_mode_device)
@@ -158,7 +156,7 @@ void testing_asum_batched(const Arguments& arg)
             {
                 host_vector<RT> hr_copy(batch_count);
                 // Transfer from device to host.
-                CHECK_HIP_ERROR(hr_2.transfer_from(dr));
+                CHECK_HIP_ERROR(rocblas_result.transfer_from(dr));
 
                 for(int i = 0; i < arg.iters; i++)
                 {
@@ -166,60 +164,56 @@ void testing_asum_batched(const Arguments& arg)
                                (handle, N, dx.ptr_on_device(), incx, batch_count, dr));
                     // Transfer from device to host.
                     CHECK_HIP_ERROR(hr_copy.transfer_from(dr));
-                    unit_check_general<RT, RT>(1, batch_count, 1, hr_2, hr_copy);
+                    unit_check_general<RT, RT>(1, batch_count, 1, rocblas_result, hr_copy);
                 }
                 return;
             }
         }
 
         // CPU BLAS
-        host_vector<RT> cpu_result(batch_count);
-
         cpu_time_used = get_time_us_no_sync();
         for(size_t b = 0; b < batch_count; b++)
         {
-            ref_asum<T>(N, hx[b], incx, cpu_result + b);
+            ref_asum<T>(N, hx[b], incx, hr_gold + b);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        double abs_error = sum_near_tolerance<T>(N, cpu_result[0]);
+        auto compare_to_gold = [&] {
+            if(arg.unit_check)
+            {
+                // Near check for asum ILP64 bit
+                bool near_check = arg.initialization == rocblas_initialization::hpl;
+                if(near_check)
+                {
+                    for(int64_t b = 0; b < batch_count; ++b)
+                    {
+                        double abs_error = sum_near_tolerance<T>(N, hr_gold[b]);
+                        near_check_general<RT, RT>(
+                            1, 1, 1, hr_gold + b, rocblas_result + b, abs_error);
+                    }
+                }
+                else
+                    unit_check_general<RT, RT>(1, batch_count, 1, hr_gold, rocblas_result);
+            }
 
-        // Near check for asum ILP64 bit
-        bool near_check = arg.initialization == rocblas_initialization::hpl;
+            double error = 0.0;
+            if(arg.norm_check)
+            {
+                error = std::abs((hr_gold[0] - rocblas_result[0]) / hr_gold[0]);
+            }
+            return error;
+        };
 
         if(arg.pointer_mode_host)
         {
-            if(arg.unit_check)
-            {
-                if(near_check)
-                    near_check_general<RT, RT>(batch_count, 1, 1, cpu_result, hr_1, abs_error);
-                else
-                    unit_check_general<RT, RT>(1, batch_count, 1, cpu_result, hr_1);
-            }
-
-            if(arg.norm_check)
-            {
-                rocblas_error_1 = std::abs((cpu_result[0] - hr_1[0]) / cpu_result[0]);
-            }
+            error_host_ptr = compare_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
             // Transfer from device to host.
-            CHECK_HIP_ERROR(hr_2.transfer_from(dr));
-
-            if(arg.unit_check)
-            {
-                if(near_check)
-                    near_check_general<RT, RT>(batch_count, 1, 1, cpu_result, hr_2, abs_error);
-                else
-                    unit_check_general<RT, RT>(1, batch_count, 1, cpu_result, hr_2);
-            }
-
-            if(arg.norm_check)
-            {
-                rocblas_error_2 = std::abs((cpu_result[0] - hr_2[0]) / cpu_result[0]);
-            }
+            CHECK_HIP_ERROR(rocblas_result.transfer_from(dr));
+            error_device_ptr = compare_to_gold();
         }
     }
 
@@ -251,7 +245,7 @@ void testing_asum_batched(const Arguments& arg)
                                                                 asum_gflop_count<T>(N),
                                                                 asum_gbyte_count<T>(N),
                                                                 cpu_time_used,
-                                                                rocblas_error_1,
-                                                                rocblas_error_2);
+                                                                error_host_ptr,
+                                                                error_device_ptr);
     }
 }

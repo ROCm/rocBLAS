@@ -22,94 +22,18 @@
 
 #ifdef BUILD_WITH_TENSILE
 #include "../blas3/Tensile/gemm_tensile.hpp"
+#else
+#include "../../src/src64/blas_ex/rocblas_gemm_ex_64.hpp"
 #endif
 
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas_gemm_ex.hpp"
 
-// template <typename T, typename U, typename V>
-// ROCBLAS_KERNEL_ILF void gemm_ex_scale_device(
-//     rocblas_int m, rocblas_int n, T beta, U* C, rocblas_int ldc, V* D, rocblas_int ldd)
-// {
-//     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
-//     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
+// if no Tensile then we use rocblas_internal_gemm_ex_typecasting_64 and rocblas_internal_gemm_ex_64
+// with source kernels so don't even provide rocblas_internal_gemm_ex
 
-//     if(tx < m && ty < n)
-//     {
-//         D[ty * size_t(ldd) + tx] = beta ? V(beta * C[ty * size_t(ldc) + tx]) : V(0);
-//     }
-// }
-
-// /**
-//   *  Loads pointers and launches the actual calculation kernel.
-//   */
-// template <int DIM_X, int DIM_Y, typename T, typename U, typename V>
-// ROCBLAS_KERNEL(DIM_X* DIM_Y)
-// gemm_ex_scale_kernel(rocblas_int    m,
-//                      rocblas_int    n,
-//                      T              beta_host_device,
-//                      U              CP_array,
-//                      rocblas_stride shift_c,
-//                      rocblas_int    ldc,
-//                      rocblas_stride stride_c,
-//                      V              DP_array,
-//                      rocblas_stride shift_d,
-//                      rocblas_int    ldd,
-//                      rocblas_stride stride_d)
-// {
-//     auto beta = load_scalar(beta_host_device);
-
-//     auto C = cond_load_ptr_batch(beta != 0, CP_array, blockIdx.z, shift_c, stride_c);
-//     auto D = load_ptr_batch(DP_array, blockIdx.z, shift_d, stride_d);
-//     gemm_ex_scale_device(m, n, beta, C, ldc, D, ldd);
-// }
-
-// template <typename TScal, typename TConstPtr, typename TPtr>
-// rocblas_status rocblas_gemm_ex_scale_template(rocblas_handle handle,
-//                                               rocblas_int    m,
-//                                               rocblas_int    n,
-//                                               TScal          beta,
-//                                               TConstPtr      C,
-//                                               rocblas_stride offset_c,
-//                                               rocblas_int    ldc,
-//                                               rocblas_stride stride_c,
-//                                               TPtr           D,
-//                                               rocblas_stride offset_d,
-//                                               rocblas_int    ldd,
-//                                               rocblas_stride stride_d,
-//                                               rocblas_int    batch_count)
-// {
-//     hipStream_t rocblas_stream = handle->get_stream();
-
-//     static constexpr int GEMM_DIM_X = 32;
-//     static constexpr int GEMM_DIM_Y = 32;
-
-//     rocblas_int blocksX = (m - 1) / GEMM_DIM_X + 1;
-//     rocblas_int blocksY = (n - 1) / GEMM_DIM_Y + 1;
-
-//     dim3 gemm_grid(blocksX, blocksY, batch_count);
-//     dim3 gemm_threads(GEMM_DIM_X, GEMM_DIM_Y);
-
-//     ROCBLAS_LAUNCH_KERNEL((gemm_ex_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
-//                           gemm_grid,
-//                           gemm_threads,
-//                           0,
-//                           rocblas_stream,
-//                           m,
-//                           n,
-//                           beta,
-//                           C,
-//                           offset_c,
-//                           ldc,
-//                           stride_c,
-//                           D,
-//                           offset_d,
-//                           ldd,
-//                           stride_d);
-
-//     return rocblas_status_success;
-// }
+#ifdef BUILD_WITH_TENSILE
 
 template <bool BATCHED, typename TScal, typename TiConstPtr, typename ToConstPtr, typename ToPtr>
 rocblas_status rocblas_internal_gemm_ex(rocblas_handle     handle,
@@ -141,7 +65,6 @@ rocblas_status rocblas_internal_gemm_ex(rocblas_handle     handle,
                                         int32_t            solution_index,
                                         rocblas_gemm_flags flags)
 {
-#ifdef BUILD_WITH_TENSILE
 
     // sharing code with gemm
     if(BATCHED)
@@ -206,9 +129,6 @@ rocblas_status rocblas_internal_gemm_ex(rocblas_handle     handle,
                                     solution_index,
                                     flags);
     }
-#else
-    return rocblas_status_excluded_from_build; // can support no-tensile build here once 64-bit changes are made
-#endif
 }
 
 template <bool BATCHED, typename Ti, typename To = Ti, typename Tc = To>
@@ -449,6 +369,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
     return status;
 }
 
+#endif // BUILD_WITH_TENSILE
+
 template <bool BATCHED>
 rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_operation trans_a,
@@ -502,6 +424,8 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
         stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
         algo, solution_index, rocblas_gemm_flags(flags)
+
+#ifdef BUILD_WITH_TENSILE
 
     if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
@@ -580,6 +504,98 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     }
 
     return rb_status;
+
+#else // use source 64 kernels if no tensile
+
+    if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
+       && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
+       && compute_type == rocblas_datatype_f64_r)
+    {
+        rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED, double>(EX_TYPECASTING_PARM);
+    }
+    else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+            && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+            && compute_type == rocblas_datatype_f32_r)
+    {
+        rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED, float>(EX_TYPECASTING_PARM);
+    }
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r)
+    {
+        if(c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+        {
+            if(compute_type == rocblas_datatype_f16_r)
+            {
+                rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED, rocblas_half>(
+                    EX_TYPECASTING_PARM);
+            }
+            else if(compute_type == rocblas_datatype_f32_r)
+            {
+                rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                    rocblas_half,
+                                                                    rocblas_half,
+                                                                    float>(EX_TYPECASTING_PARM);
+            }
+        }
+        else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+                && compute_type == rocblas_datatype_f32_r)
+        {
+            rb_status
+                = rocblas_internal_gemm_ex_typecasting_64<BATCHED, rocblas_half, float, float>(
+                    EX_TYPECASTING_PARM);
+        }
+    }
+    else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+            && compute_type == rocblas_datatype_f32_r)
+    {
+        if(c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+        {
+            rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                                rocblas_bfloat16,
+                                                                rocblas_bfloat16,
+                                                                float>(EX_TYPECASTING_PARM);
+        }
+        else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+        {
+            rb_status
+                = rocblas_internal_gemm_ex_typecasting_64<BATCHED, rocblas_bfloat16, float, float>(
+                    EX_TYPECASTING_PARM);
+        }
+    }
+    else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
+            && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
+            && compute_type == rocblas_datatype_i32_r)
+    {
+        rb_status = rocblas_internal_gemm_ex_typecasting_64<BATCHED, int8_t, int32_t>(
+            EX_TYPECASTING_PARM);
+    }
+    else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c
+            && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
+            && compute_type == rocblas_datatype_f32_c)
+    {
+        rb_status
+            = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                      rocblas_float_complex,
+                                                      rocblas_float_complex,
+                                                      rocblas_float_complex>(EX_TYPECASTING_PARM);
+    }
+    else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
+            && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
+            && compute_type == rocblas_datatype_f64_c)
+    {
+        rb_status
+            = rocblas_internal_gemm_ex_typecasting_64<BATCHED,
+                                                      rocblas_double_complex,
+                                                      rocblas_double_complex,
+                                                      rocblas_double_complex>(EX_TYPECASTING_PARM);
+    }
+    else
+    {
+        rb_status = rocblas_status_not_implemented;
+    }
+
+    return rb_status;
+
+#endif
 }
 
 #undef EX_TYPECASTING_PARM
