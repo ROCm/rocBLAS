@@ -22,9 +22,7 @@
 
 #pragma once
 
-#include "check_numerics_matrix.hpp"
 #include "handle.hpp"
-#include "int64_helpers.hpp"
 
 template <typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
@@ -44,7 +42,4 @@ rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
                                                   TPtr              C,
                                                   int64_t           ldc,
                                                   rocblas_stride    stride_c,
-                                                  int64_t           batch_count)
-{
-    return rocblas_status_not_implemented;
-}
+                                                  int64_t           batch_count);

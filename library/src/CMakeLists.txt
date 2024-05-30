@@ -407,6 +407,7 @@ set(rocblas64_ex_source_no_tensile
   src64/blas_ex/rocblas_nrm2_batched_ex_64.cpp
   src64/blas_ex/rocblas_nrm2_strided_batched_ex_64.cpp
   src64/blas_ex/rocblas_gemmt_64.cpp
+  src64/blas_ex/rocblas_gemmt_kernels_64.cpp
   src64/blas_ex/rocblas_gemmt_batched_64.cpp
   src64/blas_ex/rocblas_gemmt_strided_batched_64.cpp
   #     src64/blas_ex/rocblas_geam_ex.cpp
