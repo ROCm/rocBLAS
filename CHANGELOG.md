@@ -3,6 +3,17 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
+
+## rocBLAS 4.1.2 for ROCm 6.1.2
+
+### Fixes
+
+* Fixes BF16 TT get_solutions
+
+### Optimizations
+
+* Tune gfx942 BBS TN, TT
+
 ## rocBLAS 4.1.0 for ROCm 6.1
 
 ### Additions
