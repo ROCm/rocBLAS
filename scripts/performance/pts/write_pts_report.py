@@ -102,7 +102,6 @@ def getEnvironmentInfo(device_num):
     device_info['device'] = getspecs.getdeviceinfo(device_num, False)
     device_info['vbios version'] = getspecs.getvbios(device_num, False)
     device_info['vram'] = getspecs.getvram(device_num, False)
-    device_info['performance level'] = getspecs.getperflevel(device_num, False)
     device_info['system clock'] = getspecs.getsclk(device_num, False)
     device_info['memory clock'] = getspecs.getmclk(device_num, False)
     rv['Device info'] = device_info
