@@ -30,8 +30,8 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
     auto rocblas_herk_batched_fn    = arg.api == FORTRAN ? rocblas_herk_batched<T, real_t<T>, true>
                                                          : rocblas_herk_batched<T, real_t<T>, false>;
     auto rocblas_herk_batched_fn_64 = arg.api == FORTRAN_64
-                                          ? rocblas_herk_batched<T, real_t<T>, true>
-                                          : rocblas_herk_batched<T, real_t<T>, false>; // TODO
+                                          ? rocblas_herk_batched_64<T, real_t<T>, true>
+                                          : rocblas_herk_batched_64<T, real_t<T>, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -191,8 +191,8 @@ void testing_herk_batched(const Arguments& arg)
     auto rocblas_herk_batched_fn    = arg.api == FORTRAN ? rocblas_herk_batched<T, real_t<T>, true>
                                                          : rocblas_herk_batched<T, real_t<T>, false>;
     auto rocblas_herk_batched_fn_64 = arg.api == FORTRAN_64
-                                          ? rocblas_herk_batched<T, real_t<T>, true>
-                                          : rocblas_herk_batched<T, real_t<T>, false>; // TODO
+                                          ? rocblas_herk_batched_64<T, real_t<T>, true>
+                                          : rocblas_herk_batched_64<T, real_t<T>, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
@@ -356,7 +356,7 @@ void testing_herk_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         // cpu reference
-        for(int b = 0; b < batch_count; b++)
+        for(size_t b = 0; b < batch_count; b++)
         {
             ref_herk<T>(uplo, transA, N, K, h_alpha[0], hA[b], lda, h_beta[0], hC_gold[b], ldc);
         }

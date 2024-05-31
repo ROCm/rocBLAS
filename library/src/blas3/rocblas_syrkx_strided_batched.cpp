@@ -20,6 +20,5 @@
  *
  * ************************************************************************ */
 
-#include "rocblas_syrkx.hpp"
 #include "rocblas_syrkx_strided_batched_imp.hpp"
 INST_SYRKX_STRIDED_BATCHED_C_API(rocblas_int);

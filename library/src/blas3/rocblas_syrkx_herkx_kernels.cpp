@@ -24,7 +24,7 @@
 #include "rocblas_block_sizes.h"
 #include "rocblas_gemm.hpp"
 #include "rocblas_syr2k_her2k.hpp"
-#include "rocblas_syrkx.hpp"
+#include "rocblas_syrkx_herkx.hpp"
 
 #define OFFSET_A(i1) offset_a + i1* rocblas_stride(a_s1)
 #define OFFSET_B(i1) offset_b + i1* rocblas_stride(b_s1)

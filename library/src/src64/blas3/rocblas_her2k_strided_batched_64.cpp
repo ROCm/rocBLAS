@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  *
  * ************************************************************************ */
 
-#pragma once
+#include "blas3/rocblas_her2k_strided_batched_imp.hpp"
+#include "rocblas_syr2k_her2k_64.hpp"
 
-// using syrkx template
-#include "rocblas_syrkx.hpp"
+INST_HER2K_STRIDED_BATCHED_C_API(int64_t);

@@ -29,8 +29,9 @@ void testing_herk_bad_arg(const Arguments& arg)
 {
     auto rocblas_herk_fn
         = arg.api == FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
-    auto rocblas_herk_fn_64 = arg.api == FORTRAN_64 ? rocblas_herk<T, real_t<T>, true>
-                                                    : rocblas_herk<T, real_t<T>, false>; // TODO
+
+    auto rocblas_herk_fn_64 = arg.api == FORTRAN_64 ? rocblas_herk_64<T, real_t<T>, true>
+                                                    : rocblas_herk_64<T, real_t<T>, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -157,8 +158,9 @@ void testing_herk(const Arguments& arg)
 {
     auto rocblas_herk_fn
         = arg.api == FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
-    auto rocblas_herk_fn_64 = arg.api == FORTRAN_64 ? rocblas_herk<T, real_t<T>, true>
-                                                    : rocblas_herk<T, real_t<T>, false>; // TODO
+
+    auto rocblas_herk_fn_64 = arg.api == FORTRAN_64 ? rocblas_herk_64<T, real_t<T>, true>
+                                                    : rocblas_herk_64<T, real_t<T>, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
