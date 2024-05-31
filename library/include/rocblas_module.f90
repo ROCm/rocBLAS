@@ -11918,7 +11918,7 @@ module rocblas
     interface
         function rocblas_stbsv_strided_batched_64(handle, uplo, transA, diag, n, k, &
                                                A, lda, stride_A, x, incx, stride_x, batch_count) &
-            bind(c, name='rocblas_stbsv_strided_batched')
+            bind(c, name='rocblas_stbsv_strided_batched_64')
             use iso_c_binding
             use rocblas_enums
             implicit none
