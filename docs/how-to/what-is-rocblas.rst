@@ -316,6 +316,48 @@ In addition to the above API, rocBLAS also provides an environment variable ``RO
 * ``ROCBLAS_DEFAULT_ATOMICS_MODE = 0`` : To set the default to be :any:`rocblas_atomics_not_allowed`
 * ``ROCBLAS_DEFAULT_ATOMICS_MODE = 1`` : To set the atomics to be :any:`rocblas_atomics_allowed`
 
+Bitwise Reproducibility
+-----------------------
+
+By default rocBLAS may use atomic operations to achieve better performance in some functions.
+To ensure bitwise reproducible results, where users require identical results across multiple runs, the following functions require atomics to be disabled
+
+=================================
+Functions using atomic operations
+=================================
+
+ :any:`rocblas_sgemv`
+ :any:`rocblas_dgemv`
+
+ :any:`rocblas_ssymv`
+ :any:`rocblas_dsymv`
+
+ :any:`rocblas_strsv`
+ :any:`rocblas_dtrsv`
+ :any:`rocblas_ztrsv`
+ :any:`rocblas_ctrsv`
+
+ :any:`rocblas_strsm`
+ :any:`rocblas_dtrsm`
+ :any:`rocblas_ztrsm`
+ :any:`rocblas_ctrsm`
+
+ :any:`rocblas_sgemm`
+ :any:`rocblas_dgemm`
+ :any:`rocblas_hgemm`
+ :any:`rocblas_zgemm`
+ :any:`rocblas_cgemm`
+
+=======================
+
+.. note::
+
+   Functions such as GEMV and TRSM uses temporary device memory to use optimized kernels to achieve higher performance.
+   If device memory is unavailable, the functions will proceed to use an unoptimized kernel, this could also produce variable results.
+   Users will be notified if the kernel used is unoptimized by returning :any:`rocblas_status_perf_degraded` status.
+
+All other functions except the above-mentioned are bitwise reproducible by default.
+
 MI100 (gfx908) Considerations
 -----------------------------
 
