@@ -125,22 +125,22 @@ namespace
         static constexpr rocblas_stride offset_C = 0, offset_A = 0;
         static constexpr rocblas_stride stride_C = 0, stride_A = 0;
 
-        rocblas_status arg_status = rocblas_herk_arg_check(handle,
-                                                           uplo,
-                                                           transA,
-                                                           n,
-                                                           k,
-                                                           alpha,
-                                                           A,
-                                                           offset_A,
-                                                           lda,
-                                                           stride_A,
-                                                           beta,
-                                                           C,
-                                                           offset_C,
-                                                           ldc,
-                                                           stride_C,
-                                                           batch_count);
+        rocblas_status arg_status = rocblas_herk_arg_check<API_INT>(handle,
+                                                                    uplo,
+                                                                    transA,
+                                                                    n,
+                                                                    k,
+                                                                    alpha,
+                                                                    A,
+                                                                    offset_A,
+                                                                    lda,
+                                                                    stride_A,
+                                                                    beta,
+                                                                    C,
+                                                                    offset_C,
+                                                                    ldc,
+                                                                    stride_C,
+                                                                    batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 

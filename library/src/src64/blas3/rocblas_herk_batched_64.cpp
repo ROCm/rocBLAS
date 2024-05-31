@@ -21,6 +21,6 @@
  * ************************************************************************ */
 
 #include "blas3/rocblas_herk_batched_imp.hpp"
-#include "rocblas_herk_64.hpp"
+#include "rocblas_syrk_herk_64.hpp"
 
 INST_HERK_BATCHED_C_API(int64_t);

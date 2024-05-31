@@ -439,20 +439,20 @@ set( rocblas64_blas3_source
     src64/blas3/rocblas_herk_64.cpp
     src64/blas3/rocblas_herk_batched_64.cpp
     src64/blas3/rocblas_herk_strided_batched_64.cpp
-#     src64/blas3/rocblas_her2k.cpp
-#     src64/blas3/rocblas_her2k_batched.cpp
-#     src64/blas3/rocblas_her2k_strided_batched.cpp
-#     src64/blas3/rocblas_herkx.cpp
-#     src64/blas3/rocblas_herkx_batched.cpp
-#     src64/blas3/rocblas_herkx_strided_batched.cpp
+    src64/blas3/rocblas_her2k_64.cpp
+    src64/blas3/rocblas_her2k_batched_64.cpp
+    src64/blas3/rocblas_her2k_strided_batched_64.cpp
+    src64/blas3/rocblas_herkx_64.cpp
+    src64/blas3/rocblas_herkx_batched_64.cpp
+    src64/blas3/rocblas_herkx_strided_batched_64.cpp
     src64/blas3/rocblas_symm_64.cpp
     src64/blas3/rocblas_symm_hemm_kernels_64.cpp
     src64/blas3/rocblas_symm_batched_64.cpp
     src64/blas3/rocblas_symm_strided_batched_64.cpp
-#     src64/blas3/rocblas_syrk.cpp
-#     src64/blas3/rocblas_syrk_herk_kernels.cpp
-#     src64/blas3/rocblas_syrk_batched.cpp
-#     src64/blas3/rocblas_syrk_strided_batched.cpp
+    src64/blas3/rocblas_syrk_64.cpp
+    src64/blas3/rocblas_syrk_herk_kernels_64.cpp
+    src64/blas3/rocblas_syrk_batched_64.cpp
+    src64/blas3/rocblas_syrk_strided_batched_64.cpp
     src64/blas3/rocblas_syr2k_64.cpp
     src64/blas3/rocblas_syr2k_her2k_kernels_64.cpp
     src64/blas3/rocblas_syr2k_batched_64.cpp

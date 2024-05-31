@@ -338,15 +338,15 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
                                                                    TConstPtr         AP,
                                                                    rocblas_stride    offsetA,
                                                                    API_INT           lda,
-                                                                   rocblas_stride    strideA,
+                                                                   rocblas_stride    stride_A,
                                                                    TConstPtr         BP,
                                                                    rocblas_stride    offsetB,
                                                                    API_INT           ldb,
-                                                                   rocblas_stride    strideB,
+                                                                   rocblas_stride    stride_B,
                                                                    TPtr              CP,
                                                                    rocblas_stride    offsetC,
                                                                    API_INT           ldc,
-                                                                   rocblas_stride    strideC,
+                                                                   rocblas_stride    stride_C,
                                                                    rocblas_int       batch_count)
 {
     // quick return
@@ -380,9 +380,9 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
         CP_krn     = CP + offsetC;
         BP_krn     = BP + offsetB;
         AP_krn     = AP + offsetA;
-        a_st_or_of = strideA;
-        b_st_or_of = strideB;
-        c_st_or_of = strideC;
+        a_st_or_of = stride_A;
+        b_st_or_of = stride_B;
+        c_st_or_of = stride_C;
     }
 
     // Launch a herk kernel for syr2k.
@@ -992,18 +992,18 @@ rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_nam
                                                   rocblas_handle    handle,
                                                   rocblas_fill      uplo,
                                                   rocblas_operation trans,
-                                                  int64_t           n,
-                                                  int64_t           k,
+                                                  int64_t           n_64,
+                                                  int64_t           k_64,
                                                   TConstPtr         A,
-                                                  int64_t           lda,
-                                                  rocblas_stride    strideA,
+                                                  int64_t           lda_64,
+                                                  rocblas_stride    stride_A,
                                                   TConstPtr         B,
-                                                  int64_t           ldb,
-                                                  rocblas_stride    strideB,
+                                                  int64_t           ldb_64,
+                                                  rocblas_stride    stride_B,
                                                   TPtr              C,
-                                                  int64_t           ldc,
-                                                  rocblas_stride    strideC,
-                                                  int64_t           batch_count,
+                                                  int64_t           ldc_64,
+                                                  rocblas_stride    stride_C,
+                                                  int64_t           batch_count_64,
                                                   const int         check_numerics,
                                                   bool              is_input)
 {
@@ -1017,13 +1017,13 @@ rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_nam
                                                               trans,
                                                               rocblas_fill_full,
                                                               rocblas_client_general_matrix,
-                                                              n,
-                                                              k,
+                                                              n_64,
+                                                              k_64,
                                                               A,
                                                               0,
-                                                              lda,
-                                                              strideA,
-                                                              batch_count,
+                                                              lda_64,
+                                                              stride_A,
+                                                              batch_count_64,
                                                               check_numerics,
                                                               is_input);
         if(check_numerics_status != rocblas_status_success)
@@ -1035,13 +1035,13 @@ rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_nam
                                                               trans,
                                                               rocblas_fill_full,
                                                               rocblas_client_general_matrix,
-                                                              n,
-                                                              k,
+                                                              n_64,
+                                                              k_64,
                                                               B,
                                                               0,
-                                                              ldb,
-                                                              strideB,
-                                                              batch_count,
+                                                              ldb_64,
+                                                              stride_B,
+                                                              batch_count_64,
                                                               check_numerics,
                                                               is_input);
         if(check_numerics_status != rocblas_status_success)
@@ -1054,13 +1054,13 @@ rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_nam
         rocblas_operation_none,
         uplo,
         HERM ? rocblas_client_hermitian_matrix : rocblas_client_symmetric_matrix,
-        n,
-        n,
+        n_64,
+        n_64,
         C,
         0,
-        ldc,
-        strideC,
-        batch_count,
+        ldc_64,
+        stride_C,
+        batch_count_64,
         check_numerics,
         is_input);
 
@@ -1341,18 +1341,18 @@ INSTANTIATE_HER2K_BATCHED_TEMPLATE(rocblas_double_complex)
         rocblas_handle    handle,                                                         \
         rocblas_fill      uplo,                                                           \
         rocblas_operation trans,                                                          \
-        int64_t           n,                                                              \
-        int64_t           k,                                                              \
+        int64_t           n_64,                                                           \
+        int64_t           k_64,                                                           \
         TConstPtr_        A,                                                              \
-        int64_t           lda,                                                            \
-        rocblas_stride    strideA,                                                        \
+        int64_t           lda_64,                                                         \
+        rocblas_stride    stride_A,                                                       \
         TConstPtr_        B,                                                              \
-        int64_t           ldb,                                                            \
-        rocblas_stride    strideB,                                                        \
+        int64_t           ldb_64,                                                         \
+        rocblas_stride    stride_B,                                                       \
         TPtr_             C,                                                              \
-        int64_t           ldc,                                                            \
-        rocblas_stride    strideC,                                                        \
-        int64_t           batch_count,                                                    \
+        int64_t           ldc_64,                                                         \
+        rocblas_stride    stride_C,                                                       \
+        int64_t           batch_count_64,                                                 \
         const int         check_numerics,                                                 \
         bool              is_input);
 

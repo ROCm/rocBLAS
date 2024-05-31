@@ -148,27 +148,27 @@ inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-template <typename TScal, typename TConstPtr, typename UScal, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename UScal, typename TPtr>
 inline rocblas_status rocblas_her2k_arg_check(rocblas_handle    handle,
                                               rocblas_fill      uplo,
                                               rocblas_operation trans,
-                                              rocblas_int       n,
-                                              rocblas_int       k,
+                                              API_INT           n,
+                                              API_INT           k,
                                               TScal             alpha,
                                               TConstPtr         AP,
                                               rocblas_stride    offsetA,
-                                              rocblas_int       lda,
+                                              API_INT           lda,
                                               rocblas_stride    strideA,
                                               TConstPtr         BP,
                                               rocblas_stride    offsetB,
-                                              rocblas_int       ldb,
+                                              API_INT           ldb,
                                               rocblas_stride    strideB,
                                               UScal             beta,
                                               TPtr              CP,
                                               rocblas_stride    offsetC,
-                                              rocblas_int       ldc,
+                                              API_INT           ldc,
                                               rocblas_stride    strideC,
-                                              rocblas_int       batch_count)
+                                              API_INT           batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -369,23 +369,69 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                             rocblas_stride    stride_c,
                                             rocblas_int       batch_count);
 
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_her2k_template_64(rocblas_handle    handle,
+                                       rocblas_fill      uplo,
+                                       rocblas_operation trans,
+                                       int64_t           n_64,
+                                       int64_t           k_64,
+                                       const T*          alpha,
+                                       const T*          A,
+                                       rocblas_stride    offset_A,
+                                       int64_t           lda_64,
+                                       rocblas_stride    stride_A,
+                                       const T*          B,
+                                       rocblas_stride    offset_b,
+                                       int64_t           ldb_64,
+                                       rocblas_stride    stride_B,
+                                       const real_t<T>*  beta,
+                                       T*                C,
+                                       rocblas_stride    offset_c,
+                                       int64_t           ldc_64,
+                                       rocblas_stride    stride_C,
+                                       int64_t           batch_count_64);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_her2k_batched_template_64(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation trans,
+                                               int64_t           n_64,
+                                               int64_t           k_64,
+                                               const T*          alpha,
+                                               const T* const*   A,
+                                               rocblas_stride    offset_A,
+                                               int64_t           lda_64,
+                                               rocblas_stride    stride_A,
+                                               const T* const*   B,
+                                               rocblas_stride    offset_b,
+                                               int64_t           ldb_64,
+                                               rocblas_stride    stride_B,
+                                               const real_t<T>*  beta,
+                                               T* const*         C,
+                                               rocblas_stride    offset_c,
+                                               int64_t           ldc_64,
+                                               rocblas_stride    stride_C,
+                                               int64_t           batch_count_64);
+
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_name,
                                                   rocblas_handle    handle,
                                                   rocblas_fill      uplo,
                                                   rocblas_operation trans,
-                                                  int64_t           n,
-                                                  int64_t           k,
+                                                  int64_t           n_64,
+                                                  int64_t           k_64,
                                                   TConstPtr         A,
-                                                  int64_t           lda,
+                                                  int64_t           lda_64,
                                                   rocblas_stride    strideA,
                                                   TConstPtr         B,
-                                                  int64_t           ldb,
+                                                  int64_t           ldb_64,
                                                   rocblas_stride    strideB,
                                                   TPtr              C,
-                                                  int64_t           ldc,
+                                                  int64_t           ldc_64,
                                                   rocblas_stride    strideC,
-                                                  int64_t           batch_count,
+                                                  int64_t           batch_count_64,
                                                   const int         check_numerics,
                                                   bool              is_input);
 

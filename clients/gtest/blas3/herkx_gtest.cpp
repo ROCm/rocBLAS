@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -108,11 +108,15 @@ namespace
                 if(HERKX_TYPE == HERKX_STRIDED_BATCHED)
                     name << '_' << arg.stride_c;
 
-                if(HERKX_TYPE == HERKX_STRIDED_BATCHED || HERKX_TYPE == HERKX_BATCHED)
+                if(HERKX_TYPE != HERKX)
                     name << '_' << arg.batch_count;
             }
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }

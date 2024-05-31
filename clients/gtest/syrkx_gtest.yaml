@@ -280,8 +280,8 @@ Tests:
   category: stress
   uplo: [ U, L ]
   arguments:
-    #- { N:  1, K:  2147483649,  lda:  1, ldb: 1, ldc: 2147483649, batch_count: 1, transA: N } #Commenting out big tests due to alarm time out
-    #- { N:  1, K:  2147483649,  lda: 2147483649, ldb: 2147483649, ldc: 1, batch_count: 1, transA: T } #Commenting out big tests due to alarm time out
+    #- { N:  1, K:  2147483649,  lda:  1, ldb: 1, ldc: 2147483649, batch_count: 1, transA: N } #TODO: Commenting out big tests due to alarm time out
+    #- { N:  1, K:  2147483649,  lda: 2147483649, ldb: 2147483649, ldc: 1, batch_count: 1, transA: T } #TODO: Commenting out big tests due to alarm time out
     - { N:  35, K:  2,  lda:  2147483649, ldb: 36, ldc: 36, batch_count: 1, transA: N }
     - { N:  2, K:  35,  lda: 36, ldb: 2147483649, ldc: 2147483649, batch_count: 1, transA: T }
     - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T}

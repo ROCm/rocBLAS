@@ -23,7 +23,7 @@
 
 #include "int64_helpers.hpp"
 #include "logging.hpp"
-#include "rocblas_syrkx.hpp"
+#include "rocblas_syrkx_herkx.hpp"
 
 namespace
 {

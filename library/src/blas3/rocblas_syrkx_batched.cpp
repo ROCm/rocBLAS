@@ -19,6 +19,5 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "rocblas_syrkx.hpp"
 #include "rocblas_syrkx_batched_imp.hpp"
 INST_SYRKX_BATCHED_C_API(rocblas_int);

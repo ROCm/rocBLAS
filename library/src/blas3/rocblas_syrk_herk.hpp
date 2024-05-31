@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,23 +25,23 @@
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
+                                             API_INT           n,
+                                             API_INT           k,
                                              const TScal*      alpha,
                                              TConstPtr         AP,
                                              rocblas_stride    offsetA,
-                                             rocblas_int       lda,
+                                             API_INT           lda,
                                              rocblas_stride    strideA,
                                              const TScal*      beta,
                                              TPtr              CP,
                                              rocblas_stride    offsetC,
-                                             rocblas_int       ldc,
+                                             API_INT           ldc,
                                              rocblas_stride    strideC,
-                                             rocblas_int       batch_count)
+                                             API_INT           batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -82,23 +82,23 @@ inline rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
+                                             API_INT           n,
+                                             API_INT           k,
                                              TScal             alpha,
                                              TConstPtr         AP,
                                              rocblas_stride    offsetA,
-                                             rocblas_int       lda,
+                                             API_INT           lda,
                                              rocblas_stride    strideA,
                                              TScal             beta,
                                              TPtr              CP,
                                              rocblas_stride    offsetC,
-                                             rocblas_int       ldc,
+                                             API_INT           ldc,
                                              rocblas_stride    strideC,
-                                             rocblas_int       batch_count)
+                                             API_INT           batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -134,15 +134,15 @@ rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
                                                 rocblas_handle    handle,
                                                 rocblas_fill      uplo,
                                                 rocblas_operation trans,
-                                                rocblas_int       n,
-                                                rocblas_int       k,
+                                                int64_t           n_64,
+                                                int64_t           k_64,
                                                 TConstPtr         A,
-                                                rocblas_int       lda,
+                                                int64_t           lda_64,
                                                 rocblas_stride    strideA,
                                                 TPtr              C,
-                                                rocblas_int       ldc,
+                                                int64_t           ldc_64,
                                                 rocblas_stride    strideC,
-                                                rocblas_int       batch_count,
+                                                int64_t           batch_count_64,
                                                 const int         check_numerics,
                                                 bool              is_input);
 

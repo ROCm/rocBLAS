@@ -71,3 +71,49 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                int64_t           ldc_64,
                                                rocblas_stride    stride_C,
                                                int64_t           batch_count_64);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_herkx_template_64(rocblas_handle    handle,
+                                       rocblas_fill      uplo,
+                                       rocblas_operation trans,
+                                       int64_t           n_64,
+                                       int64_t           k_64,
+                                       const T*          alpha,
+                                       const T*          A,
+                                       rocblas_stride    offset_A,
+                                       int64_t           lda_64,
+                                       rocblas_stride    stride_A,
+                                       const T*          B,
+                                       rocblas_stride    offset_B,
+                                       int64_t           ldb_64,
+                                       rocblas_stride    stride_B,
+                                       const real_t<T>*  beta,
+                                       T*                C,
+                                       rocblas_stride    offset_C,
+                                       int64_t           ldc_64,
+                                       rocblas_stride    stride_C,
+                                       int64_t           batch_count_64);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_herkx_batched_template_64(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation trans,
+                                               int64_t           n_64,
+                                               int64_t           k_64,
+                                               const T*          alpha,
+                                               const T* const*   A,
+                                               rocblas_stride    offset_A,
+                                               int64_t           lda_64,
+                                               rocblas_stride    stride_A,
+                                               const T* const*   B,
+                                               rocblas_stride    offset_B,
+                                               int64_t           ldb_64,
+                                               rocblas_stride    stride_B,
+                                               const real_t<T>*  beta,
+                                               T* const*         C,
+                                               rocblas_stride    offset_C,
+                                               int64_t           ldc_64,
+                                               rocblas_stride    stride_C,
+                                               int64_t           batch_count_64);
