@@ -118,7 +118,7 @@ Tests:
   uplo: [ L ]
   transA: [  N, T ]
   diag: [ N ]
-  api: [ C_64 ]
+  api: [ FORTRAN_64 ]
   os_flags: [ LINUX ]
   function:
     - tbsv: *single_precision
