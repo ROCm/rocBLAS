@@ -665,7 +665,6 @@ Defaults:
   geam_op: rocblas_geam_ex_operation_min_plus
   flags: none
   atomics_mode: atomics_allowed
-  workspace_size: 0
   initialization: rand_int
   category: nightly
   known_bug_platforms: ''

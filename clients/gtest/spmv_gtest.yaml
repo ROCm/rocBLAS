@@ -284,5 +284,5 @@ Tests:
   atomics_mode: 0
   pointer_mode_host: false
   iters: 5
-  reepeatability_check: true
+  repeatability_check: true
 ...
