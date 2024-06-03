@@ -13,8 +13,8 @@ Definitions:
     - { M: 4097,  N: 4097, lda:    4097, ldb:    4097, ldc: 1048600  }
 
   - &int32_t_m_n_lda_ldb_inplace
-  - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049, ldc:    2049  }
-  - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600, ldc: 1048600  }
+    - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049, ldc:    2049  }
+    - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600, ldc: 1048600  }
 
   - &int32_t_m_n_lda_ldb_ldc_outofplace
     - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049, ldc:    2049  }

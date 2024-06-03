@@ -283,9 +283,9 @@ Tests:
   alpha: [ 2.0 ]
   stride_scale: [ 1 ]
   batch_count: [ 2 ]
-  initilaization: hpl
+  initialization: hpl
   atomics_mode: 0
   iters: 5
   pointer_mode_host: false
-  repreatability_check: true
+  repeatability_check: true
 ...

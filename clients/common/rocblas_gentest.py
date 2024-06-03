@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -366,6 +366,9 @@ def setdefaults(test):
         setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
 
+    if 'stride_scale' in test:
+        test.pop('stride_scale')
+
     test.setdefault('stride_x', 0)
     test.setdefault('stride_y', 0)
 
@@ -444,6 +447,10 @@ def write_test(test):
         except TypeError as err:
             sys.exit("TypeError: " + str(err) + " for " + name +
                      ", which has type " + str(type(test[name])) + "\n")
+
+    for name in test:
+        if not (any(sublist[0] == name for sublist in param['Arguments']._fields_)):
+            print("User provided yaml parameter "+name+" is not defined in Argument struct and will be ignored")
 
     byt = bytes(param['Arguments'](*arg))
     if byt not in testcases:
