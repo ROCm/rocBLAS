@@ -29,7 +29,7 @@ void testing_gemmt_bad_arg(const Arguments& arg)
 {
     auto rocblas_gemmt_fn = arg.api == FORTRAN ? rocblas_gemmt<T, true> : rocblas_gemmt<T, false>;
     auto rocblas_gemmt_fn_64
-        = arg.api == FORTRAN ? rocblas_gemmt<T, true> : rocblas_gemmt<T, false>;
+        = arg.api == FORTRAN_64 ? rocblas_gemmt_64<T, true> : rocblas_gemmt_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -240,7 +240,7 @@ void testing_gemmt(const Arguments& arg)
 {
     auto rocblas_gemmt_fn = arg.api == FORTRAN ? rocblas_gemmt<T, true> : rocblas_gemmt<T, false>;
     auto rocblas_gemmt_fn_64
-        = arg.api == FORTRAN ? rocblas_gemmt_64<T, true> : rocblas_gemmt_64<T, false>;
+        = arg.api == FORTRAN_64 ? rocblas_gemmt_64<T, true> : rocblas_gemmt_64<T, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
