@@ -246,9 +246,20 @@ try
     if(stream == handle->stream)
         return rocblas_status_success;
 
+    //Verify if the new stream is in capture mode
+    hipStreamCaptureStatus stream_status = hipStreamCaptureStatusNone;
+    if(stream != 0)
+    {
+        bool status = hipStreamIsCapturing(stream, &stream_status) == hipSuccess;
+
+        if(!status)
+            return rocblas_status_invalid_value;
+    }
+
     // Stream capture does not allow use of hipStreamQuery
-    // If the current stream is in capture mode, skip use of hipStreamQuery()
-    if(!handle->is_stream_in_capture_mode())
+    // If the current stream or new stream is in capture mode, skip use of hipStreamQuery()
+    if((handle->stream == 0 || !handle->is_stream_in_capture_mode())
+       && stream_status != hipStreamCaptureStatusActive)
     {
         // The new stream must be valid
         if(stream != 0 && hipStreamQuery(stream) == hipErrorInvalidHandle)
