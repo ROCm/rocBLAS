@@ -409,7 +409,7 @@ Definitions:
     matrix_size: *gemm_dims
 
   - &gemm_ex_dims
-    - { M:     65, N:    33, K:    33, lda:    128, ldb:    128, ldc:    128, ld:    128 }
+    - { M:     65, N:    33, K:    33, lda:    128, ldb:    128, ldc:    128, ldd:    128 }
 
   - &gemm_ex_common_args
     precision: *hpa_half_precision
