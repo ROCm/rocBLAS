@@ -220,8 +220,13 @@ add_custom_command( OUTPUT "${ROCBLAS_GENTEST}"
                     DEPENDS common/rocblas_gentest.py
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
+set( ROCBLAS_CLIENTS_README "${PROJECT_BINARY_DIR}/staging/rocblas_clients_readme.txt")
+add_custom_command( OUTPUT "${ROCBLAS_CLIENTS_README}"
+                    COMMAND ${CMAKE_COMMAND} -E copy rocblas_clients_readme.txt "${ROCBLAS_CLIENTS_README}"
+                    DEPENDS rocblas_clients_readme.txt
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_SMOKE}" "${ROCBLAS_GENERAL_YAML}" "${ROCBLAS_GENTEST}" )
+add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_SMOKE}" "${ROCBLAS_GENERAL_YAML}" "${ROCBLAS_GENTEST}" "${ROCBLAS_CLIENTS_README}" )
 
 rocm_install(
   FILES ${ROCBLAS_COMMON} ${ROCBLAS_TEMPLATE} ${ROCBLAS_SMOKE} ${ROCBLAS_GENERAL_YAML}
@@ -234,4 +239,9 @@ rocm_install(
   COMPONENT clients-common
 )
 
-
+# this readme also serves to prevent an empty package rocblas-clients which dpkg may auto-remove entire rocblas-clients and non empty children
+rocm_install(
+  FILES ${ROCBLAS_CLIENTS_README}
+  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  COMPONENT clients
+)
