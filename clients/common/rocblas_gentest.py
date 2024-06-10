@@ -44,6 +44,7 @@ INT_RANGE_RE = re.compile(
 INCLUDE_RE = re.compile(r'include\s*:\s*([-.\w/]+)')
 
 args = {}
+arg_set = set()
 testcases = set()
 datatypes = {}
 param = {}
@@ -57,6 +58,8 @@ def main():
 
 def process_doc(doc):
     """Process one document in the YAML file"""
+
+    global arg_set
 
     # Ignore empty documents
     if not doc or not doc.get('Tests'):
@@ -72,6 +75,11 @@ def process_doc(doc):
     # Arguments structure corresponding to C/C++ structure
     param['Arguments'] = type('Arguments', (ctypes.Structure,),
                               {'_fields_': get_arguments(doc)})
+
+    # one time init all doc will use same common arguments definition
+    if len(arg_set) < 1:
+        for name in param['Arguments']._fields_:
+            arg_set.add(name[0])
 
     # Special names which get expanded as lists of arguments
     param['dict_lists_to_expand'] = doc.get('Dictionary lists to expand') or ()
@@ -225,146 +233,149 @@ def setdefaults(test):
     # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
 
-    if test['function'] in ('asum_strided_batched', 'nrm2_strided_batched',
-                            'scal_strided_batched', 'swap_strided_batched',
-                            'copy_strided_batched', 'dot_strided_batched',
-                            'dotc_strided_batched', 'dot_strided_batched_ex',
-                            'dotc_strided_batched_ex', 'rot_strided_batched',
-                            'rot_strided_batched_ex',
-                            'rotm_strided_batched', 'iamax_strided_batched',
-                            'iamin_strided_batched', 'axpy_strided_batched',
-                            'axpy_strided_batched_ex', 'nrm2_strided_batched_ex',
-                            'scal_strided_batched_ex'):
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
-        # we are using stride_c for param in rotm
-        if all([x in test for x in ('stride_scale')]):
-            test.setdefault('stride_c', int(test['stride_scale']) * 5)
-
-    elif test['function'] in ('tpmv_strided_batched'):
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        # Let's use N * N (> (N * (N+1)) / 2) as a 'stride' size for the packed format.
-        setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
-
-    elif test['function'] in ('trmv_strided_batched'):
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-
-    elif test['function'] in ('trsv_strided_batched'):
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
-
-    elif test['function'] in ('gemv_strided_batched', 'gbmv_strided_batched',
-                              'ger_strided_batched', 'geru_strided_batched',
-                              'gerc_strided_batched'):
-        if test['function'] in ('ger_strided_batched', 'geru_strided_batched',
-                                'gerc_strided_batched',
-                                ) or test['transA'] in ('T', 'C'):
-            setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
-            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
-        else:
+    function_name = test['function']
+    if (not function_name.startswith('gemm_')) and ('strided' in function_name):
+        # stride computation from stride_scale
+        if function_name in ('asum_strided_batched', 'nrm2_strided_batched',
+                                'scal_strided_batched', 'swap_strided_batched',
+                                'copy_strided_batched', 'dot_strided_batched',
+                                'dotc_strided_batched', 'dot_strided_batched_ex',
+                                'dotc_strided_batched_ex', 'rot_strided_batched',
+                                'rot_strided_batched_ex',
+                                'rotm_strided_batched', 'iamax_strided_batched',
+                                'iamin_strided_batched', 'axpy_strided_batched',
+                                'axpy_strided_batched_ex', 'nrm2_strided_batched_ex',
+                                'scal_strided_batched_ex'):
             setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-            setkey_product(test, 'stride_y', ['M', 'incy', 'stride_scale'])
-        if test['function'] in ('gbmv_strided_batched'):
+            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+            # we are using stride_c for param in rotm
+            if all([x in test for x in ('stride_scale')]):
+                test.setdefault('stride_c', int(test['stride_scale']) * 5)
+
+        elif function_name == 'tpmv_strided_batched':
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            # Let's use N * N (> (N * (N+1)) / 2) as a 'stride' size for the packed format.
+            setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
+
+        elif function_name == 'trmv_strided_batched':
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
+        elif function_name == 'trsv_strided_batched':
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
 
-    elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched',
-                              'sbmv_strided_batched'):
-        if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
+        elif function_name in ('gemv_strided_batched', 'gbmv_strided_batched',
+                                'ger_strided_batched', 'geru_strided_batched',
+                                'gerc_strided_batched'):
+            if function_name in ('ger_strided_batched', 'geru_strided_batched',
+                                    'gerc_strided_batched',
+                                    ) or test['transA'] in ('T', 'C'):
+                setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
+                setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+            else:
+                setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+                setkey_product(test, 'stride_y', ['M', 'incy', 'stride_scale'])
+            if function_name == 'gbmv_strided_batched':
+                setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
+
+        elif function_name in ('hemv_strided_batched', 'hbmv_strided_batched',
+                                'sbmv_strided_batched'):
+            if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
+                setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+                setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+                setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
+        elif function_name == 'hpmv_strided_batched':
+            if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
+                setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+                setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+                ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
+                test.setdefault('stride_a', ldN)
+
+        elif function_name in ('spr_strided_batched', 'spr2_strided_batched',
+                                'hpr_strided_batched', 'hpr2_strided_batched',
+                                'tpsv_strided_batched'):
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+            setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
+
+        elif function_name in ('her_strided_batched', 'her2_strided_batched',
+                                'syr2_strided_batched'):
             setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
             setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
 
-    elif test['function'] in ('hpmv_strided_batched'):
-        if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
-            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
-            ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
-            test.setdefault('stride_a', ldN)
+        # we are using stride_c for arg c and stride_d for arg s in rotg
+        # these are are single values for each batch
+        elif function_name == 'rotg_strided_batched':
+            if 'stride_scale' in test:
+                test.setdefault('stride_a', int(test['stride_scale']))
+                test.setdefault('stride_b', int(test['stride_scale']))
+                test.setdefault('stride_c', int(test['stride_scale']))
+                test.setdefault('stride_d', int(test['stride_scale']))
 
-    elif test['function'] in ('spr_strided_batched', 'spr2_strided_batched',
-                              'hpr_strided_batched', 'hpr2_strided_batched',
-                              'tpsv_strided_batched'):
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
-        setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
+        # we are using stride_a for d1, stride_b for d2, and stride_c for param in
+        # rotmg. These are are single values for each batch, except param which is
+        # a 5 element array
+        elif function_name == 'rotmg_strided_batched':
+            if 'stride_scale' in test:
+                test.setdefault('stride_a', int(test['stride_scale']))
+                test.setdefault('stride_b', int(test['stride_scale']))
+                test.setdefault('stride_c', int(test['stride_scale']) * 5)
+                test.setdefault('stride_x', int(test['stride_scale']))
+                test.setdefault('stride_y', int(test['stride_scale']))
 
-    elif test['function'] in ('her_strided_batched', 'her2_strided_batched',
-                              'syr2_strided_batched'):
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
-        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-
-    # we are using stride_c for arg c and stride_d for arg s in rotg
-    # these are are single values for each batch
-    elif test['function'] in ('rotg_strided_batched'):
-        if 'stride_scale' in test:
-            test.setdefault('stride_a', int(test['stride_scale']))
-            test.setdefault('stride_b', int(test['stride_scale']))
-            test.setdefault('stride_c', int(test['stride_scale']))
-            test.setdefault('stride_d', int(test['stride_scale']))
-
-    # we are using stride_a for d1, stride_b for d2, and stride_c for param in
-    # rotmg. These are are single values for each batch, except param which is
-    # a 5 element array
-    elif test['function'] in ('rotmg_strided_batched'):
-        if 'stride_scale' in test:
-            test.setdefault('stride_a', int(test['stride_scale']))
-            test.setdefault('stride_b', int(test['stride_scale']))
-            test.setdefault('stride_c', int(test['stride_scale']) * 5)
-            test.setdefault('stride_x', int(test['stride_scale']))
-            test.setdefault('stride_y', int(test['stride_scale']))
-
-    elif test['function'] in ('dgmm_strided_batched'):
-        setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
-        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-        if test['side'].upper() == 'L':
-            setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
-        else:
-            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-
-    elif test['function'] in ('geam_strided_batched'):
-        setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
-
-        if test['transA'].upper() == 'N':
+        elif function_name == 'dgmm_strided_batched':
+            setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
             setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-        else:
-            setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+            if test['side'].upper() == 'L':
+                setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
+            else:
+                setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
 
-        if test['transB'].upper() == 'N':
+        elif function_name == 'geam_strided_batched':
+            setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
+
+            if test['transA'].upper() == 'N':
+                setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+            else:
+                setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+
+            if test['transB'].upper() == 'N':
+                setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
+            else:
+                setkey_product(test, 'stride_b', ['M', 'ldb', 'stride_scale'])
+
+        elif function_name == 'trmm_strided_batched':
             setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
-        else:
-            setkey_product(test, 'stride_b', ['M', 'ldb', 'stride_scale'])
+            setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
 
-    elif test['function'] in ('trmm_strided_batched'):
-        setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
-        setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
+            if test['side'].upper() == 'L':
+                setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+            else:
+                setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
 
-        if test['side'].upper() == 'L':
-            setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
-        else:
+        elif function_name in ('trsm_strided_batched',
+                                'trsm_strided_batched_ex'):
+            setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
+
+            if test['side'].upper() == 'L':
+                setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+            else:
+                setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
+        elif function_name == 'tbmv_strided_batched':
+            if all([x in test for x in ('N', 'lda', 'stride_scale')]):
+                ldN = int(test['N'] * test['lda'] * test['stride_scale'])
+                test.setdefault('stride_a', ldN)
+            if all([x in test for x in ('N', 'incx', 'stride_scale')]):
+                ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
+                test.setdefault('stride_x', ldx)
+
+        elif function_name == 'tbsv_strided_batched':
             setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-
-    elif test['function'] in ('trsm_strided_batched',
-                              'trsm_strided_batched_ex'):
-        setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
-
-        if test['side'].upper() == 'L':
-            setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
-        else:
-            setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-
-    elif test['function'] in ('tbmv_strided_batched'):
-        if all([x in test for x in ('N', 'lda', 'stride_scale')]):
-            ldN = int(test['N'] * test['lda'] * test['stride_scale'])
-            test.setdefault('stride_a', ldN)
-        if all([x in test for x in ('N', 'incx', 'stride_scale')]):
-            ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
-            test.setdefault('stride_x', ldx)
-
-    elif test['function'] in ('tbsv_strided_batched'):
-        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
 
     if 'stride_scale' in test:
         test.pop('stride_scale')
@@ -427,6 +438,8 @@ def write_signature(out):
 def write_test(test):
     """Write the test case out to the binary file if not seen already"""
 
+    global arg_set
+
     # For each argument declared in arguments, we generate a positional
     # argument in the Arguments constructor. For strings, we pass the
     # value of the string directly. For arrays, we unpack their contents
@@ -449,8 +462,8 @@ def write_test(test):
                      ", which has type " + str(type(test[name])) + "\n")
 
     for name in test:
-        if not (any(sublist[0] == name for sublist in param['Arguments']._fields_)):
-            print("User provided yaml parameter "+name+" is not defined in Argument struct and will be ignored")
+        if not name in arg_set:
+            print( f"User provided yaml parameter {name} is not defined in Argument struct and will be ignored" )
 
     byt = bytes(param['Arguments'](*arg))
     if byt not in testcases:
