@@ -310,6 +310,7 @@ Tests:
   matrix_size: *very_large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
+  gpu_arch: '9??'
 
 - name: gemv_skinny_n
   category: pre_checkin
