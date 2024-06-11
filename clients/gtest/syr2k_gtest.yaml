@@ -40,9 +40,12 @@ Definitions:
 Tests:
 - name: syr2k_bad
   category: quick
-  function: syr2k_bad_arg
+  function:
+    - syr2k_bad_arg
+    - syr2k_batched_bad_arg
+    - syr2k_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: syr2k_size_t
   category: stress
@@ -124,11 +127,6 @@ Tests:
   pointer_mode_host: false
 
 # batched
-- name: syr2k_batched_bad
-  category: quick
-  function: syr2k_batched_bad_arg
-  precision: *single_double_precisions_complex_real
-  api: [ C, FORTRAN ]
 
 - name: syr2k_batched_size_t
   category: nightly #stress
@@ -191,11 +189,6 @@ Tests:
   pointer_mode_device: false
 
 # strided batched
-- name: syr2k_strided_batched_bad
-  category: quick
-  function: syr2k_strided_batched_bad_arg
-  precision: *single_double_precisions_complex_real
-  api: [ C, FORTRAN ]
 
 - name: syr2k_strided_batched_quick
   category: quick

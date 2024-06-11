@@ -40,9 +40,12 @@ Definitions:
 Tests:
 - name: her2k_bad
   category: quick
-  function: her2k_bad_arg
+  function:
+    - her2k_bad_arg
+    - her2k_batched_bad_arg
+    - her2k_strided_batched_bad_arg
   precision: *single_double_precisions_complex
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: her2k_size_t
   category: stress
@@ -100,11 +103,6 @@ Tests:
   pointer_mode_device: false
 
   # batched
-- name: her2k_batched_bad
-  category: quick
-  function: her2k_batched_bad_arg
-  precision: *single_double_precisions_complex
-  api: [ C, FORTRAN ]
 
 - name: her2k_batched_quick
   category: quick
@@ -151,11 +149,6 @@ Tests:
   pointer_mode_host: false
 
   # strided batched
-- name: her2k_strided_batched_bad
-  category: quick
-  function: her2k_strided_batched_bad_arg
-  precision: *single_double_precisions_complex
-  api: [ C, FORTRAN ]
 
 - name: her2k_strided_batched_quick
   category: quick
@@ -201,7 +194,7 @@ Tests:
   batch_count: [ 2 ]
 
 - name: her2k_64
-  category: pre_checkin
+  category: stress
   uplo: [ U, L ]
   arguments:
     #- { N:  1, K:  2147483649,  lda:  1, ldb: 1, ldc: 2147483649, batch_count: 1, transA: N } #TODO: Commenting out big tests due to alarm time out

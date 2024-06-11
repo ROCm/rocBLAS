@@ -3928,6 +3928,19 @@ Tests:
   api: [ C_64 ]
   os_flags: LINUX
 
+- name: gemm_ex_ldd_64_API
+  category: stress
+  function:
+    - gemm_ex: *hpa_half_precision
+  arguments:
+    - { transA: N, transB: N, M: 2, N: 2, K: 2, lda: 2, ldb:    2, ldc:    2, ldd: 2147483649 }
+  pointer_mode_host: false
+  alpha: 1
+  beta: 1
+  outofplace: [true]
+  api: [ C_64 ]
+  os_flags: LINUX
+
 - name: gemm_repeatability_check
   category: pre_checkin
   function:

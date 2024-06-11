@@ -124,21 +124,17 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
 
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
     {
+        int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
+
         rocblas_stride offsetA = offsetAin;
         rocblas_stride offsetB = offsetBin;
         rocblas_stride offsetC = offsetCin;
         rocblas_stride offsetD = offsetDin;
-        auto           Aptr    = a;
-        auto           Bptr    = b;
-        auto           Cptr    = c;
-        auto           Dptr    = d;
 
-        int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
-
-        auto APtr = adjust_ptr_batch((Ta)a, b_base, stride_a);
-        auto BPtr = adjust_ptr_batch((Tb)b, b_base, stride_b);
-        auto CPtr = adjust_ptr_batch((Tc)c, b_base, stride_c);
-        auto DPtr = adjust_ptr_batch((Td)d, b_base, stride_d);
+        auto A_ptr = adjust_ptr_batch((Ta)a, b_base, stride_a);
+        auto B_ptr = adjust_ptr_batch((Tb)b, b_base, stride_b);
+        auto C_ptr = adjust_ptr_batch((Tc)c, b_base, stride_c);
+        auto D_ptr = adjust_ptr_batch((Td)d, b_base, stride_d);
 
         status = rocblas_gemm_source_solution_64<BATCHED>(trans_a,
                                                           trans_b,
@@ -146,20 +142,20 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
                                                           n_64,
                                                           k_64,
                                                           *(TScal*)alpha,
-                                                          (Ta)Aptr,
+                                                          A_ptr,
                                                           lda_64,
                                                           stride_a,
                                                           offsetA,
-                                                          (Tb)Bptr,
+                                                          B_ptr,
                                                           ldb_64,
                                                           stride_b,
                                                           offsetB,
                                                           *(TScal*)beta,
-                                                          (Tc)Cptr,
+                                                          C_ptr,
                                                           ldc_64,
                                                           stride_c,
                                                           offsetC,
-                                                          (Td)Dptr,
+                                                          D_ptr,
                                                           ldd_64,
                                                           stride_d,
                                                           offsetD,
@@ -247,24 +243,25 @@ rocblas_status rocblas_gemm_ex_template_64(rocblas_handle    handle,
     {
         for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
         {
+            int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
+
             rocblas_stride offsetA = offsetAin;
             rocblas_stride offsetB = offsetBin;
             rocblas_stride offsetC = offsetCin;
             rocblas_stride offsetD = offsetDin;
-            auto           Aptr    = A;
-            auto           Bptr    = B;
-            auto           Cptr    = C;
-            auto           Dptr    = D;
 
-            int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
+            auto A_ptr = A;
+            auto B_ptr = B;
+            auto C_ptr = C;
+            auto D_ptr = D;
 
             if constexpr(BATCHED)
             {
                 // avoiding typecasting
-                Aptr = (void**)Aptr + b_base;
-                Bptr = (void**)Bptr + b_base;
-                Cptr = (void**)Cptr + b_base;
-                Dptr = (void**)Dptr + b_base;
+                A_ptr = (void**)A_ptr + b_base;
+                B_ptr = (void**)B_ptr + b_base;
+                C_ptr = (void**)C_ptr + b_base;
+                D_ptr = (void**)D_ptr + b_base;
             }
             else if(b_base > 0)
             {
@@ -281,23 +278,23 @@ rocblas_status rocblas_gemm_ex_template_64(rocblas_handle    handle,
                                                                       n_64,
                                                                       k_64,
                                                                       alpha,
-                                                                      Aptr,
+                                                                      A_ptr,
                                                                       a_type,
                                                                       offsetA,
                                                                       lda_64,
                                                                       stride_a,
-                                                                      Bptr,
+                                                                      B_ptr,
                                                                       b_type,
                                                                       offsetB,
                                                                       ldb_64,
                                                                       stride_b,
                                                                       beta,
-                                                                      Cptr,
+                                                                      C_ptr,
                                                                       c_type,
                                                                       offsetC,
                                                                       ldc_64,
                                                                       stride_c,
-                                                                      Dptr,
+                                                                      D_ptr,
                                                                       d_type,
                                                                       offsetD,
                                                                       ldd_64,
