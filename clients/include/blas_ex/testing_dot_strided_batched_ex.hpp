@@ -28,12 +28,12 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_strided_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_dot_strided_batched_ex_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_strided_batched_ex_fortran
                       : rocblas_dot_strided_batched_ex_fortran)
               : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
     auto rocblas_dot_strided_batched_ex_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_strided_batched_ex_64_fortran
                       : rocblas_dot_strided_batched_ex_64_fortran)
               : (CONJ ? rocblas_dotc_strided_batched_ex_64 : rocblas_dot_strided_batched_ex_64);
@@ -141,12 +141,12 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_strided_batched_ex(const Arguments& arg)
 {
     auto rocblas_dot_strided_batched_ex_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_strided_batched_ex_fortran
                       : rocblas_dot_strided_batched_ex_fortran)
               : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
     auto rocblas_dot_strided_batched_ex_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_strided_batched_ex_64_fortran
                       : rocblas_dot_strided_batched_ex_64_fortran)
               : (CONJ ? rocblas_dotc_strided_batched_ex_64 : rocblas_dot_strided_batched_ex_64);

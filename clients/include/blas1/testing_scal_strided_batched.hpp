@@ -27,10 +27,10 @@
 template <typename T, typename U = T>
 void testing_scal_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_scal_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_scal_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_scal_strided_batched<T, U, true>
                                                   : rocblas_scal_strided_batched<T, U, false>;
-    auto rocblas_scal_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_scal_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_scal_strided_batched_64<T, U, true>
                                                   : rocblas_scal_strided_batched_64<T, U, false>;
 
@@ -62,10 +62,10 @@ void testing_scal_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_scal_strided_batched(const Arguments& arg)
 {
-    auto rocblas_scal_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_scal_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_scal_strided_batched<T, U, true>
                                                   : rocblas_scal_strided_batched<T, U, false>;
-    auto rocblas_scal_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_scal_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_scal_strided_batched_64<T, U, true>
                                                   : rocblas_scal_strided_batched_64<T, U, false>;
 

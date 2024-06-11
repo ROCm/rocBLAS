@@ -31,12 +31,12 @@
 template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemv_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_gemv_strided_batched_fn = arg.api & c_API_FORTRAN
                                                ? rocblas_gemv_strided_batched<Ti, Tex, To, true>
                                                : rocblas_gemv_strided_batched<Ti, Tex, To, false>;
     auto rocblas_gemv_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gemv_strided_batched_64<Ti, Tex, To, true>
-                                : rocblas_gemv_strided_batched_64<Ti, Tex, To, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_gemv_strided_batched_64<Ti, Tex, To, true>
+                                  : rocblas_gemv_strided_batched_64<Ti, Tex, To, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -323,12 +323,12 @@ void testing_gemv_strided_batched_bad_arg(const Arguments& arg)
 template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_strided_batched(const Arguments& arg)
 {
-    auto rocblas_gemv_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_gemv_strided_batched_fn = arg.api & c_API_FORTRAN
                                                ? rocblas_gemv_strided_batched<Ti, Tex, To, true>
                                                : rocblas_gemv_strided_batched<Ti, Tex, To, false>;
     auto rocblas_gemv_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gemv_strided_batched_64<Ti, Tex, To, true>
-                                : rocblas_gemv_strided_batched_64<Ti, Tex, To, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_gemv_strided_batched_64<Ti, Tex, To, true>
+                                  : rocblas_gemv_strided_batched_64<Ti, Tex, To, false>;
 
     int64_t           M           = arg.M;
     int64_t           N           = arg.N;

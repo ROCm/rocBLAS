@@ -27,9 +27,9 @@
 template <typename T>
 void testing_asum_bad_arg(const Arguments& arg)
 {
-    auto rocblas_asum_fn = arg.api == FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
+    auto rocblas_asum_fn = arg.api & c_API_FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
     auto rocblas_asum_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_asum_64<T, true> : rocblas_asum_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_asum_64<T, true> : rocblas_asum_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -65,9 +65,9 @@ void testing_asum_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_asum(const Arguments& arg)
 {
-    auto rocblas_asum_fn = arg.api == FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
+    auto rocblas_asum_fn = arg.api & c_API_FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
     auto rocblas_asum_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_asum_64<T, true> : rocblas_asum_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_asum_64<T, true> : rocblas_asum_64<T, false>;
 
     int64_t N    = arg.N;
     int64_t incx = arg.incx;

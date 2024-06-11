@@ -27,9 +27,9 @@
 template <typename T>
 void testing_trmm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
+    auto rocblas_trmm_fn = arg.api & c_API_FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
     auto rocblas_trmm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_trmm_64<T, true> : rocblas_trmm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trmm_64<T, true> : rocblas_trmm_64<T, false>;
     // trmm has both inplace and outofplace versions.
     // inplace == true for inplace, inplace == false for outofplace
     bool inplace = !arg.outofplace;
@@ -301,9 +301,9 @@ void testing_trmm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm(const Arguments& arg)
 {
-    auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
+    auto rocblas_trmm_fn = arg.api & c_API_FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
     auto rocblas_trmm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_trmm_64<T, true> : rocblas_trmm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trmm_64<T, true> : rocblas_trmm_64<T, false>;
 
     // trmm has both inplace and outofplace versions.
     // inplace == true for inplace, inplace == false for outofplace

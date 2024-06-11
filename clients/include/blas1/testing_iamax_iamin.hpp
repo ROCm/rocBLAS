@@ -226,9 +226,10 @@ void testing_iamax_iamin(const Arguments& arg, FUNC func)
 template <typename T>
 void testing_iamax_bad_arg(const Arguments& arg)
 {
-    auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    auto rocblas_iamax_fn
+        = arg.api & c_API_FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
     auto rocblas_iamax_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_iamax_64<T, true> : rocblas_iamax_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_iamax_64<T, true> : rocblas_iamax_64<T, false>;
 
     if(arg.api & c_API_64)
         testing_iamax_iamin_bad_arg<T, int64_t>(arg, rocblas_iamax_fn_64);
@@ -239,9 +240,10 @@ void testing_iamax_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamin_bad_arg(const Arguments& arg)
 {
-    auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    auto rocblas_iamin_fn
+        = arg.api & c_API_FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
     auto rocblas_iamin_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_iamin_64<T, true> : rocblas_iamin_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_iamin_64<T, true> : rocblas_iamin_64<T, false>;
 
     if(arg.api & c_API_64)
         testing_iamax_iamin_bad_arg<T, int64_t>(arg, rocblas_iamin_fn_64);
@@ -252,9 +254,10 @@ void testing_iamin_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-    auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    auto rocblas_iamax_fn
+        = arg.api & c_API_FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
     auto rocblas_iamax_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_iamax_64<T, true> : rocblas_iamax_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_iamax_64<T, true> : rocblas_iamax_64<T, false>;
 
     if(arg.api & c_API_64)
         testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>, int64_t>(arg,
@@ -267,9 +270,10 @@ void testing_iamax(const Arguments& arg)
 template <typename T>
 void testing_iamin(const Arguments& arg)
 {
-    auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    auto rocblas_iamin_fn
+        = arg.api & c_API_FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
     auto rocblas_iamin_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_iamin_64<T, true> : rocblas_iamin_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_iamin_64<T, true> : rocblas_iamin_64<T, false>;
 
     if(arg.api & c_API_64)
         testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>, int64_t>(arg,

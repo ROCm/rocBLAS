@@ -28,10 +28,10 @@ template <typename Tx, typename Tr>
 void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_nrm2_batched_ex_fn
-        = arg.api == FORTRAN ? rocblas_nrm2_batched_ex_fortran : rocblas_nrm2_batched_ex;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_ex_fortran : rocblas_nrm2_batched_ex;
 
     auto rocblas_nrm2_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype result_type    = rocblas_datatype_f32_r;
@@ -93,10 +93,10 @@ template <typename Tx, typename Tr>
 void testing_nrm2_batched_ex(const Arguments& arg)
 {
     auto rocblas_nrm2_batched_ex_fn
-        = arg.api == FORTRAN ? rocblas_nrm2_batched_ex_fortran : rocblas_nrm2_batched_ex;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_ex_fortran : rocblas_nrm2_batched_ex;
 
     auto rocblas_nrm2_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype result_type    = arg.b_type;

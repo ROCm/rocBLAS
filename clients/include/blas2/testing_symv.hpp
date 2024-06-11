@@ -27,9 +27,9 @@
 template <typename T>
 void testing_symv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_symv_fn = arg.api == FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.api & c_API_FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
     auto rocblas_symv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_symv_64<T, true> : rocblas_symv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_symv_64<T, true> : rocblas_symv_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -133,9 +133,9 @@ void testing_symv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_symv(const Arguments& arg)
 {
-    auto rocblas_symv_fn = arg.api == FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.api & c_API_FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
     auto rocblas_symv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_symv_64<T, true> : rocblas_symv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_symv_64<T, true> : rocblas_symv_64<T, false>;
 
     int64_t N    = arg.N;
     int64_t lda  = arg.lda;

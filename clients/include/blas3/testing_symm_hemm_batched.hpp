@@ -28,15 +28,15 @@
 template <typename T, bool HERM>
 void testing_symm_hemm_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_fn = HERM ? (arg.api == FORTRAN ? rocblas_hemm_batched<T, true>
-                                                 : rocblas_hemm_batched<T, false>)
-                           : (arg.api == FORTRAN ? rocblas_symm_batched<T, true>
-                                                 : rocblas_symm_batched<T, false>);
+    auto rocblas_fn = HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm_batched<T, true>
+                                                      : rocblas_hemm_batched<T, false>)
+                           : (arg.api & c_API_FORTRAN ? rocblas_symm_batched<T, true>
+                                                      : rocblas_symm_batched<T, false>);
 
-    auto rocblas_fn_64 = HERM ? (arg.api == FORTRAN_64 ? rocblas_hemm_batched_64<T, true>
-                                                       : rocblas_hemm_batched_64<T, false>)
-                              : (arg.api == FORTRAN_64 ? rocblas_symm_batched_64<T, true>
-                                                       : rocblas_symm_batched_64<T, false>);
+    auto rocblas_fn_64 = HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm_batched_64<T, true>
+                                                         : rocblas_hemm_batched_64<T, false>)
+                              : (arg.api & c_API_FORTRAN ? rocblas_symm_batched_64<T, true>
+                                                         : rocblas_symm_batched_64<T, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -231,14 +231,14 @@ void testing_symm_hemm_batched_bad_arg(const Arguments& arg)
 template <typename T, bool HERM>
 void testing_symm_hemm_batched(const Arguments& arg)
 {
-    auto rocblas_fn    = HERM ? (arg.api == FORTRAN ? rocblas_hemm_batched<T, true>
-                                                    : rocblas_hemm_batched<T, false>)
-                              : (arg.api == FORTRAN ? rocblas_symm_batched<T, true>
-                                                    : rocblas_symm_batched<T, false>);
-    auto rocblas_fn_64 = HERM ? (arg.api == FORTRAN_64 ? rocblas_hemm_batched_64<T, true>
-                                                       : rocblas_hemm_batched_64<T, false>)
-                              : (arg.api == FORTRAN_64 ? rocblas_symm_batched_64<T, true>
-                                                       : rocblas_symm_batched_64<T, false>);
+    auto rocblas_fn    = HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm_batched<T, true>
+                                                         : rocblas_hemm_batched<T, false>)
+                              : (arg.api & c_API_FORTRAN ? rocblas_symm_batched<T, true>
+                                                         : rocblas_symm_batched<T, false>);
+    auto rocblas_fn_64 = HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm_batched_64<T, true>
+                                                         : rocblas_hemm_batched_64<T, false>)
+                              : (arg.api & c_API_FORTRAN ? rocblas_symm_batched_64<T, true>
+                                                         : rocblas_symm_batched_64<T, false>);
 
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
 

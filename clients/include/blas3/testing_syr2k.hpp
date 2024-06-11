@@ -28,12 +28,12 @@ template <typename T, bool TWOK = true>
 void testing_syr2k_bad_arg(const Arguments& arg)
 {
     auto rocblas_syrXX_fn
-        = TWOK ? (arg.api == FORTRAN ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
-               : (arg.api == FORTRAN ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
 
     auto rocblas_syrXX_fn_64
-        = TWOK ? (arg.api == FORTRAN_64 ? rocblas_syr2k_64<T, true> : rocblas_syr2k_64<T, false>)
-               : (arg.api == FORTRAN_64 ? rocblas_syrkx_64<T, true> : rocblas_syrkx_64<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k_64<T, true> : rocblas_syr2k_64<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx_64<T, true> : rocblas_syrkx_64<T, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -182,12 +182,12 @@ template <typename T, bool TWOK = true>
 void testing_syr2k(const Arguments& arg)
 {
     auto rocblas_syrXX_fn
-        = TWOK ? (arg.api == FORTRAN ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
-               : (arg.api == FORTRAN ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
 
     auto rocblas_syrXX_fn_64
-        = TWOK ? (arg.api == FORTRAN_64 ? rocblas_syr2k_64<T, true> : rocblas_syr2k_64<T, false>)
-               : (arg.api == FORTRAN_64 ? rocblas_syrkx_64<T, true> : rocblas_syrkx_64<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k_64<T, true> : rocblas_syr2k_64<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx_64<T, true> : rocblas_syrkx_64<T, false>);
 
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 

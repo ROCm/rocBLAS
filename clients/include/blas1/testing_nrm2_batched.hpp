@@ -28,10 +28,10 @@ template <typename T>
 void testing_nrm2_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_nrm2_batched_fn
-        = arg.api == FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
 
-    auto rocblas_nrm2_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_nrm2_batched_64<T, true>
-                                                            : rocblas_nrm2_batched_64<T, false>;
+    auto rocblas_nrm2_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_64<T, true>
+                                                              : rocblas_nrm2_batched_64<T, false>;
 
     int64_t N           = 100;
     int64_t incx        = 1;
@@ -65,10 +65,10 @@ void testing_nrm2_batched(const Arguments& arg)
 {
 
     auto rocblas_nrm2_batched_fn
-        = arg.api == FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
 
-    auto rocblas_nrm2_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_nrm2_batched_64<T, true>
-                                                            : rocblas_nrm2_batched_64<T, false>;
+    auto rocblas_nrm2_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_64<T, true>
+                                                              : rocblas_nrm2_batched_64<T, false>;
 
     int64_t N           = arg.N;
     int64_t incx        = arg.incx;

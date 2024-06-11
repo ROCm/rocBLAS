@@ -32,16 +32,16 @@ template <typename T, bool TWOK = true>
 void testing_her2k_strided_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_herXX_strided_batched_fn
-        = arg.api == FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
-                                     : rocblas_herkx_strided_batched<T, real_t<T>, true>)
-                             : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
-                                     : rocblas_herkx_strided_batched<T, real_t<T>, false>);
+        = arg.api & c_API_FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
+                                          : rocblas_herkx_strided_batched<T, real_t<T>, true>)
+                                  : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
+                                          : rocblas_herkx_strided_batched<T, real_t<T>, false>);
 
     auto rocblas_herXX_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, true>
-                                        : rocblas_herkx_strided_batched_64<T, real_t<T>, true>)
-                                : (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, false>
-                                        : rocblas_herkx_strided_batched_64<T, real_t<T>, false>);
+        = arg.api & c_API_FORTRAN ? (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, true>
+                                          : rocblas_herkx_strided_batched_64<T, real_t<T>, true>)
+                                  : (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, false>
+                                          : rocblas_herkx_strided_batched_64<T, real_t<T>, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -389,16 +389,16 @@ template <typename T, bool TWOK = true>
 void testing_her2k_strided_batched(const Arguments& arg)
 {
     auto rocblas_herXX_strided_batched_fn
-        = arg.api == FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
-                                     : rocblas_herkx_strided_batched<T, real_t<T>, true>)
-                             : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
-                                     : rocblas_herkx_strided_batched<T, real_t<T>, false>);
+        = arg.api & c_API_FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
+                                          : rocblas_herkx_strided_batched<T, real_t<T>, true>)
+                                  : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
+                                          : rocblas_herkx_strided_batched<T, real_t<T>, false>);
 
     auto rocblas_herXX_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, true>
-                                        : rocblas_herkx_strided_batched_64<T, real_t<T>, true>)
-                                : (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, false>
-                                        : rocblas_herkx_strided_batched_64<T, real_t<T>, false>);
+        = arg.api & c_API_FORTRAN ? (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, true>
+                                          : rocblas_herkx_strided_batched_64<T, real_t<T>, true>)
+                                  : (TWOK ? rocblas_her2k_strided_batched_64<T, real_t<T>, false>
+                                          : rocblas_herkx_strided_batched_64<T, real_t<T>, false>);
 
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
     auto herXX_ref_fn         = TWOK ? ref_her2k<T> : ref_herkx<T>;

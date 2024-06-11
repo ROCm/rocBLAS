@@ -28,10 +28,10 @@ template <typename T>
 void testing_trsv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsv_batched_fn
-        = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
-    auto rocblas_trsv_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trsv_batched_64<T, true>
-                                                            : rocblas_trsv_batched_64<T, false>;
+    auto rocblas_trsv_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_trsv_batched_64<T, true>
+                                                              : rocblas_trsv_batched_64<T, false>;
 
     const int64_t           N           = 100;
     const int64_t           lda         = 100;
@@ -106,10 +106,10 @@ template <typename T>
 void testing_trsv_batched(const Arguments& arg)
 {
     auto rocblas_trsv_batched_fn
-        = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
-    auto rocblas_trsv_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trsv_batched_64<T, true>
-                                                            : rocblas_trsv_batched_64<T, false>;
+    auto rocblas_trsv_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_trsv_batched_64<T, true>
+                                                              : rocblas_trsv_batched_64<T, false>;
 
     int64_t N           = arg.N;
     int64_t lda         = arg.lda;

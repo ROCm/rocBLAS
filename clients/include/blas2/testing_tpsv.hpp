@@ -27,10 +27,10 @@
 template <typename T>
 void testing_tpsv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_tpsv_fn = arg.api == FORTRAN ? rocblas_tpsv<T, true> : rocblas_tpsv<T, false>;
+    auto rocblas_tpsv_fn = arg.api & c_API_FORTRAN ? rocblas_tpsv<T, true> : rocblas_tpsv<T, false>;
 
     auto rocblas_tpsv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_tpsv_64<T, true> : rocblas_tpsv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_tpsv_64<T, true> : rocblas_tpsv_64<T, false>;
 
     const int64_t           N      = 100;
     const int64_t           incx   = 1;
@@ -77,10 +77,10 @@ void testing_tpsv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpsv(const Arguments& arg)
 {
-    auto rocblas_tpsv_fn = arg.api == FORTRAN ? rocblas_tpsv<T, true> : rocblas_tpsv<T, false>;
+    auto rocblas_tpsv_fn = arg.api & c_API_FORTRAN ? rocblas_tpsv<T, true> : rocblas_tpsv<T, false>;
 
     auto rocblas_tpsv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_tpsv_64<T, true> : rocblas_tpsv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_tpsv_64<T, true> : rocblas_tpsv_64<T, false>;
 
     int64_t N           = arg.N;
     int64_t incx        = arg.incx;

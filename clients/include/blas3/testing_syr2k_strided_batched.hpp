@@ -28,16 +28,16 @@ template <typename T, bool TWOK = true>
 void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_syrXX_strided_batched_fn
-        = TWOK ? (arg.api == FORTRAN ? rocblas_syr2k_strided_batched<T, true>
-                                     : rocblas_syr2k_strided_batched<T, false>)
-               : (arg.api == FORTRAN ? rocblas_syrkx_strided_batched<T, true>
-                                     : rocblas_syrkx_strided_batched<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k_strided_batched<T, true>
+                                          : rocblas_syr2k_strided_batched<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx_strided_batched<T, true>
+                                          : rocblas_syrkx_strided_batched<T, false>);
 
     auto rocblas_syrXX_strided_batched_fn_64
-        = TWOK ? (arg.api == FORTRAN_64 ? rocblas_syr2k_strided_batched_64<T, true>
-                                        : rocblas_syr2k_strided_batched_64<T, false>)
-               : (arg.api == FORTRAN_64 ? rocblas_syrkx_strided_batched_64<T, true>
-                                        : rocblas_syrkx_strided_batched_64<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k_strided_batched_64<T, true>
+                                          : rocblas_syr2k_strided_batched_64<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx_strided_batched_64<T, true>
+                                          : rocblas_syrkx_strided_batched_64<T, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -365,16 +365,16 @@ template <typename T, bool TWOK = true>
 void testing_syr2k_strided_batched(const Arguments& arg)
 {
     auto rocblas_syrXX_strided_batched_fn
-        = TWOK ? (arg.api == FORTRAN ? rocblas_syr2k_strided_batched<T, true>
-                                     : rocblas_syr2k_strided_batched<T, false>)
-               : (arg.api == FORTRAN ? rocblas_syrkx_strided_batched<T, true>
-                                     : rocblas_syrkx_strided_batched<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k_strided_batched<T, true>
+                                          : rocblas_syr2k_strided_batched<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx_strided_batched<T, true>
+                                          : rocblas_syrkx_strided_batched<T, false>);
 
     auto rocblas_syrXX_strided_batched_fn_64
-        = TWOK ? (arg.api == FORTRAN_64 ? rocblas_syr2k_strided_batched_64<T, true>
-                                        : rocblas_syr2k_strided_batched_64<T, false>)
-               : (arg.api == FORTRAN_64 ? rocblas_syrkx_strided_batched_64<T, true>
-                                        : rocblas_syrkx_strided_batched_64<T, false>);
+        = TWOK ? (arg.api & c_API_FORTRAN ? rocblas_syr2k_strided_batched_64<T, true>
+                                          : rocblas_syr2k_strided_batched_64<T, false>)
+               : (arg.api & c_API_FORTRAN ? rocblas_syrkx_strided_batched_64<T, true>
+                                          : rocblas_syrkx_strided_batched_64<T, false>);
 
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 

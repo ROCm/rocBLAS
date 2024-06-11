@@ -28,9 +28,9 @@
 template <typename T>
 void testing_tbmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_tbmv_fn = arg.api == FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
+    auto rocblas_tbmv_fn = arg.api & c_API_FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
     auto rocblas_tbmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_tbmv_64<T, true> : rocblas_tbmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_tbmv_64<T, true> : rocblas_tbmv_64<T, false>;
 
     const int64_t           N                 = 100;
     const int64_t           K                 = 5;
@@ -81,9 +81,9 @@ void testing_tbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tbmv(const Arguments& arg)
 {
-    auto rocblas_tbmv_fn = arg.api == FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
+    auto rocblas_tbmv_fn = arg.api & c_API_FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
     auto rocblas_tbmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_tbmv_64<T, true> : rocblas_tbmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_tbmv_64<T, true> : rocblas_tbmv_64<T, false>;
 
     int64_t           N                 = arg.N;
     int64_t           K                 = arg.K;

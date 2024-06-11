@@ -30,10 +30,10 @@
 template <typename T>
 void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemm_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_gemm_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_gemm_strided_batched<T, true>
                                                   : rocblas_gemm_strided_batched<T, false>;
-    auto rocblas_gemm_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_gemm_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_gemm_strided_batched_64<T, true>
                                                   : rocblas_gemm_strided_batched_64<T, false>;
 
@@ -192,10 +192,10 @@ nullptr, lda, stride_a, nullptr, ldb, stride_b, beta, dC, ldc, stride_c, batch_c
 template <typename T>
 void testing_gemm_strided_batched(const Arguments& arg)
 {
-    auto rocblas_gemm_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_gemm_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_gemm_strided_batched<T, true>
                                                   : rocblas_gemm_strided_batched<T, false>;
-    auto rocblas_gemm_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_gemm_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_gemm_strided_batched_64<T, true>
                                                   : rocblas_gemm_strided_batched_64<T, false>;
 

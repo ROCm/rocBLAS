@@ -29,9 +29,9 @@
 template <typename T>
 void testing_dgmm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dgmm_fn = arg.api == FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+    auto rocblas_dgmm_fn = arg.api & c_API_FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
     auto rocblas_dgmm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_dgmm_64<T, true> : rocblas_dgmm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_dgmm_64<T, true> : rocblas_dgmm_64<T, false>;
 
     const int64_t M = 100;
     const int64_t N = 101;
@@ -82,9 +82,9 @@ void testing_dgmm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_dgmm(const Arguments& arg)
 {
-    auto rocblas_dgmm_fn = arg.api == FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+    auto rocblas_dgmm_fn = arg.api & c_API_FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
     auto rocblas_dgmm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_dgmm_64<T, true> : rocblas_dgmm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_dgmm_64<T, true> : rocblas_dgmm_64<T, false>;
 
     rocblas_side side = char2rocblas_side(arg.side);
 

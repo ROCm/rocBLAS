@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -159,7 +159,8 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_ex3_fn = arg.api == FORTRAN ? rocblas_gemm_ex3_fortran : rocblas_gemm_ex3;
+        auto rocblas_gemm_ex3_fn
+            = arg.api & c_API_FORTRAN ? rocblas_gemm_ex3_fortran : rocblas_gemm_ex3;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
@@ -1441,7 +1442,8 @@ rocblas_status call_trusted_gemm_f8(rocblas_handle    handle,
 template <typename TiA, typename TiB, typename To, typename Tc>
 void testing_gemm_ex3(const Arguments& arg)
 {
-    auto rocblas_gemm_ex3_fn = arg.api == FORTRAN ? rocblas_gemm_ex3_fortran : rocblas_gemm_ex3;
+    auto rocblas_gemm_ex3_fn
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_ex3_fortran : rocblas_gemm_ex3;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);

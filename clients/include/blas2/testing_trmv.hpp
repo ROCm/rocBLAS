@@ -28,10 +28,10 @@
 template <typename T>
 void testing_trmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmv_fn = arg.api == FORTRAN ? rocblas_trmv<T, true> : rocblas_trmv<T, false>;
+    auto rocblas_trmv_fn = arg.api & c_API_FORTRAN ? rocblas_trmv<T, true> : rocblas_trmv<T, false>;
 
     auto rocblas_trmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_trmv_64<T, true> : rocblas_trmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trmv_64<T, true> : rocblas_trmv_64<T, false>;
 
     const int64_t           N      = 100;
     const int64_t           lda    = 100;
@@ -90,10 +90,10 @@ void testing_trmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmv(const Arguments& arg)
 {
-    auto rocblas_trmv_fn = arg.api == FORTRAN ? rocblas_trmv<T, true> : rocblas_trmv<T, false>;
+    auto rocblas_trmv_fn = arg.api & c_API_FORTRAN ? rocblas_trmv<T, true> : rocblas_trmv<T, false>;
 
     auto rocblas_trmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_trmv_64<T, true> : rocblas_trmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trmv_64<T, true> : rocblas_trmv_64<T, false>;
 
     int64_t N = arg.N, lda = arg.lda, incx = arg.incx;
 

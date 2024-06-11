@@ -27,9 +27,10 @@
 template <typename T>
 void testing_rotmg_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rotmg_fn = arg.api == FORTRAN ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
+    auto rocblas_rotmg_fn
+        = arg.api & c_API_FORTRAN ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
     auto rocblas_rotmg_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_rotmg_64<T, true> : rocblas_rotmg_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_rotmg_64<T, true> : rocblas_rotmg_64<T, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -63,9 +64,10 @@ void testing_rotmg_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotmg(const Arguments& arg)
 {
-    auto rocblas_rotmg_fn = arg.api == FORTRAN ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
+    auto rocblas_rotmg_fn
+        = arg.api & c_API_FORTRAN ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
     auto rocblas_rotmg_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_rotmg_64<T, true> : rocblas_rotmg_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_rotmg_64<T, true> : rocblas_rotmg_64<T, false>;
 
     rocblas_local_handle handle{arg};
 

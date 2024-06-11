@@ -28,9 +28,9 @@
 template <typename T>
 void testing_tpmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_tpmv_fn = arg.api == FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.api & c_API_FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
     auto rocblas_tpmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_tpmv_64<T, true> : rocblas_tpmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_tpmv_64<T, true> : rocblas_tpmv_64<T, false>;
 
     const int64_t           N      = 100;
     const int64_t           incx   = 1;
@@ -84,10 +84,10 @@ void testing_tpmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpmv(const Arguments& arg)
 {
-    auto rocblas_tpmv_fn = arg.api == FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.api & c_API_FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     auto rocblas_tpmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_tpmv_64<T, true> : rocblas_tpmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_tpmv_64<T, true> : rocblas_tpmv_64<T, false>;
 
     int64_t N = arg.N, incx = arg.incx;
 

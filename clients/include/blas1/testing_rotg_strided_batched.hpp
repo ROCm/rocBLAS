@@ -28,10 +28,10 @@ template <typename T, typename U = T>
 void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
 {
 
-    auto rocblas_rotg_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_rotg_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_rotg_strided_batched<T, U, true>
                                                   : rocblas_rotg_strided_batched<T, U, false>;
-    auto rocblas_rotg_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_rotg_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_rotg_strided_batched_64<T, U, true>
                                                   : rocblas_rotg_strided_batched_64<T, U, false>;
 
@@ -76,10 +76,10 @@ template <typename T, typename U = T>
 void testing_rotg_strided_batched(const Arguments& arg)
 {
 
-    auto rocblas_rotg_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_rotg_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_rotg_strided_batched<T, U, true>
                                                   : rocblas_rotg_strided_batched<T, U, false>;
-    auto rocblas_rotg_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_rotg_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_rotg_strided_batched_64<T, U, true>
                                                   : rocblas_rotg_strided_batched_64<T, U, false>;
 

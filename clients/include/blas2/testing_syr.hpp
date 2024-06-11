@@ -27,9 +27,9 @@
 template <typename T>
 void testing_syr_bad_arg(const Arguments& arg)
 {
-    auto rocblas_syr_fn = arg.api == FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+    auto rocblas_syr_fn = arg.api & c_API_FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
     auto rocblas_syr_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_syr_64<T, true> : rocblas_syr_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_syr_64<T, true> : rocblas_syr_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -107,9 +107,9 @@ void testing_syr_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_syr(const Arguments& arg)
 {
-    auto rocblas_syr_fn = arg.api == FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+    auto rocblas_syr_fn = arg.api & c_API_FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
     auto rocblas_syr_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_syr_64<T, true> : rocblas_syr_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_syr_64<T, true> : rocblas_syr_64<T, false>;
 
     int64_t              N       = arg.N;
     int64_t              incx    = arg.incx;

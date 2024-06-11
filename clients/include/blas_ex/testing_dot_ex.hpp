@@ -27,12 +27,12 @@
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dot_ex_fn = arg.api == FORTRAN
+    auto rocblas_dot_ex_fn = arg.api & c_API_FORTRAN
                                  ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
                                  : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
     auto rocblas_dot_ex_fn_64
-        = arg.api == FORTRAN_64 ? (CONJ ? rocblas_dotc_ex_64_fortran : rocblas_dot_ex_64_fortran)
-                                : (CONJ ? rocblas_dotc_ex_64 : rocblas_dot_ex_64);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_dotc_ex_64_fortran : rocblas_dot_ex_64_fortran)
+                                  : (CONJ ? rocblas_dotc_ex_64 : rocblas_dot_ex_64);
 
     rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
     rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
@@ -112,12 +112,12 @@ void testing_dotc_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_ex(const Arguments& arg)
 {
-    auto rocblas_dot_ex_fn = arg.api == FORTRAN
+    auto rocblas_dot_ex_fn = arg.api & c_API_FORTRAN
                                  ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
                                  : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
     auto rocblas_dot_ex_fn_64
-        = arg.api == FORTRAN_64 ? (CONJ ? rocblas_dotc_ex_64_fortran : rocblas_dot_ex_64_fortran)
-                                : (CONJ ? rocblas_dotc_ex_64 : rocblas_dot_ex_64);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_dotc_ex_64_fortran : rocblas_dot_ex_64_fortran)
+                                  : (CONJ ? rocblas_dotc_ex_64 : rocblas_dot_ex_64);
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;

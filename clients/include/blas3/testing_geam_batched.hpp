@@ -30,10 +30,10 @@ template <typename T>
 void testing_geam_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_geam_batched_fn
-        = arg.api == FORTRAN ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
 
-    auto rocblas_geam_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_geam_batched_64<T, true>
-                                                            : rocblas_geam_batched_64<T, false>;
+    auto rocblas_geam_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_geam_batched_64<T, true>
+                                                              : rocblas_geam_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -323,10 +323,10 @@ template <typename T>
 void testing_geam_batched(const Arguments& arg)
 {
     auto rocblas_geam_batched_fn
-        = arg.api == FORTRAN ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
 
-    auto rocblas_geam_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_geam_batched_64<T, true>
-                                                            : rocblas_geam_batched_64<T, false>;
+    auto rocblas_geam_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_geam_batched_64<T, true>
+                                                              : rocblas_geam_batched_64<T, false>;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

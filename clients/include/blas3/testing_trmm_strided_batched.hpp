@@ -40,10 +40,10 @@
 template <typename T>
 void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmm_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_trmm_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_trmm_strided_batched<T, true>
                                                   : rocblas_trmm_strided_batched<T, false>;
-    auto rocblas_trmm_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_trmm_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_trmm_strided_batched_64<T, true>
                                                   : rocblas_trmm_strided_batched_64<T, false>;
     // trmm has both inplace and outofplace versions.
@@ -539,10 +539,10 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_strided_batched(const Arguments& arg)
 {
-    auto rocblas_trmm_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_trmm_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_trmm_strided_batched<T, true>
                                                   : rocblas_trmm_strided_batched<T, false>;
-    auto rocblas_trmm_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_trmm_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_trmm_strided_batched_64<T, true>
                                                   : rocblas_trmm_strided_batched_64<T, false>;
     // trmm has both inplace and outofplace versions.

@@ -31,9 +31,10 @@
 template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemv_batched_fn    = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
-                                                         : rocblas_gemv_batched<Ti, Tex, To, false>;
-    auto rocblas_gemv_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_gemv_batched_fn    = arg.api & c_API_FORTRAN
+                                          ? rocblas_gemv_batched<Ti, Tex, To, true>
+                                          : rocblas_gemv_batched<Ti, Tex, To, false>;
+    auto rocblas_gemv_batched_fn_64 = arg.api & c_API_FORTRAN
                                           ? rocblas_gemv_batched_64<Ti, Tex, To, true>
                                           : rocblas_gemv_batched_64<Ti, Tex, To, false>;
 
@@ -283,9 +284,10 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
 template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_batched(const Arguments& arg)
 {
-    auto rocblas_gemv_batched_fn    = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
-                                                         : rocblas_gemv_batched<Ti, Tex, To, false>;
-    auto rocblas_gemv_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_gemv_batched_fn    = arg.api & c_API_FORTRAN
+                                          ? rocblas_gemv_batched<Ti, Tex, To, true>
+                                          : rocblas_gemv_batched<Ti, Tex, To, false>;
+    auto rocblas_gemv_batched_fn_64 = arg.api & c_API_FORTRAN
                                           ? rocblas_gemv_batched_64<Ti, Tex, To, true>
                                           : rocblas_gemv_batched_64<Ti, Tex, To, false>;
 

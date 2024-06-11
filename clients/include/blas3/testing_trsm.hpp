@@ -33,9 +33,9 @@
 template <typename T>
 void testing_trsm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsm_fn = arg.api == FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn = arg.api & c_API_FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
     auto rocblas_trsm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_trsm_64<T, true> : rocblas_trsm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trsm_64<T, true> : rocblas_trsm_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -245,9 +245,9 @@ void testing_trsm_internal_interfaces(const Arguments& arg)
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
-    auto rocblas_trsm_fn = arg.api == FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn = arg.api & c_API_FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
     auto rocblas_trsm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_trsm_64<T, true> : rocblas_trsm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trsm_64<T, true> : rocblas_trsm_64<T, false>;
 
     int64_t M   = arg.M;
     int64_t N   = arg.N;
