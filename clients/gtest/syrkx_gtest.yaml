@@ -64,9 +64,12 @@ Tests:
 
 - name: syrkx_bad
   category: quick
-  function: syrkx_bad_arg
+  function:
+    - syrkx_bad_arg
+    - syrkx_batched_bad_arg
+    - syrkx_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: syrkx_size_t
   category: stress
@@ -175,11 +178,6 @@ Tests:
   pointer_mode_device: false
 
 # batched
-- name: syrkx_batched_bad
-  category: quick
-  function: syrkx_batched_bad_arg
-  precision: *single_precision
-  api: [ C, FORTRAN ]
 
 - name: syrkx_batched_quick
   category: quick
@@ -226,11 +224,6 @@ Tests:
   pointer_mode_host: false
 
 # strided batched
-- name: syrkx_strided_batched_bad
-  category: quick
-  function: syrkx_strided_batched_bad_arg
-  precision: *single_precision
-  api: [ C, FORTRAN ]
 
 - name: syrkx_strided_batched_quick
   category: quick

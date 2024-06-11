@@ -949,6 +949,7 @@ Tests:
   category: stress
   function:
     - gemm_strided_batched: *half_precision
+    - gemm_strided_batched_ex: *half_precision
   arguments:
     - { M: 2, N: 2, K: 2, lda: 2, ldb: 2, ldc: 2, stride_a: 4, stride_b: 4, stride_c: 4, stride_d: 4 }
   pointer_mode_device: false

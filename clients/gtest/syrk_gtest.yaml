@@ -44,7 +44,7 @@ Tests:
   - syrk_batched_bad_arg
   - syrk_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 # non batched
 
@@ -229,7 +229,7 @@ Tests:
   pointer_mode_host: false
 
 - name: syrk_64
-  category: pre_checkin
+  category: stress
   uplo: [ U, L ]
   arguments:
     #- { N:  1, K:  2147483649,  lda:  1, ldb: 1, batch_count: 1, transA: N } #TODO: Commenting out big tests due to alarm time out
@@ -246,7 +246,7 @@ Tests:
   function:
     - syrk_strided_batched: *single_precision
   stride_scale: 1
-  gpu_arch: '9??'
+  #gpu_arch: '9??'
 
 - name: syrk_graph_test
   category: pre_checkin
