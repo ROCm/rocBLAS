@@ -245,10 +245,10 @@ void testing_iamax_iamin_strided_batched(const Arguments& arg, FUNC func)
 template <typename T>
 void testing_iamax_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_iamax_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_iamax_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                    ? rocblas_iamax_strided_batched<T, true>
                                                    : rocblas_iamax_strided_batched<T, false>;
-    auto rocblas_iamax_strided_batched_fn_64 = arg.api == FORTRAN
+    auto rocblas_iamax_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                    ? rocblas_iamax_strided_batched_64<T, true>
                                                    : rocblas_iamax_strided_batched_64<T, false>;
 
@@ -263,11 +263,11 @@ void testing_iamax_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamin_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_iamin_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_iamin_strided_batched_fn = arg.api & c_API_FORTRAN
                                                 ? rocblas_iamin_strided_batched<T, true>
                                                 : rocblas_iamin_strided_batched<T, false>;
 
-    auto rocblas_iamin_strided_batched_fn_64 = arg.api == FORTRAN
+    auto rocblas_iamin_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                    ? rocblas_iamin_strided_batched_64<T, true>
                                                    : rocblas_iamin_strided_batched_64<T, false>;
     if(arg.api & c_API_64)
@@ -281,10 +281,10 @@ void testing_iamin_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamax_strided_batched(const Arguments& arg)
 {
-    auto rocblas_iamax_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_iamax_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                    ? rocblas_iamax_strided_batched<T, true>
                                                    : rocblas_iamax_strided_batched<T, false>;
-    auto rocblas_iamax_strided_batched_fn_64 = arg.api == FORTRAN
+    auto rocblas_iamax_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                    ? rocblas_iamax_strided_batched_64<T, true>
                                                    : rocblas_iamax_strided_batched_64<T, false>;
 
@@ -299,11 +299,11 @@ void testing_iamax_strided_batched(const Arguments& arg)
 template <typename T>
 void testing_iamin_strided_batched(const Arguments& arg)
 {
-    auto rocblas_iamin_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_iamin_strided_batched_fn = arg.api & c_API_FORTRAN
                                                 ? rocblas_iamin_strided_batched<T, true>
                                                 : rocblas_iamin_strided_batched<T, false>;
 
-    auto rocblas_iamin_strided_batched_fn_64 = arg.api == FORTRAN
+    auto rocblas_iamin_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                    ? rocblas_iamin_strided_batched_64<T, true>
                                                    : rocblas_iamin_strided_batched_64<T, false>;
 

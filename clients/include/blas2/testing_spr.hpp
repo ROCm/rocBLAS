@@ -27,9 +27,9 @@
 template <typename T>
 void testing_spr_bad_arg(const Arguments& arg)
 {
-    auto rocblas_spr_fn = arg.api == FORTRAN ? rocblas_spr<T, true> : rocblas_spr<T, false>;
+    auto rocblas_spr_fn = arg.api & c_API_FORTRAN ? rocblas_spr<T, true> : rocblas_spr<T, false>;
     auto rocblas_spr_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_spr_64<T, true> : rocblas_spr_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_spr_64<T, true> : rocblas_spr_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -106,9 +106,9 @@ void testing_spr_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spr(const Arguments& arg)
 {
-    auto rocblas_spr_fn = arg.api == FORTRAN ? rocblas_spr<T, true> : rocblas_spr<T, false>;
+    auto rocblas_spr_fn = arg.api & c_API_FORTRAN ? rocblas_spr<T, true> : rocblas_spr<T, false>;
     auto rocblas_spr_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_spr_64<T, true> : rocblas_spr_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_spr_64<T, true> : rocblas_spr_64<T, false>;
 
     int64_t              N       = arg.N;
     int64_t              incx    = arg.incx;

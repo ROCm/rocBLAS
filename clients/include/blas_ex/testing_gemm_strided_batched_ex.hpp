@@ -33,12 +33,12 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_strided_batched_ex_fn = arg.api == FORTRAN
+        auto rocblas_gemm_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                       ? rocblas_gemm_strided_batched_ex_fortran
                                                       : rocblas_gemm_strided_batched_ex;
         auto rocblas_gemm_strided_batched_ex_fn_64
-            = arg.api == FORTRAN_64 ? rocblas_gemm_strided_batched_ex_64_fortran
-                                    : rocblas_gemm_strided_batched_ex_64;
+            = arg.api & c_API_FORTRAN ? rocblas_gemm_strided_batched_ex_64_fortran
+                                      : rocblas_gemm_strided_batched_ex_64;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
@@ -236,10 +236,10 @@ dD, d_type, ldd, stride_d, batch_count, compute_type, algo, solution_index, flag
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_gemm_strided_batched_ex_fn    = arg.api == FORTRAN
+    auto rocblas_gemm_strided_batched_ex_fn    = arg.api & c_API_FORTRAN
                                                      ? rocblas_gemm_strided_batched_ex_fortran
                                                      : rocblas_gemm_strided_batched_ex;
-    auto rocblas_gemm_strided_batched_ex_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_gemm_strided_batched_ex_fn_64 = arg.api & c_API_FORTRAN
                                                      ? rocblas_gemm_strided_batched_ex_64_fortran
                                                      : rocblas_gemm_strided_batched_ex_64;
 

@@ -28,10 +28,10 @@ template <typename T>
 void testing_syrk_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_syrk_batched_fn
-        = arg.api == FORTRAN ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
 
-    auto rocblas_syrk_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_syrk_batched_64<T, true>
-                                                            : rocblas_syrk_batched_64<T, false>;
+    auto rocblas_syrk_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_syrk_batched_64<T, true>
+                                                              : rocblas_syrk_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -188,10 +188,10 @@ template <typename T>
 void testing_syrk_batched(const Arguments& arg)
 {
     auto rocblas_syrk_batched_fn
-        = arg.api == FORTRAN ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
 
-    auto rocblas_syrk_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_syrk_batched_64<T, true>
-                                                            : rocblas_syrk_batched_64<T, false>;
+    auto rocblas_syrk_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_syrk_batched_64<T, true>
+                                                              : rocblas_syrk_batched_64<T, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);

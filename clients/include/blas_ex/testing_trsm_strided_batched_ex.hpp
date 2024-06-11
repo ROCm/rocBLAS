@@ -43,7 +43,7 @@
 template <typename T>
 void testing_trsm_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsm_strided_batched_ex_fn = arg.api == FORTRAN
+    auto rocblas_trsm_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                   ? rocblas_trsm_strided_batched_ex_fortran
                                                   : rocblas_trsm_strided_batched_ex;
 
@@ -296,7 +296,7 @@ void testing_trsm_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trsm_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_trsm_strided_batched_ex_fn = arg.api == FORTRAN
+    auto rocblas_trsm_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                   ? rocblas_trsm_strided_batched_ex_fortran
                                                   : rocblas_trsm_strided_batched_ex;
 

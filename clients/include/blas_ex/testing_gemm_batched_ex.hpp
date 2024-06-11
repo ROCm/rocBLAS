@@ -34,8 +34,8 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         auto rocblas_gemm_batched_ex_fn
-            = arg.api == FORTRAN ? rocblas_gemm_batched_ex_fortran : rocblas_gemm_batched_ex;
-        auto rocblas_gemm_batched_ex_fn_64 = arg.api == FORTRAN_64
+            = arg.api & c_API_FORTRAN ? rocblas_gemm_batched_ex_fortran : rocblas_gemm_batched_ex;
+        auto rocblas_gemm_batched_ex_fn_64 = arg.api & c_API_FORTRAN
                                                  ? rocblas_gemm_batched_ex_64_fortran
                                                  : rocblas_gemm_batched_ex_64;
 
@@ -236,9 +236,9 @@ template <typename Ti, typename To, typename Tc>
 void testing_gemm_batched_ex(const Arguments& arg)
 {
     auto rocblas_gemm_batched_ex_fn
-        = arg.api == FORTRAN ? rocblas_gemm_batched_ex_fortran : rocblas_gemm_batched_ex;
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_batched_ex_fortran : rocblas_gemm_batched_ex;
     auto rocblas_gemm_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gemm_batched_ex_64_fortran : rocblas_gemm_batched_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_batched_ex_64_fortran : rocblas_gemm_batched_ex_64;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);

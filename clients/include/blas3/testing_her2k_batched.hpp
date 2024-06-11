@@ -32,13 +32,13 @@ template <typename T, bool TWOK = true>
 void testing_her2k_batched_bad_arg(const Arguments& arg)
 {
     // clang-format off
-    auto rocblas_herXX_batched_fn = arg.api == FORTRAN
+    auto rocblas_herXX_batched_fn = arg.api & c_API_FORTRAN
                                         ? (TWOK ? rocblas_her2k_batched<T, real_t<T>, true>
                                                 : rocblas_herkx_batched<T, real_t<T>, true>)
                                         : (TWOK ? rocblas_her2k_batched<T, real_t<T>, false>
                                                 : rocblas_herkx_batched<T, real_t<T>, false>);
 
-    auto rocblas_herXX_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_herXX_batched_fn_64 = arg.api & c_API_FORTRAN
                                         ? (TWOK ? rocblas_her2k_batched_64<T, real_t<T>, true>
                                                 : rocblas_herkx_batched_64<T, real_t<T>, true>)
                                         : (TWOK ? rocblas_her2k_batched_64<T, real_t<T>, false>
@@ -304,13 +304,13 @@ template <typename T, bool TWOK = true>
 void testing_her2k_batched(const Arguments& arg)
 {
     // clang-format off
-    auto rocblas_herXX_batched_fn = arg.api == FORTRAN
+    auto rocblas_herXX_batched_fn = arg.api & c_API_FORTRAN
                                         ? (TWOK ? rocblas_her2k_batched<T, real_t<T>, true>
                                                 : rocblas_herkx_batched<T, real_t<T>, true>)
                                         : (TWOK ? rocblas_her2k_batched<T, real_t<T>, false>
                                                 : rocblas_herkx_batched<T, real_t<T>, false>);
 
-    auto rocblas_herXX_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_herXX_batched_fn_64 = arg.api & c_API_FORTRAN
                                         ? (TWOK ? rocblas_her2k_batched_64<T, real_t<T>, true>
                                                 : rocblas_herkx_batched_64<T, real_t<T>, true>)
                                         : (TWOK ? rocblas_her2k_batched_64<T, real_t<T>, false>

@@ -27,9 +27,9 @@
 template <typename T>
 void testing_nrm2_bad_arg(const Arguments& arg)
 {
-    auto rocblas_nrm2_fn = arg.api == FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
+    auto rocblas_nrm2_fn = arg.api & c_API_FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
     auto rocblas_nrm2_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_nrm2_64<T, true> : rocblas_nrm2_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_64<T, true> : rocblas_nrm2_64<T, false>;
 
     int64_t             N         = 100;
     int64_t             incx      = 1;
@@ -58,9 +58,9 @@ void testing_nrm2_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_nrm2(const Arguments& arg)
 {
-    auto rocblas_nrm2_fn = arg.api == FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
+    auto rocblas_nrm2_fn = arg.api & c_API_FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
     auto rocblas_nrm2_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_nrm2_64<T, true> : rocblas_nrm2_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_nrm2_64<T, true> : rocblas_nrm2_64<T, false>;
 
     int64_t N    = arg.N;
     int64_t incx = arg.incx;

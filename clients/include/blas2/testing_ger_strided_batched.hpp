@@ -28,15 +28,15 @@ template <typename T, bool CONJ>
 void testing_ger_strided_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_ger_strided_batched_fn
-        = arg.api == FORTRAN ? (CONJ ? rocblas_ger_strided_batched<T, true, true>
-                                     : rocblas_ger_strided_batched<T, false, true>)
-                             : (CONJ ? rocblas_ger_strided_batched<T, true, false>
-                                     : rocblas_ger_strided_batched<T, false, false>);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_ger_strided_batched<T, true, true>
+                                          : rocblas_ger_strided_batched<T, false, true>)
+                                  : (CONJ ? rocblas_ger_strided_batched<T, true, false>
+                                          : rocblas_ger_strided_batched<T, false, false>);
     auto rocblas_ger_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? (CONJ ? rocblas_ger_strided_batched_64<T, true, true>
-                                        : rocblas_ger_strided_batched_64<T, false, true>)
-                                : (CONJ ? rocblas_ger_strided_batched_64<T, true, false>
-                                        : rocblas_ger_strided_batched_64<T, false, false>);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_ger_strided_batched_64<T, true, true>
+                                          : rocblas_ger_strided_batched_64<T, false, true>)
+                                  : (CONJ ? rocblas_ger_strided_batched_64<T, true, false>
+                                          : rocblas_ger_strided_batched_64<T, false, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -242,15 +242,15 @@ template <typename T, bool CONJ>
 void testing_ger_strided_batched(const Arguments& arg)
 {
     auto rocblas_ger_strided_batched_fn
-        = arg.api == FORTRAN ? (CONJ ? rocblas_ger_strided_batched<T, true, true>
-                                     : rocblas_ger_strided_batched<T, false, true>)
-                             : (CONJ ? rocblas_ger_strided_batched<T, true, false>
-                                     : rocblas_ger_strided_batched<T, false, false>);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_ger_strided_batched<T, true, true>
+                                          : rocblas_ger_strided_batched<T, false, true>)
+                                  : (CONJ ? rocblas_ger_strided_batched<T, true, false>
+                                          : rocblas_ger_strided_batched<T, false, false>);
     auto rocblas_ger_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? (CONJ ? rocblas_ger_strided_batched_64<T, true, true>
-                                        : rocblas_ger_strided_batched_64<T, false, true>)
-                                : (CONJ ? rocblas_ger_strided_batched_64<T, true, false>
-                                        : rocblas_ger_strided_batched_64<T, false, false>);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_ger_strided_batched_64<T, true, true>
+                                          : rocblas_ger_strided_batched_64<T, false, true>)
+                                  : (CONJ ? rocblas_ger_strided_batched_64<T, true, false>
+                                          : rocblas_ger_strided_batched_64<T, false, false>);
 
     int64_t M           = arg.M;
     int64_t N           = arg.N;

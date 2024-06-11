@@ -27,9 +27,10 @@
 template <typename T>
 void testing_herk_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_herk_batched_fn    = arg.api == FORTRAN ? rocblas_herk_batched<T, real_t<T>, true>
-                                                         : rocblas_herk_batched<T, real_t<T>, false>;
-    auto rocblas_herk_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_herk_batched_fn    = arg.api & c_API_FORTRAN
+                                          ? rocblas_herk_batched<T, real_t<T>, true>
+                                          : rocblas_herk_batched<T, real_t<T>, false>;
+    auto rocblas_herk_batched_fn_64 = arg.api & c_API_FORTRAN
                                           ? rocblas_herk_batched_64<T, real_t<T>, true>
                                           : rocblas_herk_batched_64<T, real_t<T>, false>;
 
@@ -188,9 +189,10 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_herk_batched(const Arguments& arg)
 {
-    auto rocblas_herk_batched_fn    = arg.api == FORTRAN ? rocblas_herk_batched<T, real_t<T>, true>
-                                                         : rocblas_herk_batched<T, real_t<T>, false>;
-    auto rocblas_herk_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_herk_batched_fn    = arg.api & c_API_FORTRAN
+                                          ? rocblas_herk_batched<T, real_t<T>, true>
+                                          : rocblas_herk_batched<T, real_t<T>, false>;
+    auto rocblas_herk_batched_fn_64 = arg.api & c_API_FORTRAN
                                           ? rocblas_herk_batched_64<T, real_t<T>, true>
                                           : rocblas_herk_batched_64<T, real_t<T>, false>;
 

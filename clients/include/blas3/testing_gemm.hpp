@@ -29,9 +29,9 @@
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemm_fn = arg.api == FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    auto rocblas_gemm_fn = arg.api & c_API_FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
     auto rocblas_gemm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gemm_64<T, true> : rocblas_gemm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_64<T, true> : rocblas_gemm_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -168,9 +168,9 @@ nullptr, lda, nullptr, ldb, beta, dC, ldc));
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
-    auto rocblas_gemm_fn = arg.api == FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    auto rocblas_gemm_fn = arg.api & c_API_FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
     auto rocblas_gemm_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gemm_64<T, true> : rocblas_gemm_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_64<T, true> : rocblas_gemm_64<T, false>;
 
     rocblas_local_handle handle{arg};
     int64_t              M       = arg.M;

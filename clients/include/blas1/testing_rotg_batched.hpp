@@ -27,10 +27,11 @@
 template <typename T, typename U = T>
 void testing_rotg_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rotg_batched_fn
-        = arg.api == FORTRAN ? rocblas_rotg_batched<T, U, true> : rocblas_rotg_batched<T, U, false>;
-    auto rocblas_rotg_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_rotg_batched_64<T, U, true>
-                                                            : rocblas_rotg_batched_64<T, U, false>;
+    auto rocblas_rotg_batched_fn    = arg.api & c_API_FORTRAN ? rocblas_rotg_batched<T, U, true>
+                                                              : rocblas_rotg_batched<T, U, false>;
+    auto rocblas_rotg_batched_fn_64 = arg.api & c_API_FORTRAN
+                                          ? rocblas_rotg_batched_64<T, U, true>
+                                          : rocblas_rotg_batched_64<T, U, false>;
 
     int64_t             batch_count = 5;
     static const size_t safe_size   = 1;
@@ -78,10 +79,11 @@ void testing_rotg_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_rotg_batched(const Arguments& arg)
 {
-    auto rocblas_rotg_batched_fn
-        = arg.api == FORTRAN ? rocblas_rotg_batched<T, U, true> : rocblas_rotg_batched<T, U, false>;
-    auto rocblas_rotg_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_rotg_batched_64<T, U, true>
-                                                            : rocblas_rotg_batched_64<T, U, false>;
+    auto rocblas_rotg_batched_fn    = arg.api & c_API_FORTRAN ? rocblas_rotg_batched<T, U, true>
+                                                              : rocblas_rotg_batched<T, U, false>;
+    auto rocblas_rotg_batched_fn_64 = arg.api & c_API_FORTRAN
+                                          ? rocblas_rotg_batched_64<T, U, true>
+                                          : rocblas_rotg_batched_64<T, U, false>;
 
     int64_t batch_count = arg.batch_count;
 

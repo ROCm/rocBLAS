@@ -41,9 +41,9 @@ template <typename T>
 void testing_trmm_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_trmm_batched_fn
-        = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
-    auto rocblas_trmm_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trmm_batched_64<T, true>
-                                                            : rocblas_trmm_batched_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    auto rocblas_trmm_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_trmm_batched_64<T, true>
+                                                              : rocblas_trmm_batched_64<T, false>;
     // trmm has both inplace and outofplace versions.
     // inplace == true for inplace, inplace == false for outofplace
     bool inplace = !arg.outofplace;
@@ -473,9 +473,9 @@ template <typename T>
 void testing_trmm_batched(const Arguments& arg)
 {
     auto rocblas_trmm_batched_fn
-        = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
-    auto rocblas_trmm_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_trmm_batched_64<T, true>
-                                                            : rocblas_trmm_batched_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    auto rocblas_trmm_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_trmm_batched_64<T, true>
+                                                              : rocblas_trmm_batched_64<T, false>;
 
     // trmm has both inplace and outofplace versions.
     // inplace == true for inplace, inplace == false for outofplace

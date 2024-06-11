@@ -46,7 +46,7 @@ void testing_gemm_strided_batched_ex3_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_strided_batched_ex3_fn = arg.api == FORTRAN
+        auto rocblas_gemm_strided_batched_ex3_fn = arg.api & c_API_FORTRAN
                                                        ? rocblas_gemm_strided_batched_ex3_fortran
                                                        : rocblas_gemm_strided_batched_ex3;
 
@@ -922,7 +922,7 @@ void testing_gemm_strided_batched_ex3_bad_arg(const Arguments& arg)
 template <typename TiA, typename TiB, typename To, typename Tc>
 void testing_gemm_strided_batched_ex3(const Arguments& arg)
 {
-    auto rocblas_gemm_strided_batched_ex3_fn = arg.api == FORTRAN
+    auto rocblas_gemm_strided_batched_ex3_fn = arg.api & c_API_FORTRAN
                                                    ? rocblas_gemm_strided_batched_ex3_fortran
                                                    : rocblas_gemm_strided_batched_ex3;
 

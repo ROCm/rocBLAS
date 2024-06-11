@@ -28,11 +28,11 @@ template <typename T, bool CONJ = false>
 void testing_dot_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_dot_batched_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
               : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
     auto rocblas_dot_batched_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched_64<T, true> : rocblas_dot_batched_64<T, true>)
               : (CONJ ? rocblas_dotc_batched_64<T, false> : rocblas_dot_batched_64<T, false>);
 
@@ -92,11 +92,11 @@ template <typename T, bool CONJ = false>
 void testing_dot_batched(const Arguments& arg)
 {
     auto rocblas_dot_batched_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
               : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
     auto rocblas_dot_batched_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched_64<T, true> : rocblas_dot_batched_64<T, true>)
               : (CONJ ? rocblas_dotc_batched_64<T, false> : rocblas_dot_batched_64<T, false>);
 

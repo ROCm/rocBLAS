@@ -41,7 +41,8 @@
 template <typename T>
 void testing_trtri_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trtri_fn = arg.api == FORTRAN ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
+    auto rocblas_trtri_fn
+        = arg.api & c_API_FORTRAN ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -94,7 +95,8 @@ void testing_trtri_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trtri(const Arguments& arg)
 {
-    auto rocblas_trtri_fn = arg.api == FORTRAN ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
+    auto rocblas_trtri_fn
+        = arg.api & c_API_FORTRAN ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
 
     rocblas_int N = arg.N;
     rocblas_int lda;

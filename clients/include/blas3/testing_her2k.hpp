@@ -32,12 +32,12 @@ template <typename T, bool TWOK = true>
 void testing_her2k_bad_arg(const Arguments& arg)
 {
     auto rocblas_herXX_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (TWOK ? rocblas_her2k<T, real_t<T>, true> : rocblas_herkx<T, real_t<T>, true>)
               : (TWOK ? rocblas_her2k<T, real_t<T>, false> : rocblas_herkx<T, real_t<T>, false>);
 
     auto rocblas_herXX_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (TWOK ? rocblas_her2k_64<T, real_t<T>, true> : rocblas_herkx_64<T, real_t<T>, true>)
               : (TWOK ? rocblas_her2k_64<T, real_t<T>, false>
                       : rocblas_herkx_64<T, real_t<T>, false>);
@@ -199,12 +199,12 @@ template <typename T, bool TWOK = true>
 void testing_her2k(const Arguments& arg)
 {
     auto rocblas_herXX_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (TWOK ? rocblas_her2k<T, real_t<T>, true> : rocblas_herkx<T, real_t<T>, true>)
               : (TWOK ? rocblas_her2k<T, real_t<T>, false> : rocblas_herkx<T, real_t<T>, false>);
 
     auto rocblas_herXX_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (TWOK ? rocblas_her2k_64<T, real_t<T>, true> : rocblas_herkx_64<T, real_t<T>, true>)
               : (TWOK ? rocblas_her2k_64<T, real_t<T>, false>
                       : rocblas_herkx_64<T, real_t<T>, false>);

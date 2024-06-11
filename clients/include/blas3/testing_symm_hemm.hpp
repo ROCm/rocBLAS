@@ -29,10 +29,10 @@ template <typename T, bool HERM>
 void testing_symm_hemm_bad_arg(const Arguments& arg)
 {
     // clang-format off
-    auto rocblas_fn = HERM ? (arg.api == FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
-                           : (arg.api == FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
-    auto rocblas_fn_64 =  HERM ? (arg.api == FORTRAN_64 ? rocblas_hemm_64<T, true> : rocblas_hemm_64<T, false>)
-                              :  (arg.api == FORTRAN_64 ? rocblas_symm_64<T, true> : rocblas_symm_64<T, false>);
+    auto rocblas_fn = HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
+                           : (arg.api & c_API_FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    auto rocblas_fn_64 =  HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm_64<T, true> : rocblas_hemm_64<T, false>)
+                              :  (arg.api & c_API_FORTRAN ? rocblas_symm_64<T, true> : rocblas_symm_64<T, false>);
 
     // clang-format on
 
@@ -138,10 +138,10 @@ template <typename T, bool HERM>
 void testing_symm_hemm(const Arguments& arg)
 {
     // clang-format off
-    auto rocblas_fn = HERM ? (arg.api == FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
-                           : (arg.api == FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
-    auto rocblas_fn_64 =  HERM ? (arg.api == FORTRAN_64 ? rocblas_hemm_64<T, true> : rocblas_hemm_64<T, false>)
-                              :  (arg.api == FORTRAN_64 ? rocblas_symm_64<T, true> : rocblas_symm_64<T, false>);
+    auto rocblas_fn = HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
+                           : (arg.api & c_API_FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    auto rocblas_fn_64 =  HERM ? (arg.api & c_API_FORTRAN ? rocblas_hemm_64<T, true> : rocblas_hemm_64<T, false>)
+                              :  (arg.api & c_API_FORTRAN ? rocblas_symm_64<T, true> : rocblas_symm_64<T, false>);
 
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
     // clang-format on
