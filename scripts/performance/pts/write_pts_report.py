@@ -32,11 +32,24 @@ from pathlib import Path
 from git_info import create_github_file
 
 # Parameters for output csv file
-trackedParamList = ['function', 'precision', 'a_type', 'b_type', 'c_type', 'd_type', 'compute_type', 'input_type', 'output_type',
+trackedParamList = ['function', 'precision', 'bench_command', 'a_type', 'b_type', 'c_type', 'd_type', 'compute_type', 'input_type', 'output_type',
                     'transA', 'transB', 'uplo', 'diag', 'side', 'M', 'N', 'K', 'KL', 'KU', 'alpha', 'alphai', 'beta', 'betai',
                     'incx', 'incy', 'lda', 'ldb', 'ldd', 'stride_x', 'stride_y', 'stride_a', 'stride_b', 'stride_c', 'stride_d',
                     'batch_count', 'algo', 'solution_index', 'flags', 'iters', 'cold_iters', 'pointer_mode', 'num_perfs', 'sample_num']
                     # Add output (eg. gflops) in code dependent on what we want to record (gflops vs. gbytes)
+
+# maps output of rocblas-bench to input to rocblas-bench
+benchInputMap = {'function': 'function', 'precision': 'precision',
+                 'a_type': 'a_type', 'b_type': 'b_type', 'c_type': 'c_type', 'd_type': 'd_type', 'compute_type': 'compute_type',
+                 'transA': 'transposeA', 'transB': 'transposeB',
+                 'uplo': 'uplo', 'diag': 'diag', 'side': 'side',
+                 'M': 'sizem', 'N': 'sizen', 'K': 'sizek',
+                 'KL': 'kl', 'KU': 'ku',
+                 'alpha': 'alpha', 'alphai': 'alphai', 'beta': 'beta', 'betai': 'betai',
+                 'incx': 'incx', 'incy': 'incy', 'lda': 'lda', 'ldb': 'ldb', 'ldd': 'ldd',
+                 'stride_x': 'stride_x', 'stride_y': 'stride_y', 'stride_a': 'stride_a', 'stride_b': 'stride_b', 'stride_c': 'stride_c', 'stride_d': 'stride_d',
+                 'batch_count': 'batch_count', 'algo': 'algo', 'solution_index': 'solution_index', 'flags': 'flags', 'iters': 'iters', 'cold_iters': 'cold_iters'
+                }
 
 outputIndex = trackedParamList.index('num_perfs')
 
@@ -112,6 +125,13 @@ def getEnvironmentInfo(device_num):
 def extractTrackedParams(d):
     return [d[p] for p in trackedParamList]
 
+def getBenchCommand(keys, vals):
+    cmd = 'rocblas-bench '
+    for key in keys:
+        if key in benchInputMap:
+            cmd += '--' + benchInputMap[key] + ' ' + vals[key] + ' '
+    return cmd
+
 def parseRocblasBenchOutput(output, yamlArgs):
     csvKeys = ''
 
@@ -125,9 +145,12 @@ def parseRocblasBenchOutput(output, yamlArgs):
             #dd = defaultdict(str, args2Dict(yamlArgs[len(lineLists)]).items())
             #dd.update(getFunctionTypes(args2Dict(yamlArgs[len(lineLists)])))
             dd_output = defaultdict(str, zip(csvKeys, line.split(',')))
+            benchCommand1 = getBenchCommand(csvKeys, dd_output)
             #dd.update(dd_output)
             dd = dd_output
+            dd['bench_command'] = benchCommand1
             lineLists += [extractTrackedParams(dd)]
+
             captureNext = False
         elif line.startswith('function'):
             csvKeys = line.split(',')
