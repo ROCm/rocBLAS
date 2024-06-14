@@ -47,57 +47,21 @@
 #include "testing_set_get_vector.hpp"
 #include "testing_set_get_vector_async.hpp"
 // blas1
-#include "testing_asum.hpp"
-#include "testing_asum_batched.hpp"
-#include "testing_asum_strided_batched.hpp"
-#include "testing_axpy.hpp"
-#include "testing_axpy_batched.hpp"
-#include "testing_axpy_batched_ex.hpp"
-#include "testing_axpy_ex.hpp"
-#include "testing_axpy_strided_batched.hpp"
-#include "testing_axpy_strided_batched_ex.hpp"
-#include "testing_copy.hpp"
-#include "testing_copy_batched.hpp"
-#include "testing_copy_strided_batched.hpp"
-#include "testing_dot.hpp"
-#include "testing_dot_batched.hpp"
-#include "testing_dot_batched_ex.hpp"
-#include "testing_dot_ex.hpp"
-#include "testing_dot_strided_batched.hpp"
-#include "testing_dot_strided_batched_ex.hpp"
-#include "testing_iamax_iamin.hpp"
-#include "testing_iamax_iamin_batched.hpp"
-#include "testing_iamax_iamin_strided_batched.hpp"
-#include "testing_nrm2.hpp"
-#include "testing_nrm2_batched.hpp"
-#include "testing_nrm2_batched_ex.hpp"
-#include "testing_nrm2_ex.hpp"
-#include "testing_nrm2_strided_batched.hpp"
-#include "testing_nrm2_strided_batched_ex.hpp"
-#include "testing_rot.hpp"
-#include "testing_rot_batched.hpp"
-#include "testing_rot_batched_ex.hpp"
-#include "testing_rot_ex.hpp"
-#include "testing_rot_strided_batched.hpp"
-#include "testing_rot_strided_batched_ex.hpp"
-#include "testing_rotg.hpp"
-#include "testing_rotg_batched.hpp"
-#include "testing_rotg_strided_batched.hpp"
-#include "testing_rotm.hpp"
-#include "testing_rotm_batched.hpp"
-#include "testing_rotm_strided_batched.hpp"
-#include "testing_rotmg.hpp"
-#include "testing_rotmg_batched.hpp"
-#include "testing_rotmg_strided_batched.hpp"
-#include "testing_scal.hpp"
-#include "testing_scal_batched.hpp"
-#include "testing_scal_batched_ex.hpp"
-#include "testing_scal_ex.hpp"
-#include "testing_scal_strided_batched.hpp"
-#include "testing_scal_strided_batched_ex.hpp"
-#include "testing_swap.hpp"
-#include "testing_swap_batched.hpp"
-#include "testing_swap_strided_batched.hpp"
+// new way with prototypes
+#include "blas1/common_asum.hpp"
+#include "blas1/common_axpy.hpp"
+#include "blas1/common_copy.hpp"
+#include "blas1/common_dot.hpp"
+#include "blas1/common_iamax_iamin.hpp"
+#include "blas1/common_nrm2.hpp"
+#include "blas1/common_rot.hpp"
+#include "blas1/common_scal.hpp"
+#include "blas1/common_swap.hpp"
+#include "blas_ex/common_axpy_ex.hpp"
+#include "blas_ex/common_dot_ex.hpp"
+#include "blas_ex/common_nrm2_ex.hpp"
+#include "blas_ex/common_rot_ex.hpp"
+#include "blas_ex/common_scal_ex.hpp"
 // blas2
 #include "testing_gbmv.hpp"
 #include "testing_gbmv_batched.hpp"
@@ -1418,16 +1382,16 @@ void gpu_thread_run_bench(int id, const Arguments& arg, const std::string& filte
     run_bench_test(false, a, filter, name_filter, any_stride, false);
 }
 
-int run_bench_gpu_test(int                parallel_devices,
-                       Arguments&         arg,
-                       const std::string& filter,
-                       bool               any_stride)
+void run_bench_gpu_test(int                parallel_devices,
+                        Arguments&         arg,
+                        const std::string& filter,
+                        bool               any_stride)
 {
     int count;
     CHECK_HIP_ERROR(hipGetDeviceCount(&count));
 
     if(parallel_devices > count || parallel_devices < 1)
-        return 1;
+        GTEST_ASSERT_TRUE(false);
 
     // initialization
     rocblas_parallel_initialize(parallel_devices);
@@ -1449,8 +1413,6 @@ int run_bench_gpu_test(int                parallel_devices,
 
     for(int id = 0; id < parallel_devices; ++id)
         thread[id].join();
-
-    return 0;
 }
 
 // Replace --batch with --batch_count for backward compatibility
@@ -1937,16 +1899,19 @@ try
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
 
-    int status;
     if(!parallel_devices)
     {
         std::string name_filter = "";
-        status                  = run_bench_test(true, arg, filter, name_filter, any_stride);
+        run_bench_test(true, arg, filter, name_filter, any_stride);
     }
     else
-        status = run_bench_gpu_test(parallel_devices, arg, filter, any_stride);
+        run_bench_gpu_test(parallel_devices, arg, filter, any_stride);
 
     freeFrequencyMonitor();
+
+    int status = 0;
+    //
+
     return status;
 }
 catch(const std::invalid_argument& exp)

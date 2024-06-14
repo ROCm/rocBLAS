@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,7 @@
  * ************************************************************************ */
 #include "blas1_gtest.hpp"
 
-#include "testing_dot.hpp"
-#include "testing_dot_batched.hpp"
-#include "testing_dot_strided_batched.hpp"
+#include "blas1/common_dot.hpp"
 
 namespace
 {

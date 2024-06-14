@@ -72,12 +72,6 @@ void testing_dot_bad_arg(const Arguments& arg)
     }
 }
 
-template <typename T>
-void testing_dotc_bad_arg(const Arguments& arg)
-{
-    testing_dot_bad_arg<T, true>(arg);
-}
-
 template <typename T, bool CONJ = false>
 void testing_dot(const Arguments& arg)
 {
@@ -310,10 +304,4 @@ void testing_dot(const Arguments& arg)
                                                                  rocblas_error_host,
                                                                  rocblas_error_device);
     }
-}
-
-template <typename T>
-void testing_dotc(const Arguments& arg)
-{
-    testing_dot<T, true>(arg);
 }

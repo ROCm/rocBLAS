@@ -24,7 +24,7 @@
 
 #include "testing_common.hpp"
 
-template <typename T, typename U = T>
+template <typename T>
 void testing_rotmg_strided_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_rotmg_strided_batched_fn    = arg.api & c_API_FORTRAN

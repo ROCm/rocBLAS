@@ -130,6 +130,7 @@ endif()
 # Internal header includes
 target_include_directories( rocblas-test
   PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../common>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
@@ -153,7 +154,7 @@ target_include_directories( rocblas-test
 if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
 endif( )
-target_link_libraries( rocblas-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas hip::host hip::device )
+target_link_libraries( rocblas-test PRIVATE rocblas_clients_common ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas hip::host hip::device )
 
 if (NOT WIN32)
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs" )

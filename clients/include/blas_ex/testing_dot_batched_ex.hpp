@@ -119,12 +119,6 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
                  execution_type));
 }
 
-template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr>
-void testing_dotc_batched_ex_bad_arg(const Arguments& arg)
-{
-    testing_dot_batched_ex_bad_arg<Tx, Ty, Tr, Tex, true>(arg);
-}
-
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_batched_ex(const Arguments& arg)
 {
@@ -417,10 +411,4 @@ void testing_dot_batched_ex(const Arguments& arg)
             rocblas_error_host,
             rocblas_error_device);
     }
-}
-
-template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr>
-void testing_dotc_batched_ex(const Arguments& arg)
-{
-    testing_dot_batched_ex<Tx, Ty, Tr, Tex, true>(arg);
 }

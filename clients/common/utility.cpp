@@ -27,6 +27,7 @@
 #endif
 #include "../../library/src/include/handle.hpp"
 #include "d_vector.hpp"
+#include "gtest_helpers.hpp"
 #include "utility.hpp"
 #include <chrono>
 #include <cstdlib>
@@ -263,6 +264,11 @@ void set_device(rocblas_int device_id)
                      << ", there may not be such device ID" << std::endl;
     }
 }
+
+/*********************************************
+ * callback function
+ *********************************************/
+thread_local std::unique_ptr<std::function<void(rocblas_handle)>> t_set_stream_callback;
 
 /*****************
  * local handles *
