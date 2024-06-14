@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,7 @@
  * ************************************************************************ */
 #include "blas1_ex_gtest.hpp"
 
-#include "testing_axpy_batched_ex.hpp"
-#include "testing_axpy_ex.hpp"
-#include "testing_axpy_strided_batched_ex.hpp"
+#include "blas_ex/common_axpy_ex.hpp"
 
 namespace
 {

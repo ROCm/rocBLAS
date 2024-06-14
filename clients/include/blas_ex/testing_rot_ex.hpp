@@ -24,17 +24,17 @@
 
 #include "testing_common.hpp"
 
-template <typename Tx, typename Ty, typename Tcs, typename Tex>
+template <typename Tx, typename Ty = Tx, typename Tcs = Ty, typename Tex = Tcs>
 void testing_rot_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_rot_ex_fn = arg.api & c_API_FORTRAN ? rocblas_rot_ex_fortran : rocblas_rot_ex;
     auto rocblas_rot_ex_fn_64
         = arg.api & c_API_FORTRAN ? rocblas_rot_ex_64_fortran : rocblas_rot_ex_64;
 
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype y_type         = rocblas_datatype_f32_r;
-    rocblas_datatype cs_type        = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
+    rocblas_datatype cs_type        = rocblas_type2datatype<Tcs>();
+    rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
     int64_t              N    = 100;
     int64_t              incx = 1;
@@ -78,7 +78,7 @@ void testing_rot_ex_bad_arg(const Arguments& arg)
         (handle, N, dx, x_type, incx, dy, y_type, incy, dc, nullptr, cs_type, execution_type));
 }
 
-template <typename Tx, typename Ty, typename Tcs, typename Tex>
+template <typename Tx, typename Ty = Tx, typename Tcs = Ty, typename Tex = Tcs>
 void testing_rot_ex(const Arguments& arg)
 {
     auto rocblas_rot_ex_fn = arg.api & c_API_FORTRAN ? rocblas_rot_ex_fortran : rocblas_rot_ex;

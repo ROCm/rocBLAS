@@ -68,6 +68,7 @@
 // abort: Does not abort as cleanly as rocblas_abort, and can be caught by a signal handler
 
 #if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
+
 #undef stdout
 #undef stderr
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
@@ -97,6 +98,8 @@
  * before calling this function.
  */
 void rocblas_parallel_initialize(int parallel_devices);
+
+extern thread_local std::unique_ptr<std::function<void(rocblas_handle)>> t_set_stream_callback;
 
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */

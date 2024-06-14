@@ -38,6 +38,7 @@ endif()
 # Internal header includes
 target_include_directories( rocblas-bench
   PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../common>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
@@ -64,6 +65,7 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
 )
 if( BUILD_WITH_TENSILE )
   target_include_directories( rocblas-gemm-tune
@@ -78,7 +80,7 @@ if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
 endif()
 
-target_link_libraries( rocblas-bench PRIVATE ${BLAS_LIBRARY} roc::rocblas hip::host hip::device )
+target_link_libraries( rocblas-bench PRIVATE rocblas_clients_common ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas hip::host hip::device )
 if( BUILD_WITH_TENSILE )
   target_link_libraries( rocblas-gemm-tune PRIVATE ${BLAS_LIBRARY} roc::rocblas hip::host hip::device )
 endif()
@@ -102,7 +104,7 @@ if( BUILD_WITH_TENSILE )
   target_compile_options(rocblas-gemm-tune PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 endif()
 
-target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} ${BLIS_DEFINES} )
+target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} GOOGLE_TEST ${BLIS_DEFINES} )
 
 if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas-gemm-tune PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} )

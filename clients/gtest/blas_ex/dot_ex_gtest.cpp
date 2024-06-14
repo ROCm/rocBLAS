@@ -21,9 +21,7 @@
  * ************************************************************************ */
 #include "blas1_ex_gtest.hpp"
 
-#include "testing_dot_batched_ex.hpp"
-#include "testing_dot_ex.hpp"
-#include "testing_dot_strided_batched_ex.hpp"
+#include "blas_ex/common_dot_ex.hpp"
 
 namespace
 {

@@ -180,6 +180,10 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
       ${BLIS_CPP}
     )
 
+  find_package( GTest REQUIRED )
+
+  add_subdirectory( common )
+
   if( BUILD_CLIENTS_BENCHMARKS )
     add_subdirectory( benchmarks )
   endif( )

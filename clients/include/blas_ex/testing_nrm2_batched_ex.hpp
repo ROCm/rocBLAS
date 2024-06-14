@@ -24,7 +24,7 @@
 
 #include "testing_common.hpp"
 
-template <typename Tx, typename Tr>
+template <typename Tx, typename Tr = Tx>
 void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_nrm2_batched_ex_fn
@@ -33,9 +33,9 @@ void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
     auto rocblas_nrm2_batched_ex_fn_64
         = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
 
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype result_type    = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype result_type    = rocblas_type2datatype<Tr>();
+    rocblas_datatype execution_type = arg.compute_type;
 
     int64_t N           = 100;
     int64_t incx        = 1;
@@ -89,7 +89,7 @@ void testing_nrm2_batched_ex_bad_arg(const Arguments& arg)
                  execution_type));
 }
 
-template <typename Tx, typename Tr>
+template <typename Tx, typename Tr = Tx>
 void testing_nrm2_batched_ex(const Arguments& arg)
 {
     auto rocblas_nrm2_batched_ex_fn
@@ -98,8 +98,8 @@ void testing_nrm2_batched_ex(const Arguments& arg)
     auto rocblas_nrm2_batched_ex_fn_64
         = arg.api & c_API_FORTRAN ? rocblas_nrm2_batched_ex_64_fortran : rocblas_nrm2_batched_ex_64;
 
-    rocblas_datatype x_type         = arg.a_type;
-    rocblas_datatype result_type    = arg.b_type;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype result_type    = rocblas_type2datatype<Tr>();
     rocblas_datatype execution_type = arg.compute_type;
 
     int64_t N           = arg.N;

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +21,7 @@
  * ************************************************************************ */
 #include "blas1_gtest.hpp"
 
-#include "testing_rot.hpp"
-#include "testing_rot_batched.hpp"
-#include "testing_rot_strided_batched.hpp"
-#include "testing_rotg.hpp"
-#include "testing_rotg_batched.hpp"
-#include "testing_rotg_strided_batched.hpp"
-#include "testing_rotm.hpp"
-#include "testing_rotm_batched.hpp"
-#include "testing_rotm_strided_batched.hpp"
-#include "testing_rotmg.hpp"
-#include "testing_rotmg_batched.hpp"
-#include "testing_rotmg_strided_batched.hpp"
+#include "blas1/common_rot.hpp"
 
 namespace
 {
