@@ -166,7 +166,6 @@ def runTestCommand (platform, project, gfilter)
                   """
 
     platform.runCommand(this, command)
-    junit testXMLPath
 }
 
 def runPackageCommand(platform, project)
