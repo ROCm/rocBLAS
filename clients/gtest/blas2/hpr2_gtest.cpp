@@ -20,12 +20,10 @@
  *
  * ************************************************************************ */
 
+#include "blas2/common_hpr2.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_hpr2.hpp"
-#include "testing_hpr2_batched.hpp"
-#include "testing_hpr2_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>

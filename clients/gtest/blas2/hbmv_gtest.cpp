@@ -20,12 +20,10 @@
  *
  * ************************************************************************ */
 
+#include "blas2/common_hbmv.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_hbmv.hpp"
-#include "testing_hbmv_batched.hpp"
-#include "testing_hbmv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
