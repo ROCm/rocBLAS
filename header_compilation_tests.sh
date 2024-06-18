@@ -44,22 +44,21 @@ if ! [ -z ${ROCM_PATH+x} ]; then
     rocm_path=${ROCM_PATH}
 fi
 
-HIPCC=${rocm_path}/bin/hipcc
-
-HIPCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath $BUILD_DIR/include/rocblas) -I$(realpath $BUILD_DIR/include/rocblas/internal) -I$(realpath library/include) -I$(realpath library/src/include)  -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/include -isystem ${rocm_path}/HIPCC/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
+AMDCLANG_CXX=${rocm_path}/bin/amdclang++
+AMDCLANG_CXX_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath $BUILD_DIR/include/rocblas) -I$(realpath $BUILD_DIR/include/rocblas/internal) -I$(realpath library/include) -I$(realpath library/src/include)  -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
 
 GPU_OPTS="-Wno-unused-command-line-argument -fvisibility=hidden -fvisibility-inlines-hidden -fno-gpu-rdc -Werror"
 
-CLANG=${rocm_path}/llvm/bin/clang
-CLANG_OPTS="-xc-header -std=c99"  # auto set in hip_common.h -D__HIP_PLATFORM_HIPCC__
+AMDCLANG=${rocm_path}/bin/amdclang
+AMDCLANG_OPTS="-xc-header -std=c99"  # auto set in hip_common.h -D__HIP_PLATFORM_HIPCC__
 
 GCC=/usr/bin/gcc
 GCC_OPTS="-xc-header"
 
-C99="$HIPCC -xc-header -std=c99"
-CPP11="$HIPCC -xc++-header -std=c++11"
-CPP14="$HIPCC -xc++-header -std=c++14"
-CPP17="$HIPCC -xc++-header -std=c++17"
+C99="$AMDCLANG_CXX -xc-header -std=c99"
+CPP11="$AMDCLANG_CXX -xc++-header -std=c++11"
+CPP14="$AMDCLANG_CXX -xc++-header -std=c++14"
+CPP17="$AMDCLANG_CXX -xc++-header -std=c++17"
 
 if [[ -e /.dockerenv ]]; then
     NP=4   # limit parallelism to 4
@@ -93,7 +92,7 @@ xargs_wait()
 xargs_coproc
 find library -name rocblas.h -print0 | while read -r -d $'\0' file; do
     out=$(out_uptodate "$file" cpp17 true) || \
-        echo "$CPP17 -c -o "$out" $HIPCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+        echo "$CPP17 -c -o "$out" $AMDCLANG_CXX_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
@@ -118,11 +117,11 @@ fi
 # The headers in $SOURCE_DIR/library/include must compile with clang host, C99 or C++11,
 # for client code.
 #
-if [[ -x "$CLANG" ]]; then
+if [[ -x "$AMDCLANG" ]]; then
     xargs_coproc
     for file in $SOURCE_DIR/library/include/rocblas.h; do
         out=$(out_uptodate $file clang) || \
-             echo "$CLANG $CLANG_OPTS -c -o "$out" $HIPCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+             echo "$AMDCLANG $AMDCLANG_OPTS -c -o "$out" $AMDCLANG_CXX_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
 
     if ! xargs_wait; then
@@ -145,7 +144,7 @@ if [[ -x "$GCC" ]]; then
     xargs_coproc
     for file in $SOURCE_DIR/library/include/rocblas.h; do
         out=$(out_uptodate $file clang) || \
-             echo "$GCC $GCC_OPTS -c -o "$out" $HIPCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+             echo "$GCC $GCC_OPTS -c -o "$out" $AMDCLANG_CXX_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
 
     if ! xargs_wait; then
@@ -167,7 +166,7 @@ fi
 xargs_coproc
 for file in $SOURCE_DIR/library/include/rocblas.h; do
     out=$(out_uptodate $file c99) || \
-        echo "$C99 -c -o "$out" $HIPCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+        echo "$C99 -c -o "$out" $AMDCLANG_CXX_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
@@ -187,7 +186,7 @@ fi
 xargs_coproc
 for file in $SOURCE_DIR/library/include/rocblas.h; do
     out=$(out_uptodate $file cpp11) ||
-        echo "$CPP11 -c -o "$out" $HIPCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+        echo "$CPP11 -c -o "$out" $AMDCLANG_CXX_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then

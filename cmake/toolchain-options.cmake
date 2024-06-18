@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,35 +37,8 @@ set( CMAKE_CXX_EXTENSIONS OFF )
 add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
 
 
-# ########################################################################
-# NOTE:  CUDA compiling path
-# ########################################################################
-# I have tried compiling rocBLAS library source with multiple methods,
-# and ended up using the approach where we set the CXX compiler to hipcc.
-# I didn't like using the HIP_ADD_LIBRARY or CUDA_ADD_LIBRARY approaches,
-# for the reasons I list here.
-# 1.  Adding header include directories is through HIP_INCLUDE_DIRECTORIES(), which
-# is global to a directory and affects all targets
-# 2.  You must add HIP_SOURCE_PROPERTY_FORMAT OBJ properties to .cpp files
-# to get HIP_ADD_LIBRARY to recognize the file
-# 3.  HIP_ADD_LIBRARY invokes a call to add_custom_command() to compile files,
-# and rocBLAS does the same.  The order in which custom commands execute is
-# undefined, and sometimes a file is attempted to be compiled before it has
-# been generated.  The fix for this is to create 'PHONY' targets, which I
-# don't desire.
-
-# Using hipcc allows us to avoid the above problems, with two primary costs:
-# 1.  The cmake logic to detect compiler features fails with nvcc backend
-# 2.  Upfront cost to figure out all the strange compiler/linker flags I define
-# below.
-
-# Hopefully, cost #2 is already paid.  All in all, I want to get rid of the
-# need for hipcc, and hope that at some point of time in the future we
-# can use the export config files from hip for both ROCm & nvcc backends.
-# ########################################################################
-
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-  # Determine if CXX Compiler is hip-clang or nvcc
+  # Determine if CXX Compiler is amdclang
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--version" OUTPUT_VARIABLE CXX_OUTPUT
                   OUTPUT_STRIP_TRAILING_WHITESPACE
                   ERROR_STRIP_TRAILING_WHITESPACE)
@@ -74,7 +47,11 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
 endif()
 
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  message( STATUS "Use hip-clang to build for amdgpu backend" )
+  message( STATUS "Use amdclang to build for amdgpu backend" )
+
+  if( CMAKE_CXX_COMPILER MATCHES ".*hipcc.*" )
+    message( STATUS "WARNING: hipcc compiler use is deprecated. Use amdclang++ directly." )
+  endif()
 
   # set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
@@ -83,25 +60,10 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set ( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG} -gz -ggdb" )
   endif()
 
-elseif( CXX_VERSION_STRING MATCHES "nvcc" )
-  message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
-
-  set( CMAKE_C_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_PIC}" )
-  set( CMAKE_CXX_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_PIC}" )
-  set( CMAKE_SHARED_LIBRARY_C_FLAGS "-Xlinker ${CMAKE_SHARED_LIBRARY_C_FLAGS}" )
-  set( CMAKE_SHARED_LIBRARY_CXX_FLAGS "-Xlinker ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}" )
-  set( CMAKE_SHARED_LIBRARY_SONAME_C_FLAG "-Xlinker -soname," )
-  set( CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG "-Xlinker -soname," )
-  set( CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Xlinker -rpath," )
-  set( CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG "-Xlinker -rpath," )
-  set( CMAKE_EXECUTABLE_RUNTIME_C_FLAG "-Xlinker -rpath," )
-  set( CMAKE_EXECUTABLE_RUNTIME_CXX_FLAG "-Xlinker -rpath," )
-  set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY}" )
-  set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY}" )
-  set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
-  set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
 elseif( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  message( STATUS "ERROR: HCC compiler is no longer supported!" )
+  message( SEND_ERROR "ERROR: HCC compiler is no longer supported!" )
+else()
+  message( SEND_ERROR "ERROR: Unsupported compiler detected" )
 endif( )
 
 

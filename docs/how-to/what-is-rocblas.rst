@@ -288,7 +288,7 @@ a batch of hip and rocBLAS function calls.
 Complex Number Data Types
 -------------------------
 
-Data types for rocBLAS complex numbers in the API are a special case.  For C compiler users, gcc, and other non-hipcc compiler users, these types
+Data types for rocBLAS complex numbers in the API are a special case.  For C compiler users, gcc, and other non-amdclang compiler users, these types
 are exposed as a struct with x and y components and identical memory layout to std::complex for float and double precision.   Internally a templated
 C++ class is defined, but it should be considered deprecated for external use.   For simplified usage with Hipified code there is an option
 to interpret the API as using hipFloatComplex and hipDoubleComplex types (i.e. typedef hipFloatComplex rocblas_float_complex).  This is provided
