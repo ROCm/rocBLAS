@@ -112,57 +112,27 @@ set(rocblas_no_tensile_test_source
 
 # Keep ${rocblas_tensile_test_source} first, so that multiheaded tests are the
 # first to initialize Tensile.
-if ( BUILD_FORTRAN_CLIENTS )
-  add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} $<TARGET_OBJECTS:rocblas_fortran> ${rocblas_test_bench_common} )
-else()
-  add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} ${rocblas_test_bench_common} )
-endif()
+
+add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} )
 
 if (WIN32)
   target_compile_definitions( rocblas-test PRIVATE _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING ${BLIS_DEFINES} )
 endif()
 
-target_compile_definitions( rocblas-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST)
-if ( NOT BUILD_FORTRAN_CLIENTS )
-  target_compile_definitions( rocblas-test PRIVATE CLIENTS_NO_FORTRAN )
-endif()
 
-# Internal header includes
-target_include_directories( rocblas-test
-  PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../common>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
-)
+rocblas_client_library_settings( rocblas-test )
 
-# External header includes included as system files
-target_include_directories( rocblas-test
-  SYSTEM PRIVATE
-    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
-    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
-    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
-)
-
+target_link_libraries( rocblas-test PRIVATE rocblas_clients_testing_common rocblas_clients_common )
 if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
 endif( )
-target_link_libraries( rocblas-test PRIVATE rocblas_clients_common ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas hip::host hip::device )
+target_link_libraries( rocblas-test PRIVATE roc::rocblas hip::host hip::device )
 
 if (NOT WIN32)
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs" )
   if (NOT BUILD_FORTRAN_CLIENTS)
     list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
   endif()
-else()
-  list( APPEND COMMON_LINK_LIBS "libomp")
 endif()
 target_link_libraries( rocblas-test PRIVATE ${COMMON_LINK_LIBS} )
 

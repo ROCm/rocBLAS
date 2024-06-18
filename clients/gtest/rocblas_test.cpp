@@ -23,9 +23,6 @@
 #include "rocblas_test.hpp"
 #include "utility.hpp"
 
-// #include <cerrno>
-// #include <csetjmp>
-// #include <csignal>
 #include <cstdlib>
 #include <exception>
 #include <regex>

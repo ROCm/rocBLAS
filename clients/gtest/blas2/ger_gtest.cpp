@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,10 @@
  *
  * ************************************************************************ */
 
+#include "blas2/common_ger.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_ger.hpp"
-#include "testing_ger_batched.hpp"
-#include "testing_ger_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cstring>
 #include <type_traits>

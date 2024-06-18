@@ -20,12 +20,10 @@
  *
  * ************************************************************************ */
 
+#include "blas2/common_tpsv.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_tpsv.hpp"
-#include "testing_tpsv_batched.hpp"
-#include "testing_tpsv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>

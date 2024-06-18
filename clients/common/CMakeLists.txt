@@ -21,24 +21,77 @@
 # ########################################################################
 
 
-if( BUILD_WITH_TENSILE )
-  set(rocblas_tensile_common_source
+# ########################################################################
+# standardized common object library settings
+# ########################################################################
+function( rocblas_client_library_settings lib_target_ )
 
+  message(STATUS "** rocblas_client_library_settings: ${lib_target_}")
+
+  target_include_directories( ${lib_target_}
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
   )
-endif()
 
-set(rocblas_no_tensile_common_source
+  # External header includes included as system files
+  target_include_directories( ${lib_target_}
+    SYSTEM PRIVATE
+    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+  )
+
+  target_include_directories( ${lib_target_}
+    PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/common>
+  )
+
+  target_compile_definitions( ${lib_target_} PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
+  target_compile_definitions( ${lib_target_} PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST )
+  # GOOGLE_TEST left off for reuse of this function by by gemm tuner
+  if ( NOT BUILD_FORTRAN_CLIENTS )
+    target_compile_definitions( ${lib_target_} PRIVATE CLIENTS_NO_FORTRAN )
+  endif()
+
+endfunction()
+
+set(rocblas_common_source
     # general
+    singletons.cpp
+    utility.cpp
+    frequency_monitor.cpp
+    rocblas_arguments.cpp
+    argument_model.cpp
+    rocblas_random.cpp
+    rocblas_parse_data.cpp
+    host_alloc.cpp
     gtest_helpers.cpp
+)
+
+set(rocblas_testing_common_source
+    # general
+    cblas_interface.cpp
+    ${BLIS_CPP}
+    # aux
     # rocblas_gtest_main.cpp
+    # rocblas_main.cpp
     # rocblas_test.cpp
-    # general_gtest.cpp
-    # set_get_pointer_mode_gtest.cpp
-    # set_get_atomics_mode_gtest.cpp
-    # logging_mode_gtest.cpp
-    # ostream_threadsafety_gtest.cpp
-    # set_get_vector_gtest.cpp
-    # set_get_matrix_gtest.cpp
+    # general.cpp
+    # set_get_pointer_mode.cpp
+    # set_get_atomics_mode.cpp
+    # logging_mode.cpp
+    # ostream_threadsafety.cpp
+    # set_get_vector.cpp
+    # set_get_matrix.cpp
     # blas1
     blas1/common_asum.cpp
     blas1/common_axpy.cpp
@@ -56,88 +109,61 @@ set(rocblas_no_tensile_common_source
     blas_ex/common_rot_ex.cpp
     blas_ex/common_scal_ex.cpp
     # blas2
-    # blas2/trsv_gtest.cpp
-    # blas2/gbmv_gtest.cpp
-    # blas2/gemv_gtest.cpp
-    # blas2/hbmv_gtest.cpp
-    # blas2/hemv_gtest.cpp
-    # blas2/her_gtest.cpp
-    # blas2/her2_gtest.cpp
-    # blas2/hpmv_gtest.cpp
-    # blas2/hpr_gtest.cpp
-    # blas2/hpr2_gtest.cpp
-    # blas2/trmv_gtest.cpp
-    # blas2/tpmv_gtest.cpp
-    # blas2/tbmv_gtest.cpp
-    # blas2/tbsv_gtest.cpp
-    # blas2/tpsv_gtest.cpp
-    # blas2/ger_gtest.cpp
-    # blas2/geru_gtest.cpp
-    # blas2/gerc_gtest.cpp
-    # blas2/spr_gtest.cpp
-    # blas2/spr2_gtest.cpp
-    # blas2/syr_gtest.cpp
-    # blas2/syr2_gtest.cpp
-    # blas2/sbmv_gtest.cpp
-    # blas2/spmv_gtest.cpp
-    # blas2/symv_gtest.cpp
+    blas2/common_trsv.cpp
+    blas2/common_gbmv.cpp
+    blas2/common_gemv.cpp
+    blas2/common_hbmv.cpp
+    blas2/common_hemv.cpp
+    blas2/common_her.cpp
+    blas2/common_her2.cpp
+    blas2/common_hpmv.cpp
+    blas2/common_hpr.cpp
+    blas2/common_hpr2.cpp
+    blas2/common_trmv.cpp
+    blas2/common_tpmv.cpp
+    blas2/common_tbmv.cpp
+    blas2/common_tbsv.cpp
+    blas2/common_tpsv.cpp
+    blas2/common_ger.cpp
+    blas2/common_spr.cpp
+    blas2/common_spr2.cpp
+    blas2/common_syr.cpp
+    blas2/common_syr2.cpp
+    blas2/common_sbmv.cpp
+    blas2/common_spmv.cpp
+    blas2/common_symv.cpp
     # blas3 may use tensile or source gemm
-    # blas3/gemm_gtest.cpp
-    # blas_ex/gemm_ex_gtest.cpp
-    # blas_ex/gemm_ex3_gtest.cpp
-    # blas3/symm_gtest.cpp
-    # blas3/hemm_gtest.cpp
-    # blas3/trsm_gtest.cpp
-    # blas3/trtri_gtest.cpp
-    # blas3/trmm_gtest.cpp
-    # blas3/syrk_gtest.cpp
-    # blas3/syrkx_gtest.cpp
-    # blas3/syr2k_gtest.cpp
-    # blas3/herk_gtest.cpp
-    # blas3/herkx_gtest.cpp
-    # blas3/her2k_gtest.cpp
-    # blas3/dgmm_gtest.cpp
-    # blas3/geam_gtest.cpp
-    # blas_ex/gemmt_gtest.cpp
-    # blas_ex/geam_ex_gtest.cpp
+    # blas3/gemm.cpp
+    # blas_ex/gemm_ex.cpp
+    # blas_ex/gemm_ex3.cpp
+    # blas3/symm.cpp
+    # blas3/hemm.cpp
+    # blas3/trsm.cpp
+    # blas3/trtri.cpp
+    # blas3/trmm.cpp
+    # blas3/syrk.cpp
+    # blas3/syrkx.cpp
+    # blas3/syr2k.cpp
+    # blas3/herk.cpp
+    # blas3/herkx.cpp
+    # blas3/her2k.cpp
+    # blas3/dgmm.cpp
+    # blas3/geam.cpp
+    # blas_ex/gemmt.cpp
+    # blas_ex/geam_ex.cpp
   )
 
-add_library(rocblas_clients_common OBJECT ${rocblas_no_tensile_common_source})
+add_library(rocblas_clients_common OBJECT ${rocblas_common_source})
 
-# Internal header includes
-target_include_directories( rocblas_clients_common
-  PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
-)
+rocblas_client_library_settings( rocblas_clients_common )
 
-# External header includes included as system files
-target_include_directories( rocblas_clients_common
-  SYSTEM PRIVATE
-    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
-    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
-    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
-)
+add_library(rocblas_clients_testing_common OBJECT ${rocblas_testing_common_source})
 
-target_include_directories( rocblas_clients_common
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas1>
-)
+rocblas_client_library_settings( rocblas_clients_testing_common )
 
-target_compile_definitions( rocblas_clients_common PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
-target_compile_definitions( rocblas_clients_common PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST)
-if ( NOT BUILD_FORTRAN_CLIENTS )
-  target_compile_definitions( rocblas_clients_common PRIVATE CLIENTS_NO_FORTRAN )
-endif()
 
 # target is not linked as OBJECT library but we want any interface flags from dependencies
-target_link_libraries( rocblas_clients_common PRIVATE roc::rocblas hip::host hip::device ${GTEST_BOTH_LIBRARIES} )
+target_link_libraries( rocblas_clients_common roc::rocblas hip::host hip::device ${GTEST_BOTH_LIBRARIES} ${COMMON_LINK_LIBS} )
+target_link_libraries( rocblas_clients_testing_common roc::rocblas hip::host hip::device ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} ${COMMON_LINK_LIBS} )
+
 

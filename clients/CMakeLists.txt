@@ -81,6 +81,10 @@ if (TARGET OpenMP::OpenMP_CXX)
   endif()
 endif()
 
+if (WIN32)
+  list( APPEND COMMON_LINK_LIBS "libomp")
+endif()
+
 if (TARGET Threads::Threads)
   list( APPEND COMMON_LINK_LIBS "Threads::Threads")
 endif()
@@ -165,20 +169,6 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
       find_package(ROCmSMI REQUIRED)
       list( APPEND COMMON_LINK_LIBS rocm_smi )
   endif()
-
-  # common source files used in subdirectories benchmarks and gtest thus ../common
-  set( rocblas_test_bench_common
-      ../common/singletons.cpp
-      ../common/utility.cpp
-      ../common/frequency_monitor.cpp
-      ../common/cblas_interface.cpp
-      ../common/rocblas_arguments.cpp
-      ../common/argument_model.cpp
-      ../common/rocblas_random.cpp
-      ../common/rocblas_parse_data.cpp
-      ../common/host_alloc.cpp
-      ${BLIS_CPP}
-    )
 
   find_package( GTest REQUIRED )
 
