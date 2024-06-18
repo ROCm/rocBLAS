@@ -442,15 +442,15 @@ install_blis()
 
 # Default cmake executable is called cmake
 cmake_executable=cmake
-cxx="hipcc"
-cc="hipcc"
+cxx="g++"
+cc="gcc"
 fc="gfortran"
 
 # #################################################
 # dependencies
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
-  CMAKE_VERSION=$(cmake --version | grep -oP '(?<=version )[^ ]*' )
+  CMAKE_VERSION=$(${cmake_executable} --version | grep -oP '(?<=version )[^ ]*')
 
   install_packages
 

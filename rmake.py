@@ -46,7 +46,7 @@ def parse_args():
     general_opts = parser.add_argument_group('General Build Options')
     experimental_opts = parser.add_argument_group('Experimental Build Options')
 
-    general_opts.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="all",
+    general_opts.add_argument('-a', '--architecture', dest='gpu_architecture', type=str, required=False, default="all",
                         help='Set GPU architectures, e.g. all, auto, "gfx900;gfx906:xnack-", gfx1030 (optional, default: all, recommended: auto, builds for architecture detected on the build machine)')
 
     experimental_opts.add_argument(       '--address-sanitizer', dest='address_sanitizer', required=False, default=False, action='store_true',
@@ -221,19 +221,55 @@ def os_detect():
     OS_info["NUM_PROC"] = os.cpu_count()
     OS_info["RAM_GB"] = get_ram_GB()
 
-def jobs_heuristic():
+def get_arch_parallelism() -> int:
+    global args
+    if (args.gpu_architecture == "all"):
+        num_parallel = 4
+    else:
+        num_parallel = max( 4, len(args.gpu_architecture.split(';')) )
+    return num_parallel
+
+def get_compiler_jobs(env_var: str) -> int:
+        cjobs = 1
+        pjstr = env_var.split("parallel-jobs=")
+        if len(pjstr) > 1:
+            arg = pjstr[1].split(" ")
+            if len(arg[0]):
+                cjobs = int(arg[0])
+        return cjobs
+
+def get_env_compiler_parallelism() -> int:
+    # new and legacy env
+    hip_clang_job_env = os.getenv('HIP_CLANG_NUM_PARALLEL_JOBS', "0")
+
+    if len(hip_clang_job_env) and int(hip_clang_job_env) > 0:
+        return int(hip_clang_job_env)
+    else:
+        clang_flags = os.getenv('CCC_OVERRIDE_OPTIONS', "")
+        hipcc_flags = os.getenv('HIPCC_COMPILE_FLAGS_APPEND', "")
+        cjobs = 1
+        if len(clang_flags) > 1:
+            cjobs = get_compiler_jobs( clang_flags )
+        elif len(hipcc_flags) > 1:
+            cjobs = get_compiler_jobs( hipcc_flags )
+        if (cjobs == 1 and len(clang_flags) < 1) and len(hipcc_flags) < 1:
+            cjobs = get_arch_parallelism()
+            # use HIP_ define to capture to makefiles, as env override would be compile time
+            # if cjobs > 1:
+            #     custom_env["CCC_OVERRIDE_OPTIONS"] = f"#+-parallel-jobs={cjobs}"
+        cjobs = min(8, cjobs)
+        return cjobs
+
+def jobs_heuristic() -> int:
     # auto jobs heuristics
     nprocs = min(OS_info["NUM_PROC"], 128) # disk limiter
     ram = OS_info["RAM_GB"]
     jobs = nprocs
     if (ram >= 16): # don't apply if below minimum RAM
         jobs = min(round(ram/2), jobs) # RAM limiter
-    hipcc_flags = os.getenv('HIPCC_COMPILE_FLAGS_APPEND', "")
-    pjstr = hipcc_flags.split("parallel-jobs=")
-    if (len(pjstr) > 1):
-        pjobs = int(pjstr[1][0])
-        if (pjobs > 1):
-            jobs = min( jobs, max( 1, round(nprocs / pjobs) ) )
+    pjobs = get_env_compiler_parallelism()
+    if (pjobs > 1 and pjobs < jobs):
+        jobs = round(jobs / pjobs)
     if os.name == "nt":
         jobs = min(61, jobs) # multiprocessing limit (used by tensile)
     return int(jobs)
@@ -309,6 +345,11 @@ def config_cmd():
         toolchain = "toolchain-linux.cmake"
 
     print(f"Build source path: {src_path}")
+
+    cjobs = get_env_compiler_parallelism()
+    if cjobs > 1:
+        compile_args = f"-DHIP_CLANG_NUM_PARALLEL_JOBS={cjobs}"
+        cmake_options.append(compile_args)
 
     tools = f"-DCMAKE_TOOLCHAIN_FILE={toolchain}"
     cmake_options.append(tools)
@@ -423,7 +464,8 @@ def config_cmd():
         else:
             cmake_options.append(f"-DTensile_LIBRARY_FORMAT=yaml")
         if args.jobs != OS_info["NUM_PROC"]:
-            cmake_options.append(f"-DTensile_CPU_THREADS={str(args.jobs)}")
+            # tensile doesn't use HIP_CLANG_NUM_PARALLEL_JOBS so multiply by cjobs
+            cmake_options.append(f"-DTensile_CPU_THREADS={str(args.jobs*cjobs)}")
 
     if args.legacy_include_dir:
         cmake_options.append(f"-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON")

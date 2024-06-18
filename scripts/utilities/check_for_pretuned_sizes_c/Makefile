@@ -1,22 +1,24 @@
-# Makefile assumes rocBLAS is installed in /opt/rocm/rocblas
+# Makefile assumes rocBLAS is installed in /opt/rocm
 
 ROCM_INSTALL_DIR=/opt/rocm
 ROCBLAS_INSTALL_DIR=$(ROCM_INSTALL_DIR)
 ROCBLAS_INCLUDE=$(ROCBLAS_INSTALL_DIR)/include
 ROCBLAS_LIB_PATH=$(ROCBLAS_INSTALL_DIR)/lib
 HIP_INCLUDE=$(ROCM_INSTALL_DIR)/include
-LDFLAGS=-L$(ROCBLAS_LIB_PATH) -lrocblas
-LD=$(ROCM_INSTALL_DIR)/bin/hipcc
-CFLAGS=-I$(ROCBLAS_INCLUDE) -I$(HIP_INCLUDE) -std=c++17 -DROCM_USE_FLOAT16
-CPP=$(ROCM_INSTALL_DIR)/bin/hipcc
+
+CXX_FLAGS=-I$(ROCBLAS_INCLUDE) -I$(HIP_INCLUDE) -std=c++17 -DROCM_USE_FLOAT16
+CXX=$(ROCM_INSTALL_DIR)/bin/amdclang++
+LD_FLAGS=-L$(ROCBLAS_LIB_PATH) -lrocblas
+LD=$(ROCM_INSTALL_DIR)/bin/amdclang++
+
 OBJ=check-for-pretuned-sizes.o
 EXE=check-for-pretuned-sizes
 
 %.o: %.cpp
-	$(CPP) -c -o $@ $< $(CFLAGS)
+	$(CXX) -x hip -c -o $@ $< $(CXX_FLAGS)
 
 $(EXE) : $(OBJ)
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	$(LD) $(OBJ) $(LD_FLAGS) -o $@
 
 clean:
 	rm -f $(EXE) $(OBJ)
