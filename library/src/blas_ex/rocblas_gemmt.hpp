@@ -99,23 +99,23 @@ inline rocblas_status rocblas_gemmt_arg_check(rocblas_handle    handle,
  * ===========================================================================
  */
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_gemmt_launcher(rocblas_handle    handle,
                                                rocblas_fill      uplo,
                                                rocblas_operation trans_a,
                                                rocblas_operation trans_b,
                                                rocblas_int       n,
-                                               rocblas_int       k,
+                                               API_INT           k,
                                                const TScal*      alpha,
                                                TConstPtr         A,
-                                               int64_t           lda,
+                                               API_INT           lda,
                                                rocblas_stride    stride_a,
                                                TConstPtr         B,
-                                               int64_t           ldb,
+                                               API_INT           ldb,
                                                rocblas_stride    stride_b,
                                                const TScal*      beta,
                                                TPtr              C,
-                                               int64_t           ldc,
+                                               API_INT           ldc,
                                                rocblas_stride    stride_c,
                                                rocblas_int       batch_count);
 

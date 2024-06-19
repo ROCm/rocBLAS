@@ -24,7 +24,7 @@
 
 #include "handle.hpp"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
                                                   rocblas_fill      uplo,
                                                   rocblas_operation trans_a,
