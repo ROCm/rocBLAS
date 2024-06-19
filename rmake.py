@@ -226,7 +226,7 @@ def get_arch_parallelism() -> int:
     if (args.gpu_architecture == "all"):
         num_parallel = 4
     else:
-        num_parallel = max( 4, len(args.gpu_architecture.split(';')) )
+        num_parallel = min( 4, len(args.gpu_architecture.split(';')) )
     return num_parallel
 
 def get_compiler_jobs(env_var: str) -> int:
