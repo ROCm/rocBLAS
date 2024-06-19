@@ -29,6 +29,7 @@
 #include "rocblas_blas_ex_threshold.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_gemmt.hpp"
+#include "src64/blas3/rocblas_gemm_64.hpp" // int64 API called
 #include "utility.hpp"
 
 template <typename API_INT,
@@ -46,7 +47,7 @@ template <typename API_INT,
           typename TPtr>
 ROCBLAS_KERNEL(DIM_N* DIM_N)
 rocblas_internal_gemmt_kernel(rocblas_int    N,
-                              rocblas_int    K,
+                              API_INT        K,
                               TScal          alpha_device_host,
                               TConstPtr      dA_array,
                               API_INT        lda,
@@ -158,23 +159,23 @@ rocblas_internal_gemmt_kernel(rocblas_int    N,
     }
 }
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                        rocblas_fill      uplo,
                                                        rocblas_operation transA,
                                                        rocblas_operation transB,
                                                        rocblas_int       n,
-                                                       rocblas_int       k,
+                                                       API_INT           k,
                                                        const TScal*      alpha,
                                                        TConstPtr         dA,
-                                                       rocblas_int       lda,
+                                                       API_INT           lda,
                                                        rocblas_stride    stride_a,
                                                        TConstPtr         dB,
-                                                       rocblas_int       ldb,
+                                                       API_INT           ldb,
                                                        rocblas_stride    stride_b,
                                                        const TScal*      beta,
                                                        TPtr              dC,
-                                                       rocblas_int       ldc,
+                                                       API_INT           ldc,
                                                        rocblas_stride    stride_c,
                                                        rocblas_int       batch_count)
 {
@@ -198,7 +199,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
         if(uplo == rocblas_fill_upper)
         {
             if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -210,7 +211,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -223,7 +224,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -235,7 +236,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -247,7 +248,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -260,7 +261,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -273,7 +274,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -286,7 +287,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -299,7 +300,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -314,7 +315,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
         else
         {
             if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -326,7 +327,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -339,7 +340,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -351,7 +352,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -363,7 +364,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -376,7 +377,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -389,7 +390,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -402,7 +403,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -415,7 +416,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -434,7 +435,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
         if(uplo == rocblas_fill_upper)
         {
             if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -446,7 +447,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -459,7 +460,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -471,7 +472,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -483,7 +484,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -496,7 +497,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -509,7 +510,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -522,7 +523,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -535,7 +536,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -550,7 +551,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
         else
         {
             if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -562,7 +563,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -575,7 +576,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -587,7 +588,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -599,7 +600,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                                      TScal>),
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -612,7 +613,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -625,7 +626,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -638,7 +639,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -651,7 +652,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                       ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
-                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<rocblas_int,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_internal_gemmt_kernel<API_INT,
                                                                      dim_n,
                                                                      blk_n,
                                                                      blk_k,
@@ -673,23 +674,28 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
 #define OFFSET_B(i1) i1* rocblas_stride(b_s1)
 #define OFFSET_C(i1, i2) i1* rocblas_stride(c_s1) + i2* rocblas_stride(c_s2)
 
-template <rocblas_int MIN_NB, bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT,
+          rocblas_int MIN_NB,
+          bool        BATCHED,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr>
 rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas_handle    handle,
                                                                          rocblas_fill      uplo,
                                                                          rocblas_operation transA,
                                                                          rocblas_operation transB,
                                                                          rocblas_int       n,
-                                                                         rocblas_int       k,
+                                                                         API_INT           k,
                                                                          const TScal*      alpha,
                                                                          TConstPtr         dA,
-                                                                         rocblas_int       lda,
+                                                                         API_INT           lda,
                                                                          rocblas_stride    stride_a,
                                                                          TConstPtr         dB,
-                                                                         rocblas_int       ldb,
+                                                                         API_INT           ldb,
                                                                          rocblas_stride    stride_b,
                                                                          const TScal*      beta,
                                                                          TPtr              dC,
-                                                                         rocblas_int       ldc,
+                                                                         API_INT           ldc,
                                                                          rocblas_stride    stride_c,
                                                                          rocblas_int batch_count)
 {
@@ -711,7 +717,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
 
     // call rocblas_internal_gemmt_general_template with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
-    rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, nb, k, alpha,
+    rocblas_internal_gemmt_general_template<API_INT>(handle, uplo, transA, transB, nb, k, alpha,
                          dA, lda, nb * a_s1,
                          dB, ldb, nb * b_s1, beta,
                          dC, ldc, nb * (c_s1 + c_s2), n_nb);
@@ -724,7 +730,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
         n_diag = n - i_diag;
         // call rocblas_internal_gemmt_general_template for one remainder diagonal block of size n_diag
         // clang-format off
-        rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, n_diag, k, alpha,
+        rocblas_internal_gemmt_general_template<API_INT>(handle, uplo, transA, transB, n_diag, k, alpha,
                           dA + i_diag * a_s1, lda, stride_a,
                           dB + i_diag * b_s1, ldb, stride_b, beta,
                           dC + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count);
@@ -750,7 +756,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
         if(rocblas_fill_lower == uplo)
         {
             // clang-format off
-            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                  handle, transA, transB, nb, nb, k, alpha,
                  dA, OFFSET_A(i_start),    lda, stride * a_s1,
                  dB, OFFSET_B(0),          ldb, stride * b_s1, beta,
@@ -760,7 +766,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
         else
         {
             // clang-format off
-            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                  handle, transA, transB, nb, nb, k, alpha,
                  dA, OFFSET_A(0),          lda, stride * a_s1,
                  dB, OFFSET_B(i_start),    ldb, stride * b_s1, beta,
@@ -778,7 +784,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                      handle, transA, transB, n1, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, beta,
@@ -788,7 +794,7 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                      handle, transA, transB, nb, n1, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, beta,
@@ -800,24 +806,29 @@ rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas
     return rocblas_status_success;
 }
 
-template <rocblas_int MIN_NB, bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT,
+          rocblas_int MIN_NB,
+          bool        BATCHED,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr>
 rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_template(
     rocblas_handle    handle,
     rocblas_fill      uplo,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int       n,
-    rocblas_int       k,
+    API_INT           k,
     const TScal*      alpha,
     TConstPtr         dA,
-    rocblas_int       lda,
+    API_INT           lda,
     rocblas_stride    stride_a,
     TConstPtr         dB,
-    rocblas_int       ldb,
+    API_INT           ldb,
     rocblas_stride    stride_b,
     const TScal*      beta,
     TPtr              dC,
-    rocblas_int       ldc,
+    API_INT           ldc,
     rocblas_stride    stride_c,
     rocblas_int       batch_count)
 {
@@ -843,12 +854,12 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
 
         // clang-format off
         if(BATCHED)
-            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, nb, k, alpha,
+            rocblas_internal_gemmt_general_template<API_INT>(handle, uplo, transA, transB, nb, k, alpha,
                          dA, lda, OFFSET_A(i_diag),
                          dB, ldb, OFFSET_B(i_diag), beta,
                          dC, ldc, OFFSET_C(i_diag, i_diag), batch_count);
         else
-            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, nb, k, alpha,
+            rocblas_internal_gemmt_general_template<API_INT>(handle, uplo, transA, transB, nb, k, alpha,
                          dA + OFFSET_A(i_diag), lda, stride_a,
                          dB + OFFSET_B(i_diag), ldb, stride_b, beta,
                          dC + OFFSET_C(i_diag, i_diag), ldc, stride_c, batch_count);
@@ -863,12 +874,12 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
 
         // clang-format off
         if(BATCHED)
-            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, n_diag, k, alpha,
+            rocblas_internal_gemmt_general_template<API_INT>(handle, uplo, transA, transB, n_diag, k, alpha,
                          dA, lda, OFFSET_A(i_diag),
                          dB, ldb, OFFSET_B(i_diag), beta,
                          dC, ldc, OFFSET_C(i_diag, i_diag), batch_count);
         else
-            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, n_diag, k, alpha,
+            rocblas_internal_gemmt_general_template<API_INT>(handle, uplo, transA, transB, n_diag, k, alpha,
                          dA + OFFSET_A(i_diag), lda, stride_a,
                          dB + OFFSET_B(i_diag), ldb, stride_b, beta,
                          dC + OFFSET_C(i_diag, i_diag), ldc, stride_c, batch_count);
@@ -898,7 +909,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                      handle, transA, transB, nb, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, beta,
@@ -908,7 +919,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                      handle, transA, transB, nb, nb, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, beta,
@@ -927,7 +938,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             if(rocblas_fill_lower == uplo)
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                      handle, transA, transB, n1, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
                      dB, OFFSET_B(i2),     ldb, stride_b, beta,
@@ -937,7 +948,7 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
             else
             {
                 // clang-format off
-                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm<BATCHED, TScal>(
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_64<BATCHED>(
                      handle, transA, transB, nb, n1, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
                      dB, OFFSET_B(i1),     ldb, stride_b, beta,
@@ -949,23 +960,23 @@ rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_te
     return rocblas_status_success;
 }
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_gemmt_launcher(rocblas_handle    handle,
                                                rocblas_fill      uplo,
                                                rocblas_operation transA,
                                                rocblas_operation transB,
                                                rocblas_int       n,
-                                               rocblas_int       k,
+                                               API_INT           k,
                                                const TScal*      alpha_in,
                                                TConstPtr         dA,
-                                               int64_t           lda,
+                                               API_INT           lda,
                                                rocblas_stride    stride_a,
                                                TConstPtr         dB,
-                                               int64_t           ldb,
+                                               API_INT           ldb,
                                                rocblas_stride    stride_b,
                                                const TScal*      beta_in,
                                                TPtr              dC,
-                                               int64_t           ldc,
+                                               API_INT           ldc,
                                                rocblas_stride    stride_c,
                                                rocblas_int       batch_count)
 {
@@ -1016,19 +1027,23 @@ rocblas_status rocblas_internal_gemmt_launcher(rocblas_handle    handle,
         {
             //using similar number of blocks as that of syr2k
             if constexpr(std::is_same_v<TScal, float>)
-                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_SSYR2K_NB,
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<API_INT,
+                                                                                 ROCBLAS_SSYR2K_NB,
                                                                                  BATCHED>(
                     ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
             else if constexpr(std::is_same_v<TScal, double>)
-                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_DSYR2K_NB,
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<API_INT,
+                                                                                 ROCBLAS_DSYR2K_NB,
                                                                                  BATCHED>(
                     ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
             else if constexpr(std::is_same_v<TScal, rocblas_float_complex>)
-                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_CSYR2K_NB,
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<API_INT,
+                                                                                 ROCBLAS_CSYR2K_NB,
                                                                                  BATCHED>(
                     ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
             else if constexpr(std::is_same_v<TScal, rocblas_double_complex>)
-                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_ZSYR2K_NB,
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<API_INT,
+                                                                                 ROCBLAS_ZSYR2K_NB,
                                                                                  BATCHED>(
                     ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
         }
@@ -1037,18 +1052,22 @@ rocblas_status rocblas_internal_gemmt_launcher(rocblas_handle    handle,
             //using similar number of blocks as that of syr2k
             if constexpr(std::is_same_v<TScal, float>)
                 return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    API_INT,
                     ROCBLAS_SSYR2K_NB,
                     BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
             else if constexpr(std::is_same_v<TScal, double>)
                 return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    API_INT,
                     ROCBLAS_DSYR2K_NB,
                     BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
             else if constexpr(std::is_same_v<TScal, rocblas_float_complex>)
                 return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    API_INT,
                     ROCBLAS_CSYR2K_NB,
                     BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
             else if constexpr(std::is_same_v<TScal, rocblas_double_complex>)
                 return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    API_INT,
                     ROCBLAS_ZSYR2K_NB,
                     BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
 #undef ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS
@@ -1060,7 +1079,7 @@ rocblas_status rocblas_internal_gemmt_launcher(rocblas_handle    handle,
     handle, uplo, transA, transB, n, k, alpha_in, dA, lda, stride_a, dB, ldb, stride_b, beta_in, \
         dC, ldc, stride_c, batch_count
 
-        return rocblas_internal_gemmt_general_template(ROCBLAS_INTERNAL_GEMMT_PARAMS);
+        return rocblas_internal_gemmt_general_template<API_INT>(ROCBLAS_INTERNAL_GEMMT_PARAMS);
 
 #undef ROCBLAS_INTERNAL_GEMMT_PARAMS
     }

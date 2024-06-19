@@ -103,19 +103,23 @@ Tests:
   gpu_arch: '90a'
   os_flags: LINUX
 
-- name: gemmt_64   # TODO: add tests for K, lda, ldb, ldc > int32_t_max
+- name: gemmt_64
   category: stress
-  api: [C_64]
-  function: gemmt
-  precision: *single_precision
-  uplo: [ U    ] # op(A) and op(B) are NxK
+  uplo: [ U , L ] # op(A) and op(B) are NxK
   matrix_size:
-    - { transA: N, transB: N,  N:     3, K:  469  ,  lda:     3,  ldb:     469  ,  ldc: 3 }
+    - { N:  35, K:  2,  lda:  2147483649, ldb: 36, ldc: 36, batch_count: 1, transA: N, transB: N, uplo: U }
+    - { N:  35, K:  2,  lda: 36, ldb: 2147483649, ldc: 36, batch_count: 1, transA: T, transB: T, uplo: L }
+    - { N:  35, K:  2,  lda: 36, ldb: 36, ldc: 2147483649, batch_count: 1, transA: T, transB: T, uplo: U }
+    - { N:  2, K:   2,  lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: N, transB: T, uplo: L}
+    - { N:  3, K:   469, lda: 3, ldb: 469, ldc: 3, transA: N, transB: N, uplo: U }
+  api: [ C_64 ]
   alpha_beta:
-    - { alpha:  0.5, beta:  0.5 }
-  batch_count: [ 1 ]
-  pointer_mode_host: false
-  os_flags: LINUX
+    - { alpha:  1.0, beta:  1.0 }
+  os_flags: [ LINUX ]
+  function:
+    - gemmt_strided_batched: *single_precision
+  stride_scale: 1
+  gpu_arch: '9??'
 
 # batched
 - name: gemmt_batched_bad

@@ -26,7 +26,7 @@
 #include "int64_helpers.hpp"
 #include "rocblas_gemmt_64.hpp"
 
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
                                                   rocblas_fill      uplo,
                                                   rocblas_operation trans_a,
@@ -46,26 +46,34 @@ rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
                                                   rocblas_stride    stride_c,
                                                   int64_t           batch_count_64)
 {
-    if(n_64 <= c_i32_max && k_64 < c_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
+    // quick return
+    if(!n_64 || !k_64 || !batch_count_64)
+        return rocblas_status_success;
+
+    if(n_64 > c_i32_max)
+        return rocblas_status_invalid_size; // defer adding new kernels as C is a n_64 * n_64  matrix and when n_64 > c_i32_max it exceeds practical device memory.
+
+    if(k_64 <= c_i32_max && lda_64 <= c_i32_max && ldb_64 <= c_i32_max && ldc_64 <= c_i32_max
+       && batch_count_64 <= c_i64_grid_YZ_chunk)
     {
-        return rocblas_internal_gemmt_launcher(handle,
-                                               uplo,
-                                               trans_a,
-                                               trans_b,
-                                               n_64,
-                                               k_64,
-                                               alpha,
-                                               A,
-                                               lda_64,
-                                               stride_a,
-                                               B,
-                                               ldb_64,
-                                               stride_b,
-                                               beta,
-                                               C,
-                                               ldc_64,
-                                               stride_c,
-                                               batch_count_64);
+        return rocblas_internal_gemmt_launcher<rocblas_int>(handle,
+                                                            uplo,
+                                                            trans_a,
+                                                            trans_b,
+                                                            (rocblas_int)n_64,
+                                                            k_64,
+                                                            alpha,
+                                                            A,
+                                                            lda_64,
+                                                            stride_a,
+                                                            B,
+                                                            ldb_64,
+                                                            stride_b,
+                                                            beta,
+                                                            C,
+                                                            ldc_64,
+                                                            stride_c,
+                                                            (rocblas_int)batch_count_64);
     }
 
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
@@ -76,41 +84,28 @@ rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
         auto B_ptr = adjust_ptr_batch(B, b_base, stride_b);
         auto C_ptr = adjust_ptr_batch(C, b_base, stride_c);
 
-        rocblas_status status = rocblas_status_success;
+        rocblas_status status = rocblas_internal_gemmt_launcher<int64_t>(handle,
+                                                                         uplo,
+                                                                         trans_a,
+                                                                         trans_b,
+                                                                         rocblas_int(n_64),
+                                                                         k_64,
+                                                                         alpha,
+                                                                         A_ptr,
+                                                                         lda_64,
+                                                                         stride_a,
+                                                                         B_ptr,
+                                                                         ldb_64,
+                                                                         stride_b,
+                                                                         beta,
+                                                                         C_ptr,
+                                                                         ldc_64,
+                                                                         stride_c,
+                                                                         batch_count);
 
-        if(n_64 <= c_i32_max && k_64 < c_i32_max)
-        {
-            status = rocblas_internal_gemmt_launcher(handle,
-                                                     uplo,
-                                                     trans_a,
-                                                     trans_b,
-                                                     rocblas_int(n_64),
-                                                     rocblas_int(k_64),
-                                                     alpha,
-                                                     A_ptr,
-                                                     lda_64,
-                                                     stride_a,
-                                                     B_ptr,
-                                                     ldb_64,
-                                                     stride_b,
-                                                     beta,
-                                                     C_ptr,
-                                                     ldc_64,
-                                                     stride_c,
-                                                     batch_count);
-
-            if(status != rocblas_status_success)
-                return status;
-        }
-        else
-        {
-            // TODO:
-            // implement chunking for when k_64 > c_i32_max.
-            // C is a triangle matrix of dimension n_64 * n_64 so n_64 > c_i32_max is not possible
-            // for device_memory < 4 * c_i32_max * c_i32_max bytes
-            return rocblas_status_not_implemented;
-        }
-    }
+        if(status != rocblas_status_success)
+            return status;
+    } // batch
     return rocblas_status_success;
 }
 
@@ -118,26 +113,27 @@ rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
 #error INSTANTIATE_GEMMT_LAUNCHER_64 already defined
 #endif
 
-#define INSTANTIATE_GEMMT_LAUNCHER_64(TScal_, TConstPtr_, TPtr_)                           \
-    template rocblas_status rocblas_internal_gemmt_launcher_64<TScal_, TConstPtr_, TPtr_>( \
-        rocblas_handle    handle,                                                          \
-        rocblas_fill      uplo,                                                            \
-        rocblas_operation transA,                                                          \
-        rocblas_operation transB,                                                          \
-        int64_t           n,                                                               \
-        int64_t           k,                                                               \
-        const TScal_*     alpha,                                                           \
-        TConstPtr_        dA_in,                                                           \
-        int64_t           lda,                                                             \
-        rocblas_stride    stride_a,                                                        \
-        TConstPtr_        dB_in,                                                           \
-        int64_t           ldb,                                                             \
-        rocblas_stride    stride_b,                                                        \
-        const TScal_*     beta,                                                            \
-        TPtr_             dC_in,                                                           \
-        int64_t           ldc,                                                             \
-        rocblas_stride    stride_c,                                                        \
-        int64_t           batch_count);
+#define INSTANTIATE_GEMMT_LAUNCHER_64(TScal_, TConstPtr_, TPtr_)                \
+    template rocblas_status                                                     \
+        rocblas_internal_gemmt_launcher_64<int64_t, TScal_, TConstPtr_, TPtr_>( \
+            rocblas_handle    handle,                                           \
+            rocblas_fill      uplo,                                             \
+            rocblas_operation transA,                                           \
+            rocblas_operation transB,                                           \
+            int64_t           n,                                                \
+            int64_t           k,                                                \
+            const TScal_*     alpha,                                            \
+            TConstPtr_        dA_in,                                            \
+            int64_t           lda,                                              \
+            rocblas_stride    stride_a,                                         \
+            TConstPtr_        dB_in,                                            \
+            int64_t           ldb,                                              \
+            rocblas_stride    stride_b,                                         \
+            const TScal_*     beta,                                             \
+            TPtr_             dC_in,                                            \
+            int64_t           ldc,                                              \
+            rocblas_stride    stride_c,                                         \
+            int64_t           batch_count);
 
 // non batched
 
