@@ -366,19 +366,18 @@ public:
         //default stream will not be in capture mode
         if(stream != 0)
         {
-            bool status = hipStreamIsCapturing(stream, &capture_status) == hipSuccess;
-
-            if(!status)
+            hipError_t status = hipStreamIsCapturing(stream, &capture_status);
+            if(status != hipSuccess)
             {
-                rocblas_cerr << "Stream capture check failed" << std::endl;
+                PRINT_IF_HIP_ERROR(status);
                 return false;
             }
         }
 
-        if(capture_status == hipStreamCaptureStatusActive)
-            return true;
-        else
+        if(capture_status == hipStreamCaptureStatusNone)
             return false;
+        else
+            return true; // returns true for both hipStreamCaptureStatusActive & hipStreamCaptureStatusInvalidated
     }
 
 private:
