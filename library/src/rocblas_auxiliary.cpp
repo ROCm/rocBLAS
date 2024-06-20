@@ -259,7 +259,7 @@ try
     // Stream capture does not allow use of hipStreamQuery
     // If the current stream or new stream is in capture mode, skip use of hipStreamQuery()
     if((handle->stream == 0 || !handle->is_stream_in_capture_mode())
-       && stream_status != hipStreamCaptureStatusActive)
+       && stream_status == hipStreamCaptureStatusNone)
     {
         // The new stream must be valid
         if(stream != 0 && hipStreamQuery(stream) == hipErrorInvalidHandle)
