@@ -133,27 +133,30 @@ set(rocblas_testing_common_source
     blas2/common_spmv.cpp
     blas2/common_symv.cpp
     # blas3 may use tensile or source gemm
-    # blas3/gemm.cpp
-    # blas_ex/gemm_ex.cpp
-    # blas_ex/gemm_ex3.cpp
-    # blas3/symm.cpp
-    # blas3/hemm.cpp
-    # blas3/trsm.cpp
-    # blas3/trtri.cpp
-    # blas3/trmm.cpp
-    # blas3/syrk.cpp
-    # blas3/syrkx.cpp
-    # blas3/syr2k.cpp
-    # blas3/herk.cpp
-    # blas3/herkx.cpp
-    # blas3/her2k.cpp
-    # blas3/dgmm.cpp
-    # blas3/geam.cpp
-    # blas_ex/gemmt.cpp
-    # blas_ex/geam_ex.cpp
-  )
+    blas3/common_gemm.cpp
+    blas_ex/common_gemm_ex.cpp
+    blas_ex/common_trsm_ex.cpp
+    blas3/common_symm_hemm.cpp
+    blas3/common_trsm.cpp
+    blas3/common_trtri.cpp
+    blas3/common_trmm.cpp
+    blas3/common_syrk.cpp
+    blas3/common_syr2k.cpp # syrkx
+    blas3/common_herk.cpp
+    blas3/common_her2k.cpp # herkx
+    blas3/common_dgmm.cpp
+    blas3/common_geam.cpp
+    blas_ex/common_gemmt.cpp
+    blas_ex/common_geam_ex.cpp
+)
 
-add_library(rocblas_clients_common OBJECT ${rocblas_common_source})
+if( BUILD_WITH_TENSILE )
+  set( rocblas_testing_common_tensile_source
+       blas_ex/common_gemm_ex3.cpp
+  )
+endif()
+
+add_library(rocblas_clients_common OBJECT ${rocblas_testing_common_tensile_source} ${rocblas_common_source})
 
 rocblas_client_library_settings( rocblas_clients_common )
 

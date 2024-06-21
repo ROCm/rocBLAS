@@ -21,25 +21,10 @@
  * ************************************************************************ */
 
 #include "../common_helpers.hpp"
-#include "testing_gemv.hpp"
-#include "testing_gemv_batched.hpp"
-#include "testing_gemv_strided_batched.hpp"
+#include "testing_geam_ex.hpp"
 
-#define INSTANTIATE(T_)                 \
-    INSTANTIATE_TESTS(gemv, T_)         \
-    INSTANTIATE_TESTS(gemv_batched, T_) \
-    INSTANTIATE_TESTS(gemv_strided_batched, T_)
+#define INSTANTIATE(T_) INSTANTIATE_TESTS(geam_ex, T_)
 
+INSTANTIATE(rocblas_half)
 INSTANTIATE(float)
 INSTANTIATE(double)
-INSTANTIATE(rocblas_float_complex)
-INSTANTIATE(rocblas_double_complex)
-
-#define INSTANTIATE_BATCHED_MIXED(T_, U_, V_)   \
-    INSTANTIATE_TESTS(gemv_batched, T_, U_, V_) \
-    INSTANTIATE_TESTS(gemv_strided_batched, T_, U_, V_)
-
-INSTANTIATE_BATCHED_MIXED(rocblas_bfloat16, float, float)
-INSTANTIATE_BATCHED_MIXED(rocblas_bfloat16, float, rocblas_bfloat16)
-INSTANTIATE_BATCHED_MIXED(rocblas_half, float, float)
-INSTANTIATE_BATCHED_MIXED(rocblas_half, float, rocblas_half)

@@ -21,12 +21,10 @@
  *
  * ************************************************************************ */
 
+#include "blas3/common_symm_hemm.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_symm_hemm.hpp"
-#include "testing_symm_hemm_batched.hpp"
-#include "testing_symm_hemm_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cstring>
 #include <type_traits>

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,10 +19,10 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "blas_ex/common_geam_ex.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_geam_ex.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>

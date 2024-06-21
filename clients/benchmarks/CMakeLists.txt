@@ -62,7 +62,11 @@ target_link_libraries( rocblas-bench PRIVATE roc::rocblas hip::host hip::device 
 
 
 if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas-gemm-tune PRIVATE rocblas_clients_common roc::rocblas hip::host hip::device )
+  target_link_libraries( rocblas-gemm-tune PRIVATE rocblas_clients_testing_common rocblas_clients_common )
+  if( BUILD_FORTRAN_CLIENTS )
+    target_link_libraries( rocblas-gemm-tune PRIVATE rocblas_fortran_client )
+  endif( )
+  target_link_libraries( rocblas-gemm-tune PRIVATE roc::rocblas hip::host hip::device ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} )
 endif()
 
 if (NOT WIN32)
