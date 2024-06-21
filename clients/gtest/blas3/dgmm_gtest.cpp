@@ -19,12 +19,10 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "blas3/common_dgmm.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_dgmm.hpp"
-#include "testing_dgmm_batched.hpp"
-#include "testing_dgmm_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>

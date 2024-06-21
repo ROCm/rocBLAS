@@ -19,12 +19,10 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "blas3/common_geam.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_geam.hpp"
-#include "testing_geam_batched.hpp"
-#include "testing_geam_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>

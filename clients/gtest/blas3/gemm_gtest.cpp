@@ -20,14 +20,12 @@
  *
  * ************************************************************************ */
 
-#include "type_dispatch.hpp"
-
+#include "blas3/common_gemm.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_gemm.hpp"
-#include "testing_gemm_batched.hpp"
-#include "testing_gemm_strided_batched.hpp"
+#include "type_dispatch.hpp"
+#include "utility.hpp"
 #include <cctype>
 #include <cstring>
 #include <type_traits>

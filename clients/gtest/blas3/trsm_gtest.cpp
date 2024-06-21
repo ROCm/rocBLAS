@@ -20,14 +20,12 @@
  *
  * ************************************************************************ */
 
+#include "blas3/common_trsm.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_trsm.hpp"
-#include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
 #include "testing_trsm_ex.hpp"
-#include "testing_trsm_strided_batched.hpp"
 #include "testing_trsm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
