@@ -36,6 +36,7 @@ enum class rocblas_initialization
     denorm            = 444,
     denorm2           = 555,
     rand_int_zero_one = 666,
+    zero              = 777,
 };
 
 /* ============================================================================================ */
@@ -179,6 +180,8 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
         return "denorm2";
     case rocblas_initialization::rand_int_zero_one:
         return "rand_int_zero_one";
+    case rocblas_initialization::zero:
+        return "zero";
     }
     return "invalid";
 }
@@ -217,6 +220,7 @@ inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream&           
         CASE(rocblas_initialization::denorm);
         CASE(rocblas_initialization::denorm2);
         CASE(rocblas_initialization::rand_int_zero_one);
+        CASE(rocblas_initialization::zero);
     }
     return os << "invalid";
 }
@@ -298,6 +302,7 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
         value == "denorm"     ? rocblas_initialization::denorm     :
         value == "denorm2"    ? rocblas_initialization::denorm2    :
         value == "rand_int_zero_one"    ? rocblas_initialization::rand_int_zero_one        :
+        value == "zero"       ? rocblas_initialization::zero       :
         static_cast<rocblas_initialization>(0); // zero not in enum
 }
 
