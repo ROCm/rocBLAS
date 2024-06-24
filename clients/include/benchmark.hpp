@@ -20,6 +20,8 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
 //!
 //! @brief Implementation of a common benchmark code
 //!
@@ -29,44 +31,47 @@ class Benchmark
 public:
     //!
     //! @brief Constructor
-    //! @param lambda_to_benchmark     The lambda to be benchmarked.
+    //! @param lambda_to_benchmark    The lambda to be benchmarked.
     //! @param stream                  The Hip stream.
     //! @param arg                     Arguments struct, arguments to run benchmark
+    //! @param flush_batch_count       number of copies of arrays in rotating buffer, set to 1 for no rotating buffer
     //!
-    Benchmark(LAMBDA lambda_to_benchmark, hipStream_t stream, const Arguments& arg)
+    Benchmark(LAMBDA           lambda_to_benchmark,
+              hipStream_t      stream,
+              const Arguments& arg,
+              size_t           flush_batch_count)
         : m_lambda_to_benchmark(lambda_to_benchmark)
         , m_stream(stream)
-        , m_arg(arg){};
+        , m_arg(arg)
+        , m_flush_batch_count(flush_batch_count){};
 
-    //!
-    //! @brief Returns the time to call lambda m_hot_calls times
-    //!
     double timer();
 
 private:
-    LAMBDA m_lambda_to_benchmark;
-
-    // data members
-    Arguments m_arg;
-
-    double m_time_used;
-
+    LAMBDA      m_lambda_to_benchmark;
+    Arguments   m_arg;
     hipStream_t m_stream;
+    size_t      m_flush_batch_count;
 };
 
-// The m_lambda_to_benchmark is called in a loop m_hot_calls times, and time is returned.
+// timer calls m_lambda_to_benchmark in a loop m_arg.iters + m_arg.cold_iters times
+// timer returns the time to call the lambda m_arg.iters times
+// timer rotates through m_flush_batch_count copies of arrays to flush MALL
 template <typename LAMBDA>
 double Benchmark<LAMBDA>::timer()
 {
+    double time_used;
     for(int iter = 0; iter < m_arg.iters + m_arg.cold_iters; iter++)
     {
         if(iter == m_arg.cold_iters)
-            m_time_used = get_time_us_sync(m_stream);
+            time_used = get_time_us_sync(m_stream);
 
-        m_lambda_to_benchmark();
+        int flush_index = (iter + 1) % m_flush_batch_count;
+
+        m_lambda_to_benchmark(flush_index);
     }
 
-    m_time_used = get_time_us_sync(m_stream) - m_time_used;
+    time_used = get_time_us_sync(m_stream) - time_used;
 
-    return m_time_used;
+    return time_used;
 }
