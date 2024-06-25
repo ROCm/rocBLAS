@@ -36,6 +36,7 @@
 
 #include <hip/hip_runtime.h>
 #include <rocm_smi/rocm_smi.h>
+#include <rocm_smi/rocm_smi64Config.h>
 
 template <typename T>
 inline std::ostream& stream_write(std::ostream& stream, T&& val)
@@ -134,13 +135,16 @@ public:
     void set_device_id(int deviceId)
     {
         m_smiDeviceIndex = GetROCmSMIIndex(deviceId);
+        m_XCDCount       = 1;
 
+#if rocm_smi_VERSION_MAJOR >= 7
         auto status2 = rsmi_dev_metrics_xcd_counter_get(m_smiDeviceIndex, &m_XCDCount);
 
         if(status2 != RSMI_STATUS_SUCCESS)
         {
             m_XCDCount = 1;
         }
+#endif
     }
 
     void start()
@@ -257,12 +261,11 @@ private:
         m_exit = false;
 
         rsmi_version_t version;
-        auto           status1 = rsmi_version_get(&version);
-        m_isMultiXCDSupported  = false;
-        if(status1 == RSMI_STATUS_SUCCESS)
-        {
-            m_isMultiXCDSupported = (version.major >= 7);
-        }
+
+        m_isMultiXCDSupported = false;
+#if rocm_smi_VERSION_MAJOR >= 7
+        m_isMultiXCDSupported = true;
+#endif
 
         m_thread = std::thread([=]() { this->runLoop(); });
         return;
@@ -308,34 +311,33 @@ private:
     void collect()
     {
         rsmi_frequencies_t freq;
-        rsmi_gpu_metrics_t gpuMetrics;
-
         do
         {
-            if(m_isMultiXCDSupported)
+#if rocm_smi_VERSION_MAJOR >= 7
+
+            rsmi_gpu_metrics_t gpuMetrics;
+            // multi_XCD
+            auto status1 = rsmi_dev_gpu_metrics_info_get(m_smiDeviceIndex, &gpuMetrics);
+            if(status1 == RSMI_STATUS_SUCCESS)
             {
-                // multi_XCD
-                auto status1 = rsmi_dev_gpu_metrics_info_get(m_smiDeviceIndex, &gpuMetrics);
-                if(status1 == RSMI_STATUS_SUCCESS)
+                for(int i = 0; i < m_XCDCount; i++)
                 {
-                    for(int i = 0; i < m_XCDCount; i++)
-                    {
-                        m_SYSCLK_sum[i] += gpuMetrics.current_gfxclks[i] * cMhzToHz;
-                        m_SYSCLK_array[i].push_back(gpuMetrics.current_gfxclks[i] * cMhzToHz);
-                    }
+                    m_SYSCLK_sum[i] += gpuMetrics.current_gfxclks[i] * cMhzToHz;
+                    m_SYSCLK_array[i].push_back(gpuMetrics.current_gfxclks[i] * cMhzToHz);
                 }
             }
-            else
+
+#else
+
+            //XCD 0
+            auto status1 = rsmi_dev_gpu_clk_freq_get(m_smiDeviceIndex, RSMI_CLK_TYPE_SYS, &freq);
+            if(status1 == RSMI_STATUS_SUCCESS)
             {
-                //XCD 0
-                auto status1
-                    = rsmi_dev_gpu_clk_freq_get(m_smiDeviceIndex, RSMI_CLK_TYPE_SYS, &freq);
-                if(status1 == RSMI_STATUS_SUCCESS)
-                {
-                    m_SYSCLK_sum[0] += freq.frequency[freq.current];
-                    m_SYSCLK_array[0].push_back(freq.frequency[freq.current]);
-                }
+                m_SYSCLK_sum[0] += freq.frequency[freq.current];
+                m_SYSCLK_array[0].push_back(freq.frequency[freq.current]);
             }
+
+#endif
 
             auto status2 = rsmi_dev_gpu_clk_freq_get(m_smiDeviceIndex, RSMI_CLK_TYPE_MEM, &freq);
             if(status2 == RSMI_STATUS_SUCCESS)
