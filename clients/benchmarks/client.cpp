@@ -22,13 +22,13 @@
 #define ROCBLAS_BETA_FEATURES_API
 #include "program_options.hpp"
 
+#include "client_utility.hpp"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
 #include "tensile_host.hpp"
 #include "type_dispatch.hpp"
-#include "utility.hpp"
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -103,7 +103,6 @@
 #include "blas_ex/common_gemmt.hpp"
 #include "blas_ex/common_trsm_ex.hpp"
 #include "type_dispatch.hpp"
-#include "utility.hpp"
 #undef I
 
 #if BUILD_WITH_TENSILE

@@ -8,6 +8,7 @@
 #include "../../library/include/internal/rocblas_float8.h" // only to set the bias mode, moved it later
 #include "../../library/src/include/handle.hpp"
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -19,7 +20,6 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 #ifdef WIN32
 #include <stdlib.h>

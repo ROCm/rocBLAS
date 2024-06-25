@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -128,8 +128,7 @@ public:
                 &ifs, fileToOpen, std::ifstream::in | std::ifstream::binary);
             if(!ifs || ifs->fail())
             {
-                rocblas_cerr << "Cannot open " << fileToOpen << ": " << strerror(errno)
-                             << std::endl;
+                rocblas_cerr << "Cannot open: " << fileToOpen << std::endl;
                 exit(EXIT_FAILURE);
             }
         }

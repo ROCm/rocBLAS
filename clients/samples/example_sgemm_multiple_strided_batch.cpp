@@ -20,9 +20,9 @@
  *
  * ************************************************************************ */
 
+#include "client_utility.hpp"
 #include "host_alloc.hpp"
 #include "rocblas_matrix.hpp"
-#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

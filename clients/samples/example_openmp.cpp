@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,8 @@
            If users do not create streams explicitely like what I am doing here,
            all rocblas routine take the NULL (0) stream.
 */
+#include "client_utility.hpp"
 #include "rocblas.hpp"
-#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <hip/hip_runtime.h>

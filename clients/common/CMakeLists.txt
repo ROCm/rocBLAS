@@ -67,7 +67,7 @@ endfunction()
 set(rocblas_common_source
     # general
     singletons.cpp
-    utility.cpp
+    client_utility.cpp
     frequency_monitor.cpp
     rocblas_arguments.cpp
     argument_model.cpp
@@ -82,9 +82,6 @@ set(rocblas_testing_common_source
     cblas_interface.cpp
     ${BLIS_CPP}
     # aux
-    # rocblas_gtest_main.cpp
-    # rocblas_main.cpp
-    # rocblas_test.cpp
     # general.cpp
     # set_get_pointer_mode.cpp
     # set_get_atomics_mode.cpp

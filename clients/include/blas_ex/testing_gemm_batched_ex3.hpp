@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -37,7 +38,6 @@
 #include "testing_gemm_ex3.hpp"
 #include "type_dispatch.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename TiA, typename TiB, typename To, typename Tc>

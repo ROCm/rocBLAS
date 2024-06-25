@@ -21,7 +21,7 @@
  * ************************************************************************ */
 
 #include "rocblas_test.hpp"
-#include "utility.hpp"
+#include "client_utility.hpp"
 
 #include <cstdlib>
 #include <exception>

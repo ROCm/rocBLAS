@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@
 #include "rocblas_parse_data.hpp"
 #include "rocblas_test.hpp"
 #include "test_cleanup.hpp"
-#include "utility.hpp"
+
+#include "client_utility.hpp"
 
 using namespace testing;
 

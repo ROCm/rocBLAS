@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -34,7 +35,6 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 // Check to see if rocblas_set_atomics_mode is working. This is done by:
 // - Calling rocblas_set_atomics_mode to not allow atomics
