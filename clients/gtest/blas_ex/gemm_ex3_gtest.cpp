@@ -22,11 +22,11 @@
 #define ROCBLAS_BETA_FEATURES_API
 
 #include "blas_ex/common_gemm_ex3.hpp"
+#include "client_utility.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "type_dispatch.hpp"
-#include "utility.hpp"
 #include <cctype>
 #include <cstring>
 #include <type_traits>

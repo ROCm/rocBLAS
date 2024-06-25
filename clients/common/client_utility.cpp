@@ -26,9 +26,9 @@
 #include <random>
 #endif
 #include "../../library/src/include/handle.hpp"
+#include "client_utility.hpp"
 #include "d_vector.hpp"
 #include "gtest_helpers.hpp"
-#include "utility.hpp"
 #include <chrono>
 #include <cstdlib>
 #include <cstring>

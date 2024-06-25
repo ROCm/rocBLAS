@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,10 +19,10 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "client_utility.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "type_dispatch.hpp"
-#include "utility.hpp"
 
 enum class blas1_ex
 {

@@ -22,7 +22,7 @@
 
 set( rocblas_samples_common
       ../common/singletons.cpp
-      ../common/utility.cpp
+      ../common/client_utility.cpp
       ../common/rocblas_random.cpp
       ../common/host_alloc.cpp
     )

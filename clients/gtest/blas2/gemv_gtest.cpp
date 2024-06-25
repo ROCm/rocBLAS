@@ -21,11 +21,11 @@
  * ************************************************************************ */
 
 #include "blas2/common_gemv.hpp"
+#include "client_utility.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "type_dispatch.hpp"
-#include "utility.hpp"
 #include <cctype>
 #include <cstring>
 #include <type_traits>

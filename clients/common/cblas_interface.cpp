@@ -20,8 +20,8 @@
  *
  * ************************************************************************/
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "rocblas_vector.hpp"
-#include "utility.hpp"
 #include <bitset>
 #ifdef _OPENMP
 #include <omp.h>

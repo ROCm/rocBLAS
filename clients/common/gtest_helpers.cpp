@@ -33,9 +33,9 @@
 #include <unistd.h>
 #endif
 
+#include "client_utility.hpp"
 #include "gtest_helpers.hpp"
 #include "rocblas.h"
-#include "utility.hpp"
 
 testing::AssertionResult status_match(rocblas_status expected, rocblas_status status)
 {

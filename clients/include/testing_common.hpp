@@ -25,6 +25,7 @@
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "gtest_helpers.hpp"
 #include "near.hpp"
@@ -39,4 +40,3 @@
 #include "testing_macros.hpp"
 #include "type_dispatch.hpp"
 #include "unit.hpp"
-#include "utility.hpp"

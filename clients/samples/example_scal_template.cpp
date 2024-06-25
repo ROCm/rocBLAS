@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
  *
  * ************************************************************************ */
 
+#include "client_utility.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
-#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <hip/hip_runtime.h>

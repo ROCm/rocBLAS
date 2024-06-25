@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,15 @@
 #ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
 #define ROCBLAS_NO_DEPRECATED_WARNINGS
 #endif
+
 #define ROCBLAS_BETA_FEATURES_API
+
+#include "client_utility.hpp"
 #include "rocblas.hpp"
 #include "rocblas_arguments.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_matrix.hpp"
 #include "rocblas_parse_data.hpp"
-#include "utility.hpp"
 
 template <typename Tc>
 class GEMMTunerBase

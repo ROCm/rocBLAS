@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -34,7 +35,6 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
