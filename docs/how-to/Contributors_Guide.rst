@@ -8,4 +8,4 @@
 Contributing to rocBLAS
 ********************************************************************
 
-.. include:: ../../CONTRIBUTING.rst
+.. include:: ../../.github/CONTRIBUTING.rst
