@@ -24,13 +24,22 @@ import csv
 from decimal import Decimal
 
 def get_csv_val(datastr, title, gpu=0):
+    """
+    Parse the csv value for 'title' from 'datastr'. Ensures that the 'datastr' is for the 'gpu' passed.
+
+    :param: datastr: The data as output by amd-smi in csv format, see example:
+        gpu,total_vram,used_vram,free_vram,total_visible_vram,used_visible_vram,free_visible_vram,total_gtt,used_gtt,free_gtt
+        0,16368,905,15463,256,26,230,32119,755,31364
+    :param: title: The title in the datastr to parse for, example for above output: "total_vram", would get "16368" as output.
+    :param: gpu: The gpu# we are searching for, it will be validated that 'gpu' is the same as 'gpu' in the datastr, otherwise
+                 this function will return "error"
+    """
     reader = csv.reader(datastr.split('\n'))
     try:
         header = next(reader)
-        i = 0
-        while i <= gpu:
-            data = next(reader)
-            i += 1
+        data = next(reader)
+        if int(data[header.index('gpu')]) != gpu:
+            return "error"
         return data[header.index(title)]
     except:
         return "error"

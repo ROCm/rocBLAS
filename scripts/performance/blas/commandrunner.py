@@ -627,9 +627,13 @@ class MachineSpecs(dict):
             for mem_type in getspecs.validmemtypes(cuda):
                 key = 'Start {} Memory'.format(mem_type)
                 used_bytes, total_bytes = getspecs.getmeminfo(device, mem_type, cuda)
-                used_bytes_int = used_bytes.split()[0] if cuda else used_bytes
-                total_bytes_int = total_bytes.split()[0] if cuda else total_bytes
-                smi_info[key] = '{} / {}'.format(to_mem_units(used_bytes_int), to_mem_units(total_bytes_int))
+                try:
+                    used_bytes_int = used_bytes.split()[0] if cuda else int(used_bytes)
+                    total_bytes_int = total_bytes.split()[0] if cuda else int(total_bytes)
+                    smi_info[key] = '{} / {}'.format(to_mem_units(used_bytes_int), to_mem_units(total_bytes_int))
+                except:
+                    pass
+
             for component in getspecs.validversioncomponents(cuda):
                 if cuda:
                     smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda)
