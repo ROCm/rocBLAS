@@ -109,7 +109,7 @@ Tests:
   matrix_size:
     - { N:  35, K:  2,  lda:  2147483649, ldb: 36, ldc: 36, batch_count: 1, transA: N, transB: N, uplo: U }
     - { N:  35, K:  2,  lda: 36, ldb: 2147483649, ldc: 36, batch_count: 1, transA: T, transB: T, uplo: L }
-    - { N:  35, K:  2,  lda: 36, ldb: 36, ldc: 2147483649, batch_count: 1, transA: T, transB: T, uplo: U }
+    - { N:  2, K:  35,  lda: 36, ldb: 36, ldc: 2147483649, batch_count: 1, transA: T, transB: T, uplo: U }
     - { N:  2, K:   2,  lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: N, transB: T, uplo: L}
     - { N:  3, K:   469, lda: 3, ldb: 469, ldc: 3, transA: N, transB: N, uplo: U }
   api: [ C_64 ]
