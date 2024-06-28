@@ -809,10 +809,15 @@ if( BUILD_WITH_TENSILE )
   endif()
   # For ASAN package, Tensile library files(which are not shared libraries) are not required
   if( NOT ENABLE_ASAN_PACKAGING )
+    if( BUILD_SHARED_LIBS )
+      set( TENSILE_DATA_COMPONENT_NAME ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME} )
+    else()
+      set( TENSILE_DATA_COMPONENT_NAME devel )
+    endif()
     rocm_install(
       DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
       DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
-      COMPONENT ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME}) # Use this cmake variable to be compatible with rocm-cmake 0.6 and 0.7
+      COMPONENT ${TENSILE_DATA_COMPONENT_NAME}) # Use this cmake variable to be compatible with rocm-cmake 0.6 and 0.7
   endif()
 endif()
 
