@@ -111,18 +111,22 @@ list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /
 set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
 set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
 set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
 
 if(ROCM_PLATFORM_VERSION)
   if(${ROCM_PLATFORM_VERSION} VERSION_LESS 5.7.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_5.6}")
   elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.0.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_5.7}")
-  else()
+  elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.3.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.0}")
+  else()
+    set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
   endif()
+  message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} default supported gfx list")
 else()
-  message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} is not set, using default supported list")
-  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.0}")
+  message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} is not set, using latest supported gfx list")
+  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
 endif()
 
 # gpu arch configuration
@@ -148,11 +152,24 @@ endif()
 # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
 set( AMDGPU_TARGETS "${target_list}" CACHE STRING "AMD GPU targets to compile for" FORCE )
 
+function(list_replace list old new)
+  foreach( i ${${list}} )
+    if( i STREQUAL ${old} )
+      list( APPEND new_list ${new} )
+    else( )
+      list( APPEND new_list ${i} )
+    endif( )
+    set( ${list} ${new_list} PARENT_SCOPE )
+  endforeach( )
+endfunction( )
 
 if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
     set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
+
+    list_replace( Tensile_ARCHITECTURE "gfx90a" "gfx90a:xnack+\;gfx90a:xnack-")
+
     set( TENSILE_VERSION 4.41.0 CACHE STRING "The version of Tensile to be used")
 
     if(BUILD_WITH_PIP)
