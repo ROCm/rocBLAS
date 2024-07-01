@@ -192,8 +192,7 @@ If the user created a non-default stream, it is the user's responsibility to syn
 
     if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
 
-When a user changes the stream from one non-default stream to another non-default stream, it is the user's responsibility to synchronize the old stream before setting the new stream. Then, the user can optionally destroy the old stream:
-
+When a user switches from one non-default stream to another, they must complete all rocblas operations previously submitted with this handle on the old stream using ``hipStreamSynchronize(old_stream)`` API before setting the new stream.
 ::
 
     // Synchronize the old stream
