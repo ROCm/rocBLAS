@@ -33,8 +33,8 @@ functions.
 Contributors wanting to submit new implementations, improvements, or bug fixes
 should follow the below mentioned guidelines.
 
-Pull requests will be reviewed by members of 
-`CODEOWNERS.md <https://github.com/ROCm/rocBLAS/blob/develop/.github/CODEOWNERS>`__ 
+Pull requests will be reviewed by members of
+`CODEOWNERS.md <https://github.com/ROCm/rocBLAS/blob/develop/.github/CODEOWNERS>`__
 Continuous Integration tests will be run on the pull request. Once the pull request
 is approved and tests pass it will be merged by a member of
 `CODEOWNERS.md <https://github.com/ROCm/rocBLAS/blob/develop/.github/CODEOWNERS>`__.
@@ -47,7 +47,7 @@ Pull-request guidelines
 
 By creating a pull request, you agree to the statements made in the
 `Code License`_
-section. Your pull request should target the default branch. Our current 
+section. Your pull request should target the default branch. Our current
 default branch is the develop branch, which serves as our integration branch.
 
 Pull requests should:
@@ -62,7 +62,7 @@ Pull requests should:
 
 Code License
 ============
-All code contributed to this project will be licensed under the license identified in the 
+All code contributed to this project will be licensed under the license identified in the
 `LICENSE.md <https://github.com/ROCm/rocBLAS/blob/develop/LICENSE.md>`__.
 Your contribution will be accepted under the same license.
 
@@ -97,53 +97,32 @@ For each new file in repository, please include the licensing header
 Coding Style
 ============
 
-1.  With the `rocBLAS device memory allocation
-    system <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf>`__,
-    rocBLAS kernels should not call ``hipMalloc()`` or ``hipFree()`` in
-    their own code, but should use the device memory manager.
+1.  rocBLAS code should avoid calling ``hipMalloc()`` or ``hipFree()`` within their code, as these are synchronizing APIs.
+Instead, users must rely on the rocBLAS device memory manager, which handles pre-allocated memory allocated during the creation of the rocBLAS handle.
 
-    ``hipMalloc()`` and ``hipFree()`` are synchronizing operations which
-    should be avoided as much as possible.
+rocBLAS device memory allocation system offers:
 
-    The device memory allocation system provides:
+- A ``device_malloc()`` method in ``rocblas_handle`` for temporarily using device memory that has been either pre-allocated or allocated on demand.
+- A method in ``rocblas_handle`` to reuse device memory across rocBLAS calls without allocating and deallocating for each call.
+- A method in ``rocblas_handle`` for users to query the device memory required for optimal performance of a specific kernel call.
+- A method in ``rocblas_handle`` for users to control the amount of device memory allocated or allow rocBLAS to handle on-demand allocation.
 
-    -  A ``device_malloc`` method for temporarily using device memory
-       which has either been allocated before, or which is allocated on
-       demand.
-    -  A method to reuse device memory across rocBLAS calls, without
-       allocating them and deallocating them at every call.
-    -  A method for users to query how much device memory is needed for
-       a particular kernel call, in order for it to perform optimally.
-    -  A method for users to control how much device memory is
-       allocated, or whether to leave it up to rocBLAS to allocate it on
-       demand.
+A rocBLAS function must allocate all of its device memory upfront for the entire duration of the function call and must not allocate and deallocate device memory at different kernel call levels.
+Lower-level kernels needing device memory must have it allocated by higher-level routines and passed down. When device memory can be shared between operations, the maximum size needed by all operations should be reported or allocated.
 
-    **Extra pointers or size arguments for temporary storage should not
-    be added to the end of public APIs, only private internal ones.**
-    Instead, implementations of the public APIs should request and
-    obtain device memory using the rocBLAS device memory manager.
-    rocBLAS kernels in the public API must also detect and respond to
-    *device memory size queries*.
+When allocating memory, use a variable name that indicates it is a workspace memory, such as ``workspace`` or with a ``w_`` prefix, for example:
 
-    A kernel must allocate all of its device memory upfront, for use
-    during the entirety of the kernel call. It must not allocate and
-    deallocate device memory at different levels of kernel calls. This
-    means that if a lower-level kernel needs device memory, it must be
-    allocated by higher-level routines and passed down to the
-    lower-level routines. When device memory can be shared between two
-    or more operations, the maximum size needed by all them should be
-    reported or allocated.
+.. code:: cpp
 
-    When allocating memory, it is recommended to use a variable name which implies
-    that this is allocated workspace memory, such as ``workspace`` or using a ``w_`` prefix.
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
+        {
+            return rocblas_status_memory_error;
+        }
 
-    Details are in the `Device Memory
-    Allocation <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf>`__
-    design document. Examples of how to use the device memory allocator
-    are in
-    `TRSV <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas2/rocblas_trsv.cpp>`__
-    and
-    `TRSM <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas3/rocblas_trsm.cpp>`__.
+rocBLAS device memory manager also provides support for stream order allocation ( using ``hipMallocAsync()`` and ``hipFreeAsync()`` ).
+
+For more information refer to `rocBLAS Device Memory Allocation <https://rocblas.readthedocs.io/en/master/Programmers_Guide.html#device-memory-allocation>`__ and `Stream Order Allocation <https://rocblas.readthedocs.io/en/master/API_Reference_Guide.html#stream-ordered-memory-allocation>`__.
 
 2.  Logging, argument error checking and device memory allocation should
     only occur at the top-level kernel routines. Therefore, if one
