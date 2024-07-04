@@ -740,7 +740,7 @@ Tests:
   outofplace: [ true, false ]
 
 - name: trmm_right_64
-  category: pre_checkin # stress
+  category: stress
   arguments:
     - { M: 2147483649, N: 2, lda: 10, ldb: 2147483650, ldc: 2147483650, batch_count: 1 }
     - { M: 512, N: 2, lda: 2147483649, ldb: 10, ldc: 10, batch_count: 1 }
