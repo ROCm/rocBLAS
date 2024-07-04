@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -324,9 +324,10 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
     }
 
     //Identifying the architecture to have an appropriate optimization
-    int                  arch_major       = handle->getArchMajor();
-    bool                 is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
-    static constexpr int WIN              = rocblas_dot_WIN<T>();
+    int  arch_major = handle->getArchMajor();
+    bool is_arch_10_or_11_or_12
+        = arch_major == 10 || arch_major == 11 || arch_major == 12 ? true : false;
+    static constexpr int WIN = rocblas_dot_WIN<T>();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     int64_t shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
@@ -348,10 +349,10 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
             output        = (T*)(workspace + offset);
         }
 
-        if(is_arch_10_or_11)
+        if(is_arch_10_or_11_or_12)
         {
             static constexpr int NB_X
-                = 32; // warpSize for gfx10xx or gfx11xx is 32 and the rest is 64
+                = 32; // warpSize for (gfx10xx/gfx11xx/gfx12xx) is 32 and the rest is 64
 
             // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
             dim3 threads(NB_X, NB_Y);
@@ -376,7 +377,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         else
         {
             static constexpr int NB_X
-                = 64; // warpSize for gfx10xx or gfx11xx is 32 and the rest is 64
+                = 64; // warpSize for (gfx10xx/gfx11xx/gfx12xx) is 32 and the rest is 64
 
             // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
             dim3 threads(NB_X, NB_Y);
