@@ -175,11 +175,12 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
     const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;
 
     //Identifying the architecture to have an appropriate optimization
-    int  arch_major       = handle->getArchMajor();
-    bool is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
-    bool is_gfx908        = handle->getArch() == 908 ? true : false;
-    bool is_gfx906        = handle->getArch() == 906 ? true : false;
-    bool is_gfx90a        = handle->getArch() == 910 ? true : false;
+    int  arch_major = handle->getArchMajor();
+    bool is_arch_10_or_11_or_12
+        = arch_major == 10 || arch_major == 11 || arch_major == 12 ? true : false;
+    bool is_gfx908 = handle->getArch() == 908 ? true : false;
+    bool is_gfx906 = handle->getArch() == 906 ? true : false;
+    bool is_gfx90a = handle->getArch() == 910 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -641,7 +642,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
 
         //Using kernel code with warp reduction for gfx1030.
-        else if(is_arch_10_or_11
+        else if(is_arch_10_or_11_or_12
                 && (is_double || is_complex_float
                     || (is_float
                         && (m < sgemvt_gfx_arch_10_11_threshold
@@ -677,7 +678,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000 and for complex double in gfx1030.
         else if(!i64_incs
                 && ((is_float || m < gemvt_threshold || n < gemvt_threshold)
-                    || (is_arch_10_or_11 && is_complex_double)))
+                    || (is_arch_10_or_11_or_12 && is_complex_double)))
         {
             //Number of threads per block
             static constexpr int NB = 256;
