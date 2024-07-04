@@ -497,7 +497,7 @@ double vector_norm_1(int64_t M, int64_t incx, T* hx_gold, T* hx)
     double  max_err_scal = 0.0;
     double  max_err      = 0.0;
     int64_t x_offset     = incx >= 0 ? 0 : int64_t(incx) * (1 - M);
-    for(int i = 0; i < M; i++)
+    for(int64_t i = 0; i < M; i++)
     {
         size_t idx = x_offset + i * (int64_t)incx;
         max_err += rocblas_abs((hx_gold[idx] - hx[idx]));
