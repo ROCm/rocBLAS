@@ -134,6 +134,8 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm
 
+The dgmm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sdgmm_batched
    :outline:
 .. doxygenfunction:: rocblas_ddgmm_batched
@@ -142,6 +144,8 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_batched
 
+The dgmm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sdgmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ddgmm_strided_batched
@@ -149,3 +153,61 @@ rocblas_Xdgmm + batched, strided_batched
 .. doxygenfunction:: rocblas_cdgmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_strided_batched
+
+The dgmm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+
+rocblas_Xsymm + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_ssymm
+   :outline:
+.. doxygenfunction:: rocblas_dsymm
+   :outline:
+.. doxygenfunction:: rocblas_csymm
+   :outline:
+.. doxygenfunction:: rocblas_zsymm
+
+The symm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+.. doxygenfunction:: rocblas_ssymm_batched
+   :outline:
+.. doxygenfunction:: rocblas_dsymm_batched
+   :outline:
+.. doxygenfunction:: rocblas_csymm_batched
+   :outline:
+.. doxygenfunction:: rocblas_zsymm_batched
+
+The symm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+.. doxygenfunction:: rocblas_ssymm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_dsymm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_csymm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_zsymm_strided_batched
+
+The symm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+
+rocblas_Xhemm + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_chemm
+   :outline:
+.. doxygenfunction:: rocblas_zhemm
+
+The hemm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+.. doxygenfunction:: rocblas_chemm_batched
+   :outline:
+.. doxygenfunction:: rocblas_zhemm_batched
+
+The hemm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+.. doxygenfunction:: rocblas_chemm_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_zhemm_strided_batched
+
+The hemm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
