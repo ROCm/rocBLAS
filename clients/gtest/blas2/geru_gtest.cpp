@@ -20,12 +20,10 @@
  *
  * ************************************************************************ */
 
+#include "blas2/common_ger.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_ger.hpp"
-#include "testing_ger_batched.hpp"
-#include "testing_ger_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cstring>
 #include <type_traits>

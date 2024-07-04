@@ -7,15 +7,8 @@ def runCompileCommand(platform, project, jobName)
     project.paths.construct_build_prefix()
 
     String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ':'
-    String hipccCompileFlags = ""
     String dynamicBuildCommand = project.paths.build_command
     String dynamicOptions = ""
-
-    if (jobName.contains('hipclang'))
-    {
-        //default in the hipclang docker containers. May change later on
-        hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral -parallel-jobs=2'"
-    }
 
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
@@ -49,10 +42,8 @@ def runCompileCommand(platform, project, jobName)
                 set -x
                 cd ${project.paths.project_build_prefix}
                 ${centos7}
-                echo Original HIPCC_COMPILE_FLAGS_APPEND: \$HIPCC_COMPILE_FLAGS_APPEND
-                ${hipccCompileFlags}
                 ${auxiliary.gfxTargetParser()}
-                CXX=/opt/rocm/bin/hipcc ${dynamicBuildCommand} ${dynamicOptions}
+                ${dynamicBuildCommand} ${dynamicOptions}
                 """
     platform.runCommand(this, command)
 }
@@ -166,7 +157,6 @@ def runTestCommand (platform, project, gfilter)
                   """
 
     platform.runCommand(this, command)
-    junit testXMLPath
 }
 
 def runPackageCommand(platform, project)

@@ -28,9 +28,9 @@
 template <typename T>
 void testing_gbmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gbmv_fn = arg.api == FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.api & c_API_FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
     auto rocblas_gbmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gbmv_64<T, true> : rocblas_gbmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_gbmv_64<T, true> : rocblas_gbmv_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -184,9 +184,9 @@ void testing_gbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gbmv(const Arguments& arg)
 {
-    auto rocblas_gbmv_fn = arg.api == FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.api & c_API_FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
     auto rocblas_gbmv_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_gbmv_64<T, true> : rocblas_gbmv_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_gbmv_64<T, true> : rocblas_gbmv_64<T, false>;
 
     int64_t           M                 = arg.M;
     int64_t           N                 = arg.N;

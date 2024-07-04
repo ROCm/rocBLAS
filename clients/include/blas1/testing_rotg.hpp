@@ -28,9 +28,9 @@ template <typename T, typename U = T>
 void testing_rotg_bad_arg(const Arguments& arg)
 {
     auto rocblas_rotg_fn
-        = arg.api == FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
     auto rocblas_rotg_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_rotg_64<T, U, true> : rocblas_rotg_64<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_rotg_64<T, U, true> : rocblas_rotg_64<T, U, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -57,9 +57,9 @@ template <typename T, typename U = T>
 void testing_rotg(const Arguments& arg)
 {
     auto rocblas_rotg_fn
-        = arg.api == FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
     auto rocblas_rotg_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_rotg_64<T, U, true> : rocblas_rotg_64<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_rotg_64<T, U, true> : rocblas_rotg_64<T, U, false>;
 
     rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;

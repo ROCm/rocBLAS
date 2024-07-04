@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,27 @@
 
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
+#include "int64_helpers.hpp"
 
 /*******************************************************************************
  * Validate Arguments
  ******************************************************************************/
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_gemmt_arg_check(rocblas_handle    handle,
                                               rocblas_fill      uplo,
                                               rocblas_operation trans_a,
                                               rocblas_operation trans_b,
-                                              rocblas_int       n,
-                                              rocblas_int       k,
+                                              API_INT           n,
+                                              API_INT           k,
                                               TScal             alpha,
                                               TConstPtr         A,
-                                              rocblas_int       lda,
+                                              int64_t           lda,
                                               TConstPtr         B,
-                                              rocblas_int       ldb,
+                                              int64_t           ldb,
                                               TScal             beta,
                                               TPtr              C,
-                                              rocblas_int       ldc,
-                                              rocblas_int       batch_count = 1)
+                                              int64_t           ldc,
+                                              API_INT           batch_count = 1)
 {
     // handle must be valid
     if(!handle)
@@ -98,44 +99,44 @@ inline rocblas_status rocblas_gemmt_arg_check(rocblas_handle    handle,
  * ===========================================================================
  */
 
-template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
+template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_gemmt_launcher(rocblas_handle    handle,
                                                rocblas_fill      uplo,
                                                rocblas_operation trans_a,
                                                rocblas_operation trans_b,
                                                rocblas_int       n,
-                                               rocblas_int       k,
+                                               API_INT           k,
                                                const TScal*      alpha,
                                                TConstPtr         A,
-                                               rocblas_int       lda,
+                                               API_INT           lda,
                                                rocblas_stride    stride_a,
                                                TConstPtr         B,
-                                               rocblas_int       ldb,
+                                               API_INT           ldb,
                                                rocblas_stride    stride_b,
                                                const TScal*      beta,
                                                TPtr              C,
-                                               rocblas_int       ldc,
+                                               API_INT           ldc,
                                                rocblas_stride    stride_c,
                                                rocblas_int       batch_count);
 
-template <typename T, typename TConstPtr, typename TPtr>
+template <typename T, typename API_INT, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_gemmt_check_numerics(const char*       function_name,
                                             rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation trans_a,
                                             rocblas_operation trans_b,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
+                                            API_INT           n,
+                                            API_INT           k,
                                             TConstPtr         A,
-                                            rocblas_int       lda,
+                                            API_INT           lda,
                                             rocblas_stride    stride_a,
                                             TConstPtr         B,
-                                            rocblas_int       ldb,
+                                            API_INT           ldb,
                                             rocblas_stride    stride_b,
                                             TPtr              C,
-                                            rocblas_int       ldc,
+                                            API_INT           ldc,
                                             rocblas_stride    stride_c,
-                                            rocblas_int       batch_count,
+                                            API_INT           batch_count,
                                             const int         check_numerics,
                                             bool              is_input)
 {

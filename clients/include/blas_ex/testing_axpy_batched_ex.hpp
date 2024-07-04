@@ -29,9 +29,9 @@ template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_batched_ex_fn
-        = arg.api == FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
+        = arg.api & c_API_FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
     auto rocblas_axpy_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_axpy_batched_ex_64_fortran : rocblas_axpy_batched_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_axpy_batched_ex_64_fortran : rocblas_axpy_batched_ex_64;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -185,9 +185,9 @@ template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_batched_ex(const Arguments& arg)
 {
     auto rocblas_axpy_batched_ex_fn
-        = arg.api == FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
+        = arg.api & c_API_FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
     auto rocblas_axpy_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_axpy_batched_ex_64_fortran : rocblas_axpy_batched_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_axpy_batched_ex_64_fortran : rocblas_axpy_batched_ex_64;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;

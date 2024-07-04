@@ -42,6 +42,7 @@ Datatypes:
         denorm: 444
         denorm2: 555
         rand_int_zero_one: 666
+        zero: 777
   - rocblas_gemm_flags:
       bases: [ c_uint32 ]
       attr:
@@ -665,7 +666,6 @@ Defaults:
   geam_op: rocblas_geam_ex_operation_min_plus
   flags: none
   atomics_mode: atomics_allowed
-  workspace_size: 0
   initialization: rand_int
   category: nightly
   known_bug_platforms: ''

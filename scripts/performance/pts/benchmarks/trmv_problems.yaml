@@ -3,10 +3,7 @@ include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
   - &multiples_of_32_sizes
-    - { N:  2048, lda:  2048 }
-    - { N:  4096, lda:  4096 }
-    - { N:  6144, lda:  6144 }
-    - { N:  8192, lda:  8192 }
+    - { scan: [2048..8192..2048], N: *c_scan_value, lda: *c_scan_value }
 
   - &generic_sizes
     - { N:  7343, lda:  7343 }

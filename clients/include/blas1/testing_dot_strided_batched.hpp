@@ -27,16 +27,16 @@
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dot_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_dot_strided_batched_fn = arg.api & c_API_FORTRAN
                                               ? (CONJ ? rocblas_dotc_strided_batched<T, true>
                                                       : rocblas_dot_strided_batched<T, true>)
                                               : (CONJ ? rocblas_dotc_strided_batched<T, false>
                                                       : rocblas_dot_strided_batched<T, false>);
     auto rocblas_dot_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? (CONJ ? rocblas_dotc_strided_batched_64<T, true>
-                                        : rocblas_dot_strided_batched_64<T, true>)
-                                : (CONJ ? rocblas_dotc_strided_batched_64<T, false>
-                                        : rocblas_dot_strided_batched_64<T, false>);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_dotc_strided_batched_64<T, true>
+                                          : rocblas_dot_strided_batched_64<T, true>)
+                                  : (CONJ ? rocblas_dotc_strided_batched_64<T, false>
+                                          : rocblas_dot_strided_batched_64<T, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -95,25 +95,19 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
     }
 }
 
-template <typename T>
-void testing_dotc_strided_batched_bad_arg(const Arguments& arg)
-{
-    testing_dot_strided_batched_bad_arg<T, true>(arg);
-}
-
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched(const Arguments& arg)
 {
-    auto rocblas_dot_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_dot_strided_batched_fn = arg.api & c_API_FORTRAN
                                               ? (CONJ ? rocblas_dotc_strided_batched<T, true>
                                                       : rocblas_dot_strided_batched<T, true>)
                                               : (CONJ ? rocblas_dotc_strided_batched<T, false>
                                                       : rocblas_dot_strided_batched<T, false>);
     auto rocblas_dot_strided_batched_fn_64
-        = arg.api == FORTRAN_64 ? (CONJ ? rocblas_dotc_strided_batched_64<T, true>
-                                        : rocblas_dot_strided_batched_64<T, true>)
-                                : (CONJ ? rocblas_dotc_strided_batched_64<T, false>
-                                        : rocblas_dot_strided_batched_64<T, false>);
+        = arg.api & c_API_FORTRAN ? (CONJ ? rocblas_dotc_strided_batched_64<T, true>
+                                          : rocblas_dot_strided_batched_64<T, true>)
+                                  : (CONJ ? rocblas_dotc_strided_batched_64<T, false>
+                                          : rocblas_dot_strided_batched_64<T, false>);
 
     int64_t        N           = arg.N;
     int64_t        incx        = arg.incx;
@@ -385,10 +379,4 @@ void testing_dot_strided_batched(const Arguments& arg)
                          rocblas_error_host,
                          rocblas_error_device);
     }
-}
-
-template <typename T>
-void testing_dotc_strided_batched(const Arguments& arg)
-{
-    testing_dot_strided_batched<T, true>(arg);
 }

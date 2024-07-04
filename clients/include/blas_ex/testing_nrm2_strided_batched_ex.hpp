@@ -24,14 +24,14 @@
 
 #include "testing_common.hpp"
 
-template <typename Tx, typename Tr>
+template <typename Tx, typename Tr = Tx>
 void testing_nrm2_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_nrm2_strided_batched_ex_fn = arg.api == FORTRAN
+    auto rocblas_nrm2_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                   ? rocblas_nrm2_strided_batched_ex_fortran
                                                   : rocblas_nrm2_strided_batched_ex;
 
-    auto rocblas_nrm2_strided_batched_ex_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_nrm2_strided_batched_ex_fn_64 = arg.api & c_API_FORTRAN
                                                      ? rocblas_nrm2_strided_batched_ex_64_fortran
                                                      : rocblas_nrm2_strided_batched_ex_64;
 
@@ -87,19 +87,19 @@ void testing_nrm2_strided_batched_ex_bad_arg(const Arguments& arg)
         (handle, N, dx, x_type, incx, stridex, batch_count, nullptr, result_type, execution_type));
 }
 
-template <typename Tx, typename Tr>
+template <typename Tx, typename Tr = Tx>
 void testing_nrm2_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_nrm2_strided_batched_ex_fn = arg.api == FORTRAN
+    auto rocblas_nrm2_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                   ? rocblas_nrm2_strided_batched_ex_fortran
                                                   : rocblas_nrm2_strided_batched_ex;
 
-    auto rocblas_nrm2_strided_batched_ex_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_nrm2_strided_batched_ex_fn_64 = arg.api & c_API_FORTRAN
                                                      ? rocblas_nrm2_strided_batched_ex_64_fortran
                                                      : rocblas_nrm2_strided_batched_ex_64;
 
-    rocblas_datatype x_type         = arg.a_type;
-    rocblas_datatype result_type    = arg.b_type;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype result_type    = rocblas_type2datatype<Tr>();
     rocblas_datatype execution_type = arg.compute_type;
 
     int64_t        N           = arg.N;

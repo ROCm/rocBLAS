@@ -1,4 +1,4 @@
-"""Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,24 @@ from pathlib import Path
 from git_info import create_github_file
 
 # Parameters for output csv file
-trackedParamList = ['function', 'precision', 'a_type', 'b_type', 'c_type', 'd_type', 'compute_type', 'input_type', 'output_type',
+trackedParamList = ['function', 'precision', 'bench_command', 'a_type', 'b_type', 'c_type', 'd_type', 'compute_type', 'input_type', 'output_type',
                     'transA', 'transB', 'uplo', 'diag', 'side', 'M', 'N', 'K', 'KL', 'KU', 'alpha', 'alphai', 'beta', 'betai',
                     'incx', 'incy', 'lda', 'ldb', 'ldd', 'stride_x', 'stride_y', 'stride_a', 'stride_b', 'stride_c', 'stride_d',
                     'batch_count', 'algo', 'solution_index', 'flags', 'iters', 'cold_iters', 'pointer_mode', 'num_perfs', 'sample_num']
                     # Add output (eg. gflops) in code dependent on what we want to record (gflops vs. gbytes)
+
+# maps output of rocblas-bench to input to rocblas-bench
+benchInputMap = {'function': 'function', 'precision': 'precision',
+                 'a_type': 'a_type', 'b_type': 'b_type', 'c_type': 'c_type', 'd_type': 'd_type', 'compute_type': 'compute_type',
+                 'transA': 'transposeA', 'transB': 'transposeB',
+                 'uplo': 'uplo', 'diag': 'diag', 'side': 'side',
+                 'M': 'sizem', 'N': 'sizen', 'K': 'sizek',
+                 'KL': 'kl', 'KU': 'ku',
+                 'alpha': 'alpha', 'alphai': 'alphai', 'beta': 'beta', 'betai': 'betai',
+                 'incx': 'incx', 'incy': 'incy', 'lda': 'lda', 'ldb': 'ldb', 'ldd': 'ldd',
+                 'stride_x': 'stride_x', 'stride_y': 'stride_y', 'stride_a': 'stride_a', 'stride_b': 'stride_b', 'stride_c': 'stride_c', 'stride_d': 'stride_d',
+                 'batch_count': 'batch_count', 'algo': 'algo', 'solution_index': 'solution_index', 'flags': 'flags', 'iters': 'iters', 'cold_iters': 'cold_iters'
+                }
 
 outputIndex = trackedParamList.index('num_perfs')
 
@@ -102,7 +115,6 @@ def getEnvironmentInfo(device_num):
     device_info['device'] = getspecs.getdeviceinfo(device_num, False)
     device_info['vbios version'] = getspecs.getvbios(device_num, False)
     device_info['vram'] = getspecs.getvram(device_num, False)
-    device_info['performance level'] = getspecs.getperflevel(device_num, False)
     device_info['system clock'] = getspecs.getsclk(device_num, False)
     device_info['memory clock'] = getspecs.getmclk(device_num, False)
     rv['Device info'] = device_info
@@ -112,6 +124,13 @@ def getEnvironmentInfo(device_num):
 #d is default dict or contains a superset of trackedParams
 def extractTrackedParams(d):
     return [d[p] for p in trackedParamList]
+
+def getBenchCommand(keys, vals):
+    cmd = 'rocblas-bench '
+    for key in keys:
+        if key in benchInputMap:
+            cmd += '--' + benchInputMap[key] + ' ' + vals[key] + ' '
+    return cmd
 
 def parseRocblasBenchOutput(output, yamlArgs):
     csvKeys = ''
@@ -126,9 +145,12 @@ def parseRocblasBenchOutput(output, yamlArgs):
             #dd = defaultdict(str, args2Dict(yamlArgs[len(lineLists)]).items())
             #dd.update(getFunctionTypes(args2Dict(yamlArgs[len(lineLists)])))
             dd_output = defaultdict(str, zip(csvKeys, line.split(',')))
+            benchCommand1 = getBenchCommand(csvKeys, dd_output)
             #dd.update(dd_output)
             dd = dd_output
+            dd['bench_command'] = benchCommand1
             lineLists += [extractTrackedParams(dd)]
+
             captureNext = False
         elif line.startswith('function'):
             csvKeys = line.split(',')
@@ -284,7 +306,7 @@ def main(args):
 
         saveRocblasBenchResults(rocblasBenchCommand,
                                 filename,
-                                10,
+                                5,
                                 os.path.join(subDirectory, outputName+'_benchmark.csv'),
                                 perf_queries, res_queries)
 

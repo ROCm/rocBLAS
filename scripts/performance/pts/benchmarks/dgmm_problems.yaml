@@ -1,0 +1,16 @@
+---
+include: ../../../../clients/include/rocblas_common.yaml
+
+Definitions:
+  # TODO: Is there a way to make this easier in YAML? In rocblas_gentest.py?
+  - &m_equals_n_range
+    - { scan: [1000..9000..512], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value, ldc: *c_scan_value}
+
+Tests:
+  - name: dgmm
+    function: dgmm
+    precision: *single_double_precisions_complex
+    side: [ L, R ]
+    matrix_size: *m_equals_n_range
+    incx: 1
+...

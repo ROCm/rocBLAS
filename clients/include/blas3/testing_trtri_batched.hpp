@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -34,15 +35,14 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 #include "blas3/rocblas_trtri.hpp"
 
 template <typename T>
 void testing_trtri_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trtri_batched_fn
-        = arg.api == FORTRAN ? rocblas_trtri_batched<T, true> : rocblas_trtri_batched<T, false>;
+    auto rocblas_trtri_batched_fn = arg.api & c_API_FORTRAN ? rocblas_trtri_batched<T, true>
+                                                            : rocblas_trtri_batched<T, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -158,8 +158,8 @@ void testing_trtri_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trtri_batched(const Arguments& arg)
 {
-    auto rocblas_trtri_batched_fn
-        = arg.api == FORTRAN ? rocblas_trtri_batched<T, true> : rocblas_trtri_batched<T, false>;
+    auto rocblas_trtri_batched_fn = arg.api & c_API_FORTRAN ? rocblas_trtri_batched<T, true>
+                                                            : rocblas_trtri_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;

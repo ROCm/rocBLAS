@@ -82,54 +82,6 @@ Definitions:
     - { scan: [ 128..2048..128 ], M: *c_scan_value, N: 16, lda: 16, ldb: *c_scan_value }
 
 Tests:
-# - name: trsm_bench_const_n
-#   category: bench
-#   function: trsm
-#   precision: *single_precision
-#   transA: [ N, T ]
-#   side: L
-#   uplo: U
-#   diag: U
-#   alpha: 1
-#   incx: 1
-#   incy: 1
-#   N: 32
-#   M: 32..120..8
-#   lda: 120 # TODO: easy way to increment lda in lockstep with M?
-#   ldb: 120
-#   iters: 20
-
-# - name: trsm_bench_const_m
-#   category: bench
-#   function: trsm
-#   precision: *single_precision
-#   transA: [ N, T ]
-#   side: L
-#   uplo: U
-#   diag: U
-#   alpha: 1
-#   incx: 1
-#   incy: 1
-#   N: 32..480..32
-#   M: 32
-#   lda: 32
-#   ldb: 32
-#   iters: 20
-
-# - name: trsm_bench_m_equals_n
-#   category: bench
-#   function: trsm
-#   precision: *single_precision
-#   transA: [ N, T ]
-#   side: L
-#   uplo: U
-#   diag: U
-#   alpha: 1
-#   incx: 1
-#   incy: 1
-#   matrix_size: *m_equals_n_range
-#   iters: 20
-
   - name: trsm_bench_1_small_matrix_size
     category: bench
     function: trsm
@@ -186,31 +138,31 @@ Tests:
     matrix_size: *right_substitution_range
     iters: 10
 
-  # - name: trsm_bench_1_matrix_size
-  #   category: bench
-  #   function: trsm
-  #   precision: *double_precision
-  #   transA: [ N, T ]
-  #   side: [ L, R ]
-  #   uplo: L
-  #   diag: U
-  #   alpha: 1
-  #   incx: 1
-  #   incy: 1
-  #   matrix_size: *testset1_matrix_size_range
-  #   iters: 5
+  - name: trsm_bench_1_matrix_size
+    category: bench
+    function: trsm
+    precision: *double_precision
+    transA: [ N, T ]
+    side: [ L, R ]
+    uplo: L
+    diag: U
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *testset1_matrix_size_range
+    iters: 5
 
-  # - name: trsm_bench_2_matrix_size
-  #   category: bench
-  #   function: trsm
-  #   precision: *double_precision
-  #   transA: [ N, T ]
-  #   side: [ L, R ]
-  #   uplo: L
-  #   diag: U
-  #   alpha: 1
-  #   incx: 1
-  #   incy: 1
-  #   matrix_size: *testset2_matrix_size_range
-  #   iters: 5
+  - name: trsm_bench_2_matrix_size
+    category: bench
+    function: trsm
+    precision: *double_precision
+    transA: [ N, T ]
+    side: [ L, R ]
+    uplo: L
+    diag: U
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *testset2_matrix_size_range
+    iters: 5
 ...

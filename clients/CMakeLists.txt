@@ -81,6 +81,10 @@ if (TARGET OpenMP::OpenMP_CXX)
   endif()
 endif()
 
+if (WIN32)
+  list( APPEND COMMON_LINK_LIBS "libomp")
+endif()
+
 if (TARGET Threads::Threads)
   list( APPEND COMMON_LINK_LIBS "Threads::Threads")
 endif()
@@ -116,18 +120,22 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
       if(EXISTS          "${BUILD_DIR}/deps/amd-blis/lib/ILP64/libblis-mt.a") # 4.0 and 4.1.0
         set( BLAS_LIBRARY ${BUILD_DIR}/deps/amd-blis/lib/ILP64/libblis-mt.a )
         set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/amd-blis/include/ILP64 )
+        set( WARN_NOT_ILP64_PREFERRED true )
       elseif(EXISTS      "/opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc/lib_ILP64/libblis-mt.a" )
         set( BLAS_LIBRARY /opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc/lib_ILP64/libblis-mt.a )
         set( BLIS_INCLUDE_DIR /opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc/include_ILP64/ )
       elseif(EXISTS      "/opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a" )
         set( BLAS_LIBRARY /opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a )
         set( BLIS_INCLUDE_DIR /opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/include_ILP64/ )
+        set( WARN_NOT_ILP64_PREFERRED true )
       elseif(EXISTS      "/opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a" )
         set( BLAS_LIBRARY /opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a )
         set( BLIS_INCLUDE_DIR /opt/AMD/aocl/aocl-linux-aocc-4.0/include_ILP64/ )
+        set( WARN_NOT_ILP64_PREFERRED true )
       elseif(EXISTS      "${BUILD_DIR}/deps/blis/lib/libblis.a")
         set( BLAS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.a )
         set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
+        set( WARN_NOT_ILP64_PREFERRED true )
       elseif(EXISTS      "/usr/local/lib/libblis.a")
         set( BLAS_LIBRARY /usr/local/lib/libblis.a )
         set( BLIS_INCLUDE_DIR /usr/local/include/blis )
@@ -152,13 +160,19 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
         set( BLAS_LIBRARY OpenBLAS::OpenBLAS )
         set( BLAS_INCLUDE_DIR "" )
       endif()
+      set( WARN_NOT_ILP64_PREFERRED true )
     endif()
   endif()
 
   if ( DEFINED BLIS_INCLUDE_DIR )
     set( BLIS_CPP ../common/blis_interface.cpp )
   endif()
+
   message(STATUS "Linking Reference BLAS LIB: ${BLAS_LIBRARY}")
+
+  if ( WARN_NOT_ILP64_PREFERRED )
+    message( WARNING "Using ${BLAS_LIBRARY} as reference library, 64-bit tests may fail. Test suite should be run with --gtest_filter=-*stress*")
+  endif()
 
   # Find the package ROCmSMI
   if(NOT WIN32)
@@ -166,19 +180,9 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
       list( APPEND COMMON_LINK_LIBS rocm_smi )
   endif()
 
-  # common source files used in subdirectories benchmarks and gtest thus ../common
-  set( rocblas_test_bench_common
-      ../common/singletons.cpp
-      ../common/utility.cpp
-      ../common/frequency_monitor.cpp
-      ../common/cblas_interface.cpp
-      ../common/rocblas_arguments.cpp
-      ../common/argument_model.cpp
-      ../common/rocblas_random.cpp
-      ../common/rocblas_parse_data.cpp
-      ../common/host_alloc.cpp
-      ${BLIS_CPP}
-    )
+  find_package( GTest REQUIRED )
+
+  add_subdirectory( common )
 
   if( BUILD_CLIENTS_BENCHMARKS )
     add_subdirectory( benchmarks )

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,15 +19,12 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+
+#include "blas3/common_gemm.hpp"
+#include "client_utility.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_gemm.hpp"
-#include "testing_gemm_batched.hpp"
-#include "testing_gemm_batched_ex.hpp"
-#include "testing_gemm_ex.hpp"
-#include "testing_gemm_strided_batched.hpp"
-#include "testing_gemm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -39,11 +36,8 @@ namespace
     enum gemm_test_type
     {
         GEMM,
-        GEMM_EX,
         GEMM_BATCHED,
-        GEMM_BATCHED_EX,
         GEMM_STRIDED_BATCHED,
-        GEMM_STRIDED_BATCHED_EX,
     };
 
     // ----------------------------------------------------------------------------
@@ -86,19 +80,6 @@ namespace
             case GEMM_STRIDED_BATCHED:
                 return !strcmp(arg.function, "gemm_strided_batched")
                        || !strcmp(arg.function, "gemm_strided_batched_bad_arg");
-
-#if(BUILD_WITH_TENSILE)
-            case GEMM_EX:
-                return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
-
-            case GEMM_BATCHED_EX:
-                return !strcmp(arg.function, "gemm_batched_ex")
-                       || !strcmp(arg.function, "gemm_batched_ex_bad_arg");
-
-            case GEMM_STRIDED_BATCHED_EX:
-                return !strcmp(arg.function, "gemm_strided_batched_ex")
-                       || !strcmp(arg.function, "gemm_strided_batched_ex_bad_arg");
-#endif
             }
 
             return false;
@@ -116,37 +97,28 @@ namespace
             }
             else
             {
-                constexpr bool isEx = GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
-                                      || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX;
-                constexpr bool isBatched
-                    = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
-                       || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
-
-                if(isEx)
-                    name << rocblas_datatype2string(arg.b_type)
-                         << rocblas_datatype2string(arg.c_type)
-                         << rocblas_datatype2string(arg.d_type)
-                         << rocblas_datatype2string(arg.compute_type);
+                constexpr bool isBatched = (GEMM_TYPE != GEMM);
 
                 name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB);
 
                 name << '_' << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_'
                      << arg.lda << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
 
-                if(isEx)
-                    name << '_' << arg.ldd;
-
                 if(isBatched)
                     name << '_' << arg.batch_count;
 
-                if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+                if(GEMM_TYPE == GEMM_STRIDED_BATCHED)
                     name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
 
                 if(arg.math_mode == rocblas_xf32_xdl_math_op)
                     name << "_xf32";
             }
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+            if(arg.api & c_API_FORTRAN)
             {
                 name << "_F";
             }
@@ -218,77 +190,5 @@ namespace
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched);
-
-#if(BUILD_WITH_TENSILE)
-    // ----------------------------------------------------------------------------
-    // gemm_ex
-    // gemm_batched_ex
-    // gemm_strided_batched_ex
-    // ----------------------------------------------------------------------------
-
-    // In the general case of <Ti, To, Tc>, these tests do not apply, and if this
-    // functor is called, an internal error message is generated. When converted
-    // to bool, this functor returns false.
-    template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
-    struct gemm_ex_testing : rocblas_test_invalid
-    {
-    };
-
-    // When Ti != void, this test applies.
-    // When converted to bool, this functor returns true.
-    template <typename Ti, typename To, typename Tc>
-    struct gemm_ex_testing<
-        Ti,
-        To,
-        Tc,
-        std::enable_if_t<
-            !std::is_same_v<
-                Ti,
-                void> && !(std::is_same_v<Ti, Tc> && std::is_same_v<Ti, rocblas_bfloat16>)>>
-        : rocblas_test_valid
-    {
-        void operator()(const Arguments& arg)
-        {
-            if(!strcmp(arg.function, "gemm_ex"))
-                testing_gemm_ex<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_ex_bad_arg"))
-                testing_gemm_ex_bad_arg<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_batched_ex"))
-                testing_gemm_batched_ex<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_batched_ex_bad_arg"))
-                testing_gemm_batched_ex_bad_arg<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_strided_batched_ex"))
-                testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_strided_batched_ex_bad_arg"))
-                testing_gemm_strided_batched_ex_bad_arg<Ti, To, Tc>(arg);
-            else
-                FAIL() << "Internal error: Test called with unknown function: " << arg.function;
-        }
-    };
-
-    using gemm_ex = gemm_test_template<gemm_ex_testing, GEMM_EX>;
-    TEST_P(gemm_ex, blas3_tensile)
-    {
-        RUN_TEST_ON_THREADS_STREAMS(rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
-    }
-    INSTANTIATE_TEST_CATEGORIES(gemm_ex);
-
-    using gemm_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_BATCHED_EX>;
-    TEST_P(gemm_batched_ex, blas3_tensile)
-    {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
-            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
-    }
-    INSTANTIATE_TEST_CATEGORIES(gemm_batched_ex);
-
-    using gemm_strided_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_STRIDED_BATCHED_EX>;
-    TEST_P(gemm_strided_batched_ex, blas3_tensile)
-    {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
-            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
-    }
-    INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
-
-#endif //  BUILD_WITH_TENSILE
 
 } // namespace

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +21,11 @@
  * ************************************************************************ */
 #define ROCBLAS_BETA_FEATURES_API
 
+#include "blas_ex/common_gemm_ex3.hpp"
+#include "client_utility.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_gemm_batched_ex3.hpp"
-#include "testing_gemm_ex3.hpp"
-#include "testing_gemm_strided_batched_ex3.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>

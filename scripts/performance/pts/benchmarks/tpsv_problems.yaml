@@ -3,13 +3,7 @@ include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
   - &multiples_of_32_sizes
-    - {N: 20480 }
-    - {N: 12288 }
-    - {N: 10240 }
-    - {N:  8192 }
-    - {N:  6144 }
-    - {N:  4096 }
-    - {N:  2048 }
+    - { N: [2048..12288..2048] }
 
 Tests:
   - name: tpsv_upper_multiples_of_32_sizes

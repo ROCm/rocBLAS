@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,10 @@
  *
  * ************************************************************************ */
 
+#include "blas_ex/common_gemmt.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_gemmt.hpp"
-#include "testing_gemmt_batched.hpp"
-#include "testing_gemmt_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cstring>
 #include <type_traits>
@@ -92,11 +90,16 @@ namespace
                 if(isBatched)
                     name << '_' << arg.batch_count;
 
-                if(GEMMT_TYPE == GEMMT_STRIDED_BATCHED || GEMMT_TYPE == GEMMT_STRIDED_BATCHED)
+                if(GEMMT_TYPE != GEMMT)
                     name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
             }
 
-            if(arg.api == FORTRAN)
+            if(arg.api & c_API_64)
+            {
+                name << "_I64";
+            }
+
+            if(arg.api & c_API_FORTRAN)
                 name << "_F";
 
             return std::move(name);

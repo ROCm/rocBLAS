@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +28,9 @@ template <typename T>
 void testing_copy_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_copy_batched_fn
-        = arg.api == FORTRAN ? rocblas_copy_batched<T, true> : rocblas_copy_batched<T, false>;
-    auto rocblas_copy_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_copy_batched_64<T, true>
-                                                            : rocblas_copy_batched_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_copy_batched<T, true> : rocblas_copy_batched<T, false>;
+    auto rocblas_copy_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_copy_batched_64<T, true>
+                                                              : rocblas_copy_batched_64<T, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -61,9 +61,9 @@ template <typename T>
 void testing_copy_batched(const Arguments& arg)
 {
     auto rocblas_copy_batched_fn
-        = arg.api == FORTRAN ? rocblas_copy_batched<T, true> : rocblas_copy_batched<T, false>;
-    auto rocblas_copy_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_copy_batched_64<T, true>
-                                                            : rocblas_copy_batched_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_copy_batched<T, true> : rocblas_copy_batched<T, false>;
+    auto rocblas_copy_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_copy_batched_64<T, true>
+                                                              : rocblas_copy_batched_64<T, false>;
 
     int64_t              N    = arg.N;
     int64_t              incx = arg.incx;

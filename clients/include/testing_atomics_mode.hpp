@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -34,7 +35,6 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 // Check to see if rocblas_set_atomics_mode is working. This is done by:
 // - Calling rocblas_set_atomics_mode to not allow atomics
@@ -47,7 +47,7 @@
 template <typename T>
 void testing_atomics_mode(const Arguments& arg)
 {
-    auto rocblas_gemm_fn = arg.api == FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    auto rocblas_gemm_fn = arg.api & c_API_FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

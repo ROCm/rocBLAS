@@ -22,44 +22,31 @@
 
 #pragma once
 
-#include "../../library/src/include/handle.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
 #include "frequency_monitor.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "type_dispatch.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex_bad_arg(const Arguments& arg)
 {
-
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_ex_fn = arg.api == FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+        auto rocblas_gemm_ex_fn
+            = arg.api & c_API_FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+        auto rocblas_gemm_ex_fn_64
+            = arg.api & c_API_FORTRAN ? rocblas_gemm_ex_64_fortran : rocblas_gemm_ex_64;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
 
-        const rocblas_int M = 100;
-        const rocblas_int N = 100;
-        const rocblas_int K = 101;
+        const int64_t M = 100;
+        const int64_t N = 100;
+        const int64_t K = 101;
 
-        const rocblas_int lda = 101;
-        const rocblas_int ldb = 101;
-        const rocblas_int ldc = 101;
-        const rocblas_int ldd = 101;
+        const int64_t lda = 101;
+        const int64_t ldb = 101;
+        const int64_t ldc = 101;
+        const int64_t ldd = 101;
 
         const rocblas_datatype a_type       = rocblas_type2datatype<Ti>();
         const rocblas_datatype b_type       = rocblas_type2datatype<Ti>();
@@ -87,13 +74,14 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         const rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
         // we still have to copy C to D for some quick returns
 
-        rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
-        rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
-        rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
-        rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
+        int64_t Kmax  = std::max(K, int64_t(1));
+        int64_t A_row = transA == rocblas_operation_none ? M : Kmax;
+        int64_t A_col = transA == rocblas_operation_none ? Kmax : M;
+        int64_t B_row = transB == rocblas_operation_none ? Kmax : N;
+        int64_t B_col = transB == rocblas_operation_none ? N : Kmax;
 
-        int32_t     solution_index = 0;
-        rocblas_int flags          = 0;
+        int32_t  solution_index = 0;
+        uint32_t flags          = 0;
 
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
@@ -119,119 +107,119 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         // clang-format off
 
 // check for invalid enum
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, (rocblas_operation) rocblas_side_both, transB, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_value, rocblas_gemm_ex_fn, (handle, (rocblas_operation) rocblas_side_both, transB, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_value);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, (rocblas_operation) rocblas_side_both, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_value, rocblas_gemm_ex_fn, (handle, transA, (rocblas_operation) rocblas_side_both, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_value);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // check for invalid size
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, -1, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, -1, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, -1, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, M, -1, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, -1,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, -1,
 nullptr, nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // check for invalid leading dimension
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, rocblas_operation_none, rocblas_operation_none, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, rocblas_operation_none, rocblas_operation_none, M, N, K, nullptr,
 nullptr, a_type, M-1, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, rocblas_operation_none, rocblas_operation_none, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, rocblas_operation_none, rocblas_operation_none, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, K-1, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, rocblas_operation_transpose, rocblas_operation_transpose, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, rocblas_operation_transpose, rocblas_operation_transpose, M, N, K, nullptr,
 nullptr, a_type, K-1, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, rocblas_operation_transpose, rocblas_operation_transpose, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, rocblas_operation_transpose, rocblas_operation_transpose, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, N-1, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, M-1,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, M-1, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+nullptr, d_type, M-1, compute_type, algo, solution_index, flags));
 
 // check that nullptr gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(nullptr, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_handle, rocblas_gemm_ex_fn, (nullptr, transA, transB, M, N, K, alpha,
 dA, a_type, lda, dB, b_type, ldb, beta, dC, c_type, ldc,
-dD,d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_handle);
+dD,d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, nullptr,
+DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, nullptr,
 dA, a_type, lda, dB, b_type, ldb, beta, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, alpha,
 nullptr, a_type, lda, dB, b_type, ldb, beta, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, alpha,
 dA, a_type, lda, nullptr, b_type, ldb, beta, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, alpha,
 dA, a_type, lda, dB, b_type, ldb, nullptr, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, alpha,
 dA, a_type, lda, dB, b_type, ldb, beta, nullptr, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, alpha,
 dA, a_type, lda, dB, b_type, ldb, beta, dC, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
 
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, alpha,
+DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, alpha,
 dA, a_type, lda, dB, b_type, ldb, beta, dC, c_type, ldc, dC, // aliased C
-d_type, ldc + 1, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+d_type, ldc + 1, compute_type, algo, solution_index, flags));
 
 // If M==0, then all pointers can be nullptr without issue
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, 0, N, K, nullptr,
+DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, 0, N, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_success);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // If N==0, then all pointers can be nullptr without issue
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, 0, K, nullptr,
+DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, 0, K, nullptr,
 nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
-nullptr, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_success);
+nullptr, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // If alpha==0 then A, B can be nullptr without issue.
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, zero,
+DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, zero,
 nullptr, a_type, lda, nullptr, b_type, ldb, beta, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_success);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // the following tests still output to D
 
 // If K==0, then alpha, A and B can both be nullptr without issue.
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, 0,
+DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, 0,
 nullptr, nullptr, a_type, lda, nullptr, b_type, ldb, beta, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_success);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // If alpha==0, then A and B can both be nullptr without issue.
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, zero,
+DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, zero,
 nullptr, a_type, lda, nullptr, b_type, ldb, beta, dC, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_success);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
 // alpha==0 && beta==1 must still copy C to D so no quick return
 
 // If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
-EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, zero,
+DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, zero,
 nullptr, a_type, lda, nullptr, b_type, ldb, zero, nullptr, c_type, ldc,
-dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_success);
+dD, d_type, ldd, compute_type, algo, solution_index, flags));
 
         // clang-format on
     }
@@ -240,7 +228,9 @@ dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_succ
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
-    auto rocblas_gemm_ex_fn = arg.api == FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+    auto rocblas_gemm_ex_fn = arg.api & c_API_FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+    auto rocblas_gemm_ex_fn_64
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_ex_64_fortran : rocblas_gemm_ex_64;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);
@@ -261,15 +251,16 @@ void testing_gemm_ex(const Arguments& arg)
     double rocblas_error          = 0.0;
 
     rocblas_local_handle handle{arg};
-    auto                 transA = char2rocblas_operation(arg.transA);
-    auto                 transB = char2rocblas_operation(arg.transB);
-    int                  M = arg.M, N = arg.N, K = arg.K;
-    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
-    auto                 A_row  = transA == rocblas_operation_none ? M : std::max(K, 1);
-    auto                 A_col  = transA == rocblas_operation_none ? std::max(K, 1) : M;
-    auto                 B_row  = transB == rocblas_operation_none ? std::max(K, 1) : N;
-    auto                 B_col  = transB == rocblas_operation_none ? N : std::max(K, 1);
-    auto                 d_type = arg.d_type;
+    rocblas_operation    transA = char2rocblas_operation(arg.transA);
+    rocblas_operation    transB = char2rocblas_operation(arg.transB);
+    int64_t              M = arg.M, N = arg.N, K = arg.K;
+    int64_t              lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    int64_t              Kmax   = std::max(K, int64_t(1));
+    int64_t              A_row  = transA == rocblas_operation_none ? M : Kmax;
+    int64_t              A_col  = transA == rocblas_operation_none ? Kmax : M;
+    int64_t              B_row  = transB == rocblas_operation_none ? Kmax : N;
+    int64_t              B_col  = transB == rocblas_operation_none ? N : Kmax;
+    rocblas_datatype     d_type = arg.d_type;
 
     rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
     CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
@@ -280,13 +271,12 @@ void testing_gemm_ex(const Arguments& arg)
     if(invalid_size)
     {
         // clang-format off
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, nullptr,
+        DAPI_EXPECT(rocblas_status_invalid_size, rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, nullptr,
                                                  nullptr, arg.a_type, lda,
                                                  nullptr, arg.b_type, ldb, nullptr,
                                                  nullptr, arg.c_type, ldc,
                                                  nullptr, arg.d_type, ldd,
-                                                 arg.compute_type, algo, solution_index, flags),
-                                                 rocblas_status_invalid_size);
+                                                 arg.compute_type, algo, solution_index, flags));
         // clang-format on
         return;
     }
@@ -299,7 +289,7 @@ void testing_gemm_ex(const Arguments& arg)
         device_vector<To> dC(1);
         device_vector<To> dD(1);
         // clang-format off
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+        DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
                                                dA, arg.a_type, lda,
                                                dB, arg.b_type, ldb, &h_beta_Tc,
                                                dC, arg.c_type, ldc,
@@ -316,47 +306,6 @@ void testing_gemm_ex(const Arguments& arg)
         d_type = arg.c_type;
     }
 
-    // Information on flush_memory_size and flush_batch_count
-    // - To time gemm_ex it is called number_hot_calls times.
-    // - if the size of dA, dB, dC, dD are small enough they will be cached
-    //   and reused number_hot_calls-1 times.
-    // - This "hot-cache" timing will give higher performance than if the
-    //   cache is flushed
-    // - arg.flush_batch_count or arg.flush_memory_size can be used to avoid caching of dA, dB, dC, dD
-    // - if arg.flush_memory_size is specified, then flush_batch_count is calculated
-    // - only one of arg.flush_memory_size or arg.flush_batch_count can be used, not both
-    // - Note that this is only used in timing code, not in testing code.
-    // - The method is as outlined in
-    //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
-    // - In the number_hot_calls timing loop it cycles through the arg.flush_batch_count copies
-    //   of dA, dB, dC, dD, and if flush_memory_size is large enough they will be evicted
-    //   from cache before they are reused.
-    // - The individual matrices are aligned on the same byte boundaries provided by hipMalloc.
-    rocblas_stride stride_a = size_t(lda) * A_col;
-    rocblas_stride stride_b = size_t(ldb) * B_col;
-    rocblas_stride stride_c = size_t(ldc) * N;
-    rocblas_stride stride_d = arg.outofplace ? size_t(ldd) * N : 0;
-
-    rocblas_stride aligned_stride_a = align_stride<Ti>(stride_a);
-    rocblas_stride aligned_stride_b = align_stride<Ti>(stride_b);
-    rocblas_stride aligned_stride_c = align_stride<To>(stride_c);
-    rocblas_stride aligned_stride_d = align_stride<To>(stride_d);
-
-    size_t flush_batch_count = 1;
-    if(arg.timing)
-    {
-        size_t a_size = M * K * sizeof(Ti);
-        size_t b_size = K * N * sizeof(Ti);
-        size_t c_size = M * N * sizeof(To);
-        //      exclude d_size from cached_size calculation because
-        //      - for arg.outofplace == false : D == C
-        //      - for arg.outofplace == true  : D is write only
-        size_t a_b_c_cached_size = a_size + b_size + c_size;
-
-        flush_batch_count = calculate_flush_batch_count(
-            arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
-    }
-
     // Allocate host memory
     host_matrix<Ti> hA(A_row, A_col, lda);
     host_matrix<Ti> hB(B_row, B_col, ldb);
@@ -368,24 +317,10 @@ void testing_gemm_ex(const Arguments& arg)
     CHECK_HIP_ERROR(hC.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, aligned_stride_a, flush_batch_count);
-    device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
-    device_strided_batch_matrix<To> dC(M, N, ldc, aligned_stride_c, flush_batch_count);
-    // if C!=D, allocate C and D normally
-    // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_strided_batch_matrix<To> dD_alloc
-        = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, aligned_stride_d, 1)
-                           : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-    device_strided_batch_matrix<To>& dD = (arg.outofplace) ? dD_alloc : dC;
-
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(dD_alloc.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
 
@@ -400,13 +335,34 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_init_matrix<To, true>(
         hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
-    CHECK_HIP_ERROR(dB.broadcast_one_matrix_from(hB));
-    CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
-
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        device_matrix<Ti> dA(A_row, A_col, lda);
+        device_matrix<Ti> dB(B_row, B_col, ldb);
+
+        // if C!=D, allocate C and D normally
+        // if C==D, allocate C big enough for the larger of C and D; D points to C
+        device_matrix<To> dC(M, N, ldc);
+        device_matrix<To> dD
+            = (arg.outofplace) ? device_matrix<To>(M, N, ldd) : device_matrix<To>(0, 1, 1);
+        device_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+        device_vector<Tc>  d_alpha_Tc(1);
+        device_vector<Tc>  d_beta_Tc(1);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
+        CHECK_HIP_ERROR(dB.transfer_from(hB));
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
+
         using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
 
         host_matrix<To>     hD_1(M, N, ldd);
@@ -423,16 +379,16 @@ void testing_gemm_ex(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             handle.pre_test(arg);
             // clang-format off
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
-                                               dA[0], arg.a_type, lda,
-                                               dB[0], arg.b_type, ldb, &h_beta_Tc,
-                                               dC[0], arg.c_type, ldc,
-                                               dD[0],     d_type, ldd,
+            DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                               dA, arg.a_type, lda,
+                                               dB, arg.b_type, ldb, &h_beta_Tc,
+                                               dC, arg.c_type, ldc,
+                                               dDref,  d_type, ldd,
                                                arg.compute_type, algo, solution_index, flags));
             // clang-format on
             handle.post_test(arg);
             // copy output from device to CPU
-            CHECK_HIP_ERROR(hD_1.transfer_one_matrix_from(dD));
+            CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
         }
 
         if(arg.pointer_mode_device)
@@ -440,20 +396,20 @@ void testing_gemm_ex(const Arguments& arg)
             // ROCBLAS rocblas_pointer_mode_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+            CHECK_HIP_ERROR(dC.transfer_from(hC));
 
             CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
             // clang-format off
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
-                                               dA[0], arg.a_type, lda,
-                                               dB[0], arg.b_type, ldb, d_beta_Tc,
-                                               dC[0], arg.c_type, ldc,
-                                               dD[0],     d_type, ldd,
+            DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, d_alpha_Tc,
+                                               dA, arg.a_type, lda,
+                                               dB, arg.b_type, ldb, d_beta_Tc,
+                                               dC, arg.c_type, ldc,
+                                               dDref,  d_type, ldd,
                                                arg.compute_type, algo, solution_index, flags));
             // clang-format on
 
-            CHECK_HIP_ERROR(hD_2.transfer_one_matrix_from(dD));
+            CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
 
             if(arg.repeatability_check)
             {
@@ -462,17 +418,17 @@ void testing_gemm_ex(const Arguments& arg)
 
                 for(int i = 0; i < arg.iters; i++)
                 {
-                    CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+                    CHECK_HIP_ERROR(dC.transfer_from(hC));
                     // clang-format off
-                    CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, d_alpha_Tc,
-                                               dA[0], arg.a_type, lda,
-                                               dB[0], arg.b_type, ldb, d_beta_Tc,
-                                               dC[0], arg.c_type, ldc,
-                                               dD[0],     d_type, ldd,
+                    DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, d_alpha_Tc,
+                                               dA, arg.a_type, lda,
+                                               dB, arg.b_type, ldb, d_beta_Tc,
+                                               dC, arg.c_type, ldc,
+                                               dDref,  d_type, ldd,
                                                arg.compute_type, algo, solution_index, flags));
                     // clang-format on
                     // fetch device mode GPU results
-                    CHECK_HIP_ERROR(hD_copy.transfer_one_matrix_from(dD));
+                    CHECK_HIP_ERROR(hD_copy.transfer_from(dDref));
 
                     unit_check_general<To>(M, N, ldd, hD_2, hD_copy);
                 }
@@ -580,12 +536,72 @@ void testing_gemm_ex(const Arguments& arg)
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
+        // Information on flush_memory_size and flush_batch_count
+        // - To time gemm_ex it is called number_hot_calls times.
+        // - if the size of dA, dB, dC, dD are small enough they will be cached
+        //   and reused number_hot_calls-1 times.
+        // - This "hot-cache" timing will give higher performance than if the
+        //   cache is flushed
+        // - arg.flush_batch_count or arg.flush_memory_size can be used to avoid caching of dA, dB, dC, dD
+        // - if arg.flush_memory_size is specified, then flush_batch_count is calculated
+        // - only one of arg.flush_memory_size or arg.flush_batch_count can be used, not both
+        // - Note that this is only used in timing code, not in testing code.
+        // - The method is as outlined in
+        //   "Achieving accurate and context-sensitive timing for code optimization" by Whaley and Castaldo.
+        // - In the number_hot_calls timing loop it cycles through the arg.flush_batch_count copies
+        //   of dA, dB, dC, dD, and if flush_memory_size is large enough they will be evicted
+        //   from cache before they are reused.
+        // - The individual matrices are aligned on the same byte boundaries provided by hipMalloc.
+
+        rocblas_stride stride_a = lda * A_col;
+        rocblas_stride stride_b = ldb * B_col;
+        rocblas_stride stride_c = ldc * N;
+        rocblas_stride stride_d = arg.outofplace ? ldd * N : 0;
+
+        rocblas_stride aligned_stride_a = align_stride<Ti>(stride_a);
+        rocblas_stride aligned_stride_b = align_stride<Ti>(stride_b);
+        rocblas_stride aligned_stride_c = align_stride<To>(stride_c);
+        rocblas_stride aligned_stride_d = align_stride<To>(stride_d);
+
+        size_t a_size = M * K * sizeof(Ti);
+        size_t b_size = K * N * sizeof(Ti);
+        size_t c_size = M * N * sizeof(To);
+        //      exclude d_size from cached_size calculation because
+        //      - for arg.outofplace == false : D == C
+        //      - for arg.outofplace == true  : D is write only
+        size_t a_b_c_cached_size = a_size + b_size + c_size;
+
+        size_t flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
+
+        // Allocate device memory
+        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, aligned_stride_a, flush_batch_count);
+        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
+        device_strided_batch_matrix<To> dC(M, N, ldc, aligned_stride_c, flush_batch_count);
+        // if C!=D, allocate C and D normally
+        // if C==D, allocate C big enough for the larger of C and D; D points to C
+        device_strided_batch_matrix<To> dD_alloc
+            = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, aligned_stride_d, 1)
+                               : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
+        device_strided_batch_matrix<To>& dD = (arg.outofplace) ? dD_alloc : dC;
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD_alloc.memcheck());
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
+        CHECK_HIP_ERROR(dB.broadcast_one_matrix_from(hB));
+        CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int i = 0; i < number_cold_calls; i++)
         {
             // clang-format off
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+            DAPI_DISPATCH(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
                                                    dA[0], arg.a_type, lda,
                                                    dB[0], arg.b_type, ldb, &h_beta_Tc,
                                                    dC[0], arg.c_type, ldc,
@@ -606,21 +622,21 @@ void testing_gemm_ex(const Arguments& arg)
             // clang-format off
             if(arg.outofplace)
             {
-                rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+                DAPI_DISPATCH(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
                                    dA[flush_index], arg.a_type, lda,
                                    dB[flush_index], arg.b_type, ldb, &h_beta_Tc,
                                    dC[flush_index], arg.c_type, ldc,
                                    dD[          0],     d_type, ldd,
-                                   arg.compute_type, algo, solution_index, flags);
+                                   arg.compute_type, algo, solution_index, flags));
             }
             else
             {
-                rocblas_gemm_ex_fn(handle, transA, transB, M, N, K, &h_alpha_Tc,
+                DAPI_DISPATCH(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
                                    dA[flush_index], arg.a_type, lda,
                                    dB[flush_index], arg.b_type, ldb, &h_beta_Tc,
                                    dC[flush_index], arg.c_type, ldc,
                                    dD[flush_index],     d_type, ldd,
-                                   arg.compute_type, algo, solution_index, flags);
+                                   arg.compute_type, algo, solution_index, flags));
             }
             // clang-format on
         }

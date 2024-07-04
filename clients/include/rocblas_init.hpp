@@ -905,6 +905,25 @@ void rocblas_init_identity(U& hA)
 }
 
 template <typename T, typename U>
+void rocblas_init_matrix_zero(U& hA)
+{
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda] = T(0);
+    }
+}
+
+template <typename T, typename U>
 void rocblas_init_non_rep_bf16_vals(U& hA)
 {
     const rocblas_half ieee_half_vals[4] = {2028, 2034, 2036, 2038};

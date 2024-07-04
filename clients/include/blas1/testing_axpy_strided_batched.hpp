@@ -24,6 +24,7 @@
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -33,16 +34,15 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename T>
 void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_axpy_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_axpy_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_axpy_strided_batched<T, true>
                                                   : rocblas_axpy_strided_batched<T, false>;
-    auto rocblas_axpy_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_axpy_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_axpy_strided_batched_64<T, true>
                                                   : rocblas_axpy_strided_batched_64<T, false>;
 
@@ -118,10 +118,10 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_axpy_strided_batched(const Arguments& arg)
 {
-    auto rocblas_axpy_strided_batched_fn    = arg.api == FORTRAN
+    auto rocblas_axpy_strided_batched_fn    = arg.api & c_API_FORTRAN
                                                   ? rocblas_axpy_strided_batched<T, true>
                                                   : rocblas_axpy_strided_batched<T, false>;
-    auto rocblas_axpy_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_axpy_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_axpy_strided_batched_64<T, true>
                                                   : rocblas_axpy_strided_batched_64<T, false>;
 

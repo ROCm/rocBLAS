@@ -50,8 +50,9 @@ rocBLAS documentation is available at
 ### Additions
 
 * Beta API `rocblas_gemm_batched_ex3` and `rocblas_gemm_strided_batched_ex3`
-*Input/output type f16_r/bf16_r and execution type f32_r support for Level 2 gemv_batched and
-  gemv_strided_batched
+* Input/output type f16_r/bf16_r and execution type f32_r support for Level 2 gemv_batched and
+  gemv_strided_batched: `rocblas_hshgemv_batched/strided_batched`, `rocblas_hssgemv_batched/strided_batched`,
+  `rocblas_tstgemv_batched/strided_batched` and `rocblas_tssgemv_batched/strided_batched`
 * Use of `rocblas_status_excluded_from_build` when calling functions that require Tensile (when using
   rocBLAS built without Tensile)
 * System for asynchronous kernel launches that set a `rocblas_status` failure based on a

@@ -20,14 +20,12 @@
  *
  * ************************************************************************ */
 
+#include "blas3/common_trsm.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_trsm.hpp"
-#include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
 #include "testing_trsm_ex.hpp"
-#include "testing_trsm_strided_batched.hpp"
 #include "testing_trsm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
@@ -63,12 +61,14 @@ namespace
             switch(TRSM_TYPE)
             {
             case TRSM:
-                return !strcmp(arg.function, "trsm") || !strcmp(arg.function, "trsm_bad_arg");
+                return !strcmp(arg.function, "trsm") || !strcmp(arg.function, "trsm_bad_arg")
+                       || !strcmp(arg.function, "trsm_internal_interfaces");
             case TRSM_EX:
                 return !strcmp(arg.function, "trsm_ex") || !strcmp(arg.function, "trsm_ex_bad_arg");
             case TRSM_BATCHED:
                 return !strcmp(arg.function, "trsm_batched")
-                       || !strcmp(arg.function, "trsm_batched_bad_arg");
+                       || !strcmp(arg.function, "trsm_batched_bad_arg")
+                       || !strcmp(arg.function, "trsm_batched_internal_interfaces");
             case TRSM_BATCHED_EX:
                 return !strcmp(arg.function, "trsm_batched_ex")
                        || !strcmp(arg.function, "trsm_batched_ex_bad_arg");
@@ -92,6 +92,10 @@ namespace
             if(strstr(arg.function, "_bad_arg") != nullptr)
             {
                 name << "_bad_arg";
+            }
+            else if(strstr(arg.function, "_internal_interfaces") != nullptr)
+            {
+                name << "_internal_interfaces";
             }
             else
             {
@@ -148,6 +152,8 @@ namespace
                 testing_trsm<T>(arg);
             else if(!strcmp(arg.function, "trsm_bad_arg"))
                 testing_trsm_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "trsm_internal_interfaces"))
+                testing_trsm_internal_interfaces<T>(arg);
             else if(!strcmp(arg.function, "trsm_ex"))
                 testing_trsm_ex<T>(arg);
             else if(!strcmp(arg.function, "trsm_ex_bad_arg"))
@@ -156,6 +162,8 @@ namespace
                 testing_trsm_batched<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched_bad_arg"))
                 testing_trsm_batched_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "trsm_batched_internal_interfaces"))
+                testing_trsm_batched_internal_interfaces<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched_ex"))
                 testing_trsm_batched_ex<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched_ex_bad_arg"))

@@ -30,9 +30,9 @@ template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
     auto rocblas_scal_fn
-        = arg.api == FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
     auto rocblas_scal_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_scal_64<T, U, true> : rocblas_scal_64<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_scal_64<T, U, true> : rocblas_scal_64<T, U, false>;
 
     int64_t N     = 100;
     int64_t incx  = 1;
@@ -56,9 +56,9 @@ template <typename T, typename U = T>
 void testing_scal(const Arguments& arg)
 {
     auto rocblas_scal_fn
-        = arg.api == FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
     auto rocblas_scal_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_scal_64<T, U, true> : rocblas_scal_64<T, U, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_scal_64<T, U, true> : rocblas_scal_64<T, U, false>;
 
     int64_t N       = arg.N;
     int64_t incx    = arg.incx;

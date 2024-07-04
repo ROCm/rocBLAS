@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -721,7 +721,7 @@ data_type_classes['gflops'] = FlopsComparison
 data_type_classes['bandwidth'] = BandwidthComparison
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='A python script to run rocBLAS benchmarks. Requires amd-smi and ROCm version >= 6.0')
 
     parser.add_argument('-N', '--num-runs', default=10, type=int,
                         help='Number of times to run each test.')

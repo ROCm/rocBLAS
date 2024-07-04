@@ -28,11 +28,11 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_dot_batched_ex_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
               : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
     auto rocblas_dot_batched_ex_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched_ex_64_fortran : rocblas_dot_batched_ex_64_fortran)
               : (CONJ ? rocblas_dotc_batched_ex_64 : rocblas_dot_batched_ex_64);
 
@@ -119,21 +119,15 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
                  execution_type));
 }
 
-template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr>
-void testing_dotc_batched_ex_bad_arg(const Arguments& arg)
-{
-    testing_dot_batched_ex_bad_arg<Tx, Ty, Tr, Tex, true>(arg);
-}
-
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_batched_ex(const Arguments& arg)
 {
     auto rocblas_dot_batched_ex_fn
-        = arg.api == FORTRAN
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
               : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
     auto rocblas_dot_batched_ex_fn_64
-        = arg.api == FORTRAN_64
+        = arg.api & c_API_FORTRAN
               ? (CONJ ? rocblas_dotc_batched_ex_64_fortran : rocblas_dot_batched_ex_64_fortran)
               : (CONJ ? rocblas_dotc_batched_ex_64 : rocblas_dot_batched_ex_64);
 
@@ -417,10 +411,4 @@ void testing_dot_batched_ex(const Arguments& arg)
             rocblas_error_host,
             rocblas_error_device);
     }
-}
-
-template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr>
-void testing_dotc_batched_ex(const Arguments& arg)
-{
-    testing_dot_batched_ex<Tx, Ty, Tr, Tex, true>(arg);
 }

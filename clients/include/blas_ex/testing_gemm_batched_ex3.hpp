@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -37,7 +38,6 @@
 #include "testing_gemm_ex3.hpp"
 #include "type_dispatch.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename TiA, typename TiB, typename To, typename Tc>
@@ -46,7 +46,7 @@ void testing_gemm_batched_ex3_bad_arg(const Arguments& arg)
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         auto rocblas_gemm_batched_ex3_fn
-            = arg.api == FORTRAN ? rocblas_gemm_batched_ex3_fortran : rocblas_gemm_batched_ex3;
+            = arg.api & c_API_FORTRAN ? rocblas_gemm_batched_ex3_fortran : rocblas_gemm_batched_ex3;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
@@ -821,7 +821,7 @@ template <typename TiA, typename TiB, typename To, typename Tc>
 void testing_gemm_batched_ex3(const Arguments& arg)
 {
     auto rocblas_gemm_batched_ex3_fn
-        = arg.api == FORTRAN ? rocblas_gemm_batched_ex3_fortran : rocblas_gemm_batched_ex3;
+        = arg.api & c_API_FORTRAN ? rocblas_gemm_batched_ex3_fortran : rocblas_gemm_batched_ex3;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);

@@ -153,7 +153,7 @@ namespace
                             batch_count);
         }
 
-        auto validArgs = rocblas_validateArgs(
+        auto validArgs = rocblas_gemm_arg_check(
             handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, batch_count);
 
         if(validArgs != rocblas_status_continue)
@@ -293,67 +293,3 @@ namespace
     IMPL(ROCBLAS_API(rocblas_cgemm_batched), TI_, rocblas_float_complex);  \
     IMPL(ROCBLAS_API(rocblas_zgemm_batched), TI_, rocblas_double_complex); \
     } // extern "C"
-
-/*******************************************************************************
- * Batched GEMM Kernel name APIs
- ******************************************************************************/
-extern "C" {
-
-rocblas_status rocblas_hgemm_batched_kernel_name(rocblas_handle      handle,
-                                                 rocblas_operation   trans_a,
-                                                 rocblas_operation   trans_b,
-                                                 rocblas_int         m,
-                                                 rocblas_int         n,
-                                                 rocblas_int         k,
-                                                 const rocblas_half* alpha,
-                                                 const rocblas_half* A[],
-                                                 rocblas_int         lda,
-                                                 const rocblas_half* B[],
-                                                 rocblas_int         ldb,
-                                                 const rocblas_half* beta,
-                                                 rocblas_half*       C[],
-                                                 rocblas_int         ldc,
-                                                 rocblas_int         batch_count)
-{
-    return rocblas_status_not_implemented;
-}
-
-rocblas_status rocblas_sgemm_batched_kernel_name(rocblas_handle    handle,
-                                                 rocblas_operation trans_a,
-                                                 rocblas_operation trans_b,
-                                                 rocblas_int       m,
-                                                 rocblas_int       n,
-                                                 rocblas_int       k,
-                                                 const float*      alpha,
-                                                 const float*      A[],
-                                                 rocblas_int       lda,
-                                                 const float*      B[],
-                                                 rocblas_int       ldb,
-                                                 const float*      beta,
-                                                 float*            C[],
-                                                 rocblas_int       ldc,
-                                                 rocblas_int       batch_count)
-{
-    return rocblas_status_not_implemented;
-}
-
-rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
-                                                 rocblas_operation trans_a,
-                                                 rocblas_operation trans_b,
-                                                 rocblas_int       m,
-                                                 rocblas_int       n,
-                                                 rocblas_int       k,
-                                                 const double*     alpha,
-                                                 const double*     A[],
-                                                 rocblas_int       lda,
-                                                 const double*     B[],
-                                                 rocblas_int       ldb,
-                                                 const double*     beta,
-                                                 double*           C[],
-                                                 rocblas_int       ldc,
-                                                 rocblas_int       batch_count)
-{
-    return rocblas_status_not_implemented;
-}
-
-} // extern "C"

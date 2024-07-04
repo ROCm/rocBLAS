@@ -64,9 +64,12 @@ Tests:
 
 - name: syrkx_bad
   category: quick
-  function: syrkx_bad_arg
+  function:
+    - syrkx_bad_arg
+    - syrkx_batched_bad_arg
+    - syrkx_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
-  api: [ C, FORTRAN ]
+  api: [ C, FORTRAN, FORTRAN_64 ]
 
 - name: syrkx_size_t
   category: stress
@@ -175,11 +178,6 @@ Tests:
   pointer_mode_device: false
 
 # batched
-- name: syrkx_batched_bad
-  category: quick
-  function: syrkx_batched_bad_arg
-  precision: *single_precision
-  api: [ C, FORTRAN ]
 
 - name: syrkx_batched_quick
   category: quick
@@ -226,11 +224,6 @@ Tests:
   pointer_mode_host: false
 
 # strided batched
-- name: syrkx_strided_batched_bad
-  category: quick
-  function: syrkx_strided_batched_bad_arg
-  precision: *single_precision
-  api: [ C, FORTRAN ]
 
 - name: syrkx_strided_batched_quick
   category: quick
@@ -275,6 +268,26 @@ Tests:
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
   pointer_mode_host: false
+
+- name: syrkx_64
+  category: stress
+  uplo: [ U, L ]
+  arguments:
+    #- { N:  1, K:  2147483649,  lda:  1, ldb: 1, ldc: 2147483649, batch_count: 1, transA: N } #TODO: Commenting out big tests due to alarm time out
+    #- { N:  1, K:  2147483649,  lda: 2147483649, ldb: 2147483649, ldc: 1, batch_count: 1, transA: T } #TODO: Commenting out big tests due to alarm time out
+    - { N:  35, K:  2,  lda:  2147483649, ldb: 36, ldc: 36, batch_count: 1, transA: N }
+    - { N:  2, K:  35,  lda: 36, ldb: 2147483649, ldc: 2147483649, batch_count: 1, transA: T }
+    - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T}
+    - { N:  2011, K:  253,  lda:  2011, ldb: 2011, ldc: 2048, batch_count: 3, transA: N }
+    - { N:  1024, K:  1200, lda:  1200, ldb: 1200, ldc: 1024, batch_count: 2, transA: T }
+  api: [ C_64 ]
+  alpha_beta:
+    - { alpha:  1.0, beta:  0.0 }
+  os_flags: [ LINUX ]
+  function:
+    - syrkx_strided_batched: *single_precision
+  stride_scale: 1
+  gpu_arch: '9??'
 
 - name: syrkx_graph_test
   category: pre_checkin

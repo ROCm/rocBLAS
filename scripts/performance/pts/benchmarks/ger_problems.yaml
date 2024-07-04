@@ -2,32 +2,40 @@
 include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
-  - &scan_power_2
-    - { M:  1024, N:  1024, lda:  1024 }
-    - { M:  2048, N:  2048, lda:  2048 }
-    - { M:  4096, N:  4096, lda:  4096 }
-    - { M:  8192, N:  8192, lda:  8192 }
-    # - { M: 16384, N: 16384, lda: 16384 }
 
-  - &mod_128_zero
-    - { M: 2176, N: 2176,  lda: 2176 } # m == n && m > 2000 && mod 128 == 0 && gfx90a
+  - &double_buffered_loads_size_range
+    - { scan: [2048..8192..512], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }
+    - { M: 2176, N: 2176,  lda: 2176 }
+
+  - &generic_ger_size_range  # non-fp32 will use generic kernel, fp32 will use special kernel
+    - { M: 2048, N: [2560..8192..512], lda: 2048 }
+    - { scan: [2048..8192..512], M: *c_scan_value, N: [32..128..32], lda: *c_scan_value }
 
 Tests:
-  - name: ger_scan_power_2
+  - name: ger_double_buffered_bench
     category: bench
     function: ger
     precision: *single_double_precisions
     alpha: 1
     incx: 1
     incy: 1
-    matrix_size: *scan_power_2
+    matrix_size: *double_buffered_loads_size_range
 
-  - name: ger_mod_128_zero
+  - name: ger_generic_bench
     category: bench
     function: ger
     precision: *single_double_precisions
     alpha: 1
     incx: 1
     incy: 1
-    matrix_size: *mod_128_zero
+    matrix_size: *generic_ger_size_range
+
+  - name: gerc_generic_bench
+    category: bench
+    function: gerc
+    precision: *single_double_precisions_complex
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *generic_ger_size_range
 ...

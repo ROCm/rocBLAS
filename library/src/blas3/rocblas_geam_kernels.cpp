@@ -29,16 +29,16 @@ rocblas_geam_zero_matrix_device(rocblas_int    m,
                                 rocblas_int    n,
                                 TPtr           Ca,
                                 rocblas_stride offset_c,
-                                rocblas_int    ldc,
+                                int64_t        ldc,
                                 rocblas_stride stride_c)
 {
-    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
         auto*  C       = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-        size_t c_index = tx + size_t(ldc) * ty;
+        size_t c_index = tx + ldc * ty;
         C[c_index]     = 0.0;
     }
 }
@@ -53,20 +53,20 @@ rocblas_geam_device(rocblas_operation transA,
                     TScal             alpha_device_host,
                     TConstPtr         Aa,
                     rocblas_stride    offset_a,
-                    rocblas_int       lda,
+                    int64_t           lda,
                     rocblas_stride    stride_a,
                     TScal             beta_device_host,
                     TConstPtr         Ba,
                     rocblas_stride    offset_b,
-                    rocblas_int       ldb,
+                    int64_t           ldb,
                     rocblas_stride    stride_b,
                     TPtr              Ca,
                     rocblas_stride    offset_c,
-                    rocblas_int       ldc,
+                    int64_t           ldc,
                     rocblas_stride    stride_c)
 {
-    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -79,24 +79,24 @@ rocblas_geam_device(rocblas_operation transA,
 
         size_t a_index;
         size_t b_index;
-        size_t c_index = tx + size_t(ldc) * ty;
+        size_t c_index = tx + ldc * ty;
 
         if(transA == rocblas_operation_none)
         {
-            a_index = tx + ty * size_t(lda);
+            a_index = tx + ty * lda;
         }
         else
         {
-            a_index = tx * size_t(lda) + ty;
+            a_index = tx * lda + ty;
         }
 
         if(transB == rocblas_operation_none)
         {
-            b_index = tx + ty * size_t(ldb);
+            b_index = tx + ty * ldb;
         }
         else
         {
-            b_index = tx * size_t(ldb) + ty;
+            b_index = tx * ldb + ty;
         }
 
         auto a_val = alpha ? A[a_index] : 0;
@@ -120,15 +120,15 @@ rocblas_geam_2matrix_device(rocblas_operation transA,
                             TScal             alpha_device_host,
                             TConstPtr         Aa,
                             rocblas_stride    offset_a,
-                            rocblas_int       lda,
+                            int64_t           lda,
                             rocblas_stride    stride_a,
                             TPtr              Ca,
                             rocblas_stride    offset_c,
-                            rocblas_int       ldc,
+                            int64_t           ldc,
                             rocblas_stride    stride_c)
 {
-    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -136,7 +136,7 @@ rocblas_geam_2matrix_device(rocblas_operation transA,
 
         auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
-        size_t c_index = tx + size_t(ldc) * ty;
+        size_t c_index = tx + ldc * ty;
         if(alpha == 0)
         {
             C[c_index] = 0;
@@ -149,11 +149,11 @@ rocblas_geam_2matrix_device(rocblas_operation transA,
 
             if(transA == rocblas_operation_none)
             {
-                a_index = tx + ty * size_t(lda);
+                a_index = tx + ty * lda;
             }
             else
             {
-                a_index = tx * size_t(lda) + ty;
+                a_index = tx * lda + ty;
             }
 
             auto a_val = A[a_index];
@@ -251,15 +251,15 @@ rocblas_geam_inplace_device(rocblas_operation transB,
                             TScal             beta_device_host,
                             TConstPtr         Ba,
                             rocblas_stride    offset_b,
-                            rocblas_int       ldb,
+                            int64_t           ldb,
                             rocblas_stride    stride_b,
                             TPtr              Ca,
                             rocblas_stride    offset_c,
-                            rocblas_int       ldc,
+                            int64_t           ldc,
                             rocblas_stride    stride_c)
 {
-    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
+    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -269,7 +269,7 @@ rocblas_geam_inplace_device(rocblas_operation transB,
         auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         size_t b_index;
-        size_t c_index = tx + size_t(ldc) * ty;
+        size_t c_index = tx + ldc * ty;
 
         if(beta == 0)
         {
@@ -281,11 +281,11 @@ rocblas_geam_inplace_device(rocblas_operation transB,
 
             if(transB == rocblas_operation_none)
             {
-                b_index = tx + ty * size_t(ldb);
+                b_index = tx + ty * ldb;
             }
             else
             {
-                b_index = tx * size_t(ldb) + ty;
+                b_index = tx * ldb + ty;
             }
 
             auto b_val = B[b_index];
@@ -320,7 +320,7 @@ rocblas_geam_inplace_device(rocblas_operation transB,
  */
 
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_geam_template(rocblas_handle    handle,
+rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int       m,
@@ -328,16 +328,16 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
                                      TScal             alpha,
                                      TConstPtr         A,
                                      rocblas_stride    offset_a,
-                                     rocblas_int       lda,
+                                     int64_t           lda,
                                      rocblas_stride    stride_a,
                                      TScal             beta,
                                      TConstPtr         B,
                                      rocblas_stride    offset_b,
-                                     rocblas_int       ldb,
+                                     int64_t           ldb,
                                      rocblas_stride    stride_b,
                                      TPtr              C,
                                      rocblas_stride    offset_c,
-                                     rocblas_int       ldc,
+                                     int64_t           ldc,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count)
 
@@ -725,18 +725,18 @@ rocblas_status rocblas_geam_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
                                            rocblas_operation trans_b,
-                                           rocblas_int       m,
-                                           rocblas_int       n,
+                                           int64_t           m,
+                                           int64_t           n,
                                            TConstPtr         A,
-                                           rocblas_int       lda,
+                                           int64_t           lda,
                                            rocblas_stride    stride_a,
                                            TConstPtr         B,
-                                           rocblas_int       ldb,
+                                           int64_t           ldb,
                                            rocblas_stride    stride_b,
                                            TPtr              C,
-                                           rocblas_int       ldc,
+                                           int64_t           ldc,
                                            rocblas_stride    stride_c,
-                                           rocblas_int       batch_count,
+                                           int64_t           batch_count,
                                            const int         check_numerics,
                                            bool              is_input)
 {
@@ -805,84 +805,90 @@ rocblas_status rocblas_geam_check_numerics(const char*       function_name,
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files geam*.cpp
 
-// clang-format off
-#ifdef INSTANTIATE_GEAM_TEMPLATE
-#error INSTANTIATE_GEAM_TEMPLATE already defined
+#ifdef INSTANTIATE_GEAM_LAUNCHER
+#error INSTANTIATE_GEAM_LAUNCHER already defined
 #endif
 
-#define INSTANTIATE_GEAM_TEMPLATE(TScal_, TConstPtr_, TPtr_)              \
-template rocblas_status rocblas_geam_template<TScal_, TConstPtr_, TPtr_>  \
-                                    (rocblas_handle    handle,            \
-                                     rocblas_operation transA,            \
-                                     rocblas_operation transB,            \
-                                     rocblas_int       m,                 \
-                                     rocblas_int       n,                 \
-                                     TScal_            alpha,             \
-                                     TConstPtr_        A,                 \
-                                     rocblas_stride    offset_a,          \
-                                     rocblas_int       lda,               \
-                                     rocblas_stride    stride_a,          \
-                                     TScal_            beta,              \
-                                     TConstPtr_        B,                 \
-                                     rocblas_stride    offset_b,          \
-                                     rocblas_int       ldb,               \
-                                     rocblas_stride    stride_b,          \
-                                     TPtr_             C,                 \
-                                     rocblas_stride    offset_c,          \
-                                     rocblas_int       ldc,               \
-                                     rocblas_stride    stride_c,          \
-                                     rocblas_int       batch_count);
+#define INSTANTIATE_GEAM_LAUNCHER(TScal_, TConstPtr_, TPtr_)                  \
+    template rocblas_status rocblas_geam_launcher<TScal_, TConstPtr_, TPtr_>( \
+        rocblas_handle    handle,                                             \
+        rocblas_operation transA,                                             \
+        rocblas_operation transB,                                             \
+        rocblas_int       m,                                                  \
+        rocblas_int       n,                                                  \
+        TScal_            alpha,                                              \
+        TConstPtr_        A,                                                  \
+        rocblas_stride    offset_a,                                           \
+        int64_t           lda,                                                \
+        rocblas_stride    stride_a,                                           \
+        TScal_            beta,                                               \
+        TConstPtr_        B,                                                  \
+        rocblas_stride    offset_b,                                           \
+        int64_t           ldb,                                                \
+        rocblas_stride    stride_b,                                           \
+        TPtr_             C,                                                  \
+        rocblas_stride    offset_c,                                           \
+        int64_t           ldc,                                                \
+        rocblas_stride    stride_c,                                           \
+        rocblas_int       batch_count);
 
 // instantiate for rocblas_Xgeam and rocblas_Xgeam_strided_batched
-INSTANTIATE_GEAM_TEMPLATE( float const*,  float const*,  float*)
-INSTANTIATE_GEAM_TEMPLATE(double const*, double const*, double*)
-INSTANTIATE_GEAM_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex const*,  rocblas_float_complex*)
-INSTANTIATE_GEAM_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_GEAM_LAUNCHER(float const*, float const*, float*)
+INSTANTIATE_GEAM_LAUNCHER(double const*, double const*, double*)
+INSTANTIATE_GEAM_LAUNCHER(rocblas_float_complex const*,
+                          rocblas_float_complex const*,
+                          rocblas_float_complex*)
+INSTANTIATE_GEAM_LAUNCHER(rocblas_double_complex const*,
+                          rocblas_double_complex const*,
+                          rocblas_double_complex*)
 
 // instantiate for rocblas_Xgeam_batched
-INSTANTIATE_GEAM_TEMPLATE( float const*, float const* const*, float* const*)
-INSTANTIATE_GEAM_TEMPLATE(double const*, double const* const*, double* const*)
-INSTANTIATE_GEAM_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex const* const*,  rocblas_float_complex* const*)
-INSTANTIATE_GEAM_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_GEAM_LAUNCHER(float const*, float const* const*, float* const*)
+INSTANTIATE_GEAM_LAUNCHER(double const*, double const* const*, double* const*)
+INSTANTIATE_GEAM_LAUNCHER(rocblas_float_complex const*,
+                          rocblas_float_complex const* const*,
+                          rocblas_float_complex* const*)
+INSTANTIATE_GEAM_LAUNCHER(rocblas_double_complex const*,
+                          rocblas_double_complex const* const*,
+                          rocblas_double_complex* const*)
 
-#undef INSTANTIATE_GEAM_TEMPLATE
+#undef INSTANTIATE_GEAM_LAUNCHER
 
 #ifdef INSTANTIATE_GEAM_NUMERICS
 #error INSTANTIATE_GEAM_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_GEAM_NUMERICS(TConstPtr_, TPtr_)                         \
-template rocblas_status rocblas_geam_check_numerics<TConstPtr_, TPtr_>       \
-                                          (const char*       function_name,  \
-                                           rocblas_handle    handle,         \
-                                           rocblas_operation trans_a,        \
-                                           rocblas_operation trans_b,        \
-                                           rocblas_int       m,              \
-                                           rocblas_int       n,              \
-                                           TConstPtr_        A,              \
-                                           rocblas_int       lda,            \
-                                           rocblas_stride    stride_a,       \
-                                           TConstPtr_        B,              \
-                                           rocblas_int       ldb,            \
-                                           rocblas_stride    stride_b,       \
-                                           TPtr_             C,              \
-                                           rocblas_int       ldc,            \
-                                           rocblas_stride    stride_c,       \
-                                           rocblas_int       batch_count,    \
-                                           const int         check_numerics, \
-                                           bool              is_input);
+#define INSTANTIATE_GEAM_NUMERICS(TConstPtr_, TPtr_)                        \
+    template rocblas_status rocblas_geam_check_numerics<TConstPtr_, TPtr_>( \
+        const char*       function_name,                                    \
+        rocblas_handle    handle,                                           \
+        rocblas_operation trans_a,                                          \
+        rocblas_operation trans_b,                                          \
+        int64_t           m,                                                \
+        int64_t           n,                                                \
+        TConstPtr_        A,                                                \
+        int64_t           lda,                                              \
+        rocblas_stride    stride_a,                                         \
+        TConstPtr_        B,                                                \
+        int64_t           ldb,                                              \
+        rocblas_stride    stride_b,                                         \
+        TPtr_             C,                                                \
+        int64_t           ldc,                                              \
+        rocblas_stride    stride_c,                                         \
+        int64_t           batch_count,                                      \
+        const int         check_numerics,                                   \
+        bool              is_input);
 
 // instantiate for rocblas_Xgeam and rocblas_Xgeam_strided_batched
-INSTANTIATE_GEAM_NUMERICS(float const*,  float*)
+INSTANTIATE_GEAM_NUMERICS(float const*, float*)
 INSTANTIATE_GEAM_NUMERICS(double const*, double*)
-INSTANTIATE_GEAM_NUMERICS(rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_GEAM_NUMERICS(rocblas_float_complex const*, rocblas_float_complex*)
 INSTANTIATE_GEAM_NUMERICS(rocblas_double_complex const*, rocblas_double_complex*)
 
 // instantiate for rocblas_Xgeam_batched
 INSTANTIATE_GEAM_NUMERICS(float const* const*, float* const*)
 INSTANTIATE_GEAM_NUMERICS(double const* const*, double* const*)
-INSTANTIATE_GEAM_NUMERICS(rocblas_float_complex const* const*,  rocblas_float_complex* const*)
+INSTANTIATE_GEAM_NUMERICS(rocblas_float_complex const* const*, rocblas_float_complex* const*)
 INSTANTIATE_GEAM_NUMERICS(rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_GEAM_NUMERICS
-// clang-format on

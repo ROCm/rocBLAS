@@ -103,6 +103,28 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_workspace_max_size_64(rocblas_side side,
+                                                int64_t      m,
+                                                int64_t      n,
+                                                int64_t      batch_count,
+                                                size_t*      w_x_tmp_size,
+                                                size_t*      w_invA_size,
+                                                size_t*      w_x_tmp_size_backup);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_batched_workspace_max_size_64(rocblas_side side,
+                                                        int64_t      m,
+                                                        int64_t      n,
+                                                        int64_t      batch_count,
+                                                        size_t*      w_x_tmp_size,
+                                                        size_t*      w_x_tmp_arr_size,
+                                                        size_t*      w_invA_size,
+                                                        size_t*      w_invA_arr_size,
+                                                        size_t*      w_x_tmp_size_backup);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_trsm_template_64(rocblas_handle    handle,
                                       rocblas_side      side,
                                       rocblas_fill      uplo,

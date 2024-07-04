@@ -151,10 +151,11 @@ set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_gemmt_strided_batched.cpp
     blas_ex/rocblas_gemmt_kernels.cpp
 
-    # these require tensile but export no-op symbols to build downstream components
+    # these require may use Tensile or source gemm
     blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
+    blas_ex/rocblas_gemm_ex_kernels.cpp
     blas_ex/rocblas_trsv_ex.cpp
     blas_ex/rocblas_trsv_strided_batched_ex.cpp
     blas_ex/rocblas_trsv_batched_ex.cpp
@@ -193,7 +194,7 @@ set( rocblas_blas3_source
     blas3/rocblas_herkx_batched.cpp
     blas3/rocblas_herkx_strided_batched.cpp
     blas3/rocblas_symm.cpp
-    blas3/rocblas_symm_kernels.cpp
+    blas3/rocblas_symm_hemm_kernels.cpp
     blas3/rocblas_symm_batched.cpp
     blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
@@ -405,61 +406,70 @@ set(rocblas64_ex_source_no_tensile
   src64/blas_ex/rocblas_nrm2_ex_kernels_64.cpp
   src64/blas_ex/rocblas_nrm2_batched_ex_64.cpp
   src64/blas_ex/rocblas_nrm2_strided_batched_ex_64.cpp
-  #     src64/blas_ex/rocblas_trmm_outofplace.cpp
-  #     src64/blas_ex/rocblas_trmm_outofplace_batched.cpp
-  #     src64/blas_ex/rocblas_trmm_outofplace_strided_batched.cpp
+  src64/blas_ex/rocblas_gemmt_64.cpp
+  src64/blas_ex/rocblas_gemmt_kernels_64.cpp
+  src64/blas_ex/rocblas_gemmt_batched_64.cpp
+  src64/blas_ex/rocblas_gemmt_strided_batched_64.cpp
   #     src64/blas_ex/rocblas_geam_ex.cpp
   #     src64/blas_ex/rocblas_geam_ex_kernels.cpp
 )
 
-# set( rocblas64_blas3_source_no_tensile
-#     src64/blas3/rocblas_dgmm.cpp
-#     src64/blas3/rocblas_dgmm_kernels.cpp
-#     src64/blas3/rocblas_dgmm_batched.cpp
-#     src64/blas3/rocblas_dgmm_strided_batched.cpp
-#     src64/blas3/rocblas_geam.cpp
-#     src64/blas3/rocblas_geam_kernels.cpp
-#     src64/blas3/rocblas_geam_batched.cpp
-#     src64/blas3/rocblas_geam_strided_batched.cpp
-# )
+set( rocblas64_ex_source
+  src64/blas_ex/rocblas_gemm_ex_64.cpp
+  src64/blas_ex/rocblas_gemm_batched_ex_64.cpp
+  src64/blas_ex/rocblas_gemm_strided_batched_ex_64.cpp
+  src64/blas_ex/rocblas_gemm_ex_kernels_64.cpp
+)
+
+set( rocblas64_blas3_source_no_tensile
+  src64/blas3/rocblas_dgmm_64.cpp
+  src64/blas3/rocblas_dgmm_kernels_64.cpp
+  src64/blas3/rocblas_dgmm_batched_64.cpp
+  src64/blas3/rocblas_dgmm_strided_batched_64.cpp
+  src64/blas3/rocblas_geam_64.cpp
+  src64/blas3/rocblas_geam_kernels_64.cpp
+  src64/blas3/rocblas_geam_batched_64.cpp
+  src64/blas3/rocblas_geam_strided_batched_64.cpp
+)
 
 # rocblas L3 that use tensile but can use source gemm as fallback
 set( rocblas64_blas3_source
-#     src64/blas3/rocblas_hemm.cpp
-#     src64/blas3/rocblas_hemm_batched.cpp
-#     src64/blas3/rocblas_hemm_strided_batched.cpp
-#     src64/blas3/rocblas_herk.cpp
-#     src64/blas3/rocblas_herk_batched.cpp
-#     src64/blas3/rocblas_herk_strided_batched.cpp
-#     src64/blas3/rocblas_her2k.cpp
-#     src64/blas3/rocblas_her2k_batched.cpp
-#     src64/blas3/rocblas_her2k_strided_batched.cpp
-#     src64/blas3/rocblas_herkx.cpp
-#     src64/blas3/rocblas_herkx_batched.cpp
-#     src64/blas3/rocblas_herkx_strided_batched.cpp
-#     src64/blas3/rocblas_symm.cpp
-#     src64/blas3/rocblas_symm_kernels.cpp
-#     src64/blas3/rocblas_symm_batched.cpp
-#     src64/blas3/rocblas_symm_strided_batched.cpp
-#     src64/blas3/rocblas_syrk.cpp
-#     src64/blas3/rocblas_syrk_herk_kernels.cpp
-#     src64/blas3/rocblas_syrk_batched.cpp
-#     src64/blas3/rocblas_syrk_strided_batched.cpp
-#     src64/blas3/rocblas_syr2k.cpp
-#     src64/blas3/rocblas_syr2k_her2k_kernels.cpp
-#     src64/blas3/rocblas_syr2k_batched.cpp
-#     src64/blas3/rocblas_syr2k_strided_batched.cpp
-#     src64/blas3/Tensile/gemm.cpp
-#     src64/blas3/Tensile/gemm_batched.cpp
-#     src64/blas3/Tensile/gemm_strided_batched.cpp
-#     src64/blas3/rocblas_syrkx.cpp
-#     src64/blas3/rocblas_syrkx_herkx_kernels.cpp
-#     src64/blas3/rocblas_syrkx_batched.cpp
-#     src64/blas3/rocblas_syrkx_strided_batched.cpp
-#     src64/blas3/rocblas_trmm.cpp
-#     src64/blas3/rocblas_trmm_kernels.cpp
-#     src64/blas3/rocblas_trmm_batched.cpp
-#     src64/blas3/rocblas_trmm_strided_batched.cpp
+    src64/blas3/rocblas_hemm_64.cpp
+    src64/blas3/rocblas_hemm_batched_64.cpp
+    src64/blas3/rocblas_hemm_strided_batched_64.cpp
+    src64/blas3/rocblas_herk_64.cpp
+    src64/blas3/rocblas_herk_batched_64.cpp
+    src64/blas3/rocblas_herk_strided_batched_64.cpp
+    src64/blas3/rocblas_her2k_64.cpp
+    src64/blas3/rocblas_her2k_batched_64.cpp
+    src64/blas3/rocblas_her2k_strided_batched_64.cpp
+    src64/blas3/rocblas_herkx_64.cpp
+    src64/blas3/rocblas_herkx_batched_64.cpp
+    src64/blas3/rocblas_herkx_strided_batched_64.cpp
+    src64/blas3/rocblas_symm_64.cpp
+    src64/blas3/rocblas_symm_hemm_kernels_64.cpp
+    src64/blas3/rocblas_symm_batched_64.cpp
+    src64/blas3/rocblas_symm_strided_batched_64.cpp
+    src64/blas3/rocblas_syrk_64.cpp
+    src64/blas3/rocblas_syrk_herk_kernels_64.cpp
+    src64/blas3/rocblas_syrk_batched_64.cpp
+    src64/blas3/rocblas_syrk_strided_batched_64.cpp
+    src64/blas3/rocblas_syr2k_64.cpp
+    src64/blas3/rocblas_syr2k_her2k_kernels_64.cpp
+    src64/blas3/rocblas_syr2k_batched_64.cpp
+    src64/blas3/rocblas_syr2k_strided_batched_64.cpp
+    src64/blas3/rocblas_gemm_64.cpp
+    src64/blas3/rocblas_gemm_kernels_64.cpp
+    src64/blas3/rocblas_gemm_batched_64.cpp
+    src64/blas3/rocblas_gemm_strided_batched_64.cpp
+    src64/blas3/rocblas_syrkx_64.cpp
+    src64/blas3/rocblas_syrkx_herkx_kernels_64.cpp
+    src64/blas3/rocblas_syrkx_batched_64.cpp
+    src64/blas3/rocblas_syrkx_strided_batched_64.cpp
+    src64/blas3/rocblas_trmm_64.cpp
+    src64/blas3/rocblas_trmm_kernels_64.cpp
+    src64/blas3/rocblas_trmm_batched_64.cpp
+    src64/blas3/rocblas_trmm_strided_batched_64.cpp
     src64/blas3/rocblas_trsm_64.cpp
     src64/blas3/rocblas_trsm_kernels_64.cpp
     src64/blas3/rocblas_trsm_batched_64.cpp

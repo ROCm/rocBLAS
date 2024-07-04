@@ -21,11 +21,8 @@
  * ************************************************************************ */
 
 #include "rocblas_test.hpp"
-#include "utility.hpp"
+#include "client_utility.hpp"
 
-#include <cerrno>
-#include <csetjmp>
-#include <csignal>
 #include <cstdlib>
 #include <exception>
 #include <regex>
@@ -36,15 +33,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #endif
-
-testing::AssertionResult status_match(rocblas_status expected, rocblas_status status)
-{
-    if(expected == status)
-        return testing::AssertionSuccess();
-    else
-        return testing::AssertionFailure() << "got " << rocblas_status_to_string(status)
-                                           << " instead of " << rocblas_status_to_string(expected);
-}
 
 /*********************************************
  * thread pool functions
@@ -123,172 +111,6 @@ void stream_pool::reset(size_t numDevices, size_t numStreams)
  *********************************************/
 thread_pool g_thread_pool;
 stream_pool g_stream_pool;
-
-/*********************************************
- * callback function
- *********************************************/
-thread_local std::unique_ptr<std::function<void(rocblas_handle)>> t_set_stream_callback;
-
-/*********************************************
- * Signal-handling for detecting test faults *
- *********************************************/
-
-// State of the signal handler
-static thread_local struct
-{
-    // Whether sigjmp_buf is set and catching signals is enabled
-    volatile sig_atomic_t enabled = false;
-
-    // sigjmp_buf describing stack frame to go back to
-#ifndef WIN32
-    sigjmp_buf sigjmp_buf;
-#else
-    jmp_buf sigjmp_buf;
-#endif
-
-    // The signal which was received
-    volatile sig_atomic_t signal;
-} t_handler;
-
-// Signal handler (must have external "C" linkage)
-extern "C" void rocblas_test_signal_handler(int sig)
-{
-    int saved_errno = errno; // Save errno
-
-    // If the signal handler is disabled, because we're not in the middle of
-    // running a rocBLAS test, restore this signal's disposition to default,
-    // and reraise the signal
-    if(!t_handler.enabled)
-    {
-        signal(sig, SIG_DFL);
-        errno = saved_errno;
-        raise(sig);
-        return;
-    }
-
-    rocblas_cerr << "SIGNAL raised in: "
-                 << ::testing::UnitTest::GetInstance()->current_test_info()->name() << std::endl;
-
-#ifndef WIN32
-    // If this is an alarm timeout, we abort
-    if(sig == SIGALRM)
-    {
-        static constexpr char msg[]
-            = "\nAborting tests due to an alarm timeout.\n\n"
-              "This could be due to a deadlock caused by mutexes being left locked\n"
-              "after a previous test's signal was caught and partially recovered from.\n";
-        // We must use write() because it's async-signal-safe and other IO might be blocked
-        write(STDERR_FILENO, msg, sizeof(msg) - 1);
-        rocblas_abort();
-    }
-#endif
-
-    // Jump back to the handler code after setting handler.signal
-    // Note: This bypasses stack unwinding, and may lead to memory leaks, but
-    // it is better than crashing.
-    t_handler.signal = sig;
-    errno            = saved_errno;
-#ifndef WIN32
-    siglongjmp(t_handler.sigjmp_buf, true);
-#else
-    longjmp(t_handler.sigjmp_buf, true);
-#endif
-}
-
-// Set up signal handlers
-void rocblas_test_sigaction()
-{
-#ifndef WIN32
-    struct sigaction act;
-    act.sa_flags = 0;
-    sigfillset(&act.sa_mask);
-    act.sa_handler = rocblas_test_signal_handler;
-
-    // Catch SIGALRM and synchronous signals
-    for(int sig : {SIGALRM, SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGSEGV})
-        sigaction(sig, &act, nullptr);
-#else
-    for(int sig : {SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM})
-        signal(sig, rocblas_test_signal_handler);
-#endif
-}
-
-static const unsigned test_timeout = [] {
-    // Number of seconds each test is allowed to take before all testing is killed.
-    constexpr unsigned TEST_TIMEOUT = 600;
-    unsigned           timeout;
-    const char*        env = getenv("ROCBLAS_TEST_TIMEOUT");
-    return env && sscanf(env, "%u", &timeout) == 1 ? timeout : TEST_TIMEOUT;
-}();
-
-// Lambda wrapper which detects signals and exceptions in an invokable function
-void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm)
-{
-    // Save the current handler (to allow nested calls to this function)
-    auto old_handler = t_handler;
-
-#ifndef WIN32
-    // Set up the return point, and handle siglongjmp returning back to here
-    if(sigsetjmp(t_handler.sigjmp_buf, true))
-    {
-#if(__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 32)
-        FAIL() << "Received " << sys_siglist[t_handler.signal] << " signal";
-#else
-        FAIL() << "Received " << sigdescr_np(t_handler.signal) << " signal";
-#endif
-    }
-#else
-    if(setjmp(t_handler.sigjmp_buf))
-    {
-        FAIL() << "Received signal";
-    }
-#endif
-    else
-    {
-#ifndef WIN32
-        // Alarm to detect deadlocks or hangs
-        if(set_alarm)
-            alarm(test_timeout);
-#endif
-        // Enable the signal handler
-        t_handler.enabled = true;
-
-        // Run the test function, catching signals and exceptions
-        try
-        {
-            test();
-        }
-        catch(const std::bad_alloc& e)
-        {
-            GTEST_SKIP() << LIMITED_RAM_STRING;
-        }
-        catch(const std::exception& e)
-        {
-            FAIL() << "Received uncaught exception: " << e.what();
-        }
-        catch(...)
-        {
-            FAIL() << "Received uncaught exception";
-        }
-    }
-
-#ifndef WIN32
-    // Cancel the alarm if it was set
-    if(set_alarm)
-        alarm(0);
-#endif
-    // Restore the previous handler
-    t_handler = old_handler;
-
-    if(hipPeekAtLastError() != hipSuccess)
-    {
-        rocblas_cerr << "hipGetLastError at end of test: "
-                     << ::testing::UnitTest::GetInstance()->current_test_info()->name()
-                     << std::endl;
-        (void)rocblas_internal_convert_hip_to_rocblas_status_and_log(
-            hipGetLastError()); // clear last error
-    }
-}
 
 void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_t numDevices)
 {
@@ -401,6 +223,11 @@ bool rocblas_client_global_filters(const Arguments& args)
 
     if(args.gpu_arch[0] && !gpu_arch_match(gpu_arch, args.gpu_arch))
         return false;
+
+#ifndef BUILD_WITH_TENSILE
+    if(args.initialization == rocblas_initialization::denorm2)
+        return false; // source gemms don't support
+#endif
 
     return true;
 }

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -34,7 +35,6 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
@@ -43,7 +43,7 @@
 template <typename T>
 void testing_trsm_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsm_strided_batched_ex_fn = arg.api == FORTRAN
+    auto rocblas_trsm_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                   ? rocblas_trsm_strided_batched_ex_fortran
                                                   : rocblas_trsm_strided_batched_ex;
 
@@ -296,7 +296,7 @@ void testing_trsm_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trsm_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_trsm_strided_batched_ex_fn = arg.api == FORTRAN
+    auto rocblas_trsm_strided_batched_ex_fn = arg.api & c_API_FORTRAN
                                                   ? rocblas_trsm_strided_batched_ex_fortran
                                                   : rocblas_trsm_strided_batched_ex;
 

@@ -69,8 +69,19 @@ rocblas_gemm_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_gemm_ex
+
+gemm_ex functions support the _64 interface.  However, no arguments larger than (int32_t max value * 16) are currently supported.
+Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_gemm_batched_ex
+
+gemm_batched_ex functions support the _64 interface.  Only the parameter `batch_count` larger than (int32_t max value * 16) is currently supported.
+Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex
+
+gemm_strided_batched_ex functions support the _64 interface.  Only the parameter `batch_count` larger than (int32_t max value * 16) is currently supported.
+Refer to section :ref:`ILP64 API`.
 
 rocblas_trsm_ex + batched, strided_batched
 ============================================
@@ -90,6 +101,8 @@ rocblas_Xgeam + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgeam
 
+The geam functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sgeam_batched
    :outline:
 .. doxygenfunction:: rocblas_dgeam_batched
@@ -97,6 +110,8 @@ rocblas_Xgeam + batched, strided_batched
 .. doxygenfunction:: rocblas_cgeam_batched
    :outline:
 .. doxygenfunction:: rocblas_zgeam_batched
+
+The geam_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 .. doxygenfunction:: rocblas_sgeam_strided_batched
    :outline:
@@ -106,6 +121,7 @@ rocblas_Xgeam + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zgeam_strided_batched
 
+The geam_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
 
 rocblas_Xdgmm + batched, strided_batched
 ============================================
@@ -118,6 +134,8 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm
 
+The dgmm functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sdgmm_batched
    :outline:
 .. doxygenfunction:: rocblas_ddgmm_batched
@@ -126,6 +144,8 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_batched
 
+The dgmm_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
 .. doxygenfunction:: rocblas_sdgmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ddgmm_strided_batched
@@ -133,3 +153,38 @@ rocblas_Xdgmm + batched, strided_batched
 .. doxygenfunction:: rocblas_cdgmm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_strided_batched
+
+The dgmm_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+rocblas_Xgemmt + batched, strided_batched
+============================================
+
+.. doxygenfunction:: rocblas_sgemmt
+   :outline:
+.. doxygenfunction:: rocblas_dgemmt
+   :outline:
+.. doxygenfunction:: rocblas_cgemmt
+   :outline:
+.. doxygenfunction:: rocblas_zgemmt
+
+The gemmt functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+.. doxygenfunction:: rocblas_sgemmt_batched
+   :outline:
+.. doxygenfunction:: rocblas_dgemmt_batched
+   :outline:
+.. doxygenfunction:: rocblas_cgemmt_batched
+   :outline:
+.. doxygenfunction:: rocblas_zgemmt_batched
+
+The gemmt_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+.. doxygenfunction:: rocblas_sgemmt_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_dgemmt_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_cgemmt_strided_batched
+   :outline:
+.. doxygenfunction:: rocblas_zgemmt_strided_batched
+
+The gemmt_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.

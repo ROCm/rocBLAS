@@ -29,10 +29,10 @@
 template <typename T, bool CONJ = false>
 void testing_dot_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dot_fn    = arg.api == FORTRAN
+    auto rocblas_dot_fn    = arg.api & c_API_FORTRAN
                                  ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
                                  : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
-    auto rocblas_dot_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_dot_fn_64 = arg.api & c_API_FORTRAN
                                  ? (CONJ ? rocblas_dotc_64<T, true> : rocblas_dot_64<T, true>)
                                  : (CONJ ? rocblas_dotc_64<T, false> : rocblas_dot_64<T, false>);
 
@@ -72,19 +72,13 @@ void testing_dot_bad_arg(const Arguments& arg)
     }
 }
 
-template <typename T>
-void testing_dotc_bad_arg(const Arguments& arg)
-{
-    testing_dot_bad_arg<T, true>(arg);
-}
-
 template <typename T, bool CONJ = false>
 void testing_dot(const Arguments& arg)
 {
-    auto rocblas_dot_fn    = arg.api == FORTRAN
+    auto rocblas_dot_fn    = arg.api & c_API_FORTRAN
                                  ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
                                  : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
-    auto rocblas_dot_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_dot_fn_64 = arg.api & c_API_FORTRAN
                                  ? (CONJ ? rocblas_dotc_64<T, true> : rocblas_dot_64<T, true>)
                                  : (CONJ ? rocblas_dotc_64<T, false> : rocblas_dot_64<T, false>);
 
@@ -310,10 +304,4 @@ void testing_dot(const Arguments& arg)
                                                                  rocblas_error_host,
                                                                  rocblas_error_device);
     }
-}
-
-template <typename T>
-void testing_dotc(const Arguments& arg)
-{
-    testing_dot<T, true>(arg);
 }

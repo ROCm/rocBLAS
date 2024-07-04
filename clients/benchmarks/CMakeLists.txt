@@ -24,7 +24,10 @@ set(rocblas_bench_source
   client.cpp
   )
 
-add_executable( rocblas-bench ${rocblas_bench_source} ${rocblas_test_bench_common} )
+add_executable( rocblas-bench ${rocblas_bench_source} )
+
+rocblas_client_library_settings( rocblas-bench )
+
 
 if( BUILD_WITH_TENSILE )
   set(rocblas_gemm_tune_source
@@ -32,22 +35,8 @@ if( BUILD_WITH_TENSILE )
     gemm_tune/gemm_tuners.cpp
     )
 
-  add_executable( rocblas-gemm-tune ${rocblas_gemm_tune_source} ${rocblas_test_bench_common} )
-endif()
+  add_executable( rocblas-gemm-tune ${rocblas_gemm_tune_source} )
 
-# Internal header includes
-target_include_directories( rocblas-bench
-  PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
-)
-if( BUILD_WITH_TENSILE )
   target_include_directories( rocblas-gemm-tune
     PRIVATE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
@@ -56,16 +45,7 @@ if( BUILD_WITH_TENSILE )
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
   )
-endif()
 
-# External header includes included as system files
-target_include_directories( rocblas-bench
-  SYSTEM PRIVATE
-    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
-    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
-)
-if( BUILD_WITH_TENSILE )
   target_include_directories( rocblas-gemm-tune
     SYSTEM PRIVATE
       $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
@@ -74,13 +54,19 @@ if( BUILD_WITH_TENSILE )
   )
 endif()
 
+target_link_libraries( rocblas-bench PRIVATE rocblas_clients_testing_common rocblas_clients_common  )
 if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
-endif()
+endif( )
+target_link_libraries( rocblas-bench PRIVATE roc::rocblas hip::host hip::device ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} )
 
-target_link_libraries( rocblas-bench PRIVATE ${BLAS_LIBRARY} roc::rocblas hip::host hip::device )
+
 if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas-gemm-tune PRIVATE ${BLAS_LIBRARY} roc::rocblas hip::host hip::device )
+  target_link_libraries( rocblas-gemm-tune PRIVATE rocblas_clients_testing_common rocblas_clients_common )
+  if( BUILD_FORTRAN_CLIENTS )
+    target_link_libraries( rocblas-gemm-tune PRIVATE rocblas_fortran_client )
+  endif( )
+  target_link_libraries( rocblas-gemm-tune PRIVATE roc::rocblas hip::host hip::device ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} )
 endif()
 
 if (NOT WIN32)
@@ -88,21 +74,12 @@ if (NOT WIN32)
   if (NOT BUILD_FORTRAN_CLIENTS)
     list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
   endif()
-else()
-  list( APPEND COMMON_LINK_LIBS "libomp")
 endif()
+
 
 target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
 if( BUILD_WITH_TENSILE )
   target_link_libraries( rocblas-gemm-tune PRIVATE ${COMMON_LINK_LIBS} )
-endif()
-
-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
-  target_compile_options( rocblas-bench PRIVATE -mf16c )
-  if( BUILD_WITH_TENSILE )
-    target_compile_options( rocblas-gemm-tune PRIVATE -mf16c )
-  endif()
 endif()
 
 target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
@@ -110,16 +87,20 @@ if( BUILD_WITH_TENSILE )
   target_compile_options(rocblas-gemm-tune PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 endif()
 
-target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} ${BLIS_DEFINES} )
-
+target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} GOOGLE_TEST ${BLIS_DEFINES} )
 if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas-gemm-tune PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} )
 endif()
+
 if ( NOT BUILD_FORTRAN_CLIENTS )
   target_compile_definitions( rocblas-bench PRIVATE CLIENTS_NO_FORTRAN )
   if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-gemm-tune PRIVATE CLIENTS_NO_FORTRAN )
   endif()
+endif()
+
+if ( WARN_NOT_ILP64_PREFERRED )
+  target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_REFERENCE_LIB=${BLAS_LIBRARY} )
 endif()
 
 

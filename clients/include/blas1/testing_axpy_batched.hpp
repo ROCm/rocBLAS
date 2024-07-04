@@ -24,6 +24,7 @@
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -33,16 +34,15 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename T>
 void testing_axpy_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_batched_fn
-        = arg.api == FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
-    auto rocblas_axpy_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_axpy_batched_64<T, true>
-                                                            : rocblas_axpy_batched_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
+    auto rocblas_axpy_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_axpy_batched_64<T, true>
+                                                              : rocblas_axpy_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -116,9 +116,9 @@ template <typename T>
 void testing_axpy_batched(const Arguments& arg)
 {
     auto rocblas_axpy_batched_fn
-        = arg.api == FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
-    auto rocblas_axpy_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_axpy_batched_64<T, true>
-                                                            : rocblas_axpy_batched_64<T, false>;
+        = arg.api & c_API_FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
+    auto rocblas_axpy_batched_fn_64 = arg.api & c_API_FORTRAN ? rocblas_axpy_batched_64<T, true>
+                                                              : rocblas_axpy_batched_64<T, false>;
 
     rocblas_local_handle handle{arg};
     int64_t              N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;

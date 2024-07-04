@@ -27,11 +27,11 @@
 template <typename T>
 void testing_spr2_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_spr2_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_spr2_strided_batched_fn = arg.api & c_API_FORTRAN
                                                ? rocblas_spr2_strided_batched<T, true>
                                                : rocblas_spr2_strided_batched<T, false>;
 
-    auto rocblas_spr2_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_spr2_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_spr2_strided_batched_64<T, true>
                                                   : rocblas_spr2_strided_batched_64<T, false>;
 
@@ -227,11 +227,11 @@ void testing_spr2_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spr2_strided_batched(const Arguments& arg)
 {
-    auto rocblas_spr2_strided_batched_fn = arg.api == FORTRAN
+    auto rocblas_spr2_strided_batched_fn = arg.api & c_API_FORTRAN
                                                ? rocblas_spr2_strided_batched<T, true>
                                                : rocblas_spr2_strided_batched<T, false>;
 
-    auto rocblas_spr2_strided_batched_fn_64 = arg.api == FORTRAN_64
+    auto rocblas_spr2_strided_batched_fn_64 = arg.api & c_API_FORTRAN
                                                   ? rocblas_spr2_strided_batched_64<T, true>
                                                   : rocblas_spr2_strided_batched_64<T, false>;
 

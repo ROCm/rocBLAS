@@ -23,6 +23,7 @@
 #pragma once
 
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -34,14 +35,13 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "utility.hpp"
 
 /* ============================================================================================ */
 
 template <typename T>
 void testing_geam_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_geam_ex_fn = arg.api == FORTRAN ? rocblas_geam_ex : rocblas_geam_ex_fortran;
+    auto rocblas_geam_ex_fn = arg.api & c_API_FORTRAN ? rocblas_geam_ex : rocblas_geam_ex_fortran;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -511,7 +511,7 @@ void testing_geam_ex_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_geam_ex(const Arguments& arg)
 {
-    auto rocblas_geam_ex_fn = arg.api == FORTRAN ? rocblas_geam_ex : rocblas_geam_ex_fortran;
+    auto rocblas_geam_ex_fn = arg.api & c_API_FORTRAN ? rocblas_geam_ex : rocblas_geam_ex_fortran;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

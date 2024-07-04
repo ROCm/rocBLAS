@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2023-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,9 @@
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "client_utility.hpp"
 #include "flops.hpp"
+#include "gtest_helpers.hpp"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -36,5 +38,5 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "testing_macros.hpp"
+#include "type_dispatch.hpp"
 #include "unit.hpp"
-#include "utility.hpp"

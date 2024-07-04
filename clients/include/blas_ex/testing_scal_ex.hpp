@@ -27,9 +27,9 @@
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_scal_ex_fn = arg.api == FORTRAN ? rocblas_scal_ex_fortran : rocblas_scal_ex;
+    auto rocblas_scal_ex_fn = arg.api & c_API_FORTRAN ? rocblas_scal_ex_fortran : rocblas_scal_ex;
     auto rocblas_scal_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_scal_ex_64_fortran : rocblas_scal_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_scal_ex_64_fortran : rocblas_scal_ex_64;
 
     rocblas_datatype alpha_type     = rocblas_type2datatype<Ta>();
     rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
@@ -74,9 +74,9 @@ void testing_scal_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_ex(const Arguments& arg)
 {
-    auto rocblas_scal_ex_fn = arg.api == FORTRAN ? rocblas_scal_ex_fortran : rocblas_scal_ex;
+    auto rocblas_scal_ex_fn = arg.api & c_API_FORTRAN ? rocblas_scal_ex_fortran : rocblas_scal_ex;
     auto rocblas_scal_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_scal_ex_64_fortran : rocblas_scal_ex_64;
+        = arg.api & c_API_FORTRAN ? rocblas_scal_ex_64_fortran : rocblas_scal_ex_64;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;

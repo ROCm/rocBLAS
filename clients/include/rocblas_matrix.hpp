@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "utility.hpp"
+#include "client_utility.hpp"
 
 #include "d_vector.hpp"
 
@@ -105,6 +105,10 @@ inline void rocblas_init_matrix(host_strided_batch_matrix<T>& hA,
         else
             rocblas_init_identity<T>(hA);
     }
+    else if(arg.initialization == rocblas_initialization::zero)
+    {
+        rocblas_init_matrix_zero<T>(hA);
+    }
     else
     {
 #ifdef GOOGLE_TEST
@@ -185,6 +189,10 @@ inline void rocblas_init_matrix(host_batch_matrix<T>&     hA,
         else
             rocblas_init_identity<T>(hA);
     }
+    else if(arg.initialization == rocblas_initialization::zero)
+    {
+        rocblas_init_matrix_zero<T>(hA);
+    }
     else
     {
 #ifdef GOOGLE_TEST
@@ -263,6 +271,10 @@ inline void rocblas_init_matrix(host_matrix<T>&           hA,
             rocblas_init_non_rep_bf16_vals<T>(hA);
         else
             rocblas_init_identity<T>(hA);
+    }
+    else if(arg.initialization == rocblas_initialization::zero)
+    {
+        rocblas_init_matrix_zero<T>(hA);
     }
     else
     {
