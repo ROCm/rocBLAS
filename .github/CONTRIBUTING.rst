@@ -97,76 +97,76 @@ For each new file in repository, please include the licensing header
 Coding Style
 ============
 
-1.  rocBLAS code should avoid calling ``hipMalloc()`` or ``hipFree()`` within their code, as these are synchronizing APIs.
-Instead, users must rely on the rocBLAS device memory manager, which handles pre-allocated memory allocated during the creation of the rocBLAS handle.
+#.  rocBLAS code should avoid calling ``hipMalloc()`` or ``hipFree()`` within their code, as these are synchronizing APIs.
+    Instead, users must rely on the rocBLAS device memory manager, which handles pre-allocated memory allocated during the creation of the rocBLAS handle.
 
-rocBLAS device memory allocation system offers:
+    rocBLAS device memory allocation system offers:
 
-- A ``device_malloc()`` method in ``rocblas_handle`` for temporarily using device memory that has been either pre-allocated or allocated on demand.
-- A method in ``rocblas_handle`` to reuse device memory across rocBLAS calls without allocating and deallocating for each call.
-- A method in ``rocblas_handle`` for users to query the device memory required for optimal performance of a specific kernel call.
-- A method in ``rocblas_handle`` for users to control the amount of device memory allocated or allow rocBLAS to handle on-demand allocation.
+    - A ``device_malloc()`` method in ``rocblas_handle`` for temporarily using device memory that has been either pre-allocated or allocated on demand.
+    - A method in ``rocblas_handle`` to reuse device memory across rocBLAS calls without allocating and deallocating for each call.
+    - A method in ``rocblas_handle`` for users to query the device memory required for optimal performance of a specific kernel call.
+    - A method in ``rocblas_handle`` for users to control the amount of device memory allocated or allow rocBLAS to handle on-demand allocation.
 
-A rocBLAS function must allocate all of its device memory upfront for the entire duration of the function call and must not allocate and deallocate device memory at different kernel call levels.
-Lower-level kernels needing device memory must have it allocated by higher-level routines and passed down. When device memory can be shared between operations, the maximum size needed by all operations should be reported or allocated.
+    A rocBLAS function must allocate all of its device memory upfront for the entire duration of the function call and must not allocate and deallocate device memory at different kernel call levels.
+    Lower-level kernels needing device memory must have it allocated by higher-level routines and passed down. When device memory can be shared between operations, the maximum size needed by all operations should be reported or allocated.
 
-When allocating memory, use a variable name that indicates it is a workspace memory, such as ``workspace`` or with a ``w_`` prefix, for example:
+    When allocating memory, use a variable name that indicates it is a workspace memory, such as ``workspace`` or with a ``w_`` prefix, for example:
 
-.. code:: cpp
+    .. code:: cpp
 
-        auto w_mem = handle->device_malloc(dev_bytes);
-        if(!w_mem)
-        {
-            return rocblas_status_memory_error;
-        }
+            auto w_mem = handle->device_malloc(dev_bytes);
+            if(!w_mem)
+            {
+                return rocblas_status_memory_error;
+            }
 
-rocBLAS device memory manager also provides support for stream order allocation ( using ``hipMallocAsync()`` and ``hipFreeAsync()`` ).
+    rocBLAS device memory manager also provides support for stream order allocation ( using ``hipMallocAsync()`` and ``hipFreeAsync()`` ).
 
-For more information refer to `rocBLAS Device Memory Allocation <https://rocblas.readthedocs.io/en/master/Programmers_Guide.html#device-memory-allocation>`__ and `Stream Order Allocation <https://rocblas.readthedocs.io/en/master/API_Reference_Guide.html#stream-ordered-memory-allocation>`__.
+    For more information refer to `rocBLAS Device Memory Allocation <https://rocblas.readthedocs.io/en/master/Programmers_Guide.html#device-memory-allocation>`__ and `Stream Order Allocation <https://rocblas.readthedocs.io/en/master/API_Reference_Guide.html#stream-ordered-memory-allocation>`__.
 
-2.  Logging, argument error checking and device memory allocation should
-    only occur at the top-level kernel routines. Therefore, if one
-    rocBLAS routine calls another, the lower-level called routine(s)
+#.  Logging, argument error checking and device memory allocation should
+    only occur at the top-level API functions. Therefore, if one
+    rocBLAS routine calls another, the lower-level internally called routine(s)
     should not perform logging, argument checking, or device memory
     allocation. This can be accomplished in one of two ways:
 
-    A. (Preferred.) Abstract out the computational part of the kernel
-    into a separate template function (usually named
-    ``rocblas_<kernel>_template``, and call it from a higher-level
-    template routine (usually named ``rocblas_<kernel>_impl``) which
+    A. (Preferred.) Abstract out the computational part of the function
+    that launches device kernels into a separate template (usually named
+    ``rocblas_<function_name>_launcher``), and call it from a higher-level
+    template (usually named ``rocblas_<function_name>_impl``) which
     does error-checking, device memory allocation, and logging, and
-    which gets called by the C wrappers:
+    which gets called by the C API level functions:
 
     .. code:: cpp
 
         template <...>
-        rocblas_status rocblas_<kernel>_template(..., T* device_memory)
+        rocblas_status rocblas_<function_name>_launcher(..., T* device_memory)
         {
             // Performs fast computation
             // No argument error checking
             // No logging
             // No device memory allocation -- any temporary device memory must be passed in through pointers
-            // Can be called by other computational kernels
-            // Called by rocblas_<kernel>_impl
+            // Can be called by other computational functions
+            // Called by rocblas_<function_name>_impl
             // Private internal API
         }
 
         template <...>
-        rocblas_status rocblas_<kernel>_impl()
+        rocblas_status rocblas_<function_name>_impl()
         {
             // Argument error checking
             // Logging
             // Responding to device memory size queries
             // Device memory allocation (through handle->device_malloc())
             // Temporarily switching to host pointer mode if scalar constants are used
-            // Calls rocblas_<kernel>_template()
+            // Calls rocblas_<function_name>_launcher()
             // Private internal API
         }
 
-        extern "C" rocblas_status rocblas_[hsdcz]<kernel>()
+        extern "C" rocblas_status rocblas_[hsdcz]<function_name>[_64]()
         {
             // C wrapper
-            // Calls rocblas_<kernel>_impl()
+            // Calls rocblas_<function_name>_impl()
             // Public API
         }
 
@@ -178,22 +178,22 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     .. code:: cpp
 
         template <bool full_function, ...>
-        rocblas_status rocblas_<kernel>_template(..., T* device_memory = nullptr)
+        rocblas_status rocblas_<function_name>_launcher(..., T* device_memory = nullptr)
         {
             if(full_function)
             {
                 // Argument error checking
                 // Logging
                 // Responding to device memory size queries
-                // Device memory allocation (memory pointer assumed already allocated otherwise)*
-                // Temporarily switching to host pointer mode if scalar constants are used*
-                return rocblas_<kernel>_template<false, ...>(...);
+                // Device memory allocation (memory pointer assumed already allocated otherwise)
+                // Temporarily switching to host pointer mode if scalar constants are used
+                return ROCBLAS_API(rocblas_<function_name>_launcher)<false, ...>(...);
             }
             // Perform fast computation
             // Private internal API
         }
 
-    \*Device memory allocation, and temporarily switching pointer mode,
+    Device memory allocation, and temporarily switching pointer mode,
     might be difficult to enclose in an ``if`` statement with the RAII
     design, so the code might have to use recursion to call the
     non-fully-functional version of itself after setting these things
@@ -201,7 +201,15 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     functions like GEMM, method B might be more practical to implement,
     since it disrupts existing code less.
 
-3.  The pointer mode should be temporarily switched to host mode during
+    When an internal API is exported for reuse, an additional template layer may be present between the ``_impl`` and ``_launcher``
+    templates (i.e. ``rocblas_<function_name>_template`` ).   It may exist in a non batched and batched form.
+    Additionally, when an ILP64 API is provided for a function, the above launcher template may end with an ``_64`` suffix.
+    The ``_impl`` template starts with an additional template typename API_INT which will be instantiated as either rocblas_int
+    or int64_t.   The macro ``ROCBLAS_API`` may be used to call the ``_64`` or original form of a template instantiation.
+
+    For more information refer to the `rocBLAS Programmers Guide <https://rocblas.readthedocs.io/en/master/Programmers_Guide.html>`__
+
+#.  The pointer mode should be temporarily switched to host mode during
     kernels which pass constants to other kernels, so that host-side
     constants of ``-1.0``, ``0.0`` and ``1.0`` can be passed to kernels
     like ``GEMM``, without causing synchronizing host<->device memory
@@ -240,7 +248,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     When ``saved_pointer_mode`` is destroyed, the handle's pointer mode
     returns to the previous pointer mode.
 
-4.  When tests are added to ``rocblas-test`` and ``rocblas-bench``,
+#.  When tests are added to ``rocblas-test`` and ``rocblas-bench``,
     refer to `this
     guide <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/gtest/README.md>`__.
 
@@ -276,7 +284,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     and
     `clients/benchmarks/client.cpp <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/benchmarks/client.cpp>`__.
 
-5.  Code should not be copied-and pasted, but rather, templates, macros,
+#.  Code should not be copied-and pasted, but rather, templates, macros,
     SFINAE (substitution failure is not an error) pattern and CRTP (curiously recurring template pattern),
     etc. should be used to factor out differences in similar code.
 
@@ -289,7 +297,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     existing function should be refactored and based on a third
     templated function or class, rather than duplicating code.
 
-6.  To differentiate between scalars located on either the host or
+#.  To differentiate between scalars located on either the host or
     device memory, a special function has been created, called
     ``load_scalar()``. If its argument is a pointer, it is dereferenced
     on the device. If the argument is a scalar, it is simply copied.
@@ -331,7 +339,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     This allows a single kernel to handle both cases, eliminating
     duplicate code.
 
-7.  If new arithmetic datatypes (like ``rocblas_bfloat16``) are created,
+#.  If new arithmetic datatypes (like ``rocblas_bfloat16``) are created,
     then unless they correspond *exactly* to a predefined system type,
     they should be wrapped into a ``struct``, and not simply be a
     ``typedef`` to another type of the same size, so that their type is
@@ -347,7 +355,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     to a pointer to its first element, and vice-versa, so the C API is
     unaffected by whether the type is enclosed in a ``struct`` or not.
 
-8.  RAII (resource acquisition is initialization) patterned
+#.  RAII (resource acquisition is initialization) patterned
     classes should be used instead of explicit ``new``/``delete``,
     ``hipMalloc``/``hipFree``, ``malloc``/``free``, etc. RAII classes
     are automatically exception-safe because their destructor gets
@@ -363,7 +371,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     ``handle->push_pointer_mode()`` creates an RAII object which saves
     the pointer mode on construction, and restores it on destruction.
 
-9.  When writing function templates, place any non-type parameters
+#.  When writing function templates, place any non-type parameters
     before type parameters, i.e., leave the type parameters at the end.
     For example:
 
@@ -402,7 +410,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     parameter too, but it can be automatically deduced, so it doesn't
     need to be explicitly passed.
 
-10. When writing functions like the above which are heavily dependent on
+#.  When writing functions like the above which are heavily dependent on
     block sizes, especially if they are in header files included by
     other files, template parameters for block sizes are strongly
     preferred to ``#define`` macros or ``constexpr`` variables. For
@@ -428,7 +436,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
         template <typename T>
         static constexpr T one = 1;
 
-11. static duration variables which aren't constants should usually be
+#.  static duration variables which aren't constants should usually be
     made function-local ``static`` variables, rather than namespace or
     class static variables. This is to avoid the static initialization
     order fiasco. For example:
@@ -466,7 +474,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     thread-safe way. After that, there is almost no overhead in later
     calls to ``my_func()``.
 
-12. Functions are preferred to macros. Functions or functors inside of
+#.  Functions are preferred to macros. Functions or functors inside of
     ``class`` / ``struct`` templates can be used when partial template
     specializations are needed.
 
@@ -491,7 +499,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     statement which can be terminated with a semicolon, and which can be
     used anywhere a regular function call can be used.
 
-13. For most template functions which are used in other compilation
+#.  For most template functions which are used in other compilation
     units, it is preferred that they be put in header files, rather than
     ``.cpp`` files, because putting them in ``.cpp`` files requires
     explicit instantiation of them for all possible arguments, and there
@@ -510,7 +518,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     one definition rule (ODR) as long as the sequence of tokens in each
     compilation unit is identical.
 
-14. Functions and namespace-scope variables which are not a part of the
+#.  Functions and namespace-scope variables which are not a part of the
     public interface of rocBLAS, should either be marked static, be
     placed in an unnamed namespace, or be placed in
     ``namespace rocblas``. For example:
@@ -538,7 +546,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     limited number of symbols, this is still a good idea, to decrease
     the chances of name collisions *inside* of rocBLAS.
 
-15. ``std::string`` should only be used for strings which can grow, or
+#.  ``std::string`` should only be used for strings which can grow, or
     which must be dynamically allocated as read-write strings. For
     simple static strings, strings returned from functions like
     ``getenv()``, or strings which are initialized once and then used
@@ -550,7 +558,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     help alleviate that, which became available in C++17. ``const char*``
     can be used for read-only views of strings, in the interest of efficiency.
 
-16. For code brevity and readability, when converting to *numeric*
+#.  For code brevity and readability, when converting to *numeric*
     types, uniform initialization or function-style casts are preferred
     to ``static_cast<>()`` or C-style casts. For example, ``T{x}`` or ``T(x)``
     is preferred to ``static_cast<T>(x)`` or ``(T)x``. ``T{x}`` differs from
@@ -567,7 +575,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     ``type(x)`` are  more compact and clearer than ``static_cast<type>(x)``.
     For pointers, C-style casts are okay, such as ``(T*)A``.
 
-17. For BLAS2 functions and BLAS1 functions with two vectors, the
+#.  For BLAS2 functions and BLAS1 functions with two vectors, the
     ``incx`` and/or ``incy`` arguments can be negative, which means the
     vector is treated backwards from the end. A simple trick to handle
     this, is to adjust the pointer to the end of the vector if the
@@ -588,7 +596,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     `TRSV <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas2/rocblas_trsv.cpp>`__
     for an example, and how it's handled there.
 
-18. For reduction operations, the file
+#.  For reduction operations, the file
     `reduction.hpp <https://github.com/ROCm/rocBLAS/blob/develop/library/src/blas1/reduction.hpp>`
     has been created to systematize reductions and perform their device
     kernels in one place. This works for ``amax``, ``amin``, ``asum``,
@@ -608,7 +616,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     reduction when the size is 0, and reducing a value with the
     ``default_value()`` does not change the value of the reduction.
 
-19. When type punning
+#.  When type punning
     is needed, ``union`` should be used instead of pointer-casting,
     which violates *strict aliasing*. For example:
 
@@ -651,7 +659,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
             return fp32;
         }
 
-20. ``<type_traits>`` classes which return Boolean values can be
+#.  ``<type_traits>`` classes which return Boolean values can be
     converted to ``bool`` in Boolean contexts. Hence many traits can be
     tested by simply creating an instance of them with ``{}``. However,
     for type_traits accessors such as ::value or ::type, these can be replaced by suffixes
@@ -670,7 +678,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     object appears in a conditional expression (``if``, ``while``,
     ``for``, ``&&``, ``||``, ``!``, ``? :``, etc.).
 
-21. ``rocblas_cout`` and ``rocblas_cerr`` should be used instead of ``std::cout``, ``std::cerr``, ``stdout`` or ``stderr``, and ``rocblas_internal_ostream`` should be used instead of ``std::ostream``, ``std::ofstream`` or ``std::ostringstream``.
+#.  ``rocblas_cout`` and ``rocblas_cerr`` should be used instead of ``std::cout``, ``std::cerr``, ``stdout`` or ``stderr``, and ``rocblas_internal_ostream`` should be used instead of ``std::ostream``, ``std::ofstream`` or ``std::ostringstream``.
 
     In ``rocblas-bench`` and ``rocblas-test``, ``std::cout``, ``std::cerr``, ``printf``, ``fprintf``, ``stdout``, ``stderr``, ``puts()``, ``fputs()``, and other symbols are "poisoned", to remind you to use ``rocblas_cout``, ``rocblas_cerr``, and ``rocblas_internal_ostream`` instead.
 
@@ -692,7 +700,7 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     The ``key`` is outputted normally as a bare string, but the ``value`` uses YAML metacharacters and lexical syntax to output the value, so that when it's read in as YAML, it has the type and value of ``value``.
 
 
-22. C++ templates, including variadic templates, are preferred to macros or runtime interpreting of values, although it is understood that sometimes macros are necessary.
+#.  C++ templates, including variadic templates, are preferred to macros or runtime interpreting of values, although it is understood that sometimes macros are necessary.
 
     For example, when creating a class which models zero or more rocBLAS kernel arguments, it is preferable to use:
 
@@ -738,13 +746,13 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
     The former denotes the rocBLAS arguments as a list which is passed as a variadic template argument, and whose properties are known and can be optimized at compile-time, and which can be passed on as arguments to other templates, while the latter requires creating a dynamically-allocated runtime object which must be interpreted at runtime, such as by using ``switch`` statements on the arguments. The ``switch`` statement will need to list out and handle every possible argument, while the template solution simply passes the argument as another template argument, and hence can be resolved at compile-time.
 
 
-23. Automatically-generated files should always go into ``build/`` directories, and should not go into source directories (even if marked ``.gitignore``). The CMake philosophy is such that you can create any ``build/`` directory, run ``cmake`` from there, and then have a self-contained build environment which will not touch any files outside of it.
+#.  Automatically-generated files should always go into ``build/`` directories, and should not go into source directories (even if marked ``.gitignore``). The CMake philosophy is such that you can create any ``build/`` directory, run ``cmake`` from there, and then have a self-contained build environment which will not touch any files outside of it.
 
 
-24. The ``library/include`` subdirectory of rocBLAS, to be distinguished from the ``library/src/include`` subdirectory, shall consist only of C-compatible header files for public rocBLAS APIs. It should not include internal APIs, even if they are used in other projects, e.g., rocSOLVER, and the headers must be compilable with a C compiler, and must use ``.h`` extensions.
+#.  The ``library/include`` subdirectory of rocBLAS, to be distinguished from the ``library/src/include`` subdirectory, shall consist only of C-compatible header files for public rocBLAS APIs. It should not include internal APIs, even if they are used in other projects, e.g., rocSOLVER, and the headers must be compilable with a C compiler, and must use ``.h`` extensions.
 
 
-25. Macro parameters should only be evaluated once when practical, and should be parenthesized if there is a chance of ambiguous precedence. They should be stored in a local temporary variable if needed more than once.
+#.  Macro parameters should only be evaluated once when practical, and should be parenthesized if there is a chance of ambiguous precedence. They should be stored in a local temporary variable if needed more than once.
 
     Macros which expand to code with local variables, should use double-underscore suffixes in the local variable names, to prevent their conflict with variables passed in macro parameters. However, if they are in a completely separate block scope than the macro parameter is expanded in, or if they are only passed to another macro/function, then they do not need to use trailing underscores.
 
@@ -766,14 +774,14 @@ For more information refer to `rocBLAS Device Memory Allocation <https://rocblas
             } while(0)
 
 
-The ``ERROR`` macro parameter is evaluated only once, and is stored in the temporary variable ``error__``, for use multiple times later.
+    The ``ERROR`` macro parameter is evaluated only once, and is stored in the temporary variable ``error__``, for use multiple times later.
 
-The ``ERROR`` macro parameter is parenthesized when initializing ``error__``, to avoid ambiguous precedence, such as if ``ERROR`` contains a comma expression.
+    The ``ERROR`` macro parameter is parenthesized when initializing ``error__``, to avoid ambiguous precedence, such as if ``ERROR`` contains a comma expression.
 
-The ``error__`` variable name is used, to prevent it from conflicting with variables passed in the ``ERROR`` macro parameter, such as ``error``.
+    The ``error__`` variable name is used, to prevent it from conflicting with variables passed in the ``ERROR`` macro parameter, such as ``error``.
 
 
-26. Do not use variable-length arrays (VLA), which allocate on the stack, for arrays of unknown size.
+#.  Do not use variable-length arrays (VLA), which allocate on the stack, for arrays of unknown size.
 
     .. code:: cpp
 
@@ -796,31 +804,32 @@ The ``error__`` variable name is used, to prevent it from conflicting with varia
         func(&hostA[0], &hostB[0], &hostC[0], &hostD[0]);
 
 
-27. Do not define unnamed (anonymous) namespaces in header files (for explanation see DCL59-CPP)
+#.  Do not define unnamed (anonymous) namespaces in header files (for explanation see DCL59-CPP)
 
-If the reason for using an unnamed namespace in a header file is to prevent multiple definitions, keep in mind that the following are allowed to be defined in multiple compilation units, such as if they all come from the same header file, as long as they are defined with identical token sequences in each compilation unit:
+    If the reason for using an unnamed namespace in a header file is to prevent multiple definitions, keep in mind that the following are allowed to be defined in multiple compilation units, such as if they all come from the same header file, as long as they are defined with identical token sequences in each compilation unit:
 
-  -  ``classes``
-  -  ``typedefs`` or type aliases
-  -  ``enums``
-  -  ``template`` functions
-  -  ``inline`` functions
-  -  ``constexpr`` functions (implies ``inline``)
-  -  ``inline`` or ``constexpr`` variables or variable ``template``s (only for C++17 or later, although some C++14 compilers treat ``constexpr`` variables as ``inline``)
+    -  ``classes``
+    -  ``typedefs`` or type aliases
+    -  ``enums``
+    -  ``template`` functions
+    -  ``inline`` functions
+    -  ``constexpr`` functions (implies ``inline``)
+    -  ``inline`` or ``constexpr`` variables or variable ``template``s (only for C++17 or later, although some C++14 compilers treat ``constexpr`` variables as ``inline``)
 
-If functions defined in header files are declared ``template``, then multiple instantiations with the same ``template`` arguments are automatically merged, something which cannot happen if the ``template`` functions are declared ``static``, or appear in unnamed namespaces, in which case the instantiations are local to each compilation unit, and are not combined.
+    If functions defined in header files are declared ``template``, then multiple instantiations with the same ``template`` arguments are automatically merged, something which cannot happen if the ``template`` functions are declared ``static``, or appear in unnamed namespaces, in which case the instantiations are local to each compilation unit, and are not combined.
 
-If a function defined in a header file at ``namespace`` scope (outside of a ``class``) contains ``static`` _local variables which are expected to be singletons holding state throughout the entire library, then the function cannot be marked ``static`` or be part of an unnamed ``namespace``, because then each compilation unit will have its own separate copy of that function and its local ``static`` variables. (``static`` member functions of classes always have external linkage, and it is okay to define ``static`` ``class`` member functions in-place inside of header files, because all in-place ``static`` member function definitions, including their ``static`` local variables, will be automatically merged.)
+    If a function defined in a header file at ``namespace`` scope (outside of a ``class``) contains ``static`` _local variables which are expected to be singletons holding state throughout the entire library, then the function cannot be marked ``static`` or be part of an unnamed ``namespace``, because then each compilation unit will have its own separate copy of that function and its local ``static`` variables. (``static`` member functions of classes always have external linkage, and it is okay to define ``static`` ``class`` member functions in-place inside of header files, because all in-place ``static`` member function definitions, including their ``static`` local variables, will be automatically merged.)
 
 Guidelines:
 
 -  Do not use unnamed ``namespaces`` inside of header files.
 
-    -  Use either ``template`` or ``inline`` (or both) for functions defined outside of classes in header files.
+-  Use either ``template`` or ``inline`` (or both) for functions defined outside of classes in header files.
 
-    -  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
+-  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
 
-    -  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+-  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+
 
 Process
 =======
