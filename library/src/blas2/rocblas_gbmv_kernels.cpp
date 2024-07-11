@@ -319,8 +319,9 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
             return rocblas_status_success;
     }
 
-    int  arch_major       = handle->getArchMajor();
-    bool is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
+    int  arch_major = handle->getArchMajor();
+    bool is_arch_10_or_11_or_12
+        = arch_major == 10 || arch_major == 11 || arch_major == 12 ? true : false;
 
 #define GBMV_COMMON_ARGS                                                                 \
     m, n, kl, ku, alpha_device_host, A, offseta, lda, strideA, x, shiftx, incx, stridex, \
@@ -328,7 +329,7 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
 
     if(transA == rocblas_operation_none)
     {
-        if(is_arch_10_or_11)
+        if(is_arch_10_or_11_or_12)
         {
             static constexpr int WARP        = 32; // warp size as using warp reduce for bands
             static constexpr int GBMVN_DIM_Y = 32; // problem sub block
@@ -363,7 +364,7 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
     }
     else // trans/conj
     {
-        if(is_arch_10_or_11)
+        if(is_arch_10_or_11_or_12)
         {
             static constexpr int WARP        = 32; // warp size as using warp reduce for bands
             static constexpr int GBMVT_DIM_Y = 32; // problem sub block
