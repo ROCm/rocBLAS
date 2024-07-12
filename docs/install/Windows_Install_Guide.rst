@@ -56,9 +56,9 @@ dependencies for your application.
    or can be located elsewhere if setting the environment variable ``ROCBLAS_TENSILE_LIBPATH`` to the
    non-standard location. The contents are read at execution time much like additional DLL files.
 
-Once installed, find ``rocblas.h`` in the HIP SDK ``\\include\\rocblas``
+Once installed, find ``rocblas.h`` in the HIP SDK ``\include\rocblas``
 directory. Only use these two installed files when needed in user code.
-Find other rocBLAS included files in HIP SDK ``\\include\\rocblas\\internal``, however,
+Find other rocBLAS included files in HIP SDK ``\include\rocblas\internal``, however,
 do not include these files directly into source code.
 
 ===============================
@@ -82,9 +82,9 @@ may also increase in the future as more functions are added to rocBLAS and depen
 Download rocBLAS
 ----------------
 
-The rocBLAS source code, which is the same as for the ROCm linux distributions, is available at the `rocBLAS github page <https://github.com/ROCmSoftwarePlatform/rocBLAS>`_.
+The rocBLAS source code, which is the same as for the ROCm linux distributions, is available at the `rocBLAS github page <https://github.com/ROCm/rocBLAS>`_.
 The version of the ROCm HIP SDK may be shown in the path of default installation, but
-you can run the HIP SDK compiler to report the verison from the bin/ folder with:
+you can run the HIP SDK compiler to report the verison from the ``bin\`` folder with:
 
 ::
 
@@ -97,11 +97,11 @@ For example for you can use the following to download rocBLAS:
 
 ::
 
-   git clone -b release/rocm-rel-x.y https://github.com/ROCmSoftwarePlatform/rocBLAS.git
+   git clone -b release/rocm-rel-x.y https://github.com/ROCm/rocBLAS.git
    cd rocBLAS
 
 Replace x.y in the above command with the version of HIP SDK installed on your machine. For example, if you have HIP 5.5 installed, then use ``-b release/rocm-rel-5.5``
-You can can add the SDK tools to your path with an entry like:
+You can add the SDK tools to your path with an entry like:
 
 ::
 
@@ -125,19 +125,19 @@ Library Dependencies
 
 Dependencies installed by the python script rdeps.py are listed in the rdeps.xml configuration file. The -d flag passed to rmake.py installs dependencies the same as if
 running ``rdeps.py`` directly.
-Currently ``rdeps.py`` uses ``vcpkg`` and ``pip`` to install the build dependencies, with ``vcpkg`` being cloned into environment variable ``VCPKG_PATH`` or defaults into ``C:\\github\\vckpg``.
+Currently ``rdeps.py`` uses ``vcpkg`` and ``pip`` to install the build dependencies, with ``vcpkg`` being cloned into environment variable ``VCPKG_PATH`` or defaults into ``C:\github\vckpg``.
 ``pip`` will install into your current python3 environment.
 
 The minimum version requirement for CMake is listed in the top level ``CMakeLists.txt`` file. CMake installed with Visual Studio 2022 meets this requirement.
 The ``vcpkg`` version tag is specified at the top of the ``rdeps.py`` file.
 
 However, for the test and benchmark clients' host reference BLAS, it is recommended that you manually download and install AMD's ILP64 version of AOCL-BLAS 4.2 from https://www.amd.com/en/developer/aocl.html.
-If you download and run the full Windows AOCL installer into the default locations ( `C:\Program Files\AMD\AOCL-Windows\` ) then the AOCL reference BLAS (amd-blis) should be found
+If you download and run the full Windows AOCL installer into the default locations ( ``C:\Program Files\AMD\AOCL-Windows\`` ) then the AOCL reference BLAS (amd-blis) should be found
 by the clients CMakeLists.txt.  
 
 .. note::
    If instead of the AOCL reference library you use OpenBLAS with vcpkg from rdeps.py you may experience `rocblas-test` stress test failures due to 32-bit integer overflow
-   on the host reference code unless you exclude the ILP64 stress tests via command line argument `--gtest_filter=-*I64*`.
+   on the host reference code unless you exclude the ILP64 stress tests via command line argument `--gtest_filter=-*stress*`.
 
 
 Build Library dependencies + Library
@@ -242,7 +242,7 @@ Build Clients without Library
 The rocBLAS clients can be built on their own using ``rmake.py`` with a pre-existing rocBLAS library.
 
 Note that the version of the rocBLAS clients being built should match the version of the installed rocBLAS.
-You can determine the version of the installed rocBLAS in the HIP SDK directory from the file ``include\\rocblas\\internal\\rocblas-version.h``.
+You can determine the version of the installed rocBLAS in the HIP SDK directory from the file ``include\rocblas\internal\rocblas-version.h``.
 Find the version of rocBLAS being built if you have grep (e.g. in a git bash) with command ``grep "VERSION_STRING" CMakeLists.txt`` in the rocBLAS directory where you are building the clients.
 
 .. tabularcolumns::
