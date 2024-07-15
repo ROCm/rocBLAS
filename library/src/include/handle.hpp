@@ -235,6 +235,14 @@ public:
         return archMajorMinor;
     }
 
+    int getMaxSharedMemPerBlock()
+    {
+        int max_mem = -1;
+        THROW_IF_HIP_ERROR(hipDeviceGetAttribute(
+            &max_mem, hipDeviceAttribute_t(hipDeviceAttributeMaxSharedMemoryPerBlock), device));
+        return max_mem;
+    }
+
     inline int getDefaultDeviceMemorySize()
     {
 

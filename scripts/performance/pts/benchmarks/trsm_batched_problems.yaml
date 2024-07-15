@@ -11,6 +11,9 @@ Definitions:
   - &additional_sizes_largen
     - { scan: [8..32..4],  M: *c_scan_value, N: [256..2048..256], lda: *c_scan_value, ldb: *c_scan_value, batch_count: 256 }
 
+  - &trsm_batched_substitution_sizes
+    - { scan: [128..384..128], M: *c_scan_value, N: [8..32..8], lda: *c_scan_value, ldb: *c_scan_value, batch_count: [128..512..128] }
+
 Tests:
   - name: trsm_batched_qmcpack_size
     category: bench
@@ -47,4 +50,17 @@ Tests:
     alpha: 1
     matrix_size: *additional_sizes_largen
     iters: 10
+
+  - name: trsm_batched_substitution
+    category: bench
+    function: trsm_batched
+    precision: *trsm_batched
+    transA: [ N, C ]
+    side: [ L ]
+    uplo: [ L, U ]
+    diag: [ N ]
+    alpha: 1
+    matrix_size: *trsm_batched_substitution_sizes
+    cold_iters: 20
+    iters: 50
 ...
