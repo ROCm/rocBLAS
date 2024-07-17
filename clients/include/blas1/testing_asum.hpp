@@ -154,12 +154,39 @@ void testing_asum(const Arguments& arg)
                 RT rocblas_result_copy;
                 CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, dr, sizeof(RT), hipMemcpyDeviceToHost));
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    DAPI_CHECK(rocblas_asum_fn, (handle, N, dx, incx, dr));
-                    CHECK_HIP_ERROR(
-                        hipMemcpy(&rocblas_result_copy, dr, sizeof(RT), hipMemcpyDeviceToHost));
-                    unit_check_general<RT, RT>(1, 1, 1, &rocblas_result, &rocblas_result_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_vector<T>  dx_copy(N, incx);
+                    device_vector<RT> dr_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dr_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        DAPI_CHECK(rocblas_asum_fn, (handle_copy, N, dx_copy, incx, dr_copy));
+                        CHECK_HIP_ERROR(hipMemcpy(
+                            &rocblas_result_copy, dr_copy, sizeof(RT), hipMemcpyDeviceToHost));
+                        unit_check_general<RT, RT>(1, 1, 1, &rocblas_result, &rocblas_result_copy);
+                    }
                 }
                 return;
             }

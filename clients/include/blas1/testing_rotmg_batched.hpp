@@ -265,33 +265,63 @@ void testing_rotmg_batched(const Arguments& arg)
                     host_batch_vector<T> ry_copy(1, 1, batch_count);
                     host_batch_vector<T> rparams_copy(5, 1, batch_count);
 
-                    for(int i = 0; i < arg.iters; i++)
+                    // multi-GPU support
+                    int device_id, device_count;
+                    CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                    for(int dev_id = 0; dev_id < device_count; dev_id++)
                     {
-                        CHECK_HIP_ERROR(dd1.transfer_from(hd1));
-                        CHECK_HIP_ERROR(dd2.transfer_from(hd2));
-                        CHECK_HIP_ERROR(dx.transfer_from(hx));
-                        CHECK_HIP_ERROR(dy.transfer_from(hy));
-                        CHECK_HIP_ERROR(dparams.transfer_from(hparams));
+                        CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                        if(device_id != dev_id)
+                            CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                        DAPI_CHECK(rocblas_rotmg_batched_fn,
-                                   (handle,
-                                    dd1.ptr_on_device(),
-                                    dd2.ptr_on_device(),
-                                    dx.ptr_on_device(),
-                                    dy.ptr_on_device(),
-                                    dparams.ptr_on_device(),
-                                    batch_count));
+                        //New rocblas handle for new device
+                        rocblas_local_handle handle_copy{arg};
 
-                        CHECK_HIP_ERROR(rd1_copy.transfer_from(dd1));
-                        CHECK_HIP_ERROR(rd2_copy.transfer_from(dd2));
-                        CHECK_HIP_ERROR(rx_copy.transfer_from(dx));
-                        CHECK_HIP_ERROR(ry_copy.transfer_from(dy));
-                        CHECK_HIP_ERROR(rparams_copy.transfer_from(dparams));
-                        unit_check_general<T>(1, 1, 1, rd1, rd1_copy, batch_count);
-                        unit_check_general<T>(1, 1, 1, rd2, rd2_copy, batch_count);
-                        unit_check_general<T>(1, 1, 1, rx, rx_copy, batch_count);
-                        unit_check_general<T>(1, 1, 1, ry, ry_copy, batch_count);
-                        unit_check_general<T>(1, 5, 1, rparams, rparams_copy, batch_count);
+                        // Allocate device memory in new device
+                        device_batch_vector<T> dd1_copy(1, 1, batch_count);
+                        device_batch_vector<T> dd2_copy(1, 1, batch_count);
+                        device_batch_vector<T> dx_copy(1, 1, batch_count);
+                        device_batch_vector<T> dy_copy(1, 1, batch_count);
+                        device_batch_vector<T> dparams_copy(5, 1, batch_count);
+
+                        // Check device memory allocation
+                        CHECK_DEVICE_ALLOCATION(dd1_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dd2_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dparams_copy.memcheck());
+
+                        CHECK_ROCBLAS_ERROR(
+                            rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                        for(int runs = 0; runs < arg.iters; runs++)
+                        {
+                            CHECK_HIP_ERROR(dd1_copy.transfer_from(hd1));
+                            CHECK_HIP_ERROR(dd2_copy.transfer_from(hd2));
+                            CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                            CHECK_HIP_ERROR(dy_copy.transfer_from(hy));
+                            CHECK_HIP_ERROR(dparams_copy.transfer_from(hparams));
+
+                            DAPI_CHECK(rocblas_rotmg_batched_fn,
+                                       (handle_copy,
+                                        dd1_copy.ptr_on_device(),
+                                        dd2_copy.ptr_on_device(),
+                                        dx_copy.ptr_on_device(),
+                                        dy_copy.ptr_on_device(),
+                                        dparams_copy.ptr_on_device(),
+                                        batch_count));
+
+                            CHECK_HIP_ERROR(rd1_copy.transfer_from(dd1_copy));
+                            CHECK_HIP_ERROR(rd2_copy.transfer_from(dd2_copy));
+                            CHECK_HIP_ERROR(rx_copy.transfer_from(dx_copy));
+                            CHECK_HIP_ERROR(ry_copy.transfer_from(dy_copy));
+                            CHECK_HIP_ERROR(rparams_copy.transfer_from(dparams_copy));
+                            unit_check_general<T>(1, 1, 1, rd1, rd1_copy, batch_count);
+                            unit_check_general<T>(1, 1, 1, rd2, rd2_copy, batch_count);
+                            unit_check_general<T>(1, 1, 1, rx, rx_copy, batch_count);
+                            unit_check_general<T>(1, 1, 1, ry, ry_copy, batch_count);
+                            unit_check_general<T>(1, 5, 1, rparams, rparams_copy, batch_count);
+                        }
                     }
                     return;
                 }

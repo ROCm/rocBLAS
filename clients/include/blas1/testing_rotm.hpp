@@ -172,19 +172,46 @@ void testing_rotm(const Arguments& arg)
                     CHECK_HIP_ERROR(hx.transfer_from(dx));
                     CHECK_HIP_ERROR(hy.transfer_from(dy));
 
-                    for(int i = 0; i < arg.iters; i++)
+                    // multi-GPU support
+                    int device_id, device_count;
+                    CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                    for(int dev_id = 0; dev_id < device_count; dev_id++)
                     {
-                        CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
-                        CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
-                        CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+                        CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                        if(device_id != dev_id)
+                            CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                        DAPI_CHECK(rocblas_rotm_fn, (handle, N, dx, incx, dy, incy, dparam));
+                        //New rocblas handle for new device
+                        rocblas_local_handle handle_copy{arg};
 
-                        CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
-                        CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
+                        // Allocate device memory
+                        device_vector<T> dx_copy(N, incx);
+                        device_vector<T> dy_copy(N, incy);
+                        device_vector<T> dparam_copy(5, 1);
 
-                        unit_check_general<T>(1, N, incx, hx, hx_copy);
-                        unit_check_general<T>(1, N, incy, hy, hy_copy);
+                        // Check device memory allocation
+                        CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dparam_copy.memcheck());
+
+                        CHECK_ROCBLAS_ERROR(
+                            rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                        for(int runs = 0; runs < arg.iters; runs++)
+                        {
+                            CHECK_HIP_ERROR(dx_copy.transfer_from(hx_gold));
+                            CHECK_HIP_ERROR(dy_copy.transfer_from(hy_gold));
+                            CHECK_HIP_ERROR(dparam_copy.transfer_from(hparam));
+
+                            DAPI_CHECK(rocblas_rotm_fn,
+                                       (handle_copy, N, dx_copy, incx, dy_copy, incy, dparam_copy));
+
+                            CHECK_HIP_ERROR(hx_copy.transfer_from(dx_copy));
+                            CHECK_HIP_ERROR(hy_copy.transfer_from(dy_copy));
+
+                            unit_check_general<T>(1, N, incx, hx, hx_copy);
+                            unit_check_general<T>(1, N, incy, hy, hy_copy);
+                        }
                     }
                     return;
                 }

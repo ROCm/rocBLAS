@@ -145,11 +145,40 @@ void testing_iamax_iamin_strided_batched(const Arguments& arg, FUNC func)
             {
                 host_vector<R> hr_copy(batch_count);
                 CHECK_HIP_ERROR(hr2.transfer_from(dr));
-                for(int i = 0; i < arg.iters; i++)
+
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, dr));
-                    CHECK_HIP_ERROR(hr_copy.transfer_from(dr));
-                    unit_check_general<R>(batch_count, 1, 1, hr2, hr_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory in new device
+                    device_strided_batch_vector<T> dx_copy(N, incx, stridex, batch_count);
+                    device_vector<R>               dr_copy(batch_count);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dr_copy.memcheck());
+
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_ROCBLAS_ERROR(
+                            func(handle_copy, N, dx_copy, incx, stridex, batch_count, dr_copy));
+                        CHECK_HIP_ERROR(hr_copy.transfer_from(dr_copy));
+                        unit_check_general<R>(batch_count, 1, 1, hr2, hr_copy);
+                    }
                 }
                 return;
             }

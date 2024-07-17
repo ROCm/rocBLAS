@@ -142,14 +142,41 @@ void testing_nrm2(const Arguments& arg)
                 host_vector<real_t<T>> rocblas_result_copy(1, 1);
                 CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result));
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    DAPI_CHECK(rocblas_nrm2_fn, (handle, N, dx, incx, d_rocblas_result));
-                    CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result));
-                    unit_check_general<real_t<T>, real_t<T>>(
-                        1, 1, 1, rocblas_result, rocblas_result_copy);
-                }
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory in new device
+                    device_vector<T>         dx_copy(N, incx);
+                    device_vector<real_t<T>> d_rocblas_result_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_rocblas_result_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        DAPI_CHECK(rocblas_nrm2_fn,
+                                   (handle_copy, N, dx_copy, incx, d_rocblas_result_copy));
+                        CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result_copy));
+                        unit_check_general<real_t<T>, real_t<T>>(
+                            1, 1, 1, rocblas_result, rocblas_result_copy);
+                    }
+                }
                 return;
             }
         }

@@ -236,23 +236,60 @@ void testing_rotg_strided_batched(const Arguments& arg)
             host_strided_batch_vector<T> rb_copy(1, 1, stride_b, batch_count);
             host_strided_batch_vector<U> rc_copy(1, 1, stride_c, batch_count);
             host_strided_batch_vector<T> rs_copy(1, 1, stride_s, batch_count);
-            for(int i = 0; i < arg.iters; i++)
+
+            // multi-GPU support
+            int device_id, device_count;
+            CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+            for(int dev_id = 0; dev_id < device_count; dev_id++)
             {
-                CHECK_HIP_ERROR(da.transfer_from(ha));
-                CHECK_HIP_ERROR(db.transfer_from(hb));
-                CHECK_HIP_ERROR(dc.transfer_from(hc));
-                CHECK_HIP_ERROR(ds.transfer_from(hs));
-                DAPI_CHECK(
-                    rocblas_rotg_strided_batched_fn,
-                    (handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count));
-                CHECK_HIP_ERROR(ra_copy.transfer_from(da));
-                CHECK_HIP_ERROR(rb_copy.transfer_from(db));
-                CHECK_HIP_ERROR(rc_copy.transfer_from(dc));
-                CHECK_HIP_ERROR(rs_copy.transfer_from(ds));
-                unit_check_general<T>(1, 1, 1, stride_a, ra, ra_copy, batch_count);
-                unit_check_general<T>(1, 1, 1, stride_b, rb, rb_copy, batch_count);
-                unit_check_general<U>(1, 1, 1, stride_c, rc, rc_copy, batch_count);
-                unit_check_general<T>(1, 1, 1, stride_s, rs, rs_copy, batch_count);
+                CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                if(device_id != dev_id)
+                    CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                //New rocblas handle for new device
+                rocblas_local_handle handle_copy{arg};
+
+                // Allocate device memory
+                device_strided_batch_vector<T> da_copy(1, 1, stride_a, batch_count);
+                device_strided_batch_vector<T> db_copy(1, 1, stride_b, batch_count);
+                device_strided_batch_vector<U> dc_copy(1, 1, stride_c, batch_count);
+                device_strided_batch_vector<T> ds_copy(1, 1, stride_s, batch_count);
+
+                // Check device memory allocation
+                CHECK_DEVICE_ALLOCATION(da_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(db_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dc_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(ds_copy.memcheck());
+
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                for(int runs = 0; runs < arg.iters; runs++)
+                {
+                    CHECK_HIP_ERROR(da_copy.transfer_from(ha));
+                    CHECK_HIP_ERROR(db_copy.transfer_from(hb));
+                    CHECK_HIP_ERROR(dc_copy.transfer_from(hc));
+                    CHECK_HIP_ERROR(ds_copy.transfer_from(hs));
+                    DAPI_CHECK(rocblas_rotg_strided_batched_fn,
+                               (handle_copy,
+                                da_copy,
+                                stride_a,
+                                db_copy,
+                                stride_b,
+                                dc_copy,
+                                stride_c,
+                                ds_copy,
+                                stride_s,
+                                batch_count));
+                    CHECK_HIP_ERROR(ra_copy.transfer_from(da_copy));
+                    CHECK_HIP_ERROR(rb_copy.transfer_from(db_copy));
+                    CHECK_HIP_ERROR(rc_copy.transfer_from(dc_copy));
+                    CHECK_HIP_ERROR(rs_copy.transfer_from(ds_copy));
+                    unit_check_general<T>(1, 1, 1, stride_a, ra, ra_copy, batch_count);
+                    unit_check_general<T>(1, 1, 1, stride_b, rb, rb_copy, batch_count);
+                    unit_check_general<U>(1, 1, 1, stride_c, rc, rc_copy, batch_count);
+                    unit_check_general<T>(1, 1, 1, stride_s, rs, rs_copy, batch_count);
+                }
             }
             return;
         }

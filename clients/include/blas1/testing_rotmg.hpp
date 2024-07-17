@@ -142,14 +142,41 @@ void testing_rotmg(const Arguments& arg)
                 if(arg.repeatability_check)
                 {
                     host_vector<T> hparams_copy(9, 1);
-                    for(int i = 0; i < arg.iters; i++)
+
+                    // multi-GPU support
+                    int device_id, device_count;
+                    CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                    for(int dev_id = 0; dev_id < device_count; dev_id++)
                     {
-                        CHECK_HIP_ERROR(dparams.transfer_from(params));
-                        DAPI_CHECK(
-                            rocblas_rotmg_fn,
-                            (handle, dparams, dparams + 1, dparams + 2, dparams + 3, dparams + 4));
-                        CHECK_HIP_ERROR(hparams_copy.transfer_from(dparams));
-                        unit_check_general<T>(1, 9, 1, hparams, hparams_copy);
+                        CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                        if(device_id != dev_id)
+                            CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                        //New rocblas handle for new device
+                        rocblas_local_handle handle_copy{arg};
+
+                        // Allocate device memory in new device
+                        device_vector<T> dparams_copy(9, 1);
+
+                        // Check device memory allocation
+                        CHECK_DEVICE_ALLOCATION(dparams_copy.memcheck());
+
+                        CHECK_ROCBLAS_ERROR(
+                            rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                        for(int runs = 0; runs < arg.iters; runs++)
+                        {
+                            CHECK_HIP_ERROR(dparams_copy.transfer_from(params));
+                            DAPI_CHECK(rocblas_rotmg_fn,
+                                       (handle_copy,
+                                        dparams_copy,
+                                        dparams_copy + 1,
+                                        dparams_copy + 2,
+                                        dparams_copy + 3,
+                                        dparams_copy + 4));
+                            CHECK_HIP_ERROR(hparams_copy.transfer_from(dparams_copy));
+                            unit_check_general<T>(1, 9, 1, hparams, hparams_copy);
+                        }
                     }
                     return;
                 }

@@ -227,14 +227,48 @@ void testing_axpy_strided_batched(const Arguments& arg)
             {
                 host_strided_batch_vector<T> hy_copy(N, incy, stridey, batch_count);
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
-                    DAPI_CHECK(
-                        rocblas_axpy_strided_batched_fn,
-                        (handle, N, dalpha, dx, incx, stridex, dy, incy, stridey, batch_count));
-                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
-                    unit_check_general<T>(1, N, incy, stridey, hy_2, hy_copy, batch_count);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory in new device
+                    device_strided_batch_vector<T> dx_copy(N, incx, stridex, batch_count);
+                    device_strided_batch_vector<T> dy_copy(N, incy, stridey, batch_count);
+                    device_vector<T>               dalpha_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dalpha_copy.memcheck());
+
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    CHECK_HIP_ERROR(dalpha_copy.transfer_from(halpha));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dy_copy.transfer_from(hy_gold));
+                        DAPI_CHECK(rocblas_axpy_strided_batched_fn,
+                                   (handle_copy,
+                                    N,
+                                    dalpha_copy,
+                                    dx_copy,
+                                    incx,
+                                    stridex,
+                                    dy_copy,
+                                    incy,
+                                    stridey,
+                                    batch_count));
+                        CHECK_HIP_ERROR(hy_copy.transfer_from(dy_copy));
+                        unit_check_general<T>(1, N, incy, stridey, hy_2, hy_copy, batch_count);
+                    }
                 }
                 return;
             }
