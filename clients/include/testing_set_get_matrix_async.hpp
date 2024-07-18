@@ -67,6 +67,10 @@ void testing_set_get_matrix_async(const Arguments& arg)
     host_pinned_vector<T> hB(cols * size_t(ldb));
     host_vector<T>        hB_gold(cols * size_t(ldb));
 
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hB_gold.memcheck());
+
     double cpu_time_used;
     double rocblas_error = 0.0;
 

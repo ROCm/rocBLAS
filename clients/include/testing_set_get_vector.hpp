@@ -55,6 +55,10 @@ void testing_set_get_vector(const Arguments& arg)
     host_vector<T> hy(N, incy);
     host_vector<T> hy_gold(N, incy);
 
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+
     double cpu_time_used;
     cpu_time_used        = 0.0;
     double rocblas_error = 0.0;

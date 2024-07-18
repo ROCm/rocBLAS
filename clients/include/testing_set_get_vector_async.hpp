@@ -58,8 +58,11 @@ void testing_set_get_vector_async(const Arguments& arg)
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_pinned_vector<T> hx(N, incx);
     host_pinned_vector<T> hy(N, incy);
+    host_vector<T>        hy_gold(N, incy);
 
-    host_vector<T> hy_gold(N, incy);
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
 
     double cpu_time_used;
     cpu_time_used        = 0.0;
