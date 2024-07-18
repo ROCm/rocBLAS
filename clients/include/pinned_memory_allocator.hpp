@@ -49,6 +49,8 @@ struct pinned_memory_allocator
             ptr = nullptr;
             rocblas_cerr << "rocBLAS pinned_memory_allocator failed to allocate memory: "
                          << hipGetErrorString(status) << std::endl;
+            // exception same as host_alloc helper
+            throw std::bad_alloc{};
         }
         return ptr;
     }

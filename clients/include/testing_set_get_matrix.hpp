@@ -61,6 +61,10 @@ void testing_set_get_matrix(const Arguments& arg)
     host_matrix<T> hB(rows, cols, ldb);
     host_matrix<T> hB_gold(rows, cols, ldb);
 
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hB_gold.memcheck());
+
     double cpu_time_used;
     double rocblas_error = 0.0;
 
