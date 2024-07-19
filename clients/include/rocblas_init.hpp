@@ -527,8 +527,8 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
 #endif
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
-                    A[i + j * lda + b * stride] = T(seedReset ? cos(i + j * lda + b * stride)
-                                                              : sin(i + j * lda + b * stride));
+                    A[i + j * lda + b * stride]
+                        = T(seedReset ? cos(i + j * M + b * M * N) : sin(i + j * M + b * M * N));
     }
     else if(matrix_type == rocblas_client_hermitian_matrix)
     {
@@ -539,8 +539,8 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
             for(size_t i = 0; i < N; ++i)
                 for(size_t j = 0; j <= i; ++j)
                 {
-                    auto value = T(seedReset ? cos(i + j * lda + b * stride)
-                                             : sin(i + j * lda + b * stride));
+                    auto value
+                        = T(seedReset ? cos(i + j * N + b * M * N) : sin(i + j * N + b * M * N));
 
                     if(i == j)
                         A[b * stride + j + i * lda] = std::real(value);
@@ -570,8 +570,8 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
             for(size_t i = 0; i < N; ++i)
                 for(size_t j = 0; j <= i; ++j)
                 {
-                    auto value = T(seedReset ? cos(i + j * lda + b * stride)
-                                             : sin(i + j * lda + b * stride));
+                    auto value
+                        = T(seedReset ? cos(i + j * N + b * M * N) : sin(i + j * N + b * M * N));
                     if(i == j)
                         A[b * stride + j + i * lda] = value;
                     else if(uplo == 'U')
@@ -600,13 +600,12 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
                 {
-                    auto value                  = uplo == 'U'
-                                                      ? (j >= i ? T(seedReset ? cos(i + j * lda + b * stride)
-                                                                              : sin(i + j * lda + b * stride))
-                                                                : T(0))
-                                                      : (j <= i ? T(seedReset ? cos(i + j * lda + b * stride)
-                                                                              : sin(i + j * lda + b * stride))
-                                                                : T(0));
+                    auto value = uplo == 'U' ? (j >= i ? T(seedReset ? cos(i + j * M + b * M * N)
+                                                                     : sin(i + j * M + b * M * N))
+                                                       : T(0))
+                                             : (j <= i ? T(seedReset ? cos(i + j * M + b * M * N)
+                                                                     : sin(i + j * M + b * M * N))
+                                                       : T(0));
                     A[i + j * lda + b * stride] = value;
                 }
     }
@@ -632,7 +631,7 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
 #endif
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
-                    A[i + j * lda] = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+                    A[i + j * lda] = T(seedReset ? cos(i + j * M) : sin(i + j * M));
         }
         else if(matrix_type == rocblas_client_hermitian_matrix)
         {
@@ -642,7 +641,7 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
             for(size_t i = 0; i < N; ++i)
                 for(size_t j = 0; j <= i; ++j)
                 {
-                    auto value = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+                    auto value = T(seedReset ? cos(i + j * N) : sin(i + j * N));
 
                     if(i == j)
                         A[j + i * lda] = std::real(value);
@@ -671,7 +670,7 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
             for(size_t i = 0; i < N; ++i)
                 for(size_t j = 0; j <= i; ++j)
                 {
-                    auto value = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+                    auto value = T(seedReset ? cos(i + j * N) : sin(i + j * N));
                     if(i == j)
                         A[j + i * lda] = value;
                     else if(uplo == 'U')
@@ -701,9 +700,8 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                 {
                     auto value
                         = uplo == 'U'
-                              ? (j >= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda)) : T(0))
-                              : (j <= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda))
-                                        : T(0));
+                              ? (j >= i ? T(seedReset ? cos(i + j * M) : sin(i + j * M)) : T(0))
+                              : (j <= i ? T(seedReset ? cos(i + j * M) : sin(i + j * M)) : T(0));
                     A[i + j * lda] = value;
                 }
         }
@@ -723,7 +721,7 @@ void rocblas_init_vector_trig(T* x, int64_t N, rocblas_stride incx, bool seedRes
 #pragma omp parallel for
 #endif
     for(int64_t j = 0; j < N; ++j)
-        x[j * incx] = T(seedReset ? cos(j * incx) : sin(j * incx));
+        x[j * incx] = T(seedReset ? cos(j * N) : sin(j * N));
 }
 
 /* ============================================================================================ */
