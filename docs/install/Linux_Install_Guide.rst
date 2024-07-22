@@ -96,14 +96,14 @@ For Centos, use:
     yum info rocm-libs
 
 The ROCm version has major, minor, and patch fields, possibly followed by a build specific identifier. For example, ROCm version could be 4.0.0.40000-23; this corresponds to major = 4, minor = 0, patch = 0, build identifier 40000-23.
-There are GitHub branches at the rocBLAS site with names rocm-major.minor.x where major and minor are the same as in the ROCm version. For ROCm version 4.0.0.40000-23, you must use the following to download rocBLAS:
+There are GitHub branches at the rocBLAS site with names rocm-major.minor.x where major and minor are the same as in the ROCm version. To download rocBLAS, you can use the following command:
 
 ::
 
    git clone -b release/rocm-rel-x.y https://github.com/ROCm/rocBLAS.git
    cd rocBLAS
 
-Replace x.y in the above command with the version of ROCm installed on your machine. For example, if you have ROCm 5.0 installed, then replace release/rocm-rel-x.y with release/rocm-rel-5.0.
+Replace x.y in the above command with the version of ROCm installed on your machine. For example, if you have ROCm 6.2 installed, then replace release/rocm-rel-x.y with release/rocm-rel-6.2.
 
 
 Below are steps to build using ``install.sh`` script. The user can build either:
@@ -122,7 +122,7 @@ CMake has a minimum version requirement listed in the file ``install.sh``. See `
 
 Dependencies are listed in the script ``install.sh``. Passing the ``-d`` flag to ``install.sh`` installs the dependencies.
 
-However, for the test and benchmark clients' host reference BLAS, it is recommended that you manually download and install AMD's ILP64 version of AOCL-BLAS 4.1 or 4.0 from https://www.amd.com/en/developer/aocl.html.
+However, for the test and benchmark clients' host reference BLAS, it is recommended that you manually download and install AMD's ILP64 version of AOCL-BLAS 4.2 gcc from https://www.amd.com/en/developer/aocl.html.
 If you download and install the full AOCL packages into their default locations, or only download the BLIS archive files and extract into the build directory deps subfolder, then this reference BLAS should be found
 by the clients ``CMakeLists.txt``.  Note, if you only use the ``install.sh -d`` dependency script based BLIS download and install, you may experience ``rocblas-test`` stress test failures due to 32-bit integer overflow on the host unless you exclude the stress tests via command line argument ``--gtest_filter=-*stress*``.
 
