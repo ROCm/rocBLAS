@@ -76,8 +76,8 @@ inline size_t rocblas_gemvt_sn_crossover<rocblas_double_complex>()
 template <typename T>
 inline bool rocblas_gemvt_skinny_n(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    size_t    cross_over_n    = rocblas_gemvt_sn_crossover<T>();
-    const int skinny_constant = 2048;
+    size_t       cross_over_n    = rocblas_gemvt_sn_crossover<T>();
+    const size_t skinny_constant = 2048;
     if(transA != rocblas_operation_none && n < cross_over_n && m >= skinny_constant * n)
         return true;
     else

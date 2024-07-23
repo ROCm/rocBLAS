@@ -35,7 +35,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_s
     rocblas_int n           = std::min(c_i32_max, n_64);
     rocblas_int batch_count = std::min(c_i64_grid_YZ_chunk, batch_count_64);
     size_t work_size = rocblas_internal_gemv_kernel_workspace_size<To>(transA, m, n, batch_count);
-    if(m_64 > c_i32_max || n_64 > c_i32_max)
+    if(m_64 > c_ILP64_i32_max || n_64 > c_ILP64_i32_max)
         work_size
             += sizeof(rocblas_double_complex); // for temporary beta during accumulation passes
     return work_size;

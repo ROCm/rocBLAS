@@ -50,8 +50,9 @@ rocblas_status rocblas_internal_symm_hemm_launcher_64(rocblas_handle handle,
     if(!m_64 || !n_64 || !batch_count_64)
         return rocblas_status_success;
 
-    if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-       && ldc_64 < c_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
+    if(n_64 <= c_ILP64_i32_max && m_64 < c_ILP64_i32_max && lda_64 < c_ILP64_i32_max
+       && ldb_64 < c_ILP64_i32_max && ldc_64 < c_ILP64_i32_max
+       && batch_count_64 < c_i64_grid_YZ_chunk)
     {
         return rocblas_internal_symm_hemm_launcher<HERM>(handle,
                                                          side,
@@ -83,8 +84,8 @@ rocblas_status rocblas_internal_symm_hemm_launcher_64(rocblas_handle handle,
         auto B_ptr = adjust_ptr_batch(B, b_base, strideB);
         auto C_ptr = adjust_ptr_batch(C, b_base, strideC);
 
-        if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-           && ldc_64 < c_i32_max)
+        if(n_64 <= c_ILP64_i32_max && m_64 < c_ILP64_i32_max && lda_64 < c_ILP64_i32_max
+           && ldb_64 < c_ILP64_i32_max && ldc_64 < c_ILP64_i32_max)
         {
             auto status = rocblas_internal_symm_hemm_launcher<HERM>(handle,
                                                                     side,
@@ -181,8 +182,9 @@ rocblas_status rocblas_internal_symm_hemm_batched_launcher_64(rocblas_handle   h
     if(!m_64 || !n_64 || !batch_count_64)
         return rocblas_status_success;
 
-    if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-       && ldc_64 < c_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
+    if(n_64 <= c_ILP64_i32_max && m_64 < c_ILP64_i32_max && lda_64 < c_ILP64_i32_max
+       && ldb_64 < c_ILP64_i32_max && ldc_64 < c_ILP64_i32_max
+       && batch_count_64 < c_i64_grid_YZ_chunk)
     {
 
         return rocblas_internal_symm_hemm_batched_launcher<HERM>(handle,
@@ -215,8 +217,8 @@ rocblas_status rocblas_internal_symm_hemm_batched_launcher_64(rocblas_handle   h
         auto B_ptr = adjust_ptr_batch(B, b_base, strideB);
         auto C_ptr = adjust_ptr_batch(C, b_base, strideC);
 
-        if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-           && ldc_64 < c_i32_max)
+        if(n_64 <= c_ILP64_i32_max && m_64 < c_ILP64_i32_max && lda_64 < c_ILP64_i32_max
+           && ldb_64 < c_ILP64_i32_max && ldc_64 < c_ILP64_i32_max)
         {
             auto status = rocblas_internal_symm_hemm_batched_launcher<HERM>(handle,
                                                                             side,

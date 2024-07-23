@@ -52,8 +52,9 @@ rocblas_status rocblas_her2_launcher_64(rocblas_handle handle,
     if(n_64 > c_i32_max)
         return rocblas_status_invalid_size; // defer adding new kernels for sizes exceeding practical memory
 
-    const bool launcher_32 = (incx_64 < c_i32_max && incy_64 < c_i32_max && incx_64 > c_i32_min
-                              && incy_64 > c_i32_min && lda_64 < c_i32_max);
+    const bool launcher_32
+        = (incx_64 < c_ILP64_i32_max && incy_64 < c_ILP64_i32_max && incx_64 > c_i32_min
+           && incy_64 > c_i32_min && lda_64 < c_ILP64_i32_max);
 
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
     {

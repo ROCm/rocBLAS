@@ -63,8 +63,9 @@ rocblas_status rocblas_internal_syrkx_herkx_template_64(rocblas_handle    handle
 
     static constexpr bool TWOK = false;
 
-    if(n_64 <= c_i32_max && k_64 <= c_i32_max && lda_64 <= c_i32_max && ldb_64 <= c_i32_max
-       && ldc_64 <= c_i32_max && batch_count_64 <= c_i64_grid_YZ_chunk)
+    if(n_64 <= c_ILP64_i32_max && k_64 <= c_ILP64_i32_max && lda_64 <= c_ILP64_i32_max
+       && ldb_64 <= c_ILP64_i32_max && ldc_64 <= c_ILP64_i32_max
+       && batch_count_64 <= c_i64_grid_YZ_chunk)
     {
         return rocblas_internal_syr2k_her2k_template<rocblas_int, MIN_NB, BATCHED, TWOK, HERK, T>(
             handle,

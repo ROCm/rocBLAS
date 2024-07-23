@@ -51,10 +51,10 @@ rocblas_status rocblas_internal_gemmt_launcher_64(rocblas_handle    handle,
         return rocblas_status_success;
 
     if(n_64 > c_i32_max)
-        return rocblas_status_invalid_size; // defer adding new kernels as C is a n_64 * n_64  matrix and when n_64 > c_i32_max it exceeds practical device memory.
+        return rocblas_status_invalid_size; // defer adding new kernels as C is a n_64 * n_64  matrix and when n_64 > c_ILP64_i32_max it exceeds practical device memory.
 
-    if(k_64 <= c_i32_max && lda_64 <= c_i32_max && ldb_64 <= c_i32_max && ldc_64 <= c_i32_max
-       && batch_count_64 <= c_i64_grid_YZ_chunk)
+    if(k_64 <= c_ILP64_i32_max && lda_64 <= c_ILP64_i32_max && ldb_64 <= c_ILP64_i32_max
+       && ldc_64 <= c_ILP64_i32_max && batch_count_64 <= c_i64_grid_YZ_chunk)
     {
         return rocblas_internal_gemmt_launcher<rocblas_int>(handle,
                                                             uplo,

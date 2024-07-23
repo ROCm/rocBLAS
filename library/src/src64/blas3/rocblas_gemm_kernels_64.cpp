@@ -55,7 +55,7 @@ rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
     if(!m_64 || !n_64 || !batch_count_64)
         return rocblas_status_success;
 
-    bool dims_32bit    = m_64 <= c_i32_max && n_64 <= c_i32_max && k_64 <= c_i32_max;
+    bool dims_32bit = m_64 <= c_ILP64_i32_max && n_64 <= c_ILP64_i32_max && k_64 <= c_ILP64_i32_max;
     bool leading_32bit = lda_64 <= c_i32_max && ldb_64 <= c_i32_max && ldc_64 <= c_i32_max;
 
     rocblas_status status = rocblas_status_success;

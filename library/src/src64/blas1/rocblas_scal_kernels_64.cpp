@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ rocblas_status rocblas_internal_scal_launcher_64(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    if(incx_64 <= c_i32_max)
+    if(incx_64 <= c_ILP64_i32_max)
     {
         for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
         {

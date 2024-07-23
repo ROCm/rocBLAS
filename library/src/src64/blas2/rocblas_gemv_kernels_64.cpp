@@ -56,7 +56,7 @@ __attribute__((noinline)) rocblas_status
     if(!m_64 || !n_64 || !batch_count_64)
         return rocblas_status_success;
 
-    bool dims_32bit = m_64 <= c_i32_max && n_64 <= c_i32_max;
+    bool dims_32bit = m_64 <= c_ILP64_i32_max && n_64 <= c_ILP64_i32_max;
 
     Tex* beta_one{nullptr};
     Tex  one(1.0);
