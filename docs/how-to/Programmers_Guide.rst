@@ -1903,3 +1903,22 @@ J. Don't forget to close the anonymous namespace:
 
 
 Many examples are available in ``gtest/*_gtest.{cpp,yaml}``
+
+Testing During Development
+--------------------------
+
+ILP64 APIs require such large problem sizes that getting code coverage during tests is cost-prohibitive.
+Therefore there are some hooks to help with early developer testing using smaller sizes.
+You can compile with ``-DROCBLAS_DEV_TEST_ILP64`` to test ILP64 code when otherwise it would not be invoked.
+For example, a ``scal`` implementation may call the original 32-bit API code when ``N`` and ``incx`` are less than ``c_ILP64_i32_max``.
+``c_ILP64_i32_max`` is usually defined as ``std::numeric_limits<int32_t>::max()``,
+but with ``ROCBLAS_DEV_TEST_ILP64`` defined then ``c_ILP64_i32_max`` is defined as zero.
+Thus for small sizes it will branch and use ILP64 support code instead of using the 32-bit original API.
+The specifics vary for each implementation and require yaml configuration to test C_64 APIs with small sizes.
+It is intended as a by-pass for when early detection of small sizes invokes the 32-bit APIs.
+This is for developer testing only. This should not be used for production code.
+
+Test coverage during development should be much more exhaustive than final versions of test sets.
+We limit our test times so a trade-off between coverage and test duration must be made.
+During development it is expected problem space will be covered in more depth to look for potential anomalies.
+Any special cases should be analyzed, reduced in scope, and represented in the final test category.

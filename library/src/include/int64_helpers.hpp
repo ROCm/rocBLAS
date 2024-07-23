@@ -51,12 +51,30 @@ inline constexpr char rocblas_api_suffix[] = "";
 template <>
 inline constexpr char rocblas_api_suffix<int64_t>[] = "_64";
 
+constexpr int64_t c_i32_max = int64_t(std::numeric_limits<int32_t>::max());
+constexpr int64_t c_i32_min = int64_t(std::numeric_limits<int32_t>::min());
+
+#ifndef ROCBLAS_DEV_TEST_ILP64
+
+// constants for production
+
+constexpr int64_t c_ILP64_i32_max = c_i32_max;
+
 constexpr int64_t c_i64_grid_X_chunk = 1ULL << 28;
 constexpr int64_t c_i64_grid_YZ_chunk
     = int64_t((std::numeric_limits<uint16_t>::max() & ~0xf)); // % 16 == 0
 
-constexpr int64_t c_i32_max = int64_t(std::numeric_limits<int32_t>::max());
-constexpr int64_t c_i32_min = int64_t(std::numeric_limits<int32_t>::min());
+#else
+
+// constants for developer testing using small sizes
+
+constexpr int64_t c_ILP64_i32_max = int64_t(0); // bypass int32 API use case for values < i32_max
+
+// forced testing with small sizes for loop coverage
+constexpr int64_t c_i64_grid_X_chunk  = int64_t(512);
+constexpr int64_t c_i64_grid_YZ_chunk = int64_t(512);
+
+#endif
 
 // int64 outer loop helpers
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,9 +55,9 @@ rocblas_status rocblas_internal_rot_launcher_64(rocblas_handle handle,
     if(n_64 <= 0 || batch_count_64 <= 0)
         return rocblas_status_success;
 
-    if(std::abs(incx_64) <= c_i32_max && std::abs(incy_64) < c_i32_max)
+    if(std::abs(incx_64) <= c_ILP64_i32_max && std::abs(incy_64) < c_ILP64_i32_max)
     {
-        if(n_64 <= c_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
+        if(n_64 <= c_ILP64_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
         {
             // valid to use original 32bit API with truncated 64bit args
             return rocblas_internal_rot_launcher<rocblas_int, NB, Tex, Tx>(handle,

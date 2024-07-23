@@ -78,7 +78,7 @@ rocblas_status rocblas_internal_trmm_launcher_64(rocblas_handle    handle,
         auto C_ptr = adjust_ptr_batch(dC, b_base, stride_c);
 
         // may be able to call 32-bit trmm while only iterating through batches.
-        if(m_64 < c_i32_max && n_64 < c_i32_max)
+        if(m_64 < c_ILP64_i32_max && n_64 < c_ILP64_i32_max)
         {
             RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_launcher<NB, BATCHED, T>(handle,
                                                                                     side,

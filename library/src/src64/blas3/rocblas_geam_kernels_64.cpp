@@ -51,7 +51,7 @@ rocblas_status rocblas_geam_launcher_64(rocblas_handle    handle,
     if(!m_64 || !n_64 || !batch_count_64)
         return rocblas_status_success;
 
-    bool dims_32bit = m_64 <= c_i32_max && n_64 <= c_i32_max;
+    bool dims_32bit = m_64 <= c_ILP64_i32_max && n_64 <= c_ILP64_i32_max;
 
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
     {

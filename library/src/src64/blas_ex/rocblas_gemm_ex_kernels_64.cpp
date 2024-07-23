@@ -234,9 +234,9 @@ rocblas_status rocblas_gemm_ex_template_64(rocblas_handle    handle,
                                            int32_t           solution_index,
                                            uint32_t          flags)
 {
-    bool dims_32bit = m_64 <= c_i32_max && n_64 <= c_i32_max && k_64 <= c_i32_max
-                      && lda_64 <= c_i32_max && ldb_64 <= c_i32_max && ldc_64 <= c_i32_max
-                      && ldd_64 <= c_i32_max;
+    bool dims_32bit = m_64 <= c_ILP64_i32_max && n_64 <= c_ILP64_i32_max && k_64 <= c_ILP64_i32_max
+                      && lda_64 <= c_ILP64_i32_max && ldb_64 <= c_ILP64_i32_max
+                      && ldc_64 <= c_ILP64_i32_max && ldd_64 <= c_ILP64_i32_max;
 
     // if all dims are 32-bit, can use regular gemm_ex
     if(dims_32bit)

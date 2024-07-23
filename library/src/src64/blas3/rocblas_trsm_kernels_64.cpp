@@ -67,8 +67,9 @@ rocblas_status rocblas_internal_trsm_launcher_64(rocblas_handle    handle,
     }
 
     // may be able to call 32-bit trsm
-    if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-       && supplied_invA_size_64 < c_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
+    if(n_64 <= c_ILP64_i32_max && m_64 < c_ILP64_i32_max && lda_64 < c_ILP64_i32_max
+       && ldb_64 < c_ILP64_i32_max && supplied_invA_size_64 < c_ILP64_i32_max
+       && batch_count_64 < c_i64_grid_YZ_chunk)
         return rocblas_internal_trsm_launcher<BLOCK, DIM_X, BATCHED>(handle,
                                                                      side,
                                                                      uplo,
@@ -112,8 +113,8 @@ rocblas_status rocblas_internal_trsm_launcher_64(rocblas_handle    handle,
 
         // may be able to call 32-bit trsm while only iterating through batches. Need to be careful about
         // allocated memory and offsets between groups of kernel launches
-        if(n_64 <= c_i32_max && m_64 < c_i32_max && lda_64 < c_i32_max && ldb_64 < c_i32_max
-           && supplied_invA_size_64 < c_i32_max)
+        if(n_64 <= c_ILP64_i32_max && m_64 < c_ILP64_i32_max && lda_64 < c_ILP64_i32_max
+           && ldb_64 < c_ILP64_i32_max && supplied_invA_size_64 < c_ILP64_i32_max)
         {
             auto status
                 = rocblas_internal_trsm_launcher<BLOCK, DIM_X, BATCHED>(handle,
@@ -241,8 +242,8 @@ rocblas_status rocblas_internal_trsm_template_mem_64(rocblas_handle             
                                                      int64_t                     supplied_invA_size)
 {
     // Potentially use 32-bit trsm
-    if(n <= c_i32_max && m < c_i32_max && lda < c_i32_max && ldb < c_i32_max
-       && supplied_invA_size < c_i32_max)
+    if(n <= c_ILP64_i32_max && m < c_ILP64_i32_max && lda < c_ILP64_i32_max && ldb < c_ILP64_i32_max
+       && supplied_invA_size < c_ILP64_i32_max)
     {
         return rocblas_internal_trsm_template_mem<BATCHED, T>(
             handle,
@@ -340,8 +341,8 @@ rocblas_status rocblas_internal_trsm_workspace_size_64(rocblas_side      side,
 
     // We need lda and ldb here to see if we can use 32-bit alogrithms or not
     // Note that we don't need to check batch_count as we use multiple calls of the 32-bit kernel if it's too large
-    if(n <= c_i32_max && m < c_i32_max && lda < c_i32_max && ldb < c_i32_max
-       && supplied_invA_size < c_i32_max)
+    if(n <= c_ILP64_i32_max && m < c_ILP64_i32_max && lda < c_ILP64_i32_max && ldb < c_ILP64_i32_max
+       && supplied_invA_size < c_ILP64_i32_max)
     {
         return rocblas_internal_trsm_workspace_size<BLOCK, BATCHED, T>(
             side,
