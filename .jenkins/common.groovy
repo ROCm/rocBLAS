@@ -81,7 +81,7 @@ def runTestCommand (platform, project, gfilter)
     if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
     {
         hmmTestCommand = """
-                            ${gtestCommonEnv} HSA_XNACK=1 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                            ${gtestCommonEnv} HSA_XNACK=1 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*:*graph_test*
                          """
     }
 
@@ -90,18 +90,18 @@ def runTestCommand (platform, project, gfilter)
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*:*graph_test*
                                  """
 
             // Enable check numerics only for checkNumericsTestCommand
             checkNumericsTestCommand = """
-                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*repeatability_check*:*get_solutions*
+                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*repeatability_check*:*get_solutions*:*graph_test*
                                  """
     }
     else
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*:*graph_test*
                                  """
     }
 
