@@ -136,7 +136,7 @@ namespace
                        == rocblas_status_success)
                     {
                         log_bench(handle,
-                                  ROCBLAS_API_BENCH " -f gemm_batched_ex3",
+                                  ROCBLAS_API_BENCH " -f gemm_batched_ex",
                                   "--transposeA",
                                   trans_a_letter,
                                   "--transposeB",
