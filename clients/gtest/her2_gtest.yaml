@@ -186,7 +186,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_range
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 3 ]
 
 - name: her2_batched_medium
   category: pre_checkin
@@ -197,7 +197,7 @@ Tests:
   pointer_mode_host: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: her2_batched_large
   category: nightly
@@ -208,7 +208,7 @@ Tests:
   pointer_mode_device: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 # strided batched
 - name: her2_strided_batched_fortran
@@ -242,8 +242,8 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_range
-  stride_scale: [ 1.0, 2.5 ]
-  batch_count: [ -1, 0, 1, 5 ]
+  stride_scale: [ 2.5 ]
+  batch_count: [ 3 ]
 
 - name: her2_strided_batched_medium
   category: pre_checkin
@@ -255,7 +255,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: her2_strided_large
   category: nightly

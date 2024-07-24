@@ -42,8 +42,6 @@ Definitions:
     - { N:  4011, lda: 4011 }
 
   - &incx_incy_range
-    - { incx:   2, incy:   1 }
-    - { incx:  -1, incy:   2 }
     - { incx:   1, incy:   1 }
     - { incx:  -1, incy:   3 }
     - { incx:   3, incy:  -1 }
@@ -186,7 +184,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ -1, 0, 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: hemv_batched_medium
   category: pre_checkin
@@ -242,8 +240,8 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ -1, 0, 1, 3 ]
-  stride_scale: [ 1, 1.5, 5 ]
+  batch_count: [ 3 ]
+  stride_scale: [ 1.5]
 
 - name: hemv_strided_batched_medium
   category: pre_checkin

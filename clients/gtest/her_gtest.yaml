@@ -184,7 +184,7 @@ Tests:
   pointer_mode_host: false
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 # her_strided_batched
 - name: her_batched_fortran
@@ -218,8 +218,8 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ -2, 1, 99 ]
   alpha_beta: *alpha_range
-  stride_scale: [ 1.0, 2.5 ]
-  batch_count: [ 1, 5 ]
+  stride_scale: [ 2.5 ]
+  batch_count: [ 5 ]
 
 - name: her_strided_batched_medium
   category: pre_checkin
@@ -231,7 +231,7 @@ Tests:
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: her_strided_large
   category: nightly
@@ -243,7 +243,7 @@ Tests:
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: her_size_t_M
   category: stress

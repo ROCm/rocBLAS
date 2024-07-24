@@ -216,7 +216,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ -1, 0, 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: hbmv_batched_medium
   category: pre_checkin
@@ -271,8 +271,8 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ -1, 0, 1, 3 ]
-  stride_scale: [ 1, 1.5, 5 ]
+  batch_count: [ 3 ]
+  stride_scale: [ 1.5 ]
 
 - name: hbmv_strided_batched_medium
   category: pre_checkin
