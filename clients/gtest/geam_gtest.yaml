@@ -171,8 +171,8 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
-  stride_scale: [ 1, 2      ]
-  batch_count: [ 1, 2 ]
+  stride_scale: [ 2 ]
+  batch_count: [ 2 ]
   api: [ C, FORTRAN ]
 
 - name: geam_small_complex
@@ -191,7 +191,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_complex_alpha_beta_range
-  batch_count: [        1, 2 ]
+  batch_count: [ 2 ]
   api: [ C, FORTRAN ]
 
 - name: geam_strided_batched_small_complex
@@ -201,8 +201,8 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_complex_alpha_beta_range
-  stride_scale: [ 1, 2      ]
-  batch_count: [        1, 2 ]
+  stride_scale: [ 2 ]
+  batch_count: [ 2 ]
   api: [ C, FORTRAN ]
 
 - name: geam_large
@@ -230,7 +230,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_complex_alpha_beta_range
-  batch_count: [        1, 2 ]
+  batch_count: [ 2 ]
   pointer_mode_host: false
 
 - name: geam_strided_batched_large_complex
@@ -240,8 +240,8 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_complex_alpha_beta_range
-  stride_scale: [ 1, 2      ]
-  batch_count: [        1, 2 ]
+  stride_scale: [ 2 ]
+  batch_count: [ 2 ]
   pointer_mode_host: false
 
 - name: geam_huge

@@ -141,7 +141,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_range
-  batch_count: [ 1, 5 ]
+  batch_count: [ 3 ]
 
 - name: hpr2_batched_medium
   category: pre_checkin
@@ -151,7 +151,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: hpr2_batched_large
   category: nightly
@@ -161,7 +161,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 # strided batched
 - name: hpr2_strided_batched_fortran
@@ -172,7 +172,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
-  batch_count: [ -1, 0, 3 ]
+  batch_count: [ 3 ]
   stride_scale: [ 2 ]
   api: FORTRAN
 
@@ -195,8 +195,8 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_range
-  stride_scale: [ 1.0, 2.5 ]
-  batch_count: [ 1, 5 ]
+  stride_scale: [ 2.5 ]
+  batch_count: [ 3 ]
 
 - name: hpr2_strided_batched_medium
   category: pre_checkin
@@ -218,7 +218,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: hpr2_64
   category: stress

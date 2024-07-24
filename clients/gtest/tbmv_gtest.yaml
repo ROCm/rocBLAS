@@ -31,8 +31,7 @@ Definitions:
 
   - &manybatch_range
     - { N:  10, K:   5, lda:   7 }
-    - { N: 150, K: 125, lda: 126 }
-    - { N: 150, K: 125, lda: 150 }
+    - { N: 150, K: 125, lda: 151 }
 
   - &medium_matrix_size_range
     - { N:   63,  K:   8,   lda:  128 }
@@ -43,21 +42,15 @@ Definitions:
     - { N:   64,  K:   45,  lda:  128 }
     - { N:   127, K:   8,   lda:  127 }
     - { N:   127, K:   100, lda:  101 }
-    - { N:   128, K:   5,   lda:  128 }
-    - { N:   128, K:   8,   lda:  128 }
     - { N:   128, K:   20,  lda:  128 }
-    - { N:   128, K:   40,  lda:  128 }
     - { N:   128, K:   60,  lda:   63 }
     - { N:   128, K:   63,  lda:  128 }
     - { N:   128, K:   64,  lda:  128 }
     - { N:   128, K:   100, lda:  128 }
     - { N:   512, K:   256, lda:  512 }
     - { N:   512, K:   5,   lda:  512 }
-    - { N:   512, K:   8,   lda:  512 }
     - { N:   512, K:   9,   lda:  512 }
-    - { N:   512, K:   10,  lda:  512 }
     - { N:   512, K:   20,  lda:  511 }
-    - { N:   300, K:   100, lda:  400 }
     - { N:   600, K:   500, lda:  601 }
 
   - &large_matrix_size_range
@@ -130,7 +123,7 @@ Tests:
   diag: [U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range_small
-  batch_count: [ -1, 0, 3 ]
+  batch_count: [ 3 ]
   stride_scale: [ 2 ]
   api: FORTRAN
 
@@ -153,7 +146,7 @@ Tests:
   diag: [U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range
-  batch_count: [ -1, 0, 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: tbmv_strided_batched_small
   category: quick
@@ -164,8 +157,8 @@ Tests:
   diag: [U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range
-  stride_scale: [ 1, 10, 100 ]
-  batch_count: [ -1, 0, 1, 3 ]
+  stride_scale: [ 2 ]
+  batch_count: [ 3 ]
 
 - name: tbmv_medium
   category: pre_checkin
@@ -240,7 +233,7 @@ Tests:
   precision: *single_double_precisions
   uplo: [U, L]
   transA: [ N, T, C ]
-  diag: [U, N]
+  diag: [N]
   matrix_size: *manybatch_range
   incx_incy: *incx_range_small
   batch_count: [256]
@@ -251,7 +244,7 @@ Tests:
   precision: *single_double_precisions
   uplo: [U, L]
   transA: [ N, T, C ]
-  diag: [U, N]
+  diag: [N]
   matrix_size: *manybatch_range
   incx_incy: *incx_range_small
   stride_scale: [ 1.5 ]

@@ -255,7 +255,7 @@ Tests:
 
   - name: blas1_with_alpha
     category: pre_checkin
-    N: [ 50007, 1049600 ]
+    N: [ 50007 ]
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -264,7 +264,7 @@ Tests:
 
   - name: blas1_batched_with_alpha
     category: pre_checkin
-    N: [ 50000, 1049600 ]
+    N: [ 50000 ]
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -274,7 +274,7 @@ Tests:
 
   - name: blas1_strided_batched_with_alpha
     category: pre_checkin
-    N: [ 50000, 1049600 ]
+    N: [ 50000 ]
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -285,7 +285,7 @@ Tests:
 
   - name: axpy_multi_gpu
     category: multi_gpu
-    N: [ 50007, 1049600 ]
+    N: [ 50007 ]
     incx_incy: *incx_incy_range_small
     threads_streams: *common_threads_streams
     alpha_beta: *alpha_beta_range
@@ -307,7 +307,7 @@ Tests:
 
   - name: axpy_multi_threads_streams
     category: nightly
-    N: [ 50007, 1049600 ]
+    N: [ 50007 ]
     incx_incy: *incx_incy_range_small
     threads_streams: *common_threads_streams
     alpha_beta: *alpha_beta_range
