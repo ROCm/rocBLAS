@@ -230,25 +230,54 @@ void testing_tbmv_strided_batched(const Arguments& arg)
             host_strided_batch_vector<T> hx_copy(N, incx, stride_x, batch_count);
             CHECK_HIP_ERROR(hx_copy.memcheck());
             CHECK_HIP_ERROR(hx.transfer_from(dx));
-            for(int i = 0; i < arg.iters; i++)
+
+            // multi-GPU support
+            int device_id, device_count;
+            CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+            for(int dev_id = 0; dev_id < device_count; dev_id++)
             {
-                CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
-                DAPI_CHECK(rocblas_tbmv_strided_batched_fn,
-                           (handle,
-                            uplo,
-                            transA,
-                            diag,
-                            N,
-                            K,
-                            dAb,
-                            lda,
-                            stride_A,
-                            dx,
-                            incx,
-                            stride_x,
-                            batch_count));
-                CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
-                unit_check_general<T>(1, N, incx, stride_x, hx, hx_copy, batch_count);
+                CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                if(device_id != dev_id)
+                    CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                //New rocblas handle for new device
+                rocblas_local_handle handle_copy{arg};
+
+                // Allocate device memory
+                device_strided_batch_matrix<T> dAb_copy(
+                    banded_matrix_row, N, lda, stride_A, batch_count);
+                device_strided_batch_vector<T> dx_copy(N, incx, stride_x, batch_count);
+
+                // Check device memory allocation
+                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dAb_copy.memcheck());
+
+                // copy data from CPU to device
+                CHECK_HIP_ERROR(dAb_copy.transfer_from(hAb));
+
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                for(int runs = 0; runs < arg.iters; runs++)
+                {
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx_gold));
+                    DAPI_CHECK(rocblas_tbmv_strided_batched_fn,
+                               (handle_copy,
+                                uplo,
+                                transA,
+                                diag,
+                                N,
+                                K,
+                                dAb_copy,
+                                lda,
+                                stride_A,
+                                dx_copy,
+                                incx,
+                                stride_x,
+                                batch_count));
+                    CHECK_HIP_ERROR(hx_copy.transfer_from(dx_copy));
+                    unit_check_general<T>(1, N, incx, stride_x, hx, hx_copy, batch_count);
+                }
             }
             return;
         }

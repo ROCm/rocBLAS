@@ -319,27 +319,63 @@ void testing_gbmv(const Arguments& arg)
                 CHECK_HIP_ERROR(hy_copy.memcheck());
                 // copy output from device to CPU
                 hy.transfer_from(dy);
-                for(int i = 0; i < arg.iters; i++)
+
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    dy.transfer_from(hy_gold);
-                    DAPI_CHECK(rocblas_gbmv_fn,
-                               (handle,
-                                transA,
-                                M,
-                                N,
-                                KL,
-                                KU,
-                                d_alpha,
-                                dAb,
-                                lda,
-                                dx,
-                                incx,
-                                d_beta,
-                                dy,
-                                incy));
-                    // copy output from device to CPU
-                    hy_copy.transfer_from(dy);
-                    unit_check_general<T>(1, dim_y, incy, hy, hy_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory
+                    device_matrix<T> dAb_copy(banded_matrix_row, N, lda);
+                    device_vector<T> dx_copy(dim_x, incx);
+                    device_vector<T> dy_copy(dim_y, incy);
+                    device_vector<T> d_alpha_copy(1);
+                    device_vector<T> d_beta_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dAb_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+
+                    dAb_copy.transfer_from(hAb);
+                    dx_copy.transfer_from(hx);
+                    d_alpha_copy.transfer_from(halpha);
+                    d_beta_copy.transfer_from(hbeta);
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        dy_copy.transfer_from(hy_gold);
+                        DAPI_CHECK(rocblas_gbmv_fn,
+                                   (handle_copy,
+                                    transA,
+                                    M,
+                                    N,
+                                    KL,
+                                    KU,
+                                    d_alpha_copy,
+                                    dAb_copy,
+                                    lda,
+                                    dx_copy,
+                                    incx,
+                                    d_beta_copy,
+                                    dy_copy,
+                                    incy));
+                        // copy output from device to CPU
+                        hy_copy.transfer_from(dy_copy);
+                        unit_check_general<T>(1, dim_y, incy, hy, hy_copy);
+                    }
                 }
                 return;
             }

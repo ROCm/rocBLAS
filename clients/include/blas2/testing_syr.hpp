@@ -189,13 +189,45 @@ void testing_syr(const Arguments& arg)
                 host_matrix<T> hA_copy(N, N, lda);
                 CHECK_HIP_ERROR(hA_copy.memcheck());
                 CHECK_HIP_ERROR(hA.transfer_from(dA));
-
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR(dA.transfer_from(hA_gold));
-                    DAPI_CHECK(rocblas_syr_fn, (handle, uplo, N, d_alpha, dx, incx, dA, lda));
-                    CHECK_HIP_ERROR(hA_copy.transfer_from(dA));
-                    unit_check_general<T>(N, N, lda, hA, hA_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory
+                    device_matrix<T> dA_copy(N, N, lda);
+                    device_vector<T> dx_copy(N, incx);
+                    device_vector<T> d_alpha_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    CHECK_HIP_ERROR(
+                        hipMemcpy(d_alpha_copy, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dA_copy.transfer_from(hA_gold));
+                        DAPI_CHECK(
+                            rocblas_syr_fn,
+                            (handle_copy, uplo, N, d_alpha_copy, dx_copy, incx, dA_copy, lda));
+                        CHECK_HIP_ERROR(hA_copy.transfer_from(dA_copy));
+                        unit_check_general<T>(N, N, lda, hA, hA_copy);
+                    }
                 }
                 return;
             }
