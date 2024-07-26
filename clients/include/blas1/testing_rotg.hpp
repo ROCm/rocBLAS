@@ -191,6 +191,9 @@ void testing_rotg(const Arguments& arg)
                     CHECK_DEVICE_ALLOCATION(ds_copy.memcheck());
                     CHECK_DEVICE_ALLOCATION(ds_copy.memcheck());
 
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
                     for(int runs = 0; runs < arg.iters; runs++)
                     {
                         CHECK_HIP_ERROR(da_copy.transfer_from(a));
