@@ -252,6 +252,9 @@ void testing_axpy_strided_batched(const Arguments& arg)
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
                     CHECK_HIP_ERROR(dalpha_copy.transfer_from(halpha));
 
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
                     for(int runs = 0; runs < arg.iters; runs++)
                     {
                         CHECK_HIP_ERROR(dy_copy.transfer_from(hy_gold));
