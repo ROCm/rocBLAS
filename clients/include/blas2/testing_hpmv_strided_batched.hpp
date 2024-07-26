@@ -448,32 +448,70 @@ void testing_hpmv_strided_batched(const Arguments& arg)
                         batch_count));
             handle.post_test(arg);
 
-            if(arg.pointer_mode_device)
+            if(arg.repeatability_check)
             {
                 host_strided_batch_vector<T> hy_copy(N, incy, stride_y, batch_count);
                 CHECK_HIP_ERROR(hy_copy.memcheck());
                 CHECK_HIP_ERROR(hy.transfer_from(dy));
-                for(int i = 0; i < arg.iters; i++)
-                {
-                    CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
-                    DAPI_CHECK(rocblas_hpmv_strided_batched_fn,
-                               (handle,
-                                uplo,
-                                N,
-                                d_alpha,
-                                dAp,
-                                stride_A,
-                                dx,
-                                incx,
-                                stride_x,
-                                d_beta,
-                                dy,
-                                incy,
-                                stride_y,
-                                batch_count));
-                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
-                    unit_check_general<T>(1, N, incy, stride_y, hy, hy_copy, batch_count);
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
+                {
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory
+                    device_strided_batch_matrix<T> dAp_copy(
+                        1, rocblas_packed_matrix_size(N), 1, stride_A, batch_count);
+                    device_strided_batch_vector<T> dx_copy(N, incx, stride_x, batch_count);
+                    device_strided_batch_vector<T> dy_copy(N, incy, stride_y, batch_count);
+                    device_vector<T>               d_alpha_copy(1);
+                    device_vector<T>               d_beta_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dAp_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dAp_copy.transfer_from(hAp));
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    CHECK_HIP_ERROR(d_alpha_copy.transfer_from(halpha));
+                    CHECK_HIP_ERROR(d_beta_copy.transfer_from(hbeta));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dy_copy.transfer_from(hy_gold));
+
+                        DAPI_CHECK(rocblas_hpmv_strided_batched_fn,
+                                   (handle_copy,
+                                    uplo,
+                                    N,
+                                    d_alpha_copy,
+                                    dAp_copy,
+                                    stride_A,
+                                    dx_copy,
+                                    incx,
+                                    stride_x,
+                                    d_beta_copy,
+                                    dy_copy,
+                                    incy,
+                                    stride_y,
+                                    batch_count));
+                        CHECK_HIP_ERROR(hy_copy.transfer_from(dy_copy));
+                        unit_check_general<T>(1, N, incy, stride_y, hy, hy_copy, batch_count);
+                    }
                 }
                 return;
             }

@@ -158,13 +158,38 @@ void testing_trmv(const Arguments& arg)
         {
             host_vector<T> hres_copy(N, incx);
             CHECK_HIP_ERROR(hres_copy.memcheck());
-            for(int i = 0; i < arg.iters; i++)
+            // multi-GPU support
+            int device_id, device_count;
+            CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+            for(int dev_id = 0; dev_id < device_count; dev_id++)
             {
-                CHECK_HIP_ERROR(dA.transfer_from(hA));
-                CHECK_HIP_ERROR(dx.transfer_from(hx));
-                DAPI_CHECK(rocblas_trmv_fn, (handle, uplo, transA, diag, N, dA, lda, dx, incx));
-                CHECK_HIP_ERROR(hres_copy.transfer_from(dx));
-                unit_check_general<T>(1, N, incx, hres, hres_copy);
+                CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                if(device_id != dev_id)
+                    CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                //New rocblas handle for new device
+                rocblas_local_handle handle_copy{arg};
+
+                // Allocate device memory
+                device_matrix<T> dA_copy(N, N, lda);
+                device_vector<T> dx_copy(N, incx);
+
+                // Check device memory allocation
+                CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                for(int runs = 0; runs < arg.iters; runs++)
+                {
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    DAPI_CHECK(rocblas_trmv_fn,
+                               (handle_copy, uplo, transA, diag, N, dA_copy, lda, dx_copy, incx));
+                    CHECK_HIP_ERROR(hres_copy.transfer_from(dx_copy));
+                    unit_check_general<T>(1, N, incx, hres, hres_copy);
+                }
             }
             return;
         }

@@ -219,21 +219,50 @@ void testing_hpr_batched(const Arguments& arg)
                 host_batch_matrix<T> hAp_copy(1, size_A, 1, batch_count);
                 CHECK_HIP_ERROR(hAp_copy.memcheck());
                 CHECK_HIP_ERROR(hAp.transfer_from(dAp));
-
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR(dAp.transfer_from(hAp_gold));
-                    DAPI_CHECK(rocblas_hpr_batched_fn,
-                               (handle,
-                                uplo,
-                                N,
-                                d_alpha,
-                                dx.ptr_on_device(),
-                                incx,
-                                dAp.ptr_on_device(),
-                                batch_count));
-                    CHECK_HIP_ERROR(hAp_copy.transfer_from(dAp));
-                    unit_check_general<T>(1, size_A, 1, hAp, hAp_copy, batch_count);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    // Allocate device memory
+                    device_batch_matrix<T>   dAp_copy(1, size_A, 1, batch_count);
+                    device_batch_vector<T>   dx_copy(N, incx, batch_count);
+                    device_vector<real_t<T>> d_alpha_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dAp_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    CHECK_HIP_ERROR(d_alpha_copy.transfer_from(halpha));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dAp_copy.transfer_from(hAp_gold));
+                        DAPI_CHECK(rocblas_hpr_batched_fn,
+                                   (handle_copy,
+                                    uplo,
+                                    N,
+                                    d_alpha_copy,
+                                    dx_copy.ptr_on_device(),
+                                    incx,
+                                    dAp_copy.ptr_on_device(),
+                                    batch_count));
+                        CHECK_HIP_ERROR(hAp_copy.transfer_from(dAp_copy));
+                        unit_check_general<T>(1, size_A, 1, hAp, hAp_copy, batch_count);
+                    }
                 }
                 return;
             }
