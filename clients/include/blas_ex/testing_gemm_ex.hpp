@@ -416,21 +416,68 @@ void testing_gemm_ex(const Arguments& arg)
                 host_matrix<To> hD_copy(M, N, ldd);
                 CHECK_HIP_ERROR(hD_copy.memcheck());
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR(dC.transfer_from(hC));
-                    // clang-format off
-                    DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, d_alpha_Tc,
-                                               dA, arg.a_type, lda,
-                                               dB, arg.b_type, ldb, d_beta_Tc,
-                                               dC, arg.c_type, ldc,
-                                               dDref,  d_type, ldd,
-                                               arg.compute_type, algo, solution_index, flags));
-                    // clang-format on
-                    // fetch device mode GPU results
-                    CHECK_HIP_ERROR(hD_copy.transfer_from(dDref));
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                    unit_check_general<To>(M, N, ldd, hD_2, hD_copy);
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_matrix<Ti> dA_copy(A_row, A_col, lda);
+                    device_matrix<Ti> dB_copy(B_row, B_col, ldb);
+
+                    // if C!=D, allocate C and D normally
+                    // if C==D, allocate C big enough for the larger of C and D; D points to C
+                    device_matrix<To>  dC_copy(M, N, ldc);
+                    device_matrix<To>  dD_copy    = (arg.outofplace) ? device_matrix<To>(M, N, ldd)
+                                                                     : device_matrix<To>(0, 1, 1);
+                    device_matrix<To>& dDref_copy = (arg.outofplace) ? dD_copy : dC_copy;
+
+                    device_vector<Tc> d_alpha_Tc_copy(1);
+                    device_vector<Tc> d_beta_Tc_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dD_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                    CHECK_HIP_ERROR(dB_copy.transfer_from(hB));
+                    CHECK_HIP_ERROR(dC_copy.transfer_from(hC));
+
+                    CHECK_HIP_ERROR(
+                        hipMemcpy(d_alpha_Tc_copy, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
+                    CHECK_HIP_ERROR(
+                        hipMemcpy(d_beta_Tc_copy, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dC_copy.transfer_from(hC));
+
+                        // clang-format off
+                    DAPI_CHECK(rocblas_gemm_ex_fn, (handle_copy, transA, transB, M, N, K, d_alpha_Tc_copy,
+                                               dA_copy, arg.a_type, lda,
+                                               dB_copy, arg.b_type, ldb, d_beta_Tc_copy,
+                                               dC_copy, arg.c_type, ldc,
+                                               dDref_copy,  d_type, ldd,
+                                               arg.compute_type, algo, solution_index, flags));
+                        // clang-format on
+                        // fetch device mode GPU results
+                        CHECK_HIP_ERROR(hD_copy.transfer_from(dDref_copy));
+
+                        unit_check_general<To>(M, N, ldd, hD_2, hD_copy);
+                    }
                 }
                 return;
             }

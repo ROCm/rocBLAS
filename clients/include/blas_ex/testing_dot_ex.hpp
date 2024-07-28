@@ -250,24 +250,56 @@ void testing_dot_ex(const Arguments& arg)
 
                 CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    DAPI_CHECK(rocblas_dot_ex_fn,
-                               (handle,
-                                N,
-                                dx,
-                                x_type,
-                                incx,
-                                dy_ptr,
-                                y_type,
-                                incy,
-                                d_rocblas_result_device,
-                                result_type,
-                                execution_type));
-                    CHECK_HIP_ERROR(
-                        rocblas_result_device_copy.transfer_from(d_rocblas_result_device));
-                    unit_check_general<Tr>(
-                        1, 1, 1, rocblas_result_device, rocblas_result_device_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_vector<Tx> dx_copy(N, incx);
+                    device_vector<Ty> dy_copy(N, incy);
+                    device_vector<Tr> d_rocblas_result_device_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_rocblas_result_device_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    CHECK_HIP_ERROR(dy_copy.transfer_from(hy));
+
+                    auto dy_ptr_copy = (arg.algo) ? (Tx*)(dx_copy) : (Ty*)(dy_copy);
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        DAPI_CHECK(rocblas_dot_ex_fn,
+                                   (handle_copy,
+                                    N,
+                                    dx_copy,
+                                    x_type,
+                                    incx,
+                                    dy_ptr_copy,
+                                    y_type,
+                                    incy,
+                                    d_rocblas_result_device_copy,
+                                    result_type,
+                                    execution_type));
+                        CHECK_HIP_ERROR(
+                            rocblas_result_device_copy.transfer_from(d_rocblas_result_device_copy));
+                        unit_check_general<Tr>(
+                            1, 1, 1, rocblas_result_device, rocblas_result_device_copy);
+                    }
                 }
                 return;
             }

@@ -152,13 +152,45 @@ void testing_dgmm(const Arguments& arg)
         if(arg.repeatability_check)
         {
             host_matrix<T> hC_copy(M, N, ldc);
-
-            for(int i = 0; i < arg.iters; i++)
+            // multi-GPU support
+            int device_id, device_count;
+            CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+            for(int dev_id = 0; dev_id < device_count; dev_id++)
             {
-                DAPI_CHECK(rocblas_dgmm_fn, (handle, side, M, N, dA, lda, dx, incx, dC, ldc));
+                CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                if(device_id != dev_id)
+                    CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
-                unit_check_general<T>(M, N, ldc, hC, hC_copy);
+                //New rocblas handle for new device
+                rocblas_local_handle handle_copy{arg};
+
+                //Allocate device memory in new device
+                device_matrix<T> dA_copy(M, N, lda);
+                device_vector<T> dx_copy(K, incx);
+                device_matrix<T> dC_copy(M, N, ldc);
+
+                // Check device memory allocation
+                CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+
+                // copy data from CPU to device
+                CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                CHECK_HIP_ERROR(dC_copy.transfer_from(hC));
+
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                for(int runs = 0; runs < arg.iters; runs++)
+                {
+                    DAPI_CHECK(
+                        rocblas_dgmm_fn,
+                        (handle_copy, side, M, N, dA_copy, lda, dx_copy, incx, dC_copy, ldc));
+
+                    CHECK_HIP_ERROR(hC_copy.transfer_from(dC_copy));
+                    unit_check_general<T>(M, N, ldc, hC, hC_copy);
+                }
             }
             return;
         }

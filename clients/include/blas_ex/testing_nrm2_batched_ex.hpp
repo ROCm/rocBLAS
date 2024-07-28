@@ -224,22 +224,47 @@ void testing_nrm2_batched_ex(const Arguments& arg)
                 host_vector<Tr> rocblas_result_copy(batch_count);
                 CHECK_HIP_ERROR(rocblas_result_copy.memcheck());
                 CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
-
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    DAPI_CHECK(rocblas_nrm2_batched_ex_fn,
-                               (handle,
-                                N,
-                                dx.ptr_on_device(),
-                                x_type,
-                                incx,
-                                batch_count,
-                                d_rocblas_result_2,
-                                result_type,
-                                execution_type));
-                    CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result_2));
-                    unit_check_general<Tr, Tr>(
-                        batch_count, 1, 1, rocblas_result_2, rocblas_result_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_batch_vector<Tx> dx_copy(N, incx, batch_count);
+                    device_vector<Tr>       d_rocblas_result_2_copy(batch_count);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2_copy.memcheck());
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+
+                        DAPI_CHECK(rocblas_nrm2_batched_ex_fn,
+                                   (handle_copy,
+                                    N,
+                                    dx_copy.ptr_on_device(),
+                                    x_type,
+                                    incx,
+                                    batch_count,
+                                    d_rocblas_result_2_copy,
+                                    result_type,
+                                    execution_type));
+                        CHECK_HIP_ERROR(rocblas_result_copy.transfer_from(d_rocblas_result_2_copy));
+                        unit_check_general<Tr, Tr>(
+                            batch_count, 1, 1, rocblas_result_2, rocblas_result_copy);
+                    }
                 }
                 return;
             }

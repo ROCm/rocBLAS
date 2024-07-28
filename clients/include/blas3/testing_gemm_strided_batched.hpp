@@ -427,32 +427,72 @@ void testing_gemm_strided_batched(const Arguments& arg)
                 host_strided_batch_matrix<T> hC_copy(M, N, ldc, stride_c, batch_count);
                 CHECK_HIP_ERROR(hC.transfer_from(dC));
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                    DAPI_CHECK(rocblas_gemm_strided_batched_fn,
-                               (handle,
-                                transA,
-                                transB,
-                                M,
-                                N,
-                                K,
-                                d_alpha,
-                                dA,
-                                lda,
-                                stride_a,
-                                dB,
-                                ldb,
-                                stride_b,
-                                d_beta,
-                                dC,
-                                ldc,
-                                stride_c,
-                                batch_count));
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
 
-                    CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
-                    unit_check_general<T>(M, N, ldc, stride_c, hC, hC_copy, batch_count);
+                    //Allocate device memory in new device
+                    device_strided_batch_matrix<T> dA_copy(
+                        A_row, A_col, lda, stride_a, batch_count);
+                    device_strided_batch_matrix<T> dB_copy(
+                        B_row, B_col, ldb, stride_b, batch_count);
+                    device_strided_batch_matrix<T> dC_copy(M, N, ldc, stride_c, batch_count);
+                    device_vector<T>               d_alpha_copy(1);
+                    device_vector<T>               d_beta_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                    CHECK_HIP_ERROR(dB_copy.transfer_from(hB));
+                    CHECK_HIP_ERROR(
+                        hipMemcpy(d_alpha_copy, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+                    CHECK_HIP_ERROR(
+                        hipMemcpy(d_beta_copy, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dC_copy.transfer_from(hC_gold));
+
+                        DAPI_CHECK(rocblas_gemm_strided_batched_fn,
+                                   (handle_copy,
+                                    transA,
+                                    transB,
+                                    M,
+                                    N,
+                                    K,
+                                    d_alpha_copy,
+                                    dA_copy,
+                                    lda,
+                                    stride_a,
+                                    dB_copy,
+                                    ldb,
+                                    stride_b,
+                                    d_beta,
+                                    dC_copy,
+                                    ldc,
+                                    stride_c,
+                                    batch_count));
+
+                        CHECK_HIP_ERROR(hC_copy.transfer_from(dC_copy));
+                        unit_check_general<T>(M, N, ldc, stride_c, hC, hC_copy, batch_count);
+                    }
                 }
                 return;
             }
