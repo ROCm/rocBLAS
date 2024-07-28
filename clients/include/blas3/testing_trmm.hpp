@@ -458,26 +458,62 @@ void testing_trmm(const Arguments& arg)
 
                 CHECK_HIP_ERROR(hC.transfer_from(*dOut));
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR((*dOut).transfer_from(hC_gold));
-                    DAPI_CHECK(rocblas_trmm_fn,
-                               (handle,
-                                side,
-                                uplo,
-                                transA,
-                                diag,
-                                M,
-                                N,
-                                alpha_d,
-                                dA,
-                                lda,
-                                dB,
-                                ldb,
-                                *dOut,
-                                ldOut));
-                    CHECK_HIP_ERROR(hC_copy.transfer_from(*dOut));
-                    unit_check_general<T>(M, N, ldc, hC, hC_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_matrix<T> dA_copy(K, K, lda);
+                    device_matrix<T> dB_copy(M, N, ldb);
+                    device_matrix<T> dC_copy(dC_M, dC_N, dC_ldc);
+                    device_vector<T> d_alpha_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                    CHECK_HIP_ERROR(dB_copy.transfer_from(hB));
+                    CHECK_HIP_ERROR(
+                        hipMemcpy(d_alpha_copy, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
+
+                    device_matrix<T>* dOut_copy = inplace ? &dB_copy : &dC_copy;
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR((*dOut_copy).transfer_from(hC_gold));
+                        DAPI_CHECK(rocblas_trmm_fn,
+                                   (handle_copy,
+                                    side,
+                                    uplo,
+                                    transA,
+                                    diag,
+                                    M,
+                                    N,
+                                    d_alpha_copy,
+                                    dA_copy,
+                                    lda,
+                                    dB_copy,
+                                    ldb,
+                                    *dOut_copy,
+                                    ldOut));
+                        CHECK_HIP_ERROR(hC_copy.transfer_from(*dOut_copy));
+                        unit_check_general<T>(M, N, ldc, hC, hC_copy);
+                    }
                 }
                 return;
             }

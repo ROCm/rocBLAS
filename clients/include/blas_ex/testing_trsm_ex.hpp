@@ -307,7 +307,6 @@ void testing_trsm_ex(const Arguments& arg)
     host_matrix<T> hXorB_2(M, N, ldb);
     host_matrix<T> cpuXorB(M, N, ldb);
     host_matrix<T> invATemp1(TRSM_BLOCK, TRSM_BLOCK, K);
-    host_matrix<T> invATemp2(TRSM_BLOCK, TRSM_BLOCK, K);
     host_matrix<T> hinvAI(TRSM_BLOCK, TRSM_BLOCK, K);
 
     // Allocate device memory
@@ -426,8 +425,6 @@ void testing_trsm_ex(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
-        hipStream_t rocblas_stream;
-        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         handle.pre_test(arg);
         if(blocks > 0)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
@@ -504,28 +501,63 @@ void testing_trsm_ex(const Arguments& arg)
         {
             host_matrix<T> hXorB_copy(M, N, ldb);
             CHECK_HIP_ERROR(hXorB_copy.memcheck());
+            CHECK_HIP_ERROR(invATemp1.transfer_from(dinvA));
 
-            for(int i = 0; i < arg.iters; i++)
+            // multi-GPU support
+            int device_id, device_count;
+            CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+            for(int dev_id = 0; dev_id < device_count; dev_id++)
             {
-                CHECK_HIP_ERROR(dXorB.transfer_from(hB));
-                CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_fn(handle,
-                                                       side,
-                                                       uplo,
-                                                       transA,
-                                                       diag,
-                                                       M,
-                                                       N,
-                                                       alpha_d,
-                                                       dA,
-                                                       lda,
-                                                       dXorB,
-                                                       ldb,
-                                                       dinvA,
-                                                       TRSM_BLOCK * K,
-                                                       arg.compute_type));
+                CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                if(device_id != dev_id)
+                    CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                CHECK_HIP_ERROR(hXorB_copy.transfer_from(dXorB));
-                unit_check_general<T>(M, N, ldb, hXorB_2, hXorB_copy);
+                //New rocblas handle for new device
+                rocblas_local_handle handle_copy{arg};
+
+                //Allocate device memory in new device
+                device_matrix<T> dA_copy(K, K, lda);
+                device_matrix<T> dXorB_copy(M, N, ldb);
+                device_matrix<T> dinvA_copy(TRSM_BLOCK, TRSM_BLOCK, K);
+                device_vector<T> alpha_d_copy(1);
+
+                // Check device memory allocation
+                CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dXorB_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(dinvA_copy.memcheck());
+                CHECK_DEVICE_ALLOCATION(alpha_d_copy.memcheck());
+
+                CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                CHECK_HIP_ERROR(dinvA_copy.transfer_from(invATemp1));
+
+                CHECK_HIP_ERROR(
+                    hipMemcpy(alpha_d_copy, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                for(int runs = 0; runs < arg.iters; runs++)
+                {
+                    CHECK_HIP_ERROR(dXorB_copy.transfer_from(hB));
+                    CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_fn(handle_copy,
+                                                           side,
+                                                           uplo,
+                                                           transA,
+                                                           diag,
+                                                           M,
+                                                           N,
+                                                           alpha_d_copy,
+                                                           dA_copy,
+                                                           lda,
+                                                           dXorB_copy,
+                                                           ldb,
+                                                           dinvA_copy,
+                                                           TRSM_BLOCK * K,
+                                                           arg.compute_type));
+
+                    CHECK_HIP_ERROR(hXorB_copy.transfer_from(dXorB_copy));
+                    unit_check_general<T>(M, N, ldb, hXorB_2, hXorB_copy);
+                }
             }
             return;
         }

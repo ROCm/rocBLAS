@@ -198,12 +198,35 @@ void testing_trtri(const Arguments& arg)
             {
                 host_matrix<T> hA_copy(N, N, lda);
                 CHECK_HIP_ERROR(hA.transfer_from(dinvA));
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_ROCBLAS_ERROR(
-                        rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
-                    CHECK_HIP_ERROR(hA_copy.transfer_from(dinvA));
-                    unit_check_general<T>(N, N, lda, hA, hA_copy);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_matrix<T> dA_copy(N, N, lda);
+                    device_matrix<T> dinvA_copy(N, N, lda);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dinvA_copy.memcheck());
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dA_copy.transfer_from(hB));
+                        CHECK_HIP_ERROR(dinvA_copy.transfer_from(hB));
+                        CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(
+                            handle_copy, uplo, diag, N, dA_copy, lda, dinvA_copy, ldinvA));
+                        CHECK_HIP_ERROR(hA_copy.transfer_from(dinvA_copy));
+                        unit_check_general<T>(N, N, lda, hA, hA_copy);
+                    }
                 }
                 return;
             }

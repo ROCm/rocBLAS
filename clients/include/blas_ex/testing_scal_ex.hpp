@@ -160,14 +160,48 @@ void testing_scal_ex(const Arguments& arg)
                 CHECK_HIP_ERROR(hx_copy.memcheck());
 
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
-                for(int i = 0; i < arg.iters; i++)
-                {
-                    CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
 
-                    DAPI_CHECK(rocblas_scal_ex_fn,
-                               (handle, N, d_alpha, alpha_type, dx, x_type, incx, execution_type));
-                    CHECK_HIP_ERROR(hx_copy.transfer_from(dx));
-                    unit_check_general<Tx>(1, N, incx, hx, hx_copy);
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
+                {
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_vector<Tx> dx_copy(N, incx);
+                    device_vector<Ta> d_alpha_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+
+                    CHECK_HIP_ERROR(d_alpha_copy.transfer_from(halpha));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dx_copy.transfer_from(hx_gold));
+
+                        DAPI_CHECK(rocblas_scal_ex_fn,
+                                   (handle_copy,
+                                    N,
+                                    d_alpha_copy,
+                                    alpha_type,
+                                    dx_copy,
+                                    x_type,
+                                    incx,
+                                    execution_type));
+                        CHECK_HIP_ERROR(hx_copy.transfer_from(dx_copy));
+                        unit_check_general<Tx>(1, N, incx, hx, hx_copy);
+                    }
                 }
                 return;
             }

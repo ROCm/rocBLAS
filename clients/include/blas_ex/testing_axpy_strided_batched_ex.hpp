@@ -366,26 +366,57 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
             {
                 host_strided_batch_vector<Ty> hy_copy(N, incx, stridex, batch_count);
                 CHECK_HIP_ERROR(hy_copy.memcheck());
-                for(int i = 0; i < arg.iters; i++)
+
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
-                    CHECK_HIP_ERROR(dy.transfer_from(hy));
-                    DAPI_DISPATCH(rocblas_axpy_strided_batched_ex_fn,
-                                  (handle,
-                                   N,
-                                   dalpha,
-                                   alpha_type,
-                                   dx,
-                                   x_type,
-                                   incx,
-                                   stridex,
-                                   dy,
-                                   y_type,
-                                   incy,
-                                   stridey,
-                                   batch_count,
-                                   execution_type));
-                    CHECK_HIP_ERROR(hy_copy.transfer_from(dy));
-                    unit_check_general<Ty>(1, N, incy, stridey, hy2, hy_copy, batch_count);
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
+
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_strided_batch_vector<Tx> dx_copy(N, incx, stridex, batch_count);
+                    device_strided_batch_vector<Ty> dy_copy(N, incy, stridey, batch_count);
+                    device_vector<Ta>               dalpha_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dalpha_copy.memcheck());
+
+                    // copy data from CPU to device
+                    CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
+                    CHECK_HIP_ERROR(dalpha_copy.transfer_from(halpha));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+                        CHECK_HIP_ERROR(dy_copy.transfer_from(hy));
+                        DAPI_DISPATCH(rocblas_axpy_strided_batched_ex_fn,
+                                      (handle_copy,
+                                       N,
+                                       dalpha_copy,
+                                       alpha_type,
+                                       dx_copy,
+                                       x_type,
+                                       incx,
+                                       stridex,
+                                       dy_copy,
+                                       y_type,
+                                       incy,
+                                       stridey,
+                                       batch_count,
+                                       execution_type));
+                        CHECK_HIP_ERROR(hy_copy.transfer_from(dy_copy));
+                        unit_check_general<Ty>(1, N, incy, stridey, hy2, hy_copy, batch_count);
+                    }
                 }
                 return;
             }

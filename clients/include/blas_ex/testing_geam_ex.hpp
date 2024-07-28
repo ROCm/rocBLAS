@@ -711,35 +711,73 @@ void testing_geam_ex(const Arguments& arg)
                 host_matrix<T> hD_copy(M, N, ldd);
                 CHECK_HIP_ERROR(hD_copy.memcheck());
 
-                for(int i = 0; i < arg.iters; i++)
+                // multi-GPU support
+                int device_id, device_count;
+                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
+                    CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                    if(device_id != dev_id)
+                        CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                    CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
-                                                           transA,
-                                                           transB,
-                                                           M,
-                                                           N,
-                                                           K,
-                                                           d_alpha,
-                                                           dA,
-                                                           a_type,
-                                                           lda,
-                                                           dB,
-                                                           b_type,
-                                                           ldb,
-                                                           d_beta,
-                                                           dC,
-                                                           c_type,
-                                                           ldc,
-                                                           dD,
-                                                           d_type,
-                                                           ldd,
-                                                           compute_type,
-                                                           geam_ex_op));
-                    CHECK_HIP_ERROR(hD_copy.transfer_from(dD));
-                    unit_check_general<T>(M, N, ldd, hD_2, hD_copy);
+                    //New rocblas handle for new device
+                    rocblas_local_handle handle_copy{arg};
+
+                    //Allocate device memory in new device
+                    device_matrix<T> dA_copy(A_row, A_col, lda);
+                    device_matrix<T> dB_copy(B_row, B_col, ldb);
+                    device_matrix<T> dC_copy(M, N, ldc);
+                    device_matrix<T> dD_copy(M, N, ldd);
+                    device_vector<T> d_alpha_copy(1);
+                    device_vector<T> d_beta_copy(1);
+
+                    // Check device memory allocation
+                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(dD_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+
+                    CHECK_HIP_ERROR(d_alpha_copy.transfer_from(h_alpha));
+                    CHECK_HIP_ERROR(d_beta_copy.transfer_from(h_beta));
+                    CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                    CHECK_HIP_ERROR(dB_copy.transfer_from(hB));
+                    CHECK_HIP_ERROR(dC_copy.transfer_from(hC));
+                    CHECK_HIP_ERROR(dD_copy.transfer_from(hD_1));
+
+                    CHECK_ROCBLAS_ERROR(
+                        rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                    for(int runs = 0; runs < arg.iters; runs++)
+                    {
+
+                        CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle_copy,
+                                                               transA,
+                                                               transB,
+                                                               M,
+                                                               N,
+                                                               K,
+                                                               d_alpha_copy,
+                                                               dA_copy,
+                                                               a_type,
+                                                               lda,
+                                                               dB_copy,
+                                                               b_type,
+                                                               ldb,
+                                                               d_beta_copy,
+                                                               dC_copy,
+                                                               c_type,
+                                                               ldc,
+                                                               dD_copy,
+                                                               d_type,
+                                                               ldd,
+                                                               compute_type,
+                                                               geam_ex_op));
+                        CHECK_HIP_ERROR(hD_copy.transfer_from(dD_copy));
+                        unit_check_general<T>(M, N, ldd, hD_2, hD_copy);
+                    }
                 }
-
                 return;
             }
         }

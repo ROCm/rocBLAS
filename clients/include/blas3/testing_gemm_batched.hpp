@@ -396,29 +396,67 @@ void testing_gemm_batched(const Arguments& arg)
                     host_batch_matrix<T> hC_copy(M, N, ldc, batch_count);
                     CHECK_HIP_ERROR(hC.transfer_from(dC));
 
-                    for(int i = 0; i < arg.iters; i++)
+                    // multi-GPU support
+                    int device_id, device_count;
+                    CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                    for(int dev_id = 0; dev_id < device_count; dev_id++)
                     {
-                        CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+                        CHECK_HIP_ERROR(hipGetDevice(&device_id));
+                        if(device_id != dev_id)
+                            CHECK_HIP_ERROR(hipSetDevice(dev_id));
 
-                        DAPI_CHECK(rocblas_gemm_batched_fn,
-                                   (handle,
-                                    transA,
-                                    transB,
-                                    M,
-                                    N,
-                                    K,
-                                    d_alpha,
-                                    dA.ptr_on_device(),
-                                    lda,
-                                    dB.ptr_on_device(),
-                                    ldb,
-                                    d_beta,
-                                    dC.ptr_on_device(),
-                                    ldc,
-                                    batch_count));
+                        //New rocblas handle for new device
+                        rocblas_local_handle handle_copy{arg};
 
-                        CHECK_HIP_ERROR(hC_copy.transfer_from(dC));
-                        unit_check_general<T>(M, N, ldc, hC, hC_copy, batch_count);
+                        //Allocate device memory in new device
+                        device_batch_matrix<T> dA_copy(
+                            A_row, A_col, lda, batch_count, false, offsetA);
+                        device_batch_matrix<T> dB_copy(
+                            B_row, B_col, ldb, batch_count, false, offsetB);
+                        device_batch_matrix<T> dC_copy(M, N, ldc, batch_count, false, offsetC);
+                        device_vector<T>       d_alpha_copy(1);
+                        device_vector<T>       d_beta_copy(1);
+
+                        // Check device memory allocation
+                        CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                        CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+
+                        // copy data from CPU to device
+                        CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
+                        CHECK_HIP_ERROR(dB_copy.transfer_from(hB));
+                        CHECK_HIP_ERROR(d_alpha_copy.transfer_from(halpha));
+                        CHECK_HIP_ERROR(d_beta_copy.transfer_from(hbeta));
+
+                        CHECK_ROCBLAS_ERROR(
+                            rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));
+
+                        for(int runs = 0; runs < arg.iters; runs++)
+                        {
+                            CHECK_HIP_ERROR(dC_copy.transfer_from(hC_gold));
+
+                            DAPI_CHECK(rocblas_gemm_batched_fn,
+                                       (handle_copy,
+                                        transA,
+                                        transB,
+                                        M,
+                                        N,
+                                        K,
+                                        d_alpha_copy,
+                                        dA_copy.ptr_on_device(),
+                                        lda,
+                                        dB_copy.ptr_on_device(),
+                                        ldb,
+                                        d_beta_copy,
+                                        dC_copy.ptr_on_device(),
+                                        ldc,
+                                        batch_count));
+
+                            CHECK_HIP_ERROR(hC_copy.transfer_from(dC_copy));
+                            unit_check_general<T>(M, N, ldc, hC, hC_copy, batch_count);
+                        }
                     }
                     return;
                 }
