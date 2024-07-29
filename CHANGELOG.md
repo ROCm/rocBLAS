@@ -3,6 +3,29 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
+## (Unreleased) rocBLAS 4.3.0
+
+###Additions
+
+* Level 3 and EX functions have additional ILP64 API for both C and FORTRAN (_64 name suffix) with int64_t function arguments
+
+###Optimizations
+
+* Improved performance of Level 2 gbmv
+
+###Changed
+
+* amdclang used as default compiler instead of hipcc
+* Internal performance scripts use amd-smi instead of deprecated rocm-smi
+
+###Fixed
+
+* Fixed stbsv_strided_batched_64 Fortran binding
+
+###Deprecations
+
+* rocblas_Xgemm_kernel_name APIs deprecated
+
 ## rocBLAS 4.2.0 for ROCm 6.2
 
 ### Additions
