@@ -181,6 +181,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
     bool is_gfx908 = handle->getArch() == 908 ? true : false;
     bool is_gfx906 = handle->getArch() == 906 ? true : false;
     bool is_gfx90a = handle->getArch() == 910 ? true : false;
+    bool is_gfx942 = handle->getArch() == 942 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -259,8 +260,12 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             }
         }
         //optimized gemvn kernel with double buffered loads for gfx90a.
-        else if(!i64_incs && is_atomics_allowed && is_gfx90a && (is_float || is_double) && (m == n)
-                && (m % rocblas_gemv_bx() == 0))
+        else if(!i64_incs && is_atomics_allowed && (is_float || is_double) && (m == n)
+                && (m % rocblas_gemv_bx() == 0)
+                && (is_gfx90a
+                    || (is_gfx942
+                        && ((is_float && m < sgemvn_gfx942_double_buffered_higher_threshold)
+                            || (is_double && n < dgemvn_gfx942_double_buffered_higher_threshold)))))
         {
             if constexpr(is_float || is_double)
             {

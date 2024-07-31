@@ -30,9 +30,8 @@ Definitions:
   - &double_buffered_loads_size_range
     # (n <= 3000 && n >= m) || (n %128 == 0 && m==n)
     - { M:  256, N:  256, lda:  256, stride_a:   65536 }
-    - { M: 1024, N: 2000, lda: 1024, stride_a: 2048000 }
-    - { M:   55, N:   77, lda:   55, stride_a:    4235 }
-    - { M: 1023, N: 6144, lda: 1023, stride_a: 6285312 } # test for gfx90a
+    - { M: 1024, N: 1024, lda: 1024, stride_a: 1048576 }
+    - { M: 3840, N: 3840, lda: 3840, stride_a: 14745600} # test for gfx90a and gfx942
 
   - &all_algo_matrix_size_range
     - { M:  4096, N:    2, lda:  4096, stride_a:     8192 } # skinny n
@@ -443,7 +442,7 @@ Tests:
   matrix_size: *double_buffered_loads_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
   atomics_mode: [0, 1]
 
 - name: gemv_batched_skinny_n
@@ -573,7 +572,7 @@ Tests:
   matrix_size: *double_buffered_loads_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
   atomics_mode: [0, 1]
 
 - name: gemv_strided_batched_skinny_n
