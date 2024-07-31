@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,9 @@ constexpr int sgemvt_gfx_arch_10_11_threshold = 4000;
 // Double buffered load optimized for single and double precision for gemv (transpose)
 constexpr int sgemvt_gfx908_lower_threshold = 7000;
 constexpr int dgemvt_gfx908_lower_threshold = 3000;
+
+constexpr int sgemvn_gfx942_double_buffered_higher_threshold = 30000;
+constexpr int dgemvn_gfx942_double_buffered_higher_threshold = 40000;
 
 /*********************************************************************symv**********************************************************************/
 
