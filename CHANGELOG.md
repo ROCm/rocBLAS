@@ -12,6 +12,7 @@ rocBLAS documentation is available at
 ###Optimizations
 
 * Improved performance of Level 2 gbmv
+* Improved performance of Level 2 gemv for float and double precisions for problem sizes (TransA == N && m==n && m % 128 == 0) measured on a gfx942 GPU
 
 ###Changed
 
