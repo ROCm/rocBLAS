@@ -170,7 +170,7 @@ if(NOT SKIP_LIBRARY)
 
     list_replace( Tensile_ARCHITECTURE "gfx90a" "gfx90a:xnack+\;gfx90a:xnack-")
 
-    set( TENSILE_VERSION 4.41.0 CACHE STRING "The version of Tensile to be used")
+    set( TENSILE_VERSION 4.42.0 CACHE STRING "The version of Tensile to be used")
 
     if(BUILD_WITH_PIP)
       if (WIN32)
