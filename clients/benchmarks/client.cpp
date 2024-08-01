@@ -1553,7 +1553,7 @@ try
 
         ("verify,v",
          value<int8_t>(&arg.norm_check)->default_value(0),
-         "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
+         "Validate GPU results with CPU? 0 = No, 1 = Yes (default: 0)")
 
         ("iters,i",
          value<int32_t>(&arg.iters)->default_value(10),
@@ -1820,6 +1820,9 @@ try
         throw std::invalid_argument("Invalid value for -n " + std::to_string(arg.N));
     if(arg.K < 0)
         throw std::invalid_argument("Invalid value for -k " + std::to_string(arg.K));
+    if(arg.norm_check < 0 || arg.norm_check > 1)
+        throw std::invalid_argument("Invalid value for -v or --verify "
+                                    + std::to_string(arg.norm_check));
 
     int copied = snprintf(arg.function, sizeof(arg.function), "%s", function.c_str());
     if(copied <= 0 || copied >= sizeof(arg.function))
