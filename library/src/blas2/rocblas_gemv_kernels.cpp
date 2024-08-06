@@ -178,10 +178,12 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
     int  arch_major = handle->getArchMajor();
     bool is_arch_10_or_11_or_12
         = arch_major == 10 || arch_major == 11 || arch_major == 12 ? true : false;
-    bool is_gfx908 = handle->getArch() == 908 ? true : false;
-    bool is_gfx906 = handle->getArch() == 906 ? true : false;
-    bool is_gfx90a = handle->getArch() == 910 ? true : false;
-    bool is_gfx942 = handle->getArch() == 942 ? true : false;
+
+    bool is_gfx11xx = arch_major == 11 ? true : false;
+    bool is_gfx908  = handle->getArch() == 908 ? true : false;
+    bool is_gfx906  = handle->getArch() == 906 ? true : false;
+    bool is_gfx90a  = handle->getArch() == 910 ? true : false;
+    bool is_gfx942  = handle->getArch() == 942 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -342,12 +344,14 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             }
 #undef gemvn_double_buffered_KARGS
         }
-        //optimized gemvn kernel for gfx906 and gfx908.
-        else if((is_gfx908
-                 && (((is_float || is_double || is_complex_float) && m <= gemvn_gfx908_threshold
-                      && n <= gemvn_gfx908_threshold)
-                     || (is_complex_double && m <= zgemvn_gfx908_threshold
-                         && n <= zgemvn_gfx908_threshold)))
+        //optimized gemvn kernel with 512 threads/block for gfx906, gfx908, gfx90a, gfx942 and gfx11xx.
+        // When(m < 2*n) should use 512 threads/block for gfx90a, gfx942 and gfx11xx.
+        else if(((is_gfx11xx || is_gfx90a || is_gfx942) && (m < 2 * n))
+                || (is_gfx908
+                    && (((is_float || is_double || is_complex_float) && m <= gemvn_gfx908_threshold
+                         && n <= gemvn_gfx908_threshold)
+                        || (is_complex_double && m <= zgemvn_gfx908_threshold
+                            && n <= zgemvn_gfx908_threshold)))
 
                 || (is_gfx906
                     && (is_complex_float
