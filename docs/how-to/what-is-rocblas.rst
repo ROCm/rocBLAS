@@ -324,7 +324,7 @@ Bitwise reproducible results in rocBLAS can be obtained under the following cond
 * Identical GFX target ISA
 * Single HIP stream active per rocBLAS handle
 * Identical ROCm versions
-* Disable atomic operations ( for more infromation, see :ref:`Atomic Operations`)
+* Disabled atomic operations ( for more infromation, see :ref:`Atomic Operations`)
 
 
 By default rocBLAS may use atomic operations to achieve better performance in some functions.
