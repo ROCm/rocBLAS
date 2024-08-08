@@ -319,6 +319,14 @@ In addition to the above API, rocBLAS also provides an environment variable ``RO
 Bitwise Reproducibility
 -----------------------
 
+Bitwise reproducible results in rocBLAS can be obtained under the following conditions:
+
+* Identical GFX target ISA
+* Single HIP stream active per rocBLAS handle
+* Identical ROCm versions
+* Disabled atomic operations ( for more infromation, see :ref:`Atomic Operations`)
+
+
 By default rocBLAS may use atomic operations to achieve better performance in some functions.
 To ensure bitwise reproducible results, where users require identical results across multiple runs, the following functions require atomics to be disabled
 
