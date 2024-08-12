@@ -23,15 +23,11 @@ The `rocBLAS repository <https://github.com/ROCmSoftwarePlatform/rocBLAS>`__ fol
 Coding Guidelines
 =================
 
-1.  With the `rocBLAS device memory allocation
-    system <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf>`__,
-    rocBLAS kernels should not call ``hipMalloc()`` or ``hipFree()`` in
-    their own code, but should use the device memory manager.
+1.  rocBLAS functions should not call the synchronizing functions
+    ``hipMalloc()`` or ``hipFree()``, but should use the device
+    memory manager.
 
-    ``hipMalloc()`` and ``hipFree()`` are synchronizing operations which
-    should be avoided as much as possible.
-
-    The device memory allocation system provides:
+    The device memory manager provides:
 
     -  A ``device_malloc`` method for temporarily using device memory
        which has either been allocated before, or which is allocated on
