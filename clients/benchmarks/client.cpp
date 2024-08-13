@@ -959,6 +959,12 @@ struct perf_blas_rotg<
     }
 };
 
+//
+// globals, functions, and main()
+
+// unit check override
+int8_t g_unit_check = 0;
+
 int run_bench_test(bool               init,
                    Arguments&         arg,
                    const std::string& filter,
@@ -974,8 +980,11 @@ int run_bench_test(bool               init,
     rocblas_cout << std::setiosflags(std::ios::fixed)
                  << std::setprecision(7); // Set precision to 7 digits
 
-    // disable unit_check in client benchmark, it is only used in gtest unit test
-    arg.unit_check = 0;
+    // unit_check was forced off by default, so check global flag for enablement
+    if(g_unit_check)
+        arg.unit_check = g_unit_check;
+    else
+        arg.unit_check = 0;
 
     // enable timing check,otherwise no performance data collected
     arg.timing = 1;
@@ -1385,6 +1394,7 @@ try
     uint64_t    flush_batch_count   = 1;
     uint64_t    flush_memory_size   = 0;
     bool        fortran             = false;
+    bool        eazy                = false;
 
     arg.init(); // set all defaults
 
@@ -1518,7 +1528,7 @@ try
          value<std::string>(&composite_compute_type), "Precision of computation. "
          "Options: f32, f8_f8_f32, f8_bf8_f32, bf8_f8_f32, bf8_bf8_f32")
 
-        ("initialization",
+        ("initialization, init",
          value<std::string>(&initialization)->default_value("hpl"),
          "Initialize with random integers, trig functions sin and cos, or hpl-like input. "
          "Options: rand_int, trig_float, hpl")
@@ -1551,9 +1561,14 @@ try
          value<bool>(&arg.HMM)->default_value(false),
          "Parameter requesting the use of HipManagedMemory")
 
+        ("test,t",
+         value<int8_t>(&g_unit_check)->default_value(0),
+         "Equality/tolerance check on GPU vs. CPU results? 0 = No, 1 = Yes (default: No). "
+         "Warning: tests may require specific initialization to pass.")
+
         ("verify,v",
          value<int8_t>(&arg.norm_check)->default_value(0),
-         "Validate GPU results with CPU? 0 = No, 1 = Yes (default: 0)")
+         "Norm check on GPU vs. CPU results? 0 = No, 1 = Yes (default: No)")
 
         ("iters,i",
          value<int32_t>(&arg.iters)->default_value(10),
@@ -1659,6 +1674,10 @@ try
 
         ("rocblas_tensile_commit_hash", "Prints the rocBLAS and Tensile commit-hashes")
 
+        ("z",
+         value<bool>(&eazy)->default_value(false),
+         "Eazy way to set log_function_name and log_datatype (eye dialect form of easy)")
+
         ("help,h", "produces this help message");
     // clang-format on
 
@@ -1756,6 +1775,12 @@ try
     arg.flags = rocblas_gemm_flags(flags);
 
     arg.geam_ex_op = rocblas_geam_ex_operation(geam_ex_op);
+
+    if(eazy)
+    {
+        log_function_name = true;
+        log_datatype      = true;
+    }
 
     ArgumentModel_set_log_function_name(log_function_name);
 
