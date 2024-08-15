@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -181,6 +181,36 @@ size_t rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count = 
         batch_count = 1;
 
     auto blocks = rocblas_reduction_kernel_block_count<API_INT>(n, NB);
+
+    if constexpr(std::is_same_v<API_INT, int64_t>)
+    {
+        auto    passes  = rocblas_reduction_kernel_pass_count(n);
+        int64_t batches = std::min(batch_count, c_i64_grid_YZ_chunk);
+
+        return sizeof(To) * (blocks + 1) * batches * passes;
+    }
+    else
+    {
+        // original API
+        return sizeof(To) * (blocks + 1) * batch_count;
+    }
+}
+
+template <typename API_INT, int NB, typename To>
+size_t rocblas_reduction_kernel_workspace_size_chunked(API_INT n, API_INT batch_count = 1)
+{
+    if(n <= 0)
+        n = 1; // allow for return value of empty set
+    if(batch_count <= 0)
+        batch_count = 1;
+
+    API_INT n_chunked = n;
+    if constexpr(std::is_same_v<API_INT, int64_t>)
+    {
+        // algorithm in launcher required to always chunk, no 32bit pass-through for n < int32 max
+        n_chunked = std::min(n_chunked, c_i64_grid_X_chunk);
+    }
+    auto blocks = rocblas_reduction_kernel_block_count<API_INT>(n_chunked, NB);
 
     if constexpr(std::is_same_v<API_INT, int64_t>)
     {
