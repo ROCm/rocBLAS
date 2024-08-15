@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,8 +53,9 @@ namespace
         static constexpr API_INT batch_count_1 = 1;
 
         size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size<API_INT, ROCBLAS_IAMAX_NB, index_val_t>(
-                n, batch_count_1);
+            = rocblas_reduction_kernel_workspace_size_chunked<API_INT,
+                                                              ROCBLAS_IAMAX_NB,
+                                                              index_val_t>(n, batch_count_1);
 
         if(handle->is_device_memory_size_query())
         {
