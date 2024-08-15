@@ -563,11 +563,14 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
 
 #undef gemvt_sn_KARGS
         }
-        //optimized gemvt kernel with double buffered loads for gfx908.
+        //optimized gemvt kernel with double buffered loads for gfx908 and gfx942.
         else if(!i64_incs && is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
-                && (is_gfx908
-                    && ((is_float && m > sgemvt_gfx908_lower_threshold)
-                        || (is_double && m > dgemvt_gfx908_lower_threshold))))
+                && ((is_gfx908
+                     && ((is_float && m > sgemvt_gfx908_lower_threshold)
+                         || (is_double && m > dgemvt_gfx908_lower_threshold)))
+                    || (is_gfx942
+                        && ((is_float && m > gemvt_threshold)
+                            || (is_double && m > gemvt_threshold)))))
         {
             if constexpr(is_float || is_double)
             {
