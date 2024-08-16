@@ -36,8 +36,7 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, FUNC func)
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
     // Allocate device memory
-    device_vector<T> dx(N, incx);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
     R h_rocblas_result;
 
@@ -70,11 +69,9 @@ void testing_iamax_iamin(const Arguments& arg, FUNC func)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        device_vector<R> d_result(1);
-        CHECK_DEVICE_ALLOCATION(d_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<R>, d_result, (1));
 
-        host_vector<R> h_result(1);
-        CHECK_HIP_ERROR(h_result.memcheck());
+        HOST_MEMCHECK(host_vector<R>, h_result, (1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, d_result));
@@ -96,15 +93,11 @@ void testing_iamax_iamin(const Arguments& arg, FUNC func)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx);
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
 
     // Allocate device memory
-    device_vector<T> dx(N, incx);
-    device_vector<R> d_rocblas_result(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<R>, d_rocblas_result, (1));
 
     // Initial Data on CPU
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -149,12 +142,8 @@ void testing_iamax_iamin(const Arguments& arg, FUNC func)
                     rocblas_local_handle handle_copy{arg};
 
                     // Allocate device memory in new device
-                    device_vector<T> dx_copy(N, incx);
-                    device_vector<R> d_rocblas_result_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_rocblas_result_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<R>, d_rocblas_result_copy, (1));
 
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
 

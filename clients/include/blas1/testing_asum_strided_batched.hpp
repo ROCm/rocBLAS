@@ -49,10 +49,7 @@ void testing_asum_strided_batched_bad_arg(const Arguments& arg)
         RT h_rocblas_result[1];
 
         // Allocate device memory
-        device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stridex, batch_count));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_asum_strided_batched_fn,
@@ -92,13 +89,11 @@ void testing_asum_strided_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<RT> rocblas_result(std::max(int64_t(1), std::abs(batch_count)));
-        host_vector<RT> result_0(std::max(int64_t(1), std::abs(batch_count)));
-        CHECK_HIP_ERROR(rocblas_result.memcheck());
-        CHECK_HIP_ERROR(result_0.memcheck());
+        HOST_MEMCHECK(
+            host_vector<RT>, rocblas_result, (std::max(int64_t(1), std::abs(batch_count))));
+        HOST_MEMCHECK(host_vector<RT>, result_0, (std::max(int64_t(1), std::abs(batch_count))));
 
-        device_vector<RT> dr(std::max(int64_t(1), std::abs(batch_count)));
-        CHECK_DEVICE_ALLOCATION(dr.memcheck());
+        DEVICE_MEMCHECK(device_vector<RT>, dr, (std::max(int64_t(1), std::abs(batch_count))));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         DAPI_CHECK(rocblas_asum_strided_batched_fn,
@@ -120,20 +115,13 @@ void testing_asum_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
-    host_vector<RT>              rocblas_result(batch_count);
-    host_vector<RT>              hr_gold(batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hx.memcheck());
+    HOST_MEMCHECK(host_strided_batch_vector<T>, hx, (N, incx, stridex, batch_count));
+    HOST_MEMCHECK(host_vector<RT>, rocblas_result, (batch_count));
+    HOST_MEMCHECK(host_vector<RT>, hr_gold, (batch_count));
 
     // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-    device_vector<RT>              dr(batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dr.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stridex, batch_count));
+    DEVICE_MEMCHECK(device_vector<RT>, dr, (batch_count));
 
     // Initialize memory on host.
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -162,7 +150,8 @@ void testing_asum_strided_batched(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<RT> hr_copy(batch_count);
+                HOST_MEMCHECK(host_vector<RT>, hr_copy, (batch_count));
+
                 CHECK_HIP_ERROR(rocblas_result.transfer_from(dr));
 
                 // multi-GPU support
@@ -178,12 +167,9 @@ void testing_asum_strided_batched(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_strided_batch_vector<T> dx_copy(N, incx, stridex, batch_count);
-                    device_vector<RT>              dr_copy(batch_count);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dr_copy.memcheck());
+                    DEVICE_MEMCHECK(
+                        device_strided_batch_vector<T>, dx_copy, (N, incx, stridex, batch_count));
+                    DEVICE_MEMCHECK(device_vector<RT>, dr_copy, (batch_count));
 
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
 

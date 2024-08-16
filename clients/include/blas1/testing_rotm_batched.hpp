@@ -40,14 +40,9 @@ void testing_rotm_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
-    device_batch_vector<T> dparam(5, 1, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
+    DEVICE_MEMCHECK(device_batch_vector<T>, dx, (N, incx, batch_count));
+    DEVICE_MEMCHECK(device_batch_vector<T>, dy, (N, incy, batch_count));
+    DEVICE_MEMCHECK(device_batch_vector<T>, dparam, (5, 1, batch_count));
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
     DAPI_EXPECT(rocblas_status_invalid_handle,
@@ -110,20 +105,15 @@ void testing_rotm_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx, batch_count);
-    host_batch_vector<T> hy(N, incy, batch_count);
-    host_batch_vector<T> hdata(4, 1, batch_count);
-    host_batch_vector<T> hparam(5, 1, batch_count);
+    HOST_MEMCHECK(host_batch_vector<T>, hx, (N, incx, batch_count));
+    HOST_MEMCHECK(host_batch_vector<T>, hy, (N, incy, batch_count));
+    HOST_MEMCHECK(host_batch_vector<T>, hdata, (4, 1, batch_count));
+    HOST_MEMCHECK(host_batch_vector<T>, hparam, (5, 1, batch_count));
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
-    device_batch_vector<T> dparam(5, 1, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
+    DEVICE_MEMCHECK(device_batch_vector<T>, dx, (N, incx, batch_count));
+    DEVICE_MEMCHECK(device_batch_vector<T>, dy, (N, incy, batch_count));
+    DEVICE_MEMCHECK(device_batch_vector<T>, dparam, (5, 1, batch_count));
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -145,8 +135,8 @@ void testing_rotm_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // CPU BLAS reference data
-        host_batch_vector<T> hx_gold(N, incx, batch_count);
-        host_batch_vector<T> hy_gold(N, incy, batch_count);
+        HOST_MEMCHECK(host_batch_vector<T>, hx_gold, (N, incx, batch_count));
+        HOST_MEMCHECK(host_batch_vector<T>, hy_gold, (N, incy, batch_count));
 
         int flag_count
             = !(arg.api & c_API_64) ? FLAG_COUNT : 1; // only test first flag for 64bit API sizes
@@ -227,8 +217,8 @@ void testing_rotm_batched(const Arguments& arg)
 
                 if(arg.repeatability_check)
                 {
-                    host_batch_vector<T> hx_copy(N, incx, batch_count);
-                    host_batch_vector<T> hy_copy(N, incy, batch_count);
+                    HOST_MEMCHECK(host_batch_vector<T>, hx_copy, (N, incx, batch_count));
+                    HOST_MEMCHECK(host_batch_vector<T>, hy_copy, (N, incy, batch_count));
                     // multi-GPU support
                     int device_id, device_count;
                     CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
@@ -242,14 +232,9 @@ void testing_rotm_batched(const Arguments& arg)
                         rocblas_local_handle handle_copy{arg};
 
                         // Allocate device memory
-                        device_batch_vector<T> dx_copy(N, incx, batch_count);
-                        device_batch_vector<T> dy_copy(N, incy, batch_count);
-                        device_batch_vector<T> dparam_copy(5, 1, batch_count);
-
-                        // Check device memory allocation
-                        CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(dparam_copy.memcheck());
+                        DEVICE_MEMCHECK(device_batch_vector<T>, dx_copy, (N, incx, batch_count));
+                        DEVICE_MEMCHECK(device_batch_vector<T>, dy_copy, (N, incy, batch_count));
+                        DEVICE_MEMCHECK(device_batch_vector<T>, dparam_copy, (5, 1, batch_count));
 
                         CHECK_ROCBLAS_ERROR(
                             rocblas_set_pointer_mode(handle_copy, rocblas_pointer_mode_device));

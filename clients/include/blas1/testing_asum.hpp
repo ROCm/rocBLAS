@@ -45,10 +45,7 @@ void testing_asum_bad_arg(const Arguments& arg)
         RT* h_rocblas_result = &rocblas_result;
 
         // Allocate device memory
-        device_vector<T> dx(N, incx);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_asum_fn,
@@ -86,18 +83,13 @@ void testing_asum(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, dx, (safe_size));
+        DEVICE_MEMCHECK(device_vector<RT>, dr, (1));
 
-        device_vector<RT> dr(1);
-        CHECK_DEVICE_ALLOCATION(dr.memcheck());
+        HOST_MEMCHECK(host_vector<RT>, hr_1, (1));
+        HOST_MEMCHECK(host_vector<RT>, hr_2, (1));
+        HOST_MEMCHECK(host_vector<RT>, result_0, (1));
 
-        host_vector<RT> hr_1(1);
-        host_vector<RT> hr_2(1);
-        host_vector<RT> result_0(1);
-        CHECK_HIP_ERROR(hr_1.memcheck());
-        CHECK_HIP_ERROR(hr_2.memcheck());
-        CHECK_HIP_ERROR(result_0.memcheck());
         result_0[0] = RT(0);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -116,15 +108,11 @@ void testing_asum(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx);
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
 
     // Allocate device memory
-    device_vector<T>  dx(N, incx);
-    device_vector<RT> dr(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dr.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<RT>, dr, (1));
 
     // Initial Data on CPU
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -167,12 +155,8 @@ void testing_asum(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_vector<T>  dx_copy(N, incx);
-                    device_vector<RT> dr_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dr_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<RT>, dr_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

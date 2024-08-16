@@ -46,14 +46,9 @@ void testing_dot_bad_arg(const Arguments& arg)
         int64_t incy = 1;
 
         // Allocate device memory
-        device_vector<T> dx(N, incx);
-        device_vector<T> dy(N, incy);
-        device_vector<T> d_rocblas_result(1, 1);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
+        DEVICE_MEMCHECK(device_vector<T>, d_rocblas_result, (1, 1));
 
         // don't write to result so device pointer fine for both host and device mode
 
@@ -99,11 +94,9 @@ void testing_dot(const Arguments& arg)
     // check to prevent undefined memmory allocation error
     if(N <= 0)
     {
-        device_vector<T> d_rocblas_result(1);
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, d_rocblas_result, (1));
 
-        host_vector<T> h_rocblas_result(1);
-        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+        HOST_MEMCHECK(host_vector<T>, h_rocblas_result, (1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         DAPI_CHECK(rocblas_dot_fn, (handle, N, nullptr, incx, nullptr, incy, d_rocblas_result));
@@ -123,18 +116,13 @@ void testing_dot(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx);
-    host_vector<T> hy(N, incy);
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hy, (N, incy));
 
     // Allocate device memory
-    device_vector<T> dx(N, incx, HMM);
-    device_vector<T> dy(N, incy, HMM);
-    device_vector<T> d_rocblas_result_device(1, 1, HMM);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result_device.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, d_rocblas_result_device, (1, 1, HMM));
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -194,14 +182,10 @@ void testing_dot(const Arguments& arg)
                         rocblas_local_handle handle_copy{arg};
 
                         //Allocate device memory in new device
-                        device_vector<T> dx_copy(N, incx, HMM);
-                        device_vector<T> dy_copy(N, incy, HMM);
-                        device_vector<T> d_rocblas_result_device_copy(1, 1, HMM);
-
-                        // Check device memory allocation
-                        CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(d_rocblas_result_device_copy.memcheck());
+                        DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx, HMM));
+                        DEVICE_MEMCHECK(device_vector<T>, dy_copy, (N, incy, HMM));
+                        DEVICE_MEMCHECK(
+                            device_vector<T>, d_rocblas_result_device_copy, (1, 1, HMM));
 
                         CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
                         CHECK_HIP_ERROR(dy_copy.transfer_from(hy));
