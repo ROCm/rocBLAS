@@ -183,14 +183,20 @@ For the library to use a non-default device within a host thread, the device mus
 
 The device in the host thread should not be changed between ``hipStreamCreate`` and ``hipStreamDestroy``. If the device in the host thread is changed between creating and destroying the stream, then the behavior is undefined.
 
-If the user created a non-default stream, it is the user's responsibility to synchronize the non-default stream before destroying it:
+If the user created a non-default stream, it is the user's responsibility to synchronize the old non-default stream, and update rocblas handle with default/new non-default stream before destroying the old non-default stream.
 
 ::
 
     // Synchronize the non-default stream before destroying it
     if(hipStreamSynchronize(stream) != hipSuccess) return EXIT_FAILURE;
 
+    // Reset the stream reference in the handle to either default or new non-default
+    if(rocblas_set_stream(handle, 0) != rocblas_status_success) return EXIT_FAILURE;
+
     if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
+
+.. note::
+  Resetting the rocblas handle's stream reference is essential to avoid the internally handled `hipErrorContextIsDestroyed` error. If this step is skipped, users may encounter this error in AMD_LOG_LEVEL logging or with hipPeekAtLastError( ).
 
 When a user switches from one non-default stream to another, they must complete all rocblas operations previously submitted with this handle on the old stream using ``hipStreamSynchronize(old_stream)`` API before setting the new stream.
 ::
@@ -198,14 +204,14 @@ When a user switches from one non-default stream to another, they must complete 
     // Synchronize the old stream
     if(hipStreamSynchronize(old_stream) != hipSuccess) return EXIT_FAILURE;
 
-    // Destroy the old stream (this step is optional but must come after synchronization)
-    if(hipStreamDestroy(old_stream) != hipSuccess) return EXIT_FAILURE;
-
     // Create a new stream (this step can be done before the steps above)
     if(hipStreamCreate(&new_stream) != hipSuccess) return EXIT_FAILURE;
 
-    // Set the handle to use the new stream (must come after synchronization)
+    // Set the handle to use the new stream (must come after synchronization & before deletion of old stream)
     if(rocblas_set_stream(handle, new_stream) != rocblas_status_success) return EXIT_FAILURE;
+
+    // Destroy the old stream (this step is optional but must come after synchronization)
+    if(hipStreamDestroy(old_stream) != hipSuccess) return EXIT_FAILURE;
 
 The above ``hipStreamSynchronize`` is necessary because the ``rocBLAS_handle`` contains allocated device
 memory that must not be shared by multiple asynchronous streams at the same time.
