@@ -379,7 +379,12 @@ public:
             hipError_t status = hipStreamIsCapturing(stream, &capture_status);
             if(status != hipSuccess)
             {
-                PRINT_IF_HIP_ERROR(status);
+                //Avoid warning users about hipErrorContextIsDestroyed error on a destroyed stream,
+                //as it may not be in capture mode, and such notifications would be unnecessary.
+                if(status != hipErrorContextIsDestroyed)
+                {
+                    PRINT_IF_HIP_ERROR(status);
+                }
                 return false;
             }
         }
