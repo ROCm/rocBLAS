@@ -44,7 +44,8 @@ void testing_axpy_bad_arg(const Arguments& arg)
         int64_t incx = 1;
         int64_t incy = 1;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -60,12 +61,8 @@ void testing_axpy_bad_arg(const Arguments& arg)
         }
 
         // Allocate device memory
-        device_vector<T> dx(N, incx);
-        device_vector<T> dy(N, incy);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_axpy_fn,
@@ -121,15 +118,12 @@ void testing_axpy(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx);
-    host_vector<T> hy(N, incy);
-    host_vector<T> hy_gold(N, incy);
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hy, (N, incy));
+    HOST_MEMCHECK(host_vector<T>, hy_gold, (N, incy));
 
     // Allocate device memory
-    device_vector<T> d_alpha(1, 1, HMM);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1, 1, HMM));
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -146,12 +140,8 @@ void testing_axpy(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // Allocate device memory
-        device_vector<T> dx(N, incx, HMM);
-        device_vector<T> dy(N, incy, HMM);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx, HMM));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy, HMM));
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -207,7 +197,7 @@ void testing_axpy(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<T> hy_copy(N, incy);
+                HOST_MEMCHECK(host_vector<T>, hy_copy, (N, incy));
                 CHECK_HIP_ERROR(hy.transfer_from(dy));
 
                 // multi-GPU support
@@ -223,14 +213,9 @@ void testing_axpy(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_vector<T> dx_copy(N, incx, HMM);
-                    device_vector<T> dy_copy(N, incy, HMM);
-                    device_vector<T> d_alpha_copy(1, 1, HMM);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx, HMM));
+                    DEVICE_MEMCHECK(device_vector<T>, dy_copy, (N, incy, HMM));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1, 1, HMM));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

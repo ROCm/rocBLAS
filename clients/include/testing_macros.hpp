@@ -23,9 +23,19 @@
 
 #pragma once
 
-// DAPI refers to dual API (original and ILP64 version ending in _64)
-
 #define UNWRAP_ARGS(...) __VA_ARGS__
+
+// ALLOC refers to constructors here
+
+#define HOST_MEMCHECK(T_, name_, args_) \
+    T_ name_(UNWRAP_ARGS args_);        \
+    CHECK_HIP_ERROR(name_.memcheck());
+
+#define DEVICE_MEMCHECK(T_, name_, args_) \
+    T_ name_(UNWRAP_ARGS args_);          \
+    CHECK_DEVICE_ALLOCATION(name_.memcheck());
+
+// DAPI refers to dual API (original and ILP64 version ending in _64)
 
 #define DAPI_DISPATCH(name_, args_)    \
     if(arg.api & c_API_64)             \

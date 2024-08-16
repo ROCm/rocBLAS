@@ -41,10 +41,7 @@ void testing_scal_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_vector<T> dx(N, incx);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
     DAPI_EXPECT(rocblas_status_invalid_handle, rocblas_scal_fn, (nullptr, N, &alpha, dx, incx));
     DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_scal_fn, (handle, N, nullptr, dx, incx));
@@ -76,18 +73,14 @@ void testing_scal(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx);
-    host_vector<T> hx_gold(N, incx);
-    host_vector<U> halpha(1);
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hx_gold, (N, incx));
+    HOST_MEMCHECK(host_vector<U>, halpha, (1));
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_vector<T> dx(N, incx);
-    device_vector<U> d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<U>, d_alpha, (1));
 
     // Initial Data on CPU
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -139,7 +132,7 @@ void testing_scal(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<T> hx_copy(N, incx);
+                HOST_MEMCHECK(host_vector<T>, hx_copy, (N, incx));
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
 
                 // multi-GPU support
@@ -156,12 +149,8 @@ void testing_scal(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     // Allocate device memory
-                    device_vector<T> dx_copy(N, incx);
-                    device_vector<U> d_alpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<U>, d_alpha_copy, (1));
 
                     CHECK_HIP_ERROR(d_alpha_copy.transfer_from(halpha));
 

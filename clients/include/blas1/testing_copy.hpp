@@ -38,10 +38,8 @@ void testing_copy_bad_arg(const Arguments& arg)
     int64_t incx = 1;
     int64_t incy = 1;
 
-    device_vector<T> dx(N);
-    device_vector<T> dy(N);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N));
+    DEVICE_MEMCHECK(device_vector<T>, dy, (N));
 
     DAPI_EXPECT(rocblas_status_invalid_handle, rocblas_copy_fn, (nullptr, N, dx, incx, dy, incy));
 
@@ -73,9 +71,9 @@ void testing_copy(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx);
-    host_vector<T> hy(N, incy);
-    host_vector<T> hy_gold(N, incy);
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hy, (N, incy));
+    HOST_MEMCHECK(host_vector<T>, hy_gold, (N, incy));
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -90,12 +88,8 @@ void testing_copy(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // Allocate device memory
-        device_vector<T> dx(N, incx, HMM);
-        device_vector<T> dy(N, incy, HMM);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx, HMM));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy, HMM));
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -137,13 +131,12 @@ void testing_copy(const Arguments& arg)
             arg.flush_batch_count, arg.flush_memory_size, x_y_cached_size);
 
         // allocate device rotating buffer arrays
-        device_strided_batch_vector<T> dx_rot_buff(
-            N, incx, aligned_stride_x, flush_batch_count, HMM);
-        device_strided_batch_vector<T> dy_rot_buff(
-            N, incy, aligned_stride_y, flush_batch_count, HMM);
-
-        CHECK_DEVICE_ALLOCATION(dx_rot_buff.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy_rot_buff.memcheck());
+        DEVICE_MEMCHECK(device_strided_batch_vector<T>,
+                        dx_rot_buff,
+                        (N, incx, aligned_stride_x, flush_batch_count, HMM));
+        DEVICE_MEMCHECK(device_strided_batch_vector<T>,
+                        dy_rot_buff,
+                        (N, incy, aligned_stride_y, flush_batch_count, HMM));
 
         CHECK_HIP_ERROR(dx_rot_buff.broadcast_one_vector_from(hx));
         CHECK_HIP_ERROR(dy_rot_buff.broadcast_one_vector_from(hy));

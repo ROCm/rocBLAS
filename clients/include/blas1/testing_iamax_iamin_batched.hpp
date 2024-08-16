@@ -34,10 +34,7 @@ void testing_iamax_iamin_batched_bad_arg(const Arguments& arg, FUNC func)
     int64_t N = 100, incx = 1, batch_count = 2;
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_batch_vector<T>, dx, (N, incx, batch_count));
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -69,11 +66,9 @@ void testing_iamax_iamin_batched(const Arguments& arg, FUNC func)
 
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        device_vector<R> d_rocblas_result(std::max(batch_count, int64_t(1)));
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<R>, d_rocblas_result, (std::max(batch_count, int64_t(1))));
 
-        host_vector<R> h_rocblas_result(std::max(batch_count, int64_t(1)));
-        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+        HOST_MEMCHECK(host_vector<R>, h_rocblas_result, (std::max(batch_count, int64_t(1))));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, batch_count, d_rocblas_result));
@@ -83,8 +78,8 @@ void testing_iamax_iamin_batched(const Arguments& arg, FUNC func)
 
         if(batch_count > 0)
         {
-            host_vector<R> cpu_0(batch_count);
-            host_vector<R> gpu_0(batch_count);
+            HOST_MEMCHECK(host_vector<R>, cpu_0, (batch_count));
+            HOST_MEMCHECK(host_vector<R>, gpu_0, (batch_count));
             CHECK_HIP_ERROR(gpu_0.transfer_from(d_rocblas_result));
             unit_check_general<R>(1, 1, 1, 1, cpu_0, gpu_0, batch_count);
             unit_check_general<R>(1, 1, 1, 1, cpu_0, h_rocblas_result, batch_count);
@@ -95,22 +90,15 @@ void testing_iamax_iamin_batched(const Arguments& arg, FUNC func)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx, batch_count);
-    host_vector<R>       hr1(batch_count);
-    host_vector<R>       hr2(batch_count);
-    host_vector<R>       cpu_result(batch_count);
-    int64_t              i64_result;
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hx.memcheck());
+    HOST_MEMCHECK(host_batch_vector<T>, hx, (N, incx, batch_count));
+    HOST_MEMCHECK(host_vector<R>, hr1, (batch_count));
+    HOST_MEMCHECK(host_vector<R>, hr2, (batch_count));
+    HOST_MEMCHECK(host_vector<R>, cpu_result, (batch_count));
+    int64_t i64_result;
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_vector<R>       dr(batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dr.memcheck());
+    DEVICE_MEMCHECK(device_batch_vector<T>, dx, (N, incx, batch_count));
+    DEVICE_MEMCHECK(device_vector<R>, dr, (batch_count));
 
     // Initialize memory on host.
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -139,7 +127,7 @@ void testing_iamax_iamin_batched(const Arguments& arg, FUNC func)
 
             if(arg.repeatability_check)
             {
-                host_vector<R> hr_copy(batch_count);
+                HOST_MEMCHECK(host_vector<R>, hr_copy, (batch_count));
                 CHECK_HIP_ERROR(hr2.transfer_from(dr));
 
                 // multi-GPU support
@@ -154,12 +142,8 @@ void testing_iamax_iamin_batched(const Arguments& arg, FUNC func)
                     //New rocblas handle for new device
                     rocblas_local_handle handle_copy{arg};
                     // Allocate device memory in new device
-                    device_batch_vector<T> dx_copy(N, incx, batch_count);
-                    device_vector<R>       dr_copy(batch_count);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dr_copy.memcheck());
+                    DEVICE_MEMCHECK(device_batch_vector<T>, dx_copy, (N, incx, batch_count));
+                    DEVICE_MEMCHECK(device_vector<R>, dr_copy, (batch_count));
 
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
 
