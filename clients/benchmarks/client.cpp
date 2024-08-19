@@ -989,6 +989,9 @@ int run_bench_test(bool               init,
     // enable timing check,otherwise no performance data collected
     arg.timing = 1;
 
+    // defeat memory padding for benchmarks
+    arg.pad = 0;
+
     // One stream and one thread (0 indicates to use default behavior)
     arg.streams = 0;
     arg.threads = 0;
