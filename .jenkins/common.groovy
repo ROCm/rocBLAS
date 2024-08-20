@@ -159,20 +159,21 @@ def runTestCommand (platform, project, gfilter)
     platform.runCommand(this, command)
 }
 
-def runPackageCommand(platform, project)
+def runPackageCommand(platform, project, boolean debug=false)
 {
-        def packageHelper = platform.makePackage(platform.jenkinsLabel,"${project.paths.project_build_prefix}/build/release")
-        platform.runCommand(this, packageHelper[0])
-        platform.archiveArtifacts(this, packageHelper[1])
-        def cleanCommand = """#!/usr/bin/env bash
-                                set -x
-                                cd ${project.paths.project_build_prefix}/build/
-                                find -name '*.o.d' -delete
-                                find -name '*.o' -delete
-                                find -type d -name '*build_tmp*' -exec rm -rf {} +
-                                find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
-                           """
-        platform.runCommand(this, cleanCommand)
+    String buildTypeDir = debug ? 'debug' : 'release'
+    def packageHelper = platform.makePackage(platform.jenkinsLabel,"${project.paths.project_build_prefix}/build/${buildTypeDir}")
+    platform.runCommand(this, packageHelper[0])
+    platform.archiveArtifacts(this, packageHelper[1])
+    def cleanCommand = """#!/usr/bin/env bash
+                            set -x
+                            cd ${project.paths.project_build_prefix}/build/
+                            find -name '*.o.d' -delete
+                            find -name '*.o' -delete
+                            find -type d -name '*build_tmp*' -exec rm -rf {} +
+                            find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
+                        """
+    platform.runCommand(this, cleanCommand)
 }
 
 return this
