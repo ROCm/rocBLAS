@@ -16,7 +16,7 @@ def runCI =
 
     def prj = new rocProject('rocBLAS', 'Debug')
     // customize for project
-    prj.paths.build_command = './install.sh -c -g --cleanup'
+    prj.paths.build_command = './install.sh -c -g'
     prj.defaults.ccache = true
 
     // Define test architectures, optional rocm version argument is available
@@ -33,7 +33,14 @@ def runCI =
         commonGroovy.runCompileCommand(platform, project, jobName)
     }
 
-    buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, null, null)
+    def packageCommand =
+    {
+        platform, project->
+
+        commonGroovy.runPackageCommand(platform, project, debug=true)
+    }
+
+    buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, null, packageCommand)
 
 }
 
