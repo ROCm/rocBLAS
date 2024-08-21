@@ -44,8 +44,12 @@ void testing_gemv_bad_arg(const Arguments& arg)
         const int64_t           incx   = 1;
         const int64_t           incy   = 1;
 
-        device_vector<T> alpha_d(1), beta_d(1), zero_d(1), one_d(1);
-        const T          alpha_h(1), beta_h(1), zero_h(0), one_h(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, one_d, (1));
+
+        const T alpha_h(1), beta_h(1), zero_h(0), one_h(1);
 
         const T* alpha = &alpha_h;
         const T* beta  = &beta_h;
@@ -66,19 +70,14 @@ void testing_gemv_bad_arg(const Arguments& arg)
 
         // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
         // Allocate host memory
-        host_matrix<T> hA(M, N, lda);
-        host_vector<T> hx(N, incx);
-        host_vector<T> hy(N, incy);
+        HOST_MEMCHECK(host_matrix<T>, hA, (M, N, lda));
+        HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+        HOST_MEMCHECK(host_vector<T>, hy, (N, incy));
 
         // Allocate device memory
-        device_matrix<T> dA(M, N, lda);
-        device_vector<T> dx(N, incx);
-        device_vector<T> dy(N, incy);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dA, (M, N, lda));
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
 
         // Initialize data on host memory
         rocblas_init_matrix(
@@ -200,28 +199,21 @@ void testing_gemv(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(M, N, lda);
-    host_vector<T> hx(dim_x, incx);
-    host_vector<T> hy(dim_y, incy);
-    host_vector<T> hy_gold(dim_y, incy);
-    host_vector<T> halpha(1);
-    host_vector<T> hbeta(1);
+    HOST_MEMCHECK(host_matrix<T>, hA, (M, N, lda));
+    HOST_MEMCHECK(host_vector<T>, hx, (dim_x, incx));
+    HOST_MEMCHECK(host_vector<T>, hy, (dim_y, incy));
+    HOST_MEMCHECK(host_vector<T>, hy_gold, (dim_y, incy));
+    HOST_MEMCHECK(host_vector<T>, halpha, (1));
+    HOST_MEMCHECK(host_vector<T>, hbeta, (1));
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 
     // Allocate device memory
-    device_matrix<T> dA(M, N, lda, HMM);
-    device_vector<T> dx(dim_x, incx, HMM);
-    device_vector<T> dy(dim_y, incy, HMM);
-    device_vector<T> d_alpha(1, 1, HMM);
-    device_vector<T> d_beta(1, 1, HMM);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (M, N, lda, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (dim_x, incx, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, dy, (dim_y, incy, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1, 1, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, d_beta, (1, 1, HMM));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -275,7 +267,7 @@ void testing_gemv(const Arguments& arg)
                 //Transfer original results from device to host
                 CHECK_HIP_ERROR(hy.transfer_from(dy));
                 //Host buffer to store results subsequent iterations
-                host_vector<T> hy_copy(dim_y, incy);
+                HOST_MEMCHECK(host_vector<T>, hy_copy, (dim_y, incy));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -289,17 +281,11 @@ void testing_gemv(const Arguments& arg)
                     //New rocblas handle for new device
                     rocblas_local_handle handle_copy{arg};
                     //Allocate device memory in new device
-                    device_vector<T> dy_copy(dim_y, incy, HMM);
-                    device_matrix<T> dA_copy(M, N, lda, HMM);
-                    device_vector<T> dx_copy(dim_x, incx, HMM);
-                    device_vector<T> d_alpha_copy(1, 1, HMM);
-                    device_vector<T> d_beta_copy(1, 1, HMM);
-
-                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<T>, dy_copy, (dim_y, incy, HMM));
+                    DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (M, N, lda, HMM));
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (dim_x, incx, HMM));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1, 1, HMM));
+                    DEVICE_MEMCHECK(device_vector<T>, d_beta_copy, (1, 1, HMM));
 
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

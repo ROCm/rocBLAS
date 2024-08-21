@@ -43,7 +43,8 @@ void testing_spr_batched_bad_arg(const Arguments& arg)
         int64_t      incx        = 1;
         int64_t      batch_count = 2;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -59,12 +60,9 @@ void testing_spr_batched_bad_arg(const Arguments& arg)
         }
 
         // Allocate device memory
-        device_batch_vector<T> dx(N, incx, batch_count);
-        device_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dAp.memcheck());
+        DEVICE_MEMCHECK(device_batch_vector<T>, dx, (N, incx, batch_count));
+        DEVICE_MEMCHECK(
+            device_batch_matrix<T>, dAp, (1, rocblas_packed_matrix_size(N), 1, batch_count));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_spr_batched_fn,
@@ -141,29 +139,18 @@ void testing_spr_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
-    host_batch_matrix<T> hA(N, N, N, batch_count);
-    host_batch_matrix<T> hAp(1, size_A, 1, batch_count);
-    host_batch_matrix<T> hAp_gold(1, size_A, 1, batch_count);
-    host_batch_vector<T> hx(N, incx, batch_count);
-    host_vector<T>       halpha(1);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hAp.memcheck());
-    CHECK_HIP_ERROR(hAp_gold.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
+    HOST_MEMCHECK(host_batch_matrix<T>, hA, (N, N, N, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hAp, (1, size_A, 1, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hAp_gold, (1, size_A, 1, batch_count));
+    HOST_MEMCHECK(host_batch_vector<T>, hx, (N, incx, batch_count));
+    HOST_MEMCHECK(host_vector<T>, halpha, (1));
 
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_batch_matrix<T> dAp(1, size_A, 1, batch_count);
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_vector<T>       d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dAp, (1, size_A, 1, batch_count));
+    DEVICE_MEMCHECK(device_batch_vector<T>, dx, (N, incx, batch_count));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -223,8 +210,7 @@ void testing_spr_batched(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_batch_matrix<T> hAp_copy(1, size_A, 1, batch_count);
-                CHECK_HIP_ERROR(hAp_copy.memcheck());
+                HOST_MEMCHECK(host_batch_matrix<T>, hAp_copy, (1, size_A, 1, batch_count));
                 CHECK_HIP_ERROR(hAp.transfer_from(dAp));
                 // multi-GPU support
                 int device_id, device_count;
@@ -239,14 +225,9 @@ void testing_spr_batched(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     // Allocate device memory
-                    device_batch_matrix<T> dAp_copy(1, size_A, 1, batch_count);
-                    device_batch_vector<T> dx_copy(N, incx, batch_count);
-                    device_vector<T>       d_alpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dAp_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_batch_matrix<T>, dAp_copy, (1, size_A, 1, batch_count));
+                    DEVICE_MEMCHECK(device_batch_vector<T>, dx_copy, (N, incx, batch_count));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

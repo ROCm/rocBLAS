@@ -41,7 +41,8 @@ void testing_syr_bad_arg(const Arguments& arg)
         int64_t      incx = 1;
         int64_t      lda  = 100;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -57,12 +58,8 @@ void testing_syr_bad_arg(const Arguments& arg)
         }
 
         // Allocate device memory
-        device_matrix<T> dA(N, N, lda);
-        device_vector<T> dx(N, incx);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dA, (N, N, lda));
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_syr_fn,
@@ -129,19 +126,14 @@ void testing_syr(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(N, N, lda);
-    host_matrix<T> hA_gold(N, N, lda);
-    host_vector<T> hx(N, incx);
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, lda));
+    HOST_MEMCHECK(host_matrix<T>, hA_gold, (N, N, lda));
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
 
     // Allocate device memory
-    device_matrix<T> dA(N, N, lda);
-    device_vector<T> dx(N, incx);
-    device_vector<T> d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (N, N, lda));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -186,8 +178,7 @@ void testing_syr(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_matrix<T> hA_copy(N, N, lda);
-                CHECK_HIP_ERROR(hA_copy.memcheck());
+                HOST_MEMCHECK(host_matrix<T>, hA_copy, (N, N, lda));
                 CHECK_HIP_ERROR(hA.transfer_from(dA));
                 // multi-GPU support
                 int device_id, device_count;
@@ -202,14 +193,9 @@ void testing_syr(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     // Allocate device memory
-                    device_matrix<T> dA_copy(N, N, lda);
-                    device_vector<T> dx_copy(N, incx);
-                    device_vector<T> d_alpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (N, N, lda));
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

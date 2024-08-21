@@ -48,12 +48,8 @@ void testing_trmv_strided_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(N, N, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dA, (N, N, lda, stride_a, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stride_x, batch_count));
 
     // Checks.
     DAPI_EXPECT(
@@ -134,22 +130,13 @@ void testing_trmv_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_strided_batch_matrix<T> hA(N, N, lda, stride_a, batch_count);
-    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hres(N, incx, stride_x, batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hres.memcheck());
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hA, (N, N, lda, stride_a, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<T>, hx, (N, incx, stride_x, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<T>, hres, (N, incx, stride_x, batch_count));
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(N, N, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dA, (N, N, lda, stride_a, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stride_x, batch_count));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -179,8 +166,8 @@ void testing_trmv_strided_batched(const Arguments& arg)
 
         if(arg.repeatability_check)
         {
-            host_strided_batch_vector<T> hres_copy(N, incx, stride_x, batch_count);
-            CHECK_HIP_ERROR(hres_copy.memcheck());
+            HOST_MEMCHECK(
+                host_strided_batch_vector<T>, hres_copy, (N, incx, stride_x, batch_count));
             // multi-GPU support
             int device_id, device_count;
             CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
@@ -194,12 +181,10 @@ void testing_trmv_strided_batched(const Arguments& arg)
                 rocblas_local_handle handle_copy{arg};
 
                 // Allocate device memory
-                device_strided_batch_matrix<T> dA_copy(N, N, lda, stride_a, batch_count);
-                device_strided_batch_vector<T> dx_copy(N, incx, stride_x, batch_count);
-
-                // Check device memory allocation
-                CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                DEVICE_MEMCHECK(
+                    device_strided_batch_matrix<T>, dA_copy, (N, N, lda, stride_a, batch_count));
+                DEVICE_MEMCHECK(
+                    device_strided_batch_vector<T>, dx_copy, (N, incx, stride_x, batch_count));
 
                 CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
 

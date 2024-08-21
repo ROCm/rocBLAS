@@ -41,12 +41,8 @@ void testing_tpmv_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(N, incx);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dAp, (1, rocblas_packed_matrix_size(N), 1));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
     //
     // Checks.
@@ -110,18 +106,14 @@ void testing_tpmv(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
-    host_matrix<T> hA(N, N, N);
-    host_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1);
-    host_vector<T> hx(N, incx);
-    host_vector<T> hres(N, incx);
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, N));
+    HOST_MEMCHECK(host_matrix<T>, hAp, (1, rocblas_packed_matrix_size(N), 1));
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hres, (N, incx));
 
     // Allocate device memory
-    device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(N, incx);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dAp, (1, rocblas_packed_matrix_size(N), 1));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -153,8 +145,7 @@ void testing_tpmv(const Arguments& arg)
         CHECK_HIP_ERROR(hres.transfer_from(dx));
         if(arg.repeatability_check)
         {
-            host_vector<T> hres_copy(N, incx);
-            CHECK_HIP_ERROR(hres_copy.memcheck());
+            HOST_MEMCHECK(host_vector<T>, hres_copy, (N, incx));
 
             // multi-GPU support
             int device_id, device_count;
@@ -169,12 +160,8 @@ void testing_tpmv(const Arguments& arg)
                 rocblas_local_handle handle_copy{arg};
 
                 // Allocate device memory
-                device_matrix<T> dAp_copy(1, rocblas_packed_matrix_size(N), 1);
-                device_vector<T> dx_copy(N, incx);
-
-                // Check device memory allocation
-                CHECK_DEVICE_ALLOCATION(dAp_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
+                DEVICE_MEMCHECK(device_matrix<T>, dAp_copy, (1, rocblas_packed_matrix_size(N), 1));
+                DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
 
                 CHECK_HIP_ERROR(dAp_copy.transfer_from(hAp));
 

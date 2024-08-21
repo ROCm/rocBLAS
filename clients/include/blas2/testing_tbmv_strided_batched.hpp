@@ -50,12 +50,9 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dAb(banded_matrix_row, N, lda, stride_A, batch_count);
-    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(
+        device_strided_batch_matrix<T>, dAb, (banded_matrix_row, N, lda, stride_A, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stride_x, batch_count));
 
     DAPI_EXPECT(rocblas_status_invalid_value,
                 rocblas_tbmv_strided_batched_fn,
@@ -169,22 +166,15 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
-    host_strided_batch_matrix<T> hAb(banded_matrix_row, N, lda, stride_A, batch_count);
-    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hx_gold(N, incx, stride_x, batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hAb.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hx_gold.memcheck());
+    HOST_MEMCHECK(
+        host_strided_batch_matrix<T>, hAb, (banded_matrix_row, N, lda, stride_A, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<T>, hx, (N, incx, stride_x, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<T>, hx_gold, (N, incx, stride_x, batch_count));
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dAb(banded_matrix_row, N, lda, stride_A, batch_count);
-    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(
+        device_strided_batch_matrix<T>, dAb, (banded_matrix_row, N, lda, stride_A, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stride_x, batch_count));
 
     // Initialize data on host memory
     // Initializing the banded-matrix 'hAb' as a general matrix as the banded matrix is not triangular
@@ -227,8 +217,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         if(arg.repeatability_check)
         {
-            host_strided_batch_vector<T> hx_copy(N, incx, stride_x, batch_count);
-            CHECK_HIP_ERROR(hx_copy.memcheck());
+            HOST_MEMCHECK(host_strided_batch_vector<T>, hx_copy, (N, incx, stride_x, batch_count));
             CHECK_HIP_ERROR(hx.transfer_from(dx));
 
             // multi-GPU support
@@ -244,13 +233,11 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                 rocblas_local_handle handle_copy{arg};
 
                 // Allocate device memory
-                device_strided_batch_matrix<T> dAb_copy(
-                    banded_matrix_row, N, lda, stride_A, batch_count);
-                device_strided_batch_vector<T> dx_copy(N, incx, stride_x, batch_count);
-
-                // Check device memory allocation
-                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dAb_copy.memcheck());
+                DEVICE_MEMCHECK(device_strided_batch_matrix<T>,
+                                dAb_copy,
+                                (banded_matrix_row, N, lda, stride_A, batch_count));
+                DEVICE_MEMCHECK(
+                    device_strided_batch_vector<T>, dx_copy, (N, incx, stride_x, batch_count));
 
                 // copy data from CPU to device
                 CHECK_HIP_ERROR(dAb_copy.transfer_from(hAb));
