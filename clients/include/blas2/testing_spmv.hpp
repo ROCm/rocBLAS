@@ -41,7 +41,10 @@ void testing_spmv_bad_arg(const Arguments& arg)
         int64_t      incx = 1;
         int64_t      incy = 1;
 
-        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, one_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
@@ -63,14 +66,9 @@ void testing_spmv_bad_arg(const Arguments& arg)
         }
 
         // Allocate device memory
-        device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-        device_vector<T> dx(N, incx);
-        device_vector<T> dy(N, incy);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dAp.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dAp, (1, rocblas_packed_matrix_size(N), 1));
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_spmv_fn,
@@ -138,8 +136,8 @@ void testing_spmv(const Arguments& arg)
     int64_t incx = arg.incx;
     int64_t incy = arg.incy;
 
-    host_vector<T> h_alpha(1);
-    host_vector<T> h_beta(1);
+    HOST_MEMCHECK(host_vector<T>, h_alpha, (1));
+    HOST_MEMCHECK(host_vector<T>, h_beta, (1));
     h_alpha[0] = arg.get_alpha<T>();
     h_beta[0]  = arg.get_beta<T>();
 
@@ -159,25 +157,18 @@ void testing_spmv(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
-    host_matrix<T> hA(N, N, N);
-    host_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1);
-    host_vector<T> hx(N, incx);
-    host_vector<T> hy(N, incy);
-    host_vector<T> hy_gold(N, incy); // gold standard
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, N));
+    HOST_MEMCHECK(host_matrix<T>, hAp, (1, rocblas_packed_matrix_size(N), 1));
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hy, (N, incy));
+    HOST_MEMCHECK(host_vector<T>, hy_gold, (N, incy)); // gold standard
 
     // Allocate device memory
-    device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(N, incx);
-    device_vector<T> dy(N, incy);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dAp, (1, rocblas_packed_matrix_size(N), 1));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
+    DEVICE_MEMCHECK(device_vector<T>, d_beta, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -230,8 +221,7 @@ void testing_spmv(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<T> hy_copy(N, incy);
-                CHECK_HIP_ERROR(hy_copy.memcheck());
+                HOST_MEMCHECK(host_vector<T>, hy_copy, (N, incy));
                 CHECK_HIP_ERROR(hy.transfer_from(dy));
 
                 // multi-GPU support
@@ -247,18 +237,12 @@ void testing_spmv(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     // Allocate device memory
-                    device_matrix<T> dAp_copy(1, rocblas_packed_matrix_size(N), 1);
-                    device_vector<T> dx_copy(N, incx);
-                    device_vector<T> dy_copy(N, incy);
-                    device_vector<T> d_alpha_copy(1);
-                    device_vector<T> d_beta_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dAp_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+                    DEVICE_MEMCHECK(
+                        device_matrix<T>, dAp_copy, (1, rocblas_packed_matrix_size(N), 1));
+                    DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<T>, dy_copy, (N, incy));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
+                    DEVICE_MEMCHECK(device_vector<T>, d_beta_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

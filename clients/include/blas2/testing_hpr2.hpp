@@ -41,7 +41,8 @@ void testing_hpr2_bad_arg(const Arguments& arg)
         int64_t      incx = 1;
         int64_t      incy = 1;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -57,14 +58,9 @@ void testing_hpr2_bad_arg(const Arguments& arg)
         }
 
         // Allocate device memory
-        device_matrix<T> dAp_1(1, rocblas_packed_matrix_size(N), 1);
-        device_vector<T> dx(N, incx);
-        device_vector<T> dy(N, incy);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dAp_1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dAp_1, (1, rocblas_packed_matrix_size(N), 1));
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+        DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_hpr2_fn,
@@ -138,29 +134,22 @@ void testing_hpr2(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hAp_1), `d` is in GPU (device) memory (eg dAp_1).
     // Allocate host memory
-    host_matrix<T> hA(N, N, N);
-    host_matrix<T> hAp_1(1, size_A, 1);
-    host_matrix<T> hAp_2(1, size_A, 1);
-    host_matrix<T> hAp_gold(1, size_A, 1);
-    host_vector<T> hx(N, incx);
-    host_vector<T> hy(N, incy);
-    host_vector<T> halpha(1);
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, N));
+    HOST_MEMCHECK(host_matrix<T>, hAp_1, (1, size_A, 1));
+    HOST_MEMCHECK(host_matrix<T>, hAp_2, (1, size_A, 1));
+    HOST_MEMCHECK(host_matrix<T>, hAp_gold, (1, size_A, 1));
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hy, (N, incy));
+    HOST_MEMCHECK(host_vector<T>, halpha, (1));
 
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_matrix<T> dAp_1(1, size_A, 1);
-    device_matrix<T> dAp_2(1, size_A, 1);
-    device_vector<T> dx(N, incx);
-    device_vector<T> dy(N, incy);
-    device_vector<T> d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAp_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dAp_2.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dAp_1, (1, size_A, 1));
+    DEVICE_MEMCHECK(device_matrix<T>, dAp_2, (1, size_A, 1));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<T>, dy, (N, incy));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -203,8 +192,7 @@ void testing_hpr2(const Arguments& arg)
 
         if(arg.repeatability_check)
         {
-            host_matrix<T> hAp_copy(1, size_A, 1);
-            CHECK_HIP_ERROR(hAp_copy.memcheck());
+            HOST_MEMCHECK(host_matrix<T>, hAp_copy, (1, size_A, 1));
             CHECK_HIP_ERROR(hAp_2.transfer_from(dAp_2));
             // multi-GPU support
             int device_id, device_count;
@@ -219,16 +207,10 @@ void testing_hpr2(const Arguments& arg)
                 rocblas_local_handle handle_copy{arg};
 
                 // Allocate device memory
-                device_matrix<T> dAp_2_copy(1, size_A, 1);
-                device_vector<T> dx_copy(N, incx);
-                device_vector<T> dy_copy(N, incy);
-                device_vector<T> d_alpha_copy(1);
-
-                // Check device memory allocation
-                CHECK_DEVICE_ALLOCATION(dAp_2_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                DEVICE_MEMCHECK(device_matrix<T>, dAp_2_copy, (1, size_A, 1));
+                DEVICE_MEMCHECK(device_vector<T>, dx_copy, (N, incx));
+                DEVICE_MEMCHECK(device_vector<T>, dy_copy, (N, incy));
+                DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
 
                 // copy data from CPU to device
                 CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

@@ -46,20 +46,12 @@ void testing_trsv_bad_arg(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(N, N, lda);
-    host_vector<T> hx(N, incx);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, lda));
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
 
     // Allocate device memory
-    device_matrix<T> dA(N, N, lda);
-    device_vector<T> dx(N, incx);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (N, N, lda));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
 
     // Checks.
     DAPI_EXPECT(rocblas_status_invalid_handle,
@@ -121,20 +113,16 @@ void testing_trsv(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(N, N, lda);
-    host_matrix<T> hAAT(N, N, lda);
-    host_vector<T> hb(N, incx);
-    host_vector<T> hx(N, incx);
-    host_vector<T> hx_or_b(N, incx);
-    host_vector<T> cpu_x_or_b(N, incx);
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, lda));
+    HOST_MEMCHECK(host_matrix<T>, hAAT, (N, N, lda));
+    HOST_MEMCHECK(host_vector<T>, hb, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, hx_or_b, (N, incx));
+    HOST_MEMCHECK(host_vector<T>, cpu_x_or_b, (N, incx));
 
     // Allocate device memory
-    device_matrix<T> dA(N, N, lda);
-    device_vector<T> dx_or_b(N, incx);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (N, N, lda));
+    DEVICE_MEMCHECK(device_vector<T>, dx_or_b, (N, incx));
 
     // Initialize data on host memory
     rocblas_init_matrix(hA,
@@ -204,8 +192,7 @@ void testing_trsv(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<T> hx_or_b_copy(N, incx);
-                CHECK_HIP_ERROR(hx_or_b_copy.memcheck());
+                HOST_MEMCHECK(host_vector<T>, hx_or_b_copy, (N, incx));
                 CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
                 // multi-GPU support
                 int device_id, device_count;
@@ -220,12 +207,8 @@ void testing_trsv(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     // Allocate device memory
-                    device_matrix<T> dA_copy(N, N, lda);
-                    device_vector<T> dx_or_b_copy(N, incx);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dx_or_b_copy.memcheck());
+                    DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (N, N, lda));
+                    DEVICE_MEMCHECK(device_vector<T>, dx_or_b_copy, (N, incx));
 
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
 

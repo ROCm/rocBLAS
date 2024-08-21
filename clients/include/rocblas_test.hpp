@@ -59,19 +59,22 @@ typedef long long ssize_t; /* x64 only supported */
 #define CHECK_HIP_ERROR2(ERROR) ASSERT_EQ(ERROR, hipSuccess)
 #define CHECK_HIP_ERROR(ERROR) CHECK_HIP_ERROR2(ERROR)
 
-#define CHECK_DEVICE_ALLOCATION(ERROR)                   \
-    do                                                   \
-    {                                                    \
-        /* Use error__ in case ERROR contains "error" */ \
-        hipError_t error__ = (ERROR);                    \
-        if(error__ != hipSuccess)                        \
-        {                                                \
-            if(error__ == hipErrorOutOfMemory)           \
-                GTEST_SKIP() << LIMITED_VRAM_STRING;     \
-            else                                         \
-                FAIL() << hipGetErrorString(error__);    \
-            return;                                      \
-        }                                                \
+#define CHECK_DEVICE_ALLOCATION(ERROR)                                                          \
+    do                                                                                          \
+    {                                                                                           \
+        /* Use error__ in case ERROR contains "error" */                                        \
+        hipError_t error__ = (ERROR);                                                           \
+        if(error__ != hipSuccess)                                                               \
+        {                                                                                       \
+            if(error__ == hipErrorOutOfMemory)                                                  \
+            {                                                                                   \
+                rocblas_cerr << "hip OutOfMemory at " << __FILE__ ":" << __LINE__ << std::endl; \
+                GTEST_SKIP() << LIMITED_VRAM_STRING;                                            \
+            }                                                                                   \
+            else                                                                                \
+                FAIL() << hipGetErrorString(error__);                                           \
+            return;                                                                             \
+        }                                                                                       \
     } while(0)
 
 // This wraps the rocBLAS call with catch_signals_and_exceptions_as_failures().
