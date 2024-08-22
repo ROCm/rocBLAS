@@ -14,6 +14,8 @@ def runCI =
     nodeDetails, jobName->
 
     def prj = new rocProject('rocBLAS', 'PreCheckin')
+    prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
+
     // customize for project
     prj.paths.build_command = './install.sh -c'
 
