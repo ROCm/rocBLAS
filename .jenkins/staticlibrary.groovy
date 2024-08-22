@@ -14,6 +14,7 @@ def runCI =
     nodeDetails, jobName->
 
     def prj = new rocProject('rocBLAS', 'StaticLibrary')
+
     // customize for project
     prj.paths.build_command = './install.sh -c --static'
 

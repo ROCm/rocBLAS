@@ -45,21 +45,19 @@ if( BUILD_WITH_TENSILE )
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
   )
-
   target_include_directories( rocblas-gemm-tune
-    SYSTEM PRIVATE
+    SYSTEM BEFORE PRIVATE
       $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
       $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
       $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
   )
 endif()
 
-target_link_libraries( rocblas-bench PRIVATE rocblas_clients_testing_common rocblas_clients_common  )
+target_link_libraries( rocblas-bench PRIVATE rocblas_clients_testing_common rocblas_clients_common )
 if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
 endif( )
 target_link_libraries( rocblas-bench PRIVATE roc::rocblas hip::host hip::device ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} )
-
 
 if( BUILD_WITH_TENSILE )
   target_link_libraries( rocblas-gemm-tune PRIVATE rocblas_clients_testing_common rocblas_clients_common )

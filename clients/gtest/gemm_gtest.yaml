@@ -3971,6 +3971,16 @@ Tests:
   pointer_mode_host: false
   repeatability_check: true
 
+- name: hipblaslt_f16
+  category: pre_checkin
+  function: gemm_ex
+  precision: *hpa_half_precision
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+  matrix_size: *medium_matrix_size_range
+  use_hipblaslt: 1
+  os_flags: LINUX
+
 
 # Commented out as the category known_bug has currently no good purpose
 # This is category known_bug until the sizes are supported by Tensile,

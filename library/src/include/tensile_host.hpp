@@ -192,12 +192,20 @@ struct RocblasContractionProblem
     {
         return tuple_helper::print_tuple_pairs(
             os,
-            std::make_tuple("a_type",
+            std::make_tuple("a",
+                            prob.A,
+                            "a_type",
                             rocblas_precision_string<TiA>,
+                            "b",
+                            prob.B,
                             "b_type",
                             rocblas_precision_string<TiB>,
+                            "c",
+                            prob.C,
                             "c_type",
                             rocblas_precision_string<To>,
+                            "d",
+                            prob.D,
                             "d_type",
                             rocblas_precision_string<To>,
                             "compute_type",
@@ -248,6 +256,21 @@ struct RocblasContractionProblem
                             prob.handle->atomics_mode));
     };
 };
+
+/*******************************************************************************
+ * This function determines whether or not to use the hipBLASLt backend based
+ * on problem specific conditions. This is passed on to the handle's useHipBLASLt
+ * function to consolidate with the architecture specific conditions and
+ * environment variable state.
+******************************************************************************/
+template <typename TiA,
+          typename To,
+          typename Tc,
+          typename TiB = TiA,
+          typename TcA = TiA,
+          typename TcB = TiA>
+// <typename Ti, typename To, typename Tc>
+bool useHipBLASLt(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& problem);
 
 /*******************************************************************************
  * runContractionProblem() solves a RocblasContractionProblem                  *

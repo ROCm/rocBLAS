@@ -108,11 +108,18 @@ if( BUILD_WITH_TENSILE )
     tensile_host.cpp
   )
 
+  if(BUILD_WITH_HIPBLASLT)
+    set( HipBlasLT_SRC
+      hipblaslt_host.cpp
+    )
+  endif()
+
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex3.cpp
     blas_ex/rocblas_gemm_strided_batched_ex3.cpp
     blas_ex/rocblas_gemm_batched_ex3.cpp
     ${Tensile_SRC}
+    ${HipBlasLT_SRC}
   )
 
 endif() # BUILD_WITH_TENSILE
@@ -121,7 +128,6 @@ endif() # BUILD_WITH_TENSILE
 set( Tensile_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
 )
-
 
 set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_axpy_ex.cpp
@@ -678,11 +684,27 @@ rocblas_library_settings( rocblas )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
 
+if(BUILD_WITH_HIPBLASLT)
+  find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
+endif()
+
 if( BUILD_WITH_TENSILE )
 
   if( BUILD_SHARED_LIBS )
     target_link_libraries( rocblas PRIVATE TensileHost )
-  else()
+  endif()
+
+  if(BUILD_WITH_HIPBLASLT)
+    target_include_directories( rocblas
+      SYSTEM BEFORE PRIVATE
+        $<BUILD_INTERFACE:${HIPBLASLT_INCLUDE_DIR}>
+    )
+    if( BUILD_SHARED_LIBS )
+      target_link_libraries( rocblas PRIVATE roc::hipblaslt )
+    endif()
+  endif()
+
+  if( NOT BUILD_SHARED_LIBS )
     target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 
     # bypassing cmake dependencies chain for static link as it won't allow target from different directory
@@ -716,7 +738,7 @@ if( BUILD_WITH_TENSILE )
 
   endif()
 
-  target_compile_definitions( rocblas PRIVATE ${TENSILE_DEFINES} )
+  target_compile_definitions( rocblas PRIVATE ${TENSILE_DEFINES} ${HIPBLASLT_DEFINES})
 endif()
 
 #set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )

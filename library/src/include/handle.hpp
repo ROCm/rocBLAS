@@ -41,6 +41,9 @@
 #endif
 #include <utility>
 
+// forward declare hipblaslt handle
+typedef void* hipblasLtHandle_t;
+
 // forcing early cleanup
 extern "C" ROCBLAS_EXPORT void rocblas_shutdown();
 
@@ -243,6 +246,52 @@ public:
         return max_mem;
     }
 
+    bool isDefaultHipBLASLtArch()
+    {
+        int arch = getArch();
+        if(arch == 1200 || arch == 1201)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    auto getHipblasLtHandle()
+    {
+        return hipblasLtHandle;
+    }
+
+    /*******************************************************************************
+     * This function determines whether or not to use the hipBLASLt backend based
+     * on the state of the environment variable and the current architecture.
+     *
+     * - If the enviornment variable is set, its value determines whether ot not to
+     *   use the hipBLASLt backend.
+     * - If the current architecture is supported, then the `prob_specific_useHipBLASLt`
+     *   input determines whether ot not to use the hipBLASLt backend.
+     * - Otherwise, the hipBLASLt backend is not used.
+     ******************************************************************************/
+    auto useHipBLASLt(bool prob_specific_useHipBLASLt = true)
+    {
+
+#ifdef BUILD_WITH_HIPBLASLT
+        if(hipblasltEnvVar < 0)
+        {
+            if(isDefaultHipBLASLtArch())
+            {
+                return prob_specific_useHipBLASLt;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return hipblasltEnvVar == 1;
+#else
+        return false;
+#endif
+    }
+
     inline int getDefaultDeviceMemorySize()
     {
 
@@ -429,6 +478,10 @@ private:
     const int arch;
     int       archMajor;
     int       archMajorMinor;
+
+    // hipBLASLt handle is created at handle creation time and remains in effect for the life of the handle.
+    std::shared_ptr<hipblasLtHandle_t> hipblasLtHandle;
+    int                                hipblasltEnvVar = -1;
 
     // Opaque smart allocator class to perform device memory allocations
     // clang-format off

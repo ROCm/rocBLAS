@@ -152,6 +152,14 @@ endif()
 # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
 set( AMDGPU_TARGETS "${target_list}" CACHE STRING "AMD GPU targets to compile for" FORCE )
 
+option( BUILD_WITH_HIPBLASLT "Build with HipBLASLt" ON )
+set( hipblaslt_path "/opt/rocm" CACHE PATH "Use local HipBLASLt directory" )
+set( HIPBLASLT_VERSION 0.10 CACHE STRING "The version of HipBLASLt to be used" )
+
+if( WIN32 OR NOT BUILD_WITH_TENSILE OR NOT BUILD_SHARED_LIBS )
+  set( BUILD_WITH_HIPBLASLT OFF )
+endif()
+
 function(list_replace list old new)
   foreach( i ${${list}} )
     if( i STREQUAL ${old} )
@@ -185,7 +193,7 @@ if(NOT SKIP_LIBRARY)
         virtualenv_install(${Tensile_TEST_LOCAL_PATH})
         message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
       else()
-        # Use the virtual-env setup and download package from specified repot:
+        # Use the virtual-env setup and download package from specified repo:
         set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
         file (STRINGS "tensile_tag.txt" read_tensile_tag)
         set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
@@ -220,6 +228,11 @@ if( BUILD_WITH_TENSILE )
   else()
         list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_LAZY_LOAD=0)
   endif()
+endif()
+
+if( BUILD_WITH_HIPBLASLT )
+  list( APPEND HIPBLASLT_DEFINES BUILD_WITH_HIPBLASLT )
+  rocm_package_add_dependencies(DEPENDS "hipblaslt >= ${HIPBLASLT_VERSION}")
 endif()
 
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )

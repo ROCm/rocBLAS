@@ -25,6 +25,11 @@
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 
+#ifdef WIN32
+#define setenv(A, B, C) _putenv_s(A, B)
+#define unsetenv(A) _putenv_s(A, "")
+#endif
+
 template <typename T>
 constexpr auto rocblas_type2datatype()
 {
@@ -435,6 +440,20 @@ auto rocblas_gemv_batched_and_strided_batched_dispatch(const Arguments& arg)
 template <template <typename...> class TEST>
 auto rocblas_gemm_dispatch(const Arguments& arg)
 {
+    int setenv_status;
+    if(arg.use_hipblaslt != -1)
+    {
+        setenv_status
+            = setenv("ROCBLAS_USE_HIPBLASLT", std::to_string(arg.use_hipblaslt).c_str(), true);
+    }
+    else
+    {
+        setenv_status = unsetenv("ROCBLAS_USE_HIPBLASLT");
+    }
+#ifdef GOOGLE_TEST
+    EXPECT_EQ(setenv_status, 0);
+#endif
+
     const auto Ti = arg.a_type, To = arg.c_type, Tc = arg.compute_type;
     const auto Tc_new = arg.composite_compute_type;
 
