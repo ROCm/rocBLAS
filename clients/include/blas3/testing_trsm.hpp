@@ -47,7 +47,8 @@ void testing_trsm_bad_arg(const Arguments& arg)
         const int64_t lda = 100;
         const int64_t ldb = 100;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -70,12 +71,8 @@ void testing_trsm_bad_arg(const Arguments& arg)
         int64_t K = side == rocblas_side_left ? M : N;
 
         // Allocate device memory
-        device_matrix<T> dA(K, K, lda);
-        device_matrix<T> dB(M, N, ldb);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dA, (K, K, lda));
+        DEVICE_MEMCHECK(device_matrix<T>, dB, (M, N, ldb));
 
         // check for invalid enum
         DAPI_EXPECT(rocblas_status_invalid_value,
@@ -286,20 +283,15 @@ void testing_trsm(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(K, K, lda);
-    host_matrix<T> hB(M, N, M); // save memory when large ldb
-    host_matrix<T> hX(M, N, ldb);
-    host_matrix<T> hXorB_1(M, N, ldb);
+    HOST_MEMCHECK(host_matrix<T>, hA, (K, K, lda));
+    HOST_MEMCHECK(host_matrix<T>, hB, (M, N, M)); // save memory when large ldb
+    HOST_MEMCHECK(host_matrix<T>, hX, (M, N, ldb));
+    HOST_MEMCHECK(host_matrix<T>, hXorB_1, (M, N, ldb));
 
     // Allocate device memory
-    device_matrix<T> dA(K, K, lda, HMM);
-    device_matrix<T> dXorB(M, N, ldb, HMM);
-    device_vector<T> alpha_d(1, 1, HMM);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
-    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (K, K, lda, HMM));
+    DEVICE_MEMCHECK(device_matrix<T>, dXorB, (M, N, ldb, HMM));
+    DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1, 1, HMM));
 
     // Initialize data on host memory
     rocblas_init_matrix(hA,
@@ -390,10 +382,10 @@ void testing_trsm(const Arguments& arg)
                     CHECK_ROCBLAS_ERROR(mem_status);
 
                 // allocate memory ourselves
-                device_vector<T> w_mem_x_tmp(w_x_tmp_size / sizeof(T));
-                device_vector<T> w_mem_x_tmp_arr(w_x_tmp_arr_size / sizeof(T*));
-                device_vector<T> w_mem_invA(w_invA_size / sizeof(T));
-                device_vector<T> w_mem_invA_arr(w_invA_arr_size / sizeof(T*));
+                DEVICE_MEMCHECK(device_vector<T>, w_mem_x_tmp, (w_x_tmp_size / sizeof(T)));
+                DEVICE_MEMCHECK(device_vector<T>, w_mem_x_tmp_arr, (w_x_tmp_arr_size / sizeof(T*)));
+                DEVICE_MEMCHECK(device_vector<T>, w_mem_invA, (w_invA_size / sizeof(T)));
+                DEVICE_MEMCHECK(device_vector<T>, w_mem_invA_arr, (w_invA_arr_size / sizeof(T*)));
 
                 // using ldc/ldd as offsets
                 rocblas_stride strideA = 0, strideB = 0;
@@ -475,7 +467,7 @@ void testing_trsm(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_matrix<T> hXorB_copy(M, N, ldb);
+                HOST_MEMCHECK(host_matrix<T>, hXorB_copy, (M, N, ldb));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -490,14 +482,9 @@ void testing_trsm(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_matrix<T> dA_copy(K, K, lda, HMM);
-                    device_matrix<T> dXorB_copy(M, N, ldb, HMM);
-                    device_vector<T> alpha_d_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dXorB_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(alpha_d_copy.memcheck());
+                    DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (K, K, lda, HMM));
+                    DEVICE_MEMCHECK(device_matrix<T>, dXorB_copy, (M, N, ldb, HMM));
+                    DEVICE_MEMCHECK(device_vector<T>, alpha_d_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));

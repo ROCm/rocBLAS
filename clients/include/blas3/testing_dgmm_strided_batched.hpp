@@ -57,14 +57,9 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_stride stride_c = N * size_t(ldc);
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(K, incx, stride_x, batch_count);
-    device_strided_batch_matrix<T> dC(M, N, ldc, stride_a, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dA, (M, N, lda, stride_a, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (K, incx, stride_x, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dC, (M, N, ldc, stride_a, batch_count));
 
     DAPI_EXPECT(rocblas_status_invalid_handle,
                 rocblas_dgmm_strided_batched_fn,
@@ -231,25 +226,15 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_strided_batch_matrix<T> hA(M, N, lda, stride_a, batch_count);
-    host_strided_batch_vector<T> hx(K, incx, stride_x, batch_count);
-    host_strided_batch_matrix<T> hC(M, N, ldc, stride_c, batch_count);
-    host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hA, (M, N, lda, stride_a, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<T>, hx, (K, incx, stride_x, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hC, (M, N, ldc, stride_c, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hC_gold, (M, N, ldc, stride_c, batch_count));
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(K, incx, stride_x, batch_count);
-    device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dA, (M, N, lda, stride_a, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (K, incx, stride_x, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dC, (M, N, ldc, stride_c, batch_count));
 
     // Initialize data on host memory
     rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
@@ -287,7 +272,8 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
         if(arg.repeatability_check)
         {
-            host_strided_batch_matrix<T> hC_copy(M, N, ldc, stride_c, batch_count);
+            HOST_MEMCHECK(
+                host_strided_batch_matrix<T>, hC_copy, (M, N, ldc, stride_c, batch_count));
             // multi-GPU support
             int device_id, device_count;
             CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
@@ -301,14 +287,12 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                 rocblas_local_handle handle_copy{arg};
 
                 //Allocate device memory in new device
-                device_strided_batch_matrix<T> dA_copy(M, N, lda, stride_a, batch_count);
-                device_strided_batch_vector<T> dx_copy(K, incx, stride_x, batch_count);
-                device_strided_batch_matrix<T> dC_copy(M, N, ldc, stride_c, batch_count);
-
-                // Check device memory allocation
-                CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                DEVICE_MEMCHECK(
+                    device_strided_batch_matrix<T>, dA_copy, (M, N, lda, stride_a, batch_count));
+                DEVICE_MEMCHECK(
+                    device_strided_batch_vector<T>, dx_copy, (K, incx, stride_x, batch_count));
+                DEVICE_MEMCHECK(
+                    device_strided_batch_matrix<T>, dC_copy, (M, N, ldc, stride_c, batch_count));
 
                 // copy data from CPU to device
                 CHECK_HIP_ERROR(dA_copy.transfer_from(hA));

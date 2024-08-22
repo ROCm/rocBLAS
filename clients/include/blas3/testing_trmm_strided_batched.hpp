@@ -63,7 +63,8 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
         const int64_t ldOut       = inplace ? ldb : ldc;
         const int64_t batch_count = 2;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -89,21 +90,17 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
         const rocblas_stride stride_c = ldc * N;
 
         // Allocate device memory
-        device_strided_batch_matrix<T> dA(K, K, lda, stride_a, batch_count);
-        device_strided_batch_matrix<T> dB(M, N, ldb, stride_b, batch_count);
+        DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dA, (K, K, lda, stride_a, batch_count));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dB, (M, N, ldb, stride_b, batch_count));
 
         int64_t dC_M   = inplace ? 1 : M;
         int64_t dC_N   = inplace ? 1 : N;
         int64_t dC_ldc = inplace ? 1 : ldc;
 
-        device_strided_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, stride_c, batch_count);
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<T>, dC, (dC_M, dC_N, dC_ldc, stride_c, batch_count));
 
         device_strided_batch_matrix<T>* dOut = inplace ? &dB : &dC;
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
         // check for invalid enum
         DAPI_EXPECT(rocblas_status_invalid_value,
@@ -625,28 +622,16 @@ void testing_trmm_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_strided_batch_matrix<T> hA(K, K, lda, stride_a, batch_count);
-    host_strided_batch_matrix<T> hB(M, N, ldb, stride_b, batch_count);
-    host_strided_batch_matrix<T> hC(M, N, ldc, stride_c, batch_count);
-    host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
-    host_vector<T>               h_alpha(1);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hA, (K, K, lda, stride_a, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hB, (M, N, ldb, stride_b, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hC, (M, N, ldc, stride_c, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<T>, hC_gold, (M, N, ldc, stride_c, batch_count));
+    HOST_MEMCHECK(host_vector<T>, h_alpha, (1));
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(K, K, lda, stride_a, batch_count);
-    device_strided_batch_matrix<T> dB(M, N, ldb, stride_b, batch_count);
-    device_vector<T>               d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dA, (K, K, lda, stride_a, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_matrix<T>, dB, (M, N, ldb, stride_b, batch_count));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
 
     //  initialize full random matrix hA and hB
     h_alpha[0] = alpha;
@@ -669,8 +654,8 @@ void testing_trmm_strided_batched(const Arguments& arg)
     int64_t dC_N   = inplace ? 1 : N;
     int64_t dC_ldc = inplace ? 1 : ldc;
 
-    device_strided_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, stride_c, batch_count);
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(
+        device_strided_batch_matrix<T>, dC, (dC_M, dC_N, dC_ldc, stride_c, batch_count));
 
     device_strided_batch_matrix<T>* dOut = inplace ? &dB : &dC;
 
@@ -772,7 +757,8 @@ void testing_trmm_strided_batched(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_strided_batch_matrix<T> hC_copy(M, N, ldc, stride_c, batch_count);
+                HOST_MEMCHECK(
+                    host_strided_batch_matrix<T>, hC_copy, (M, N, ldc, stride_c, batch_count));
                 CHECK_HIP_ERROR(hC.transfer_from(*dOut));
                 // multi-GPU support
                 int device_id, device_count;
@@ -787,17 +773,16 @@ void testing_trmm_strided_batched(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_strided_batch_matrix<T> dA_copy(K, K, lda, stride_a, batch_count);
-                    device_strided_batch_matrix<T> dB_copy(M, N, ldb, stride_b, batch_count);
-                    device_strided_batch_matrix<T> dC_copy(
-                        dC_M, dC_N, dC_ldc, stride_c, batch_count);
-                    device_vector<T> d_alpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_strided_batch_matrix<T>,
+                                    dA_copy,
+                                    (K, K, lda, stride_a, batch_count));
+                    DEVICE_MEMCHECK(device_strided_batch_matrix<T>,
+                                    dB_copy,
+                                    (M, N, ldb, stride_b, batch_count));
+                    DEVICE_MEMCHECK(device_strided_batch_matrix<T>,
+                                    dC_copy,
+                                    (dC_M, dC_N, dC_ldc, stride_c, batch_count));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));

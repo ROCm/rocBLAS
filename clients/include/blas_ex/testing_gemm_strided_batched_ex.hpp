@@ -72,7 +72,9 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<Tc>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<Tc>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<Tc>, zero_d, (1));
 
         const Tc alpha_h(1), beta_h(2), zero_h(0);
 
@@ -97,16 +99,12 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
         int64_t B_col = transB == rocblas_operation_none ? N : Kmax;
 
         // Allocate device memory
-        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
-        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
-        device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
-        device_strided_batch_matrix<To> dD(M, N, ldd, stride_d, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<Ti>, dA, (A_row, A_col, lda, stride_a, batch_count));
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<Ti>, dB, (B_row, B_col, ldb, stride_b, batch_count));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dC, (M, N, ldc, stride_c, batch_count));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dD, (M, N, ldd, stride_d, batch_count));
 
         // clang-format off
 
@@ -300,10 +298,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_strided_batch_matrix<Ti> dA(1, 1, 1, 1, 1);
-        device_strided_batch_matrix<Ti> dB(1, 1, 1, 1, 1);
-        device_strided_batch_matrix<To> dC(1, 1, 1, 1, 1);
-        device_strided_batch_matrix<To> dD(1, 1, 1, 1, 1);
+        DEVICE_MEMCHECK(device_strided_batch_matrix<Ti>, dA, (1, 1, 1, 1, 1));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<Ti>, dB, (1, 1, 1, 1, 1));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dC, (1, 1, 1, 1, 1));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dD, (1, 1, 1, 1, 1));
         // clang-format off
         DAPI_CHECK(rocblas_gemm_strided_batched_ex_fn, (
 				handle, transA, transB, M, N, K, &h_alpha_Tc,
@@ -327,28 +325,16 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
-    host_strided_batch_matrix<Ti>     hA(A_row, A_col, lda, stride_a, batch_count);
-    host_strided_batch_matrix<Ti>     hB(B_row, B_col, ldb, stride_b, batch_count);
-    host_strided_batch_matrix<To>     hC(M, N, ldc, stride_c, batch_count);
-    host_strided_batch_matrix<To>     hD_1(M, N, ldd, stride_d, batch_count);
-    host_strided_batch_matrix<To>     hD_2(M, N, ldd, stride_d, batch_count);
-    host_strided_batch_matrix<To_hpa> hD_gold(M, N, ldd, stride_d, batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-    CHECK_HIP_ERROR(hD_1.memcheck());
-    CHECK_HIP_ERROR(hD_2.memcheck());
-    CHECK_HIP_ERROR(hD_gold.memcheck());
+    HOST_MEMCHECK(host_strided_batch_matrix<Ti>, hA, (A_row, A_col, lda, stride_a, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<Ti>, hB, (B_row, B_col, ldb, stride_b, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hC, (M, N, ldc, stride_c, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hD_1, (M, N, ldd, stride_d, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hD_2, (M, N, ldd, stride_d, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To_hpa>, hD_gold, (M, N, ldd, stride_d, batch_count));
 
     // Allocate device memory
-    device_vector<Tc> d_alpha_Tc(1);
-    device_vector<Tc> d_beta_Tc(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
     bool alt       = (rocblas_gemm_flags_fp16_alt_impl & flags);
     bool alt_round = (rocblas_gemm_flags_fp16_alt_impl_rnz & flags);
@@ -369,21 +355,18 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // Allocate device memory
-        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
-        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<Ti>, dA, (A_row, A_col, lda, stride_a, batch_count));
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<Ti>, dB, (B_row, B_col, ldb, stride_b, batch_count));
         // if C!=D, allocate C and D normally
         // if C==D, allocate C big enough for the larger of C and D; D points to C
-        device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dC, (M, N, ldc, stride_c, batch_count));
         device_strided_batch_matrix<To> dD
             = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
                                : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-        device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -430,8 +413,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_strided_batch_matrix<To> hD_2_copy(M, N, ldd, stride_d, batch_count);
-                CHECK_HIP_ERROR(hD_2_copy.memcheck());
+                HOST_MEMCHECK(
+                    host_strided_batch_matrix<To>, hD_2_copy, (M, N, ldd, stride_d, batch_count));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -452,22 +435,19 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                         B_row, B_col, ldb, stride_b, batch_count);
                     // if C!=D, allocate C and D normally
                     // if C==D, allocate C big enough for the larger of C and D; D points to C
-                    device_strided_batch_matrix<To> dC_copy(M, N, ldc, stride_c, batch_count);
+                    DEVICE_MEMCHECK(device_strided_batch_matrix<To>,
+                                    dC_copy,
+                                    (M, N, ldc, stride_c, batch_count));
                     device_strided_batch_matrix<To> dD_copy
                         = (arg.outofplace)
                               ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
                               : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
+                    CHECK_DEVICE_ALLOCATION(dD_copy.memcheck());
                     device_strided_batch_matrix<To>& dDref_copy
                         = (arg.outofplace) ? dD_copy : dC_copy;
 
-                    device_vector<Tc> d_alpha_Tc_copy(1);
-                    device_vector<Tc> d_beta_Tc_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dD_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc_copy, (1));
+                    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
@@ -612,25 +592,23 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
 
         // Allocate device memory
-        device_multiple_strided_batch_matrix<Ti> dA(
-            A_row, A_col, lda, stride_a, batch_count, flush_batch_count);
-        device_multiple_strided_batch_matrix<Ti> dB(
-            B_row, B_col, ldb, stride_b, batch_count, flush_batch_count);
+        DEVICE_MEMCHECK(device_multiple_strided_batch_matrix<Ti>,
+                        dA,
+                        (A_row, A_col, lda, stride_a, batch_count, flush_batch_count));
+        DEVICE_MEMCHECK(device_multiple_strided_batch_matrix<Ti>,
+                        dB,
+                        (B_row, B_col, ldb, stride_b, batch_count, flush_batch_count));
         // if C!=D, allocate C and D normally
         // if C==D, allocate C big enough for the larger of C and D; D points to C
-        device_multiple_strided_batch_matrix<To> dC(
-            M, N, ldc, stride_c, batch_count, flush_batch_count);
+        DEVICE_MEMCHECK(device_multiple_strided_batch_matrix<To>,
+                        dC,
+                        (M, N, ldc, stride_c, batch_count, flush_batch_count));
         device_multiple_strided_batch_matrix<To> dD
             = (arg.outofplace) ? device_multiple_strided_batch_matrix<To>(
                   M, N, ldd, stride_d, batch_count, flush_batch_count)
                                : device_multiple_strided_batch_matrix<To>(0, 1, 1, 1, 1, 1);
-        device_multiple_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        device_multiple_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA.broadcast_one_strided_batch_matrix_from(hA));

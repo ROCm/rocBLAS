@@ -22,22 +22,9 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "client_utility.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
+#include "frequency_monitor.hpp"
+#include "testing_common.hpp"
 #include "testing_gemm_ex3.hpp"
-#include "type_dispatch.hpp"
-#include "unit.hpp"
 
 /* ============================================================================================ */
 template <typename TiA, typename TiB, typename To, typename Tc>
@@ -68,8 +55,11 @@ void testing_gemm_batched_ex3_bad_arg(const Arguments& arg)
         const rocblas_datatype    d_type                 = arg.d_type;
         const rocblas_computetype composite_compute_type = arg.composite_compute_type;
 
-        device_vector<float> alpha_d(1), beta_d(1), zero_d(1);
-        const float          alpha_h(1), beta_h(1), zero_h(0);
+        DEVICE_MEMCHECK(device_vector<float>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<float>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<float>, zero_d, (1));
+
+        const float alpha_h(1), beta_h(1), zero_h(0);
 
         const float* alpha = &alpha_h;
         const float* beta  = &beta_h;
@@ -97,19 +87,13 @@ void testing_gemm_batched_ex3_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // allocate memory on device
-        device_batch_matrix<TiA> dA(A_row, A_col, lda, batch_count);
-        device_batch_matrix<TiB> dB(B_row, B_col, ldb, batch_count);
-        device_batch_matrix<To>  dC(M, N, ldc, batch_count);
-        device_batch_matrix<To>  dD(M, N, ldd, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        DEVICE_MEMCHECK(device_batch_matrix<TiA>, dA, (A_row, A_col, lda, batch_count));
+        DEVICE_MEMCHECK(device_batch_matrix<TiB>, dB, (B_row, B_col, ldb, batch_count));
+        DEVICE_MEMCHECK(device_batch_matrix<To>, dC, (M, N, ldc, batch_count));
+        DEVICE_MEMCHECK(device_batch_matrix<To>, dD, (M, N, ldd, batch_count));
 
         // host
-        host_batch_matrix<To> hC(M, N, ldc, batch_count);
+        HOST_MEMCHECK(host_batch_matrix<To>, hC, (M, N, ldc, batch_count));
         rocblas_seedrand();
         rocblas_init_matrix<To>(
             hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
@@ -925,10 +909,10 @@ void testing_gemm_batched_ex3(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_batch_vector<TiA> dA(1, 1, batch_count);
-        device_batch_vector<TiB> dB(1, 1, batch_count);
-        device_batch_vector<To>  dC(1, 1, batch_count);
-        device_batch_vector<To>  dD(1, 1, batch_count);
+        DEVICE_MEMCHECK(device_batch_vector<TiA>, dA, (1, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<TiB>, dB, (1, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<To>, dC, (1, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<To>, dD, (1, 1, batch_count));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex3_fn(handle,
                                                         transA,
                                                         transB,
@@ -968,34 +952,23 @@ void testing_gemm_batched_ex3(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<TiA> hA(A_row, A_col, lda, batch_count);
-    host_batch_matrix<TiB> hB(B_row, B_col, ldb, batch_count);
-    host_batch_matrix<To>  hC(M, N, ldc, batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
+    HOST_MEMCHECK(host_batch_matrix<TiA>, hA, (A_row, A_col, lda, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<TiB>, hB, (B_row, B_col, ldb, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<To>, hC, (M, N, ldc, batch_count));
 
     // Allocate device memory
-    device_batch_matrix<TiA> dA(A_row, A_col, lda, batch_count);
-    device_batch_matrix<TiB> dB(B_row, B_col, ldb, batch_count);
+    DEVICE_MEMCHECK(device_batch_matrix<TiA>, dA, (A_row, A_col, lda, batch_count));
+    DEVICE_MEMCHECK(device_batch_matrix<TiB>, dB, (B_row, B_col, ldb, batch_count));
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_batch_matrix<To>  dC(M, N, ldc, batch_count);
-    device_batch_matrix<To>  dD = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count)
-                                                   : device_batch_matrix<To>(0, 1, 1, 1);
-    device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-    device_vector<Tc>        d_alpha_Tc(1);
-    device_vector<Tc>        d_beta_Tc(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_batch_matrix<To>, dC, (M, N, ldc, batch_count));
+    device_batch_matrix<To> dD = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count)
+                                                  : device_batch_matrix<To>(0, 1, 1, 1);
     CHECK_DEVICE_ALLOCATION(dD.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+    device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix<TiA>(
@@ -1011,14 +984,9 @@ void testing_gemm_batched_ex3(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        host_batch_matrix<To> hD_1(M, N, ldd, batch_count);
-        host_batch_matrix<To> hD_2(M, N, ldd, batch_count);
-        host_batch_matrix<To> hD_gold(M, N, ldd, batch_count);
-
-        // Check host memory allocation
-        CHECK_HIP_ERROR(hD_1.memcheck());
-        CHECK_HIP_ERROR(hD_2.memcheck());
-        CHECK_HIP_ERROR(hD_gold.memcheck());
+        HOST_MEMCHECK(host_batch_matrix<To>, hD_1, (M, N, ldd, batch_count));
+        HOST_MEMCHECK(host_batch_matrix<To>, hD_2, (M, N, ldd, batch_count));
+        HOST_MEMCHECK(host_batch_matrix<To>, hD_gold, (M, N, ldd, batch_count));
 
         // Initialize data on host memory
         for(int b = 0; b < batch_count; b++)

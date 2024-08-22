@@ -53,7 +53,10 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, one_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
@@ -77,12 +80,9 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
         int64_t batch_count = 2;
 
         // allocate memory on device
-        device_batch_vector<T> dA(safe_size, 1, batch_count);
-        device_batch_vector<T> dB(safe_size, 1, batch_count);
-        device_batch_vector<T> dC(safe_size, 1, batch_count);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        DEVICE_MEMCHECK(device_batch_vector<T>, dA, (safe_size, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<T>, dB, (safe_size, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<T>, dC, (safe_size, 1, batch_count));
 
         // clang-format off
 
@@ -240,9 +240,9 @@ void testing_gemm_batched(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_batch_vector<T> dA(1, 1, batch_count);
-        device_batch_vector<T> dB(1, 1, batch_count);
-        device_batch_vector<T> dC(1, 1, batch_count);
+        DEVICE_MEMCHECK(device_batch_vector<T>, dA, (1, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<T>, dB, (1, 1, batch_count));
+        DEVICE_MEMCHECK(device_batch_vector<T>, dC, (1, 1, batch_count));
         DAPI_CHECK(rocblas_gemm_batched_fn,
                    (handle,
                     transA,
@@ -265,32 +265,20 @@ void testing_gemm_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<T> hA(A_row, A_col, lda, batch_count);
-    host_batch_matrix<T> hB(B_row, B_col, ldb, batch_count);
-    host_batch_matrix<T> hC(M, N, ldc, batch_count);
-    host_vector<T>       halpha(1);
-    host_vector<T>       hbeta(1);
+    HOST_MEMCHECK(host_batch_matrix<T>, hA, (A_row, A_col, lda, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hB, (B_row, B_col, ldb, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hC, (M, N, ldc, batch_count));
+    HOST_MEMCHECK(host_vector<T>, halpha, (1));
+    HOST_MEMCHECK(host_vector<T>, hbeta, (1));
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-
     // Allocate device memory
-    device_batch_matrix<T> dA(A_row, A_col, lda, batch_count, false, offsetA);
-    device_batch_matrix<T> dB(B_row, B_col, ldb, batch_count, false, offsetB);
-    device_batch_matrix<T> dC(M, N, ldc, batch_count, false, offsetC);
-    device_vector<T>       d_alpha(1);
-    device_vector<T>       d_beta(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dA, (A_row, A_col, lda, batch_count, false, offsetA));
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dB, (B_row, B_col, ldb, batch_count, false, offsetB));
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dC, (M, N, ldc, batch_count, false, offsetC));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
+    DEVICE_MEMCHECK(device_vector<T>, d_beta, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -305,8 +293,7 @@ void testing_gemm_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
-        CHECK_HIP_ERROR(hC_gold.memcheck());
+        HOST_MEMCHECK(host_batch_matrix<T>, hC_gold, (M, N, ldc, batch_count));
         hC_gold.copy_from(hC);
 
         // ROCBLAS rocblas_pointer_mode_host
@@ -393,7 +380,7 @@ void testing_gemm_batched(const Arguments& arg)
 
                 if(arg.repeatability_check)
                 {
-                    host_batch_matrix<T> hC_copy(M, N, ldc, batch_count);
+                    HOST_MEMCHECK(host_batch_matrix<T>, hC_copy, (M, N, ldc, batch_count));
                     CHECK_HIP_ERROR(hC.transfer_from(dC));
 
                     // multi-GPU support
@@ -409,20 +396,17 @@ void testing_gemm_batched(const Arguments& arg)
                         rocblas_local_handle handle_copy{arg};
 
                         //Allocate device memory in new device
-                        device_batch_matrix<T> dA_copy(
-                            A_row, A_col, lda, batch_count, false, offsetA);
-                        device_batch_matrix<T> dB_copy(
-                            B_row, B_col, ldb, batch_count, false, offsetB);
-                        device_batch_matrix<T> dC_copy(M, N, ldc, batch_count, false, offsetC);
-                        device_vector<T>       d_alpha_copy(1);
-                        device_vector<T>       d_beta_copy(1);
-
-                        // Check device memory allocation
-                        CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
-                        CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+                        DEVICE_MEMCHECK(device_batch_matrix<T>,
+                                        dA_copy,
+                                        (A_row, A_col, lda, batch_count, false, offsetA));
+                        DEVICE_MEMCHECK(device_batch_matrix<T>,
+                                        dB_copy,
+                                        (B_row, B_col, ldb, batch_count, false, offsetB));
+                        DEVICE_MEMCHECK(device_batch_matrix<T>,
+                                        dC_copy,
+                                        (M, N, ldc, batch_count, false, offsetC));
+                        DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
+                        DEVICE_MEMCHECK(device_vector<T>, d_beta_copy, (1));
 
                         // copy data from CPU to device
                         CHECK_HIP_ERROR(dA_copy.transfer_from(hA));

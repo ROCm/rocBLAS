@@ -53,12 +53,8 @@ void testing_trtri_bad_arg(const Arguments& arg)
     const rocblas_diagonal diag = rocblas_diagonal_non_unit;
 
     // Allocate device memory
-    device_matrix<T> dA(N, N, lda);
-    device_matrix<T> dinvA(N, N, lda);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (N, N, lda));
+    DEVICE_MEMCHECK(device_matrix<T>, dinvA, (N, N, lda));
 
     EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, rocblas_fill_full, diag, N, dA, lda, dinvA, lda),
                           rocblas_status_invalid_value);
@@ -125,16 +121,12 @@ void testing_trtri(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(N, N, lda);
-    host_matrix<T> hB(N, N, lda);
+    HOST_MEMCHECK(host_matrix<T>, hA, (N, N, lda));
+    HOST_MEMCHECK(host_matrix<T>, hB, (N, N, lda));
 
     // Allocate device memory
-    device_matrix<T> dA(N, N, lda);
-    device_matrix<T> dinvA(N, N, lda);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (N, N, lda));
+    DEVICE_MEMCHECK(device_matrix<T>, dinvA, (N, N, lda));
 
     // Initial Data on CPU
     //Explicitly set the unused side of matrix `hA` to 0 when using it for temp storage.
@@ -196,7 +188,7 @@ void testing_trtri(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
             if(arg.repeatability_check)
             {
-                host_matrix<T> hA_copy(N, N, lda);
+                HOST_MEMCHECK(host_matrix<T>, hA_copy, (N, N, lda));
                 CHECK_HIP_ERROR(hA.transfer_from(dinvA));
                 // multi-GPU support
                 int device_id, device_count;
@@ -211,12 +203,8 @@ void testing_trtri(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_matrix<T> dA_copy(N, N, lda);
-                    device_matrix<T> dinvA_copy(N, N, lda);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dinvA_copy.memcheck());
+                    DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (N, N, lda));
+                    DEVICE_MEMCHECK(device_matrix<T>, dinvA_copy, (N, N, lda));
 
                     for(int runs = 0; runs < arg.iters; runs++)
                     {
@@ -241,8 +229,8 @@ void testing_trtri(const Arguments& arg)
             rocblas_int    batch_count     = 1;
             rocblas_int    sub_batch_count = 1;
 
-            size_t           work_el = rocblas_internal_trtri_temp_elements(N, 1);
-            device_vector<T> workspace(work_el);
+            size_t work_el = rocblas_internal_trtri_temp_elements(N, 1);
+            DEVICE_MEMCHECK(device_vector<T>, workspace, (work_el));
 
             // Note: sub_strides and sub_batch_count don't seem to be used anywhere in rocBLAS or rocSOLVER,
             //       and should be able to be removed in a future release. They are not tested.
@@ -279,8 +267,8 @@ void testing_trtri(const Arguments& arg)
             rocblas_int    batch_count     = 1;
             rocblas_int    sub_batch_count = 1;
 
-            size_t           work_el = rocblas_internal_trtri_temp_elements(N, 1);
-            device_vector<T> workspace(work_el);
+            size_t work_el = rocblas_internal_trtri_temp_elements(N, 1);
+            DEVICE_MEMCHECK(device_vector<T>, workspace, (work_el));
 
             CHECK_ROCBLAS_ERROR(rocblas_internal_trtri_template(handle,
                                                                 uplo,

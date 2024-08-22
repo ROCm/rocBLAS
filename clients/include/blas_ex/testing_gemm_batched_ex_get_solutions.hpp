@@ -23,12 +23,7 @@
 #pragma once
 
 #define ROCBLAS_BETA_FEATURES_API
-#include "../../library/src/include/handle.hpp"
-#include "client_utility.hpp"
-#include "rocblas.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
+#include "testing_common.hpp"
 
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
@@ -111,24 +106,18 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
     const size_t size_d     = size_one_d;
 
     // Allocate device memory
-    device_batch_matrix<Ti> dA(A_row, A_col, lda, batch_count);
-    device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count);
+    DEVICE_MEMCHECK(device_batch_matrix<Ti>, dA, (A_row, A_col, lda, batch_count));
+    DEVICE_MEMCHECK(device_batch_matrix<Ti>, dB, (B_row, B_col, ldb, batch_count));
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_batch_matrix<To>  dC(M, N, ldc, batch_count);
-    device_batch_matrix<To>  dD = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count)
-                                                   : device_batch_matrix<To>(0, 1, 1, 1);
-    device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-    device_vector<Tc>        d_alpha_Tc(1);
-    device_vector<Tc>        d_beta_Tc(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_batch_matrix<To>, dC, (M, N, ldc, batch_count));
+    device_batch_matrix<To> dD = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count)
+                                                  : device_batch_matrix<To>(0, 1, 1, 1);
     CHECK_DEVICE_ALLOCATION(dD.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+    device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
 #define GEMM_B_EX_ARGS                                                                        \
     handle, transA, transB, M, N, K, &h_alpha_Tc, dA.ptr_on_device(), arg.a_type, lda,        \

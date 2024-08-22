@@ -44,10 +44,7 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_batch_vector<Tx> dx(N, incx, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    DEVICE_MEMCHECK(device_batch_vector<Tx>, dx, (N, incx, batch_count));
 
     DAPI_EXPECT(rocblas_status_invalid_handle,
                 rocblas_scal_batched_ex_fn,
@@ -114,18 +111,14 @@ void testing_scal_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<Tx> hx(N, incx, batch_count);
-    host_batch_vector<Tx> hx_gold(N, incx, batch_count);
-    host_vector<Ta>       halpha(1);
+    HOST_MEMCHECK(host_batch_vector<Tx>, hx, (N, incx, batch_count));
+    HOST_MEMCHECK(host_batch_vector<Tx>, hx_gold, (N, incx, batch_count));
+    HOST_MEMCHECK(host_vector<Ta>, halpha, (1));
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_batch_vector<Tx> dx(N, incx, batch_count);
-    device_vector<Ta>       d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_batch_vector<Tx>, dx, (N, incx, batch_count));
+    DEVICE_MEMCHECK(device_vector<Ta>, d_alpha, (1));
 
     // Initialize memory on host.
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -185,8 +178,7 @@ void testing_scal_batched_ex(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_batch_vector<Tx> hx_copy(N, incx, batch_count);
-                CHECK_HIP_ERROR(hx_copy.memcheck());
+                HOST_MEMCHECK(host_batch_vector<Tx>, hx_copy, (N, incx, batch_count));
 
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
                 // multi-GPU support
@@ -202,12 +194,8 @@ void testing_scal_batched_ex(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_batch_vector<Tx> dx_copy(N, incx, batch_count);
-                    device_vector<Ta>       d_alpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_batch_vector<Tx>, dx_copy, (N, incx, batch_count));
+                    DEVICE_MEMCHECK(device_vector<Ta>, d_alpha_copy, (1));
 
                     CHECK_HIP_ERROR(d_alpha_copy.transfer_from(halpha));
 

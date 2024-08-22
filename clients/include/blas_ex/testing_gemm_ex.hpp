@@ -54,8 +54,11 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         const rocblas_datatype d_type       = rocblas_type2datatype<To>();
         const rocblas_datatype compute_type = rocblas_type2datatype<Tc>();
 
-        device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
-        const Tc          alpha_h(1), beta_h(1), zero_h(0);
+        DEVICE_MEMCHECK(device_vector<Tc>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<Tc>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<Tc>, zero_d, (1));
+
+        const Tc alpha_h(1), beta_h(1), zero_h(0);
 
         const Tc* alpha = &alpha_h;
         const Tc* beta  = &beta_h;
@@ -87,19 +90,13 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // Allocate device memory
-        device_matrix<Ti> dA(A_row, A_col, lda);
-        device_matrix<Ti> dB(B_row, B_col, ldb);
-        device_matrix<To> dC(M, N, ldc);
-        device_matrix<To> dD(M, N, ldd);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        DEVICE_MEMCHECK(device_matrix<Ti>, dA, (A_row, A_col, lda));
+        DEVICE_MEMCHECK(device_matrix<Ti>, dB, (B_row, B_col, ldb));
+        DEVICE_MEMCHECK(device_matrix<To>, dC, (M, N, ldc));
+        DEVICE_MEMCHECK(device_matrix<To>, dD, (M, N, ldd));
 
         // host
-        host_matrix<To> hC(M, N, ldc);
+        HOST_MEMCHECK(host_matrix<To>, hC, (M, N, ldc));
         rocblas_seedrand();
         rocblas_init_matrix(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
         dC.transfer_from(hC);
@@ -284,10 +281,10 @@ void testing_gemm_ex(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_vector<Ti> dA(1);
-        device_vector<Ti> dB(1);
-        device_vector<To> dC(1);
-        device_vector<To> dD(1);
+        DEVICE_MEMCHECK(device_vector<Ti>, dA, (1));
+        DEVICE_MEMCHECK(device_vector<Ti>, dB, (1));
+        DEVICE_MEMCHECK(device_vector<To>, dC, (1));
+        DEVICE_MEMCHECK(device_vector<To>, dD, (1));
         // clang-format off
         DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
                                                dA, arg.a_type, lda,
@@ -307,22 +304,13 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     // Allocate host memory
-    host_matrix<Ti> hA(A_row, A_col, lda);
-    host_matrix<Ti> hB(B_row, B_col, ldb);
-    host_matrix<To> hC(M, N, ldc);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
+    HOST_MEMCHECK(host_matrix<Ti>, hA, (A_row, A_col, lda));
+    HOST_MEMCHECK(host_matrix<Ti>, hB, (B_row, B_col, ldb));
+    HOST_MEMCHECK(host_matrix<To>, hC, (M, N, ldc));
 
     // Allocate device memory
-    device_vector<Tc> d_alpha_Tc(1);
-    device_vector<Tc> d_beta_Tc(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
     bool alt       = (rocblas_gemm_flags_fp16_alt_impl & flags);
     bool alt_round = (rocblas_gemm_flags_fp16_alt_impl_rnz & flags);
@@ -338,25 +326,18 @@ void testing_gemm_ex(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // Allocate device memory
-        device_matrix<Ti> dA(A_row, A_col, lda);
-        device_matrix<Ti> dB(B_row, B_col, ldb);
+        DEVICE_MEMCHECK(device_matrix<Ti>, dA, (A_row, A_col, lda));
+        DEVICE_MEMCHECK(device_matrix<Ti>, dB, (B_row, B_col, ldb));
 
         // if C!=D, allocate C and D normally
         // if C==D, allocate C big enough for the larger of C and D; D points to C
-        device_matrix<To> dC(M, N, ldc);
+        DEVICE_MEMCHECK(device_matrix<To>, dC, (M, N, ldc));
         device_matrix<To> dD
             = (arg.outofplace) ? device_matrix<To>(M, N, ldd) : device_matrix<To>(0, 1, 1);
-        device_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-        device_vector<Tc>  d_alpha_Tc(1);
-        device_vector<Tc>  d_beta_Tc(1);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+        device_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+        DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+        DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -365,9 +346,9 @@ void testing_gemm_ex(const Arguments& arg)
 
         using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
 
-        host_matrix<To>     hD_1(M, N, ldd);
-        host_matrix<To>     hD_2(M, N, ldd);
-        host_matrix<To_hpa> hD_gold(M, N, ldd);
+        HOST_MEMCHECK(host_matrix<To>, hD_1, (M, N, ldd));
+        HOST_MEMCHECK(host_matrix<To>, hD_2, (M, N, ldd));
+        HOST_MEMCHECK(host_matrix<To_hpa>, hD_gold, (M, N, ldd));
 
         rocblas_init_nan<To>(hD_1, M, N, ldd);
         rocblas_init_nan<To>(hD_2, M, N, ldd);
@@ -413,8 +394,7 @@ void testing_gemm_ex(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_matrix<To> hD_copy(M, N, ldd);
-                CHECK_HIP_ERROR(hD_copy.memcheck());
+                HOST_MEMCHECK(host_matrix<To>, hD_copy, (M, N, ldd));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -429,24 +409,19 @@ void testing_gemm_ex(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_matrix<Ti> dA_copy(A_row, A_col, lda);
-                    device_matrix<Ti> dB_copy(B_row, B_col, ldb);
+                    DEVICE_MEMCHECK(device_matrix<Ti>, dA_copy, (A_row, A_col, lda));
+                    DEVICE_MEMCHECK(device_matrix<Ti>, dB_copy, (B_row, B_col, ldb));
 
                     // if C!=D, allocate C and D normally
                     // if C==D, allocate C big enough for the larger of C and D; D points to C
-                    device_matrix<To>  dC_copy(M, N, ldc);
-                    device_matrix<To>  dD_copy    = (arg.outofplace) ? device_matrix<To>(M, N, ldd)
-                                                                     : device_matrix<To>(0, 1, 1);
+                    DEVICE_MEMCHECK(device_matrix<To>, dC_copy, (M, N, ldc));
+                    device_matrix<To> dD_copy = (arg.outofplace) ? device_matrix<To>(M, N, ldd)
+                                                                 : device_matrix<To>(0, 1, 1);
+                    CHECK_DEVICE_ALLOCATION(dD_copy.memcheck());
                     device_matrix<To>& dDref_copy = (arg.outofplace) ? dD_copy : dC_copy;
 
-                    device_vector<Tc> d_alpha_Tc_copy(1);
-                    device_vector<Tc> d_beta_Tc_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dD_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc_copy, (1));
+                    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
@@ -626,21 +601,21 @@ void testing_gemm_ex(const Arguments& arg)
             arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
 
         // Allocate device memory
-        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, aligned_stride_a, flush_batch_count);
-        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
-        device_strided_batch_matrix<To> dC(M, N, ldc, aligned_stride_c, flush_batch_count);
+        DEVICE_MEMCHECK(device_strided_batch_matrix<Ti>,
+                        dA,
+                        (A_row, A_col, lda, aligned_stride_a, flush_batch_count));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<Ti>,
+                        dB,
+                        (B_row, B_col, ldb, aligned_stride_b, flush_batch_count));
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<To>, dC, (M, N, ldc, aligned_stride_c, flush_batch_count));
         // if C!=D, allocate C and D normally
         // if C==D, allocate C big enough for the larger of C and D; D points to C
         device_strided_batch_matrix<To> dD_alloc
             = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, aligned_stride_d, 1)
                                : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-        device_strided_batch_matrix<To>& dD = (arg.outofplace) ? dD_alloc : dC;
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD_alloc.memcheck());
+        device_strided_batch_matrix<To>& dD = (arg.outofplace) ? dD_alloc : dC;
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));

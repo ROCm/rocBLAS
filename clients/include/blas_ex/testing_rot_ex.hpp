@@ -42,16 +42,10 @@ void testing_rot_ex_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_vector<Tx>  dx(N, incx);
-    device_vector<Ty>  dy(N, incy);
-    device_vector<Tcs> dc(1, 1);
-    device_vector<Tcs> ds(1, 1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(dc.memcheck());
-    CHECK_DEVICE_ALLOCATION(ds.memcheck());
+    DEVICE_MEMCHECK(device_vector<Tx>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<Ty>, dy, (N, incy));
+    DEVICE_MEMCHECK(device_vector<Tcs>, dc, (1, 1));
+    DEVICE_MEMCHECK(device_vector<Tcs>, ds, (1, 1));
 
     DAPI_EXPECT(rocblas_status_invalid_handle,
                 rocblas_rot_ex_fn,
@@ -122,22 +116,16 @@ void testing_rot_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<Tx>  hx(N, incx);
-    host_vector<Ty>  hy(N, incy);
-    host_vector<Tcs> hc(1, 1);
-    host_vector<Tcs> hs(1, 1);
+    HOST_MEMCHECK(host_vector<Tx>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<Ty>, hy, (N, incy));
+    HOST_MEMCHECK(host_vector<Tcs>, hc, (1, 1));
+    HOST_MEMCHECK(host_vector<Tcs>, hs, (1, 1));
 
     // Allocate device memory
-    device_vector<Tx>  dx(N, incx);
-    device_vector<Ty>  dy(N, incy);
-    device_vector<Tcs> dc(1, 1);
-    device_vector<Tcs> ds(1, 1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(dc.memcheck());
-    CHECK_DEVICE_ALLOCATION(ds.memcheck());
+    DEVICE_MEMCHECK(device_vector<Tx>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<Ty>, dy, (N, incy));
+    DEVICE_MEMCHECK(device_vector<Tcs>, dc, (1, 1));
+    DEVICE_MEMCHECK(device_vector<Tcs>, ds, (1, 1));
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -180,10 +168,8 @@ void testing_rot_ex(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_vector<Tx> hx_copy(N, incx);
-                host_vector<Ty> hy_copy(N, incy);
-                CHECK_HIP_ERROR(hx_copy.memcheck());
-                CHECK_HIP_ERROR(hy_copy.memcheck());
+                HOST_MEMCHECK(host_vector<Tx>, hx_copy, (N, incx));
+                HOST_MEMCHECK(host_vector<Ty>, hy_copy, (N, incy));
 
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
                 CHECK_HIP_ERROR(hy.transfer_from(dy));
@@ -201,16 +187,10 @@ void testing_rot_ex(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_vector<Tx>  dx_copy(N, incx);
-                    device_vector<Ty>  dy_copy(N, incy);
-                    device_vector<Tcs> dc_copy(1, 1);
-                    device_vector<Tcs> ds_copy(1, 1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dc_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(ds_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<Tx>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<Ty>, dy_copy, (N, incy));
+                    DEVICE_MEMCHECK(device_vector<Tcs>, dc_copy, (1, 1));
+                    DEVICE_MEMCHECK(device_vector<Tcs>, ds_copy, (1, 1));
 
                     CHECK_HIP_ERROR(dc_copy.transfer_from(hc));
                     CHECK_HIP_ERROR(ds_copy.transfer_from(hs));

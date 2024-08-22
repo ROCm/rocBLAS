@@ -46,14 +46,9 @@ void testing_dot_ex_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_vector<Tx> dx(N, incx);
-    device_vector<Ty> dy(N, incy);
-    device_vector<Tr> d_rocblas_result(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+    DEVICE_MEMCHECK(device_vector<Tx>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<Ty>, dy, (N, incy));
+    DEVICE_MEMCHECK(device_vector<Tr>, d_rocblas_result, (1));
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -129,11 +124,9 @@ void testing_dot_ex(const Arguments& arg)
     // check to prevent undefined memmory allocation error
     if(N <= 0)
     {
-        device_vector<Tr> d_rocblas_result(1);
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<Tr>, d_rocblas_result, (1));
 
-        host_vector<Tr> h_rocblas_result(1);
-        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+        HOST_MEMCHECK(host_vector<Tr>, h_rocblas_result, (1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         DAPI_CHECK(rocblas_dot_ex_fn,
@@ -175,21 +168,16 @@ void testing_dot_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<Tx> hx(N, incx);
-    host_vector<Ty> hy(N, incy);
-    host_vector<Tr> cpu_result(1, 1);
-    host_vector<Tr> rocblas_result_host(1, 1);
-    host_vector<Tr> rocblas_result_device(1, 1);
+    HOST_MEMCHECK(host_vector<Tx>, hx, (N, incx));
+    HOST_MEMCHECK(host_vector<Ty>, hy, (N, incy));
+    HOST_MEMCHECK(host_vector<Tr>, cpu_result, (1, 1));
+    HOST_MEMCHECK(host_vector<Tr>, rocblas_result_host, (1, 1));
+    HOST_MEMCHECK(host_vector<Tr>, rocblas_result_device, (1, 1));
 
     // Allocate device memory
-    device_vector<Tx> dx(N, incx);
-    device_vector<Ty> dy(N, incy);
-    device_vector<Tr> d_rocblas_result_device(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result_device.memcheck());
+    DEVICE_MEMCHECK(device_vector<Tx>, dx, (N, incx));
+    DEVICE_MEMCHECK(device_vector<Ty>, dy, (N, incy));
+    DEVICE_MEMCHECK(device_vector<Tr>, d_rocblas_result_device, (1));
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
@@ -245,8 +233,7 @@ void testing_dot_ex(const Arguments& arg)
             handle.post_test(arg);
             if(arg.repeatability_check)
             {
-                host_vector<Tr> rocblas_result_device_copy(1, 1);
-                CHECK_HIP_ERROR(rocblas_result_device_copy.memcheck());
+                HOST_MEMCHECK(host_vector<Tr>, rocblas_result_device_copy, (1, 1));
 
                 CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
 
@@ -263,14 +250,9 @@ void testing_dot_ex(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_vector<Tx> dx_copy(N, incx);
-                    device_vector<Ty> dy_copy(N, incy);
-                    device_vector<Tr> d_rocblas_result_device_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_rocblas_result_device_copy.memcheck());
+                    DEVICE_MEMCHECK(device_vector<Tx>, dx_copy, (N, incx));
+                    DEVICE_MEMCHECK(device_vector<Ty>, dy_copy, (N, incy));
+                    DEVICE_MEMCHECK(device_vector<Tr>, d_rocblas_result_device_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));
