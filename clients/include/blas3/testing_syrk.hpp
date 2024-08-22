@@ -44,7 +44,10 @@ void testing_syrk_bad_arg(const Arguments& arg)
         const int64_t           lda    = 100;
         const int64_t           ldc    = 100;
 
-        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, one_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
@@ -69,12 +72,8 @@ void testing_syrk_bad_arg(const Arguments& arg)
         size_t cols = (transA == rocblas_operation_none ? std::max(K, int64_t(1)) : N);
 
         // Allocate device memory
-        device_matrix<T> dA(rows, cols, lda);
-        device_matrix<T> dC(N, N, ldc);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dA, (rows, cols, lda));
+        DEVICE_MEMCHECK(device_matrix<T>, dC, (N, N, ldc));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_syrk_fn,
@@ -214,28 +213,19 @@ void testing_syrk(const Arguments& arg)
     size_t cols = (transA == rocblas_operation_none ? std::max(K, int64_t(1)) : N);
 
     // Allocate host memory
-    host_matrix<T> hA(rows, cols, lda);
-    host_matrix<T> hC(N, N, ldc);
-    host_matrix<T> hC_gold(N, N, ldc);
-    host_vector<T> h_alpha(1);
-    host_vector<T> h_beta(1);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
+    HOST_MEMCHECK(host_matrix<T>, hA, (rows, cols, lda));
+    HOST_MEMCHECK(host_matrix<T>, hC, (N, N, ldc));
+    HOST_MEMCHECK(host_matrix<T>, hC_gold, (N, N, ldc));
+    HOST_MEMCHECK(host_vector<T>, h_alpha, (1));
+    HOST_MEMCHECK(host_vector<T>, h_beta, (1));
 
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
     // Allocate device memory
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
+    DEVICE_MEMCHECK(device_vector<T>, d_beta, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -247,12 +237,8 @@ void testing_syrk(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // Allocate device memory
-        device_matrix<T> dA(rows, cols, lda);
-        device_matrix<T> dC(N, N, ldc);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        DEVICE_MEMCHECK(device_matrix<T>, dA, (rows, cols, lda));
+        DEVICE_MEMCHECK(device_matrix<T>, dC, (N, N, ldc));
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -285,8 +271,7 @@ void testing_syrk(const Arguments& arg)
             {
                 CHECK_HIP_ERROR(hC.transfer_from(dC));
 
-                host_matrix<T> hC_copy(N, N, ldc);
-                CHECK_HIP_ERROR(hC_copy.memcheck());
+                HOST_MEMCHECK(host_matrix<T>, hC_copy, (N, N, ldc));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -301,16 +286,10 @@ void testing_syrk(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_matrix<T> dA_copy(rows, cols, lda);
-                    device_matrix<T> dC_copy(N, N, ldc);
-                    device_vector<T> d_alpha_copy(1);
-                    device_vector<T> d_beta_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_beta_copy.memcheck());
+                    DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (rows, cols, lda));
+                    DEVICE_MEMCHECK(device_matrix<T>, dC_copy, (N, N, ldc));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
+                    DEVICE_MEMCHECK(device_vector<T>, d_beta_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));
@@ -439,12 +418,11 @@ void testing_syrk(const Arguments& arg)
             arg.flush_batch_count, arg.flush_memory_size, a_c_cached_size);
 
         // Allocate device memory
-        device_strided_batch_matrix<T> dA(rows, cols, lda, aligned_stride_a, flush_batch_count);
-        device_strided_batch_matrix<T> dC(N, N, ldc, aligned_stride_c, flush_batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        DEVICE_MEMCHECK(device_strided_batch_matrix<T>,
+                        dA,
+                        (rows, cols, lda, aligned_stride_a, flush_batch_count));
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<T>, dC, (N, N, ldc, aligned_stride_c, flush_batch_count));
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));

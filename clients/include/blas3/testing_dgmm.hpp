@@ -48,14 +48,9 @@ void testing_dgmm_bad_arg(const Arguments& arg)
     rocblas_int K = rocblas_side_right == side ? N : M;
 
     // Allocate device memory
-    device_matrix<T> dA(M, N, lda);
-    device_vector<T> dx(K, incx);
-    device_matrix<T> dC(M, N, ldc);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (M, N, lda));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (K, incx));
+    DEVICE_MEMCHECK(device_matrix<T>, dC, (M, N, ldc));
 
     DAPI_EXPECT(rocblas_status_invalid_handle,
                 rocblas_dgmm_fn,
@@ -114,20 +109,15 @@ void testing_dgmm(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_matrix<T> hA(M, N, lda);
-    host_vector<T> hx(K, incx);
-    host_matrix<T> hC(M, N, ldc);
-    host_matrix<T> hC_gold(M, N, ldc);
+    HOST_MEMCHECK(host_matrix<T>, hA, (M, N, lda));
+    HOST_MEMCHECK(host_vector<T>, hx, (K, incx));
+    HOST_MEMCHECK(host_matrix<T>, hC, (M, N, ldc));
+    HOST_MEMCHECK(host_matrix<T>, hC_gold, (M, N, ldc));
 
     // Allocate device memory
-    device_matrix<T> dA(M, N, lda);
-    device_vector<T> dx(K, incx);
-    device_matrix<T> dC(M, N, ldc);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dA, (M, N, lda));
+    DEVICE_MEMCHECK(device_vector<T>, dx, (K, incx));
+    DEVICE_MEMCHECK(device_matrix<T>, dC, (M, N, ldc));
 
     // Initialize data on host memory
     rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
@@ -151,7 +141,7 @@ void testing_dgmm(const Arguments& arg)
 
         if(arg.repeatability_check)
         {
-            host_matrix<T> hC_copy(M, N, ldc);
+            HOST_MEMCHECK(host_matrix<T>, hC_copy, (M, N, ldc));
             // multi-GPU support
             int device_id, device_count;
             CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
@@ -165,14 +155,9 @@ void testing_dgmm(const Arguments& arg)
                 rocblas_local_handle handle_copy{arg};
 
                 //Allocate device memory in new device
-                device_matrix<T> dA_copy(M, N, lda);
-                device_vector<T> dx_copy(K, incx);
-                device_matrix<T> dC_copy(M, N, ldc);
-
-                // Check device memory allocation
-                CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
+                DEVICE_MEMCHECK(device_matrix<T>, dA_copy, (M, N, lda));
+                DEVICE_MEMCHECK(device_vector<T>, dx_copy, (K, incx));
+                DEVICE_MEMCHECK(device_matrix<T>, dC_copy, (M, N, ldc));
 
                 // copy data from CPU to device
                 CHECK_HIP_ERROR(dA_copy.transfer_from(hA));

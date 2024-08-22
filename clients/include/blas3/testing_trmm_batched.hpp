@@ -61,7 +61,8 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
         const int64_t ldOut       = inplace ? ldb : ldc;
         const int64_t batch_count = 2;
 
-        device_vector<T> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<T>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<T>, zero_d, (1));
 
         const T alpha_h(1), zero_h(0);
 
@@ -84,19 +85,14 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
         int64_t K = side == rocblas_side_left ? M : N;
 
         // Allocate device memory
-        device_batch_matrix<T> dA(K, K, lda, batch_count);
-        device_batch_matrix<T> dB(M, N, ldb, batch_count);
+        DEVICE_MEMCHECK(device_batch_matrix<T>, dA, (K, K, lda, batch_count));
+        DEVICE_MEMCHECK(device_batch_matrix<T>, dB, (M, N, ldb, batch_count));
 
         int64_t dC_M   = inplace ? 1 : M;
         int64_t dC_N   = inplace ? 1 : N;
         int64_t dC_ldc = inplace ? 1 : ldc;
 
-        device_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        DEVICE_MEMCHECK(device_batch_matrix<T>, dC, (dC_M, dC_N, dC_ldc, batch_count));
 
         device_batch_matrix<T>* dOut = inplace ? &dB : &dC;
 
@@ -539,30 +535,19 @@ void testing_trmm_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<T> hA(K, K, lda, batch_count);
-    host_batch_matrix<T> hB(M, N, ldb, batch_count);
-    host_batch_matrix<T> hC(M, N, ldc, batch_count);
-    host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
-    host_vector<T>       h_alpha(1);
+    HOST_MEMCHECK(host_batch_matrix<T>, hA, (K, K, lda, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hB, (M, N, ldb, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hC, (M, N, ldc, batch_count));
+    HOST_MEMCHECK(host_batch_matrix<T>, hC_gold, (M, N, ldc, batch_count));
+    HOST_MEMCHECK(host_vector<T>, h_alpha, (1));
 
     //  Initialize data on CPU
     h_alpha[0] = alpha;
 
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
-
     // Allocate device memory
-    device_batch_matrix<T> dA(K, K, lda, batch_count);
-    device_batch_matrix<T> dB(M, N, ldb, batch_count);
-    device_vector<T>       d_alpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dA, (K, K, lda, batch_count));
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dB, (M, N, ldb, batch_count));
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
 
     // Initialize data on host memory
     rocblas_init_matrix(
@@ -583,8 +568,7 @@ void testing_trmm_batched(const Arguments& arg)
     int64_t dC_N   = inplace ? 1 : N;
     int64_t dC_ldc = inplace ? 1 : ldc;
 
-    device_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, batch_count);
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    DEVICE_MEMCHECK(device_batch_matrix<T>, dC, (dC_M, dC_N, dC_ldc, batch_count));
 
     device_batch_matrix<T>* dOut = inplace ? &dB : &dC;
 
@@ -671,7 +655,7 @@ void testing_trmm_batched(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_batch_matrix<T> hC_copy(M, N, ldc, batch_count);
+                HOST_MEMCHECK(host_batch_matrix<T>, hC_copy, (M, N, ldc, batch_count));
                 CHECK_HIP_ERROR(hC.transfer_from(*dOut));
                 // multi-GPU support
                 int device_id, device_count;
@@ -686,16 +670,11 @@ void testing_trmm_batched(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_batch_matrix<T> dA_copy(K, K, lda, batch_count);
-                    device_batch_matrix<T> dB_copy(M, N, ldb, batch_count);
-                    device_batch_matrix<T> dC_copy(dC_M, dC_N, dC_ldc, batch_count);
-                    device_vector<T>       d_alpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dA_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dB_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dC_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(d_alpha_copy.memcheck());
+                    DEVICE_MEMCHECK(device_batch_matrix<T>, dA_copy, (K, K, lda, batch_count));
+                    DEVICE_MEMCHECK(device_batch_matrix<T>, dB_copy, (M, N, ldb, batch_count));
+                    DEVICE_MEMCHECK(
+                        device_batch_matrix<T>, dC_copy, (dC_M, dC_N, dC_ldc, batch_count));
+                    DEVICE_MEMCHECK(device_vector<T>, d_alpha_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dA_copy.transfer_from(hA));

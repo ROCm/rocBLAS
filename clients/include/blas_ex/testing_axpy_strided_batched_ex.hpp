@@ -49,7 +49,8 @@ void testing_axpy_strided_batched_ex_bad_arg(const Arguments& arg)
 
         rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
 
-        device_vector<Ta> alpha_d(1), zero_d(1);
+        DEVICE_MEMCHECK(device_vector<Ta>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<Ta>, zero_d, (1));
 
         const Ta alpha_h(1), zero_h(0);
 
@@ -64,11 +65,8 @@ void testing_axpy_strided_batched_ex_bad_arg(const Arguments& arg)
             zero = zero_d;
         }
 
-        device_strided_batch_vector<Tx> dx(10, 1, 10, 2);
-        device_strided_batch_vector<Ty> dy(10, 1, 10, 2);
-
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        DEVICE_MEMCHECK(device_strided_batch_vector<Tx>, dx, (10, 1, 10, 2));
+        DEVICE_MEMCHECK(device_strided_batch_vector<Ty>, dy, (10, 1, 10, 2));
 
         DAPI_EXPECT(rocblas_status_invalid_handle,
                     rocblas_axpy_strided_batched_ex_fn,
@@ -254,29 +252,18 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<Tx> hx(N, incx, stridex, batch_count);
-    host_strided_batch_vector<Ty> hy(N, incy, stridey, batch_count),
-        hy1(N, incy, stridey, batch_count), hy2(N, incy, stridey, batch_count);
-    host_strided_batch_vector<Tex> hx_ex(N, incx, stridex, batch_count);
-    host_strided_batch_vector<Tex> hy_ex(N, incy, stridey, batch_count);
-    host_vector<Ta>                halpha(1);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy.memcheck());
-    CHECK_HIP_ERROR(hy1.memcheck());
-    CHECK_HIP_ERROR(hy2.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
+    HOST_MEMCHECK(host_strided_batch_vector<Tx>, hx, (N, incx, stridex, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<Ty>, hy, (N, incy, stridey, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<Ty>, hy1, (N, incy, stridey, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<Ty>, hy2, (N, incy, stridey, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<Tex>, hx_ex, (N, incx, stridex, batch_count));
+    HOST_MEMCHECK(host_strided_batch_vector<Tex>, hy_ex, (N, incy, stridey, batch_count));
+    HOST_MEMCHECK(host_vector<Ta>, halpha, (1));
 
     // Allocate device memory
-    device_strided_batch_vector<Tx> dx(N, incx, stridex, batch_count);
-    device_strided_batch_vector<Ty> dy(N, incy, stridey, batch_count);
-    device_vector<Ta>               dalpha(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(dalpha.memcheck());
+    DEVICE_MEMCHECK(device_strided_batch_vector<Tx>, dx, (N, incx, stridex, batch_count));
+    DEVICE_MEMCHECK(device_strided_batch_vector<Ty>, dy, (N, incy, stridey, batch_count));
+    DEVICE_MEMCHECK(device_vector<Ta>, dalpha, (1));
 
     halpha[0] = h_alpha;
 
@@ -300,7 +287,6 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-
         // Transfer host to device
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
@@ -364,8 +350,8 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
 
             if(arg.repeatability_check)
             {
-                host_strided_batch_vector<Ty> hy_copy(N, incx, stridex, batch_count);
-                CHECK_HIP_ERROR(hy_copy.memcheck());
+                HOST_MEMCHECK(
+                    host_strided_batch_vector<Ty>, hy_copy, (N, incx, stridex, batch_count));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -380,14 +366,11 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
                     rocblas_local_handle handle_copy{arg};
 
                     //Allocate device memory in new device
-                    device_strided_batch_vector<Tx> dx_copy(N, incx, stridex, batch_count);
-                    device_strided_batch_vector<Ty> dy_copy(N, incy, stridey, batch_count);
-                    device_vector<Ta>               dalpha_copy(1);
-
-                    // Check device memory allocation
-                    CHECK_DEVICE_ALLOCATION(dx_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dy_copy.memcheck());
-                    CHECK_DEVICE_ALLOCATION(dalpha_copy.memcheck());
+                    DEVICE_MEMCHECK(
+                        device_strided_batch_vector<Tx>, dx_copy, (N, incx, stridex, batch_count));
+                    DEVICE_MEMCHECK(
+                        device_strided_batch_vector<Ty>, dy_copy, (N, incy, stridey, batch_count));
+                    DEVICE_MEMCHECK(device_vector<Ta>, dalpha_copy, (1));
 
                     // copy data from CPU to device
                     CHECK_HIP_ERROR(dx_copy.transfer_from(hx));

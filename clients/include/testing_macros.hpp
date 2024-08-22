@@ -35,6 +35,10 @@
     T_ name_(UNWRAP_ARGS args_);          \
     CHECK_DEVICE_ALLOCATION(name_.memcheck());
 
+#define RETURN_IF_MEM_ERROR(T_, name_, args_) \
+    T_ name_(UNWRAP_ARGS args_);              \
+    RETURN_IF_HIP_ERROR(name_.memcheck());
+
 // DAPI refers to dual API (original and ILP64 version ending in _64)
 
 #define DAPI_DISPATCH(name_, args_)    \

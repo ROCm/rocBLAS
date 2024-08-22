@@ -22,23 +22,9 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "client_utility.hpp"
-#include "flops.hpp"
 #include "frequency_monitor.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
+#include "testing_common.hpp"
 #include "testing_gemm_ex3.hpp"
-#include "type_dispatch.hpp"
-#include "unit.hpp"
 
 /* ============================================================================================ */
 template <typename TiA, typename TiB, typename To, typename Tc>
@@ -75,8 +61,11 @@ void testing_gemm_strided_batched_ex3_bad_arg(const Arguments& arg)
         const rocblas_datatype    d_type                 = arg.d_type;
         const rocblas_computetype composite_compute_type = arg.composite_compute_type;
 
-        device_vector<float> alpha_d(1), beta_d(1), zero_d(1);
-        const float          alpha_h(1), beta_h(1), zero_h(0);
+        DEVICE_MEMCHECK(device_vector<float>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<float>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<float>, zero_d, (1));
+
+        const float alpha_h(1), beta_h(1), zero_h(0);
 
         const float* alpha = &alpha_h;
         const float* beta  = &beta_h;
@@ -104,16 +93,12 @@ void testing_gemm_strided_batched_ex3_bad_arg(const Arguments& arg)
         rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
 
         // Allocate device memory
-        device_strided_batch_matrix<TiA> dA(A_row, A_col, lda, stride_a, batch_count);
-        device_strided_batch_matrix<TiB> dB(B_row, B_col, ldb, stride_b, batch_count);
-        device_strided_batch_matrix<To>  dC(M, N, ldc, stride_c, batch_count);
-        device_strided_batch_matrix<To>  dD(M, N, ldd, stride_d, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<TiA>, dA, (A_row, A_col, lda, stride_a, batch_count));
+        DEVICE_MEMCHECK(
+            device_strided_batch_matrix<TiB>, dB, (B_row, B_col, ldb, stride_b, batch_count));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dC, (M, N, ldc, stride_c, batch_count));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dD, (M, N, ldd, stride_d, batch_count));
 
         if(rocblas_handle(handle)->getArch() < 940 || rocblas_handle(handle)->getArch() >= 1000)
         {
@@ -1042,10 +1027,10 @@ void testing_gemm_strided_batched_ex3(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_strided_batch_matrix<TiA> dA(1, 1, 1, 1, 1);
-        device_strided_batch_matrix<TiB> dB(1, 1, 1, 1, 1);
-        device_strided_batch_matrix<To>  dC(1, 1, 1, 1, 1);
-        device_strided_batch_matrix<To>  dD(1, 1, 1, 1, 1);
+        DEVICE_MEMCHECK(device_strided_batch_matrix<TiA>, dA, (1, 1, 1, 1, 1));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<TiB>, dB, (1, 1, 1, 1, 1));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dC, (1, 1, 1, 1, 1));
+        DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dD, (1, 1, 1, 1, 1));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex3_fn(handle,
                                                                 transA,
                                                                 transB,
@@ -1089,41 +1074,29 @@ void testing_gemm_strided_batched_ex3(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     // using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
-    host_strided_batch_matrix<TiA> hA(A_row, A_col, lda, stride_a, batch_count);
-    host_strided_batch_matrix<TiB> hB(B_row, B_col, ldb, stride_b, batch_count);
-    host_strided_batch_matrix<To>  hC(M, N, ldc, stride_c, batch_count);
-    host_strided_batch_matrix<To>  hD_1(M, N, ldd, stride_d, batch_count);
-    host_strided_batch_matrix<To>  hD_2(M, N, ldd, stride_d, batch_count);
-    host_strided_batch_matrix<To>  hD_gold(M, N, ldd, stride_d, batch_count);
-
-    // Check host memory allocation
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC.memcheck());
-    CHECK_HIP_ERROR(hD_1.memcheck());
-    CHECK_HIP_ERROR(hD_2.memcheck());
-    CHECK_HIP_ERROR(hD_gold.memcheck());
+    HOST_MEMCHECK(host_strided_batch_matrix<TiA>, hA, (A_row, A_col, lda, stride_a, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<TiB>, hB, (B_row, B_col, ldb, stride_b, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hC, (M, N, ldc, stride_c, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hD_1, (M, N, ldd, stride_d, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hD_2, (M, N, ldd, stride_d, batch_count));
+    HOST_MEMCHECK(host_strided_batch_matrix<To>, hD_gold, (M, N, ldd, stride_d, batch_count));
 
     // Allocate device memory
-    device_strided_batch_matrix<TiA> dA(A_row, A_col, lda, stride_a, batch_count);
-    device_strided_batch_matrix<TiB> dB(B_row, B_col, ldb, stride_b, batch_count);
+    DEVICE_MEMCHECK(
+        device_strided_batch_matrix<TiA>, dA, (A_row, A_col, lda, stride_a, batch_count));
+    DEVICE_MEMCHECK(
+        device_strided_batch_matrix<TiB>, dB, (B_row, B_col, ldb, stride_b, batch_count));
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
+    DEVICE_MEMCHECK(device_strided_batch_matrix<To>, dC, (M, N, ldc, stride_c, batch_count));
     device_strided_batch_matrix<To> dD
         = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
                            : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-    device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
-    device_vector<Tc>                d_alpha_Tc(1);
-    device_vector<Tc>                d_beta_Tc(1);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(dD.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+    device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
+
+    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
     //     bool alt       = (rocblas_gemm_flags_fp16_alt_impl & flags);
     //     bool alt_round = (rocblas_gemm_flags_fp16_alt_impl_rnz & flags);

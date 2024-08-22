@@ -6,20 +6,9 @@
 
 #define ROCBLAS_BETA_FEATURES_API
 #include "../../library/include/internal/rocblas_float8.h" // only to set the bias mode, moved it later
-#include "../../library/src/include/handle.hpp"
-#include "cblas_interface.hpp"
-#include "client_utility.hpp"
-#include "flops.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_matrix.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "unit.hpp"
+
+#include "frequency_monitor.hpp"
+#include "testing_common.hpp"
 
 #ifdef WIN32
 #include <stdlib.h>
@@ -180,8 +169,11 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
         const rocblas_datatype    d_type                 = arg.d_type;
         const rocblas_computetype composite_compute_type = arg.composite_compute_type;
 
-        device_vector<float> alpha_d(1), beta_d(1), zero_d(1);
-        const float          alpha_h(1), beta_h(1), zero_h(0);
+        DEVICE_MEMCHECK(device_vector<float>, alpha_d, (1));
+        DEVICE_MEMCHECK(device_vector<float>, beta_d, (1));
+        DEVICE_MEMCHECK(device_vector<float>, zero_d, (1));
+
+        const float alpha_h(1), beta_h(1), zero_h(0);
 
         const float* alpha = &alpha_h;
         const float* beta  = &beta_h;
@@ -210,17 +202,13 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // allocate memory on device
-        device_matrix<TiA> dA(A_row, A_col, lda);
-        device_matrix<TiB> dB(B_row, B_col, ldb);
-        device_matrix<To>  dC(M, N, ldc);
-        device_matrix<To>  dD(M, N, ldd);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        DEVICE_MEMCHECK(device_matrix<TiA>, dA, (A_row, A_col, lda));
+        DEVICE_MEMCHECK(device_matrix<TiB>, dB, (B_row, B_col, ldb));
+        DEVICE_MEMCHECK(device_matrix<To>, dC, (M, N, ldc));
+        DEVICE_MEMCHECK(device_matrix<To>, dD, (M, N, ldd));
 
         // host
-        host_matrix<To> hC(M, N, ldc);
+        HOST_MEMCHECK(host_matrix<To>, hC, (M, N, ldc));
         rocblas_seedrand();
         rocblas_init_matrix(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
         dC.transfer_from(hC);
@@ -918,14 +906,20 @@ rocblas_status call_trusted_gemm_f8(rocblas_handle    handle,
     rocblas_int ldb_new = transB == rocblas_operation_none ? K : N;
     rocblas_int ldd_new = M;
 
-    device_matrix<TcA> dA_new(TiA_is_final ? 0 : A_row, TiA_is_final ? 0 : A_col, lda_new);
-    device_matrix<TcB> dB_new(TiB_is_final ? 0 : B_row, TiB_is_final ? 0 : B_col, ldb_new);
+    RETURN_IF_MEM_ERROR(
+        device_matrix<TcA>, dA_new, (TiA_is_final ? 0 : A_row, TiA_is_final ? 0 : A_col, lda_new));
+    RETURN_IF_MEM_ERROR(
+        device_matrix<TcB>, dB_new, (TiB_is_final ? 0 : B_row, TiB_is_final ? 0 : B_col, ldb_new));
 
-    host_matrix<TcA>  hA_new(TiA_is_final ? 0 : A_row, TiA_is_final ? 0 : A_col, lda_new);
-    host_matrix<TcB>  hB_new(TiB_is_final ? 0 : B_row, TiB_is_final ? 0 : B_col, ldb_new);
-    host_matrix<Tacc> hD_new(To_is_final ? 0 : M, To_is_final ? 0 : N, ldd_new);
-    host_matrix<To>   hDo_new(
-        To_is_final ? 0 : M, To_is_final ? 0 : N, ldd_new); // temp to copyback from device
+    RETURN_IF_MEM_ERROR(
+        host_matrix<TcA>, hA_new, (TiA_is_final ? 0 : A_row, TiA_is_final ? 0 : A_col, lda_new));
+    RETURN_IF_MEM_ERROR(
+        host_matrix<TcB>, hB_new, (TiB_is_final ? 0 : B_row, TiB_is_final ? 0 : B_col, ldb_new));
+    RETURN_IF_MEM_ERROR(
+        host_matrix<Tacc>, hD_new, (To_is_final ? 0 : M, To_is_final ? 0 : N, ldd_new));
+    // temp to copyback from device
+    RETURN_IF_MEM_ERROR(
+        host_matrix<To>, hDo_new, (To_is_final ? 0 : M, To_is_final ? 0 : N, ldd_new));
 
     if(!To_is_final)
     {
@@ -1356,8 +1350,8 @@ rocblas_status call_trusted_gemm_f8(rocblas_handle    handle,
  */
     if(!To_is_final)
     {
-        device_vector<Tacc> dD_Qi(size_d);
-        device_vector<To>   dD_Qo(size_d);
+        RETURN_IF_MEM_ERROR(device_vector<Tacc>, dD_Qi, (size_d));
+        RETURN_IF_MEM_ERROR(device_vector<To>, dD_Qo, (size_d));
 
         // from hD_new to dD_Qi
         // CHECK_HIP_ERROR(dD_Qi.transfer_from(hD_new));
@@ -1553,10 +1547,10 @@ void testing_gemm_ex3(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_vector<TiA> dA(1);
-        device_vector<TiB> dB(1);
-        device_vector<To>  dC(1);
-        device_vector<To>  dD(1);
+        DEVICE_MEMCHECK(device_vector<TiA>, dA, (1));
+        DEVICE_MEMCHECK(device_vector<TiB>, dB, (1));
+        DEVICE_MEMCHECK(device_vector<To>, dC, (1));
+        DEVICE_MEMCHECK(device_vector<To>, dD, (1));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex3_fn(handle,
                                                 transA,
                                                 transB,
@@ -1592,25 +1586,20 @@ void testing_gemm_ex3(const Arguments& arg)
     }
 
     // allocate memory on device
-    device_matrix<TiA> dA(A_row, A_col, lda);
-    device_matrix<TiB> dB(B_row, B_col, ldb);
-    device_matrix<To>  dC(M, N, ldc);
-    device_matrix<To>  dD
+    DEVICE_MEMCHECK(device_matrix<TiA>, dA, (A_row, A_col, lda));
+    DEVICE_MEMCHECK(device_matrix<TiB>, dB, (B_row, B_col, ldb));
+    DEVICE_MEMCHECK(device_matrix<To>, dC, (M, N, ldc));
+    device_matrix<To> dD
         = (arg.c_noalias_d) ? device_matrix<To>(M, N, ldd) : device_matrix<To>(0, 1, 1);
-    device_matrix<To>& dDref = (arg.c_noalias_d) ? dD : dC;
-    device_vector<Tc>  d_alpha_Tc(1);
-    device_vector<Tc>  d_beta_Tc(1);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(dD.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
+    device_matrix<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+    DEVICE_MEMCHECK(device_vector<Tc>, d_alpha_Tc, (1));
+    DEVICE_MEMCHECK(device_vector<Tc>, d_beta_Tc, (1));
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_matrix<TiA> hA(A_row, A_col, lda);
-    host_matrix<TiB> hB(B_row, B_col, ldb);
-    host_matrix<To>  hC(M, N, ldc);
+    HOST_MEMCHECK(host_matrix<TiA>, hA, (A_row, A_col, lda));
+    HOST_MEMCHECK(host_matrix<TiB>, hB, (B_row, B_col, ldb));
+    HOST_MEMCHECK(host_matrix<To>, hC, (M, N, ldc));
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -1629,8 +1618,8 @@ void testing_gemm_ex3(const Arguments& arg)
     if(arg.unit_check || arg.norm_check || arg.res_check)
     {
 
-        host_matrix<To> hD_gold(M, N, ldd);
-        host_matrix<To> hD_1(M, N, ldd);
+        HOST_MEMCHECK(host_matrix<To>, hD_gold, (M, N, ldd));
+        HOST_MEMCHECK(host_matrix<To>, hD_1, (M, N, ldd));
 
         rocblas_init_nan<To>(hD_1, M, N, ldd);
         rocblas_init_nan<To>(hD_gold, M, N, ldd);
