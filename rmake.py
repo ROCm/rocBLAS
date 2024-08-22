@@ -55,7 +55,7 @@ def parse_args():
     experimental_opts.add_argument('-b', '--branch', dest='tensile_tag', type=str, required=False, default="",
                         help='Specify the Tensile repository branch or tag to use. (eg. develop, mybranch or <commit hash> )')
 
-    general_opts.add_argument(      '--build_dir', type=str, required=False, default = "build",
+    general_opts.add_argument(      '--build_dir', type=str, required=False, default="build",
                         help='Specify path to configure & build process output directory.(optional, default: ./build)')
 
     general_opts.add_argument(      '--cleanup', required=False, default=False, action='store_true',
@@ -86,7 +86,7 @@ def parse_args():
                         help='Build and install external dependencies. (Handled by install.sh and on Windows rdeps.py')
 
     experimental_opts.add_argument('-f', '--fork', dest='tensile_fork', type=str, required=False, default="",
-                        help='Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName)')
+                        help='Specify the username to fork the Tensile GitHub repository (e.g., ROCm or MyUserName)')
 
     general_opts.add_argument('-g', '--debug', required=False, default=False,  action='store_true',
                         help='Build in Debug mode (optional, default: False)')
@@ -117,6 +117,9 @@ def parse_args():
 
     experimental_opts.add_argument('-n', '--no_tensile', dest='build_tensile', required=False, default=True, action='store_false',
                         help='Build a subset of rocBLAS library which does not require Tensile.')
+
+    experimental_opts.add_argument(      '--no_hipblaslt', dest='build_hipblaslt', required=False, default=True, action='store_false',
+                        help='Build a subset of rocBLAS library which does not require HipBLASLt.')
 
     experimental_opts.add_argument(     '--merge-architectures', dest='merge_architectures', required=False, default=False, action='store_true',
                         help='Merge TensileLibrary files for different architectures into single file (optional, was behavior in ROCm 5.1 and earlier)')
@@ -153,6 +156,9 @@ def parse_args():
 
     experimental_opts.add_argument('-t', '--test_local_path', dest='tensile_test_local_path', type=str, required=False, default="",
                         help='Use a local path for Tensile instead of remote GIT repo (optional)')
+
+    experimental_opts.add_argument(      '--hipblaslt_path', dest='hipblaslt_path', type=str, required=False, default="",
+                        help='Use a local path for HipBLASLt (optional)')
 
     general_opts.add_argument(      '--upgrade_tensile_venv_pip', required=False, default=False, action='store_true',
                         help='Upgrade python pip version during Tensile installation (optional, default: False)')
@@ -466,6 +472,12 @@ def config_cmd():
         if args.jobs != OS_info["NUM_PROC"]:
             # tensile doesn't use HIP_CLANG_NUM_PARALLEL_JOBS so multiply by cjobs
             cmake_options.append(f"-DTensile_CPU_THREADS={str(args.jobs*cjobs)}")
+        if not args.build_hipblaslt:
+            cmake_options.append(f"-DBUILD_WITH_HIPBLASLT=OFF")
+        else:
+            cmake_options.append(f"-DBUILD_WITH_HIPBLASLT=ON")
+            if args.hipblaslt_path:
+                cmake_options.append(f"-Dhipblaslt_path={args.hipblaslt_path}")
 
     if args.legacy_include_dir:
         cmake_options.append(f"-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON")

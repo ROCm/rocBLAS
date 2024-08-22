@@ -31,17 +31,26 @@ The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
 .. note::
   - The official rocBLAS API is the C99 API defined in ``rocblas.h``, therefore the use of any other public symbols is discouraged. All other C/C++ interfaces may not follow a deprecation model and so can change without warning from one release to the next.
   - rocBLAS array storage format is column major and one based. This is to maintain compatibility with the Legacy BLAS code, which is written in Fortran.
-  - rocBLAS calls the AMD Tensile library for Level 3 BLAS matrix multiplication.
+  - rocBLAS calls the AMD Tensile and hipBLASLt libraries for Level 3 GEMMs (matrix matrix multiplication).
 
-Use of Tensile
+Use of Tensile and hipBLASLt
 ==============
 
 The rocBLAS library internally uses
-`Tensile <https://github.com/ROCm/Tensile>`__, which
-supplies the high-performance implementation of GEMM. It is installed as part of the rocBLAS package.
-rocBLAS uses CMake for build automation, and CMake downloads Tensile during library configuration and automatically
-configures it as part of the build, so no further action is required by the
-user to set it up.  No external facing API for Tensile is provided.
+`Tensile <https://github.com/ROCm/Tensile>`__ and `hipBLASLt <https://github.com/ROCm/hipBLASLt>`__, which
+supply the high-performance implementation of GEMM. They are installed as part of the rocBLAS package.
+rocBLAS uses CMake for build automation, and CMake downloads Tensile and hipBLASLt during library configuration and automatically
+configures them as part of the build, so no further action is required by the
+user to set it up.  No external facing API for Tensile or hipBLASLt are provided.
+
+The choice of whether to use Tensile or hipBLASLt is handled automatically based on architecture and data types
+The environment variable ``ROCBLAS_USE_HIPBLASLT`` is provided to manually control which GEMM backend is used in the following ways:
+
+- ``ROCBLAS_USE_HIPBLASLT is not set``: the GEMM backend is automatically selected.
+- ``ROCBLAS_USE_HIPBLASLT=0``: **Tensile** is always used as the GEMM backend.
+- ``ROCBLAS_USE_HIPBLASLT=1``: **hipBLASLt** is preferred as the GEMM backend, but will fallback to **Tensile** on problems for which **hipBLASLt** does not provide a solution or when errors are encountered using the **hipBLASLt* backend.
+
+Note that hipBLASLt in rocBLAS is not currently supported in Windows builds or static builds, and will not be included if building without Tensile.
 
 rocBLAS API and legacy BLAS functions
 =====================================

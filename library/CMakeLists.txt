@@ -265,6 +265,8 @@ else()
   endif()
 endif()
 
-
-
-
+if(BUILD_WITH_HIPBLASLT)
+  rocm_package_add_dependencies(SHARED_DEPENDS "hipblaslt >= ${HIPBLASLT_VERSION}")
+  rocm_package_add_rpm_dependencies(STATIC_DEPENDS "hipblaslt >= ${HIPBLASLT_VERSION}")
+  rocm_package_add_deb_dependencies(STATIC_DEPENDS "hipblaslt >= ${HIPBLASLT_VERSION}")
+endif()

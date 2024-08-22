@@ -22,8 +22,13 @@
 #include "handle.hpp"
 #include <cstdarg>
 #include <limits>
+
 #ifdef WIN32
 #include <windows.h>
+#endif
+
+#ifdef BUILD_WITH_HIPBLASLT
+#include <hipblaslt/hipblaslt.h>
 #endif
 
 #if BUILD_WITH_TENSILE
@@ -238,6 +243,38 @@ _rocblas_handle::_rocblas_handle()
 
     // Initialize numerical checking
     init_check_numerics();
+
+#ifdef BUILD_WITH_HIPBLASLT
+    const char* hipblasltEnvVal = read_env("ROCBLAS_USE_HIPBLASLT");
+
+    if(hipblasltEnvVal)
+    {
+        if(strncmp(hipblasltEnvVal, "1", 1) == 0)
+        {
+            hipblasltEnvVar = 1;
+        }
+        else
+        {
+            hipblasltEnvVar = 0;
+        }
+    }
+    else
+    {
+        hipblasltEnvVar = -1;
+    }
+
+    if(useHipBLASLt())
+    {
+        hipblasLtHandle                = std::make_shared<hipblasLtHandle_t>();
+        hipblasStatus_t hipblas_status = hipblasLtCreate(&(*hipblasLtHandle));
+        if(HIPBLAS_STATUS_SUCCESS != hipblas_status)
+        {
+            rocblas_cerr << "rocBLAS internal error: Unable to initialize hipblaslt: "
+                         << hipblas_status << std::endl;
+            rocblas_abort();
+        }
+    }
+#endif
 }
 
 /*******************************************************************************
@@ -312,6 +349,20 @@ _rocblas_handle::~_rocblas_handle()
 #endif
         }
     }
+
+#ifdef BUILD_WITH_HIPBLASLT
+    if(hipblasLtHandle.unique())
+    {
+        hipblasStatus_t hipblas_status = hipblasLtDestroy(*hipblasLtHandle);
+        if(HIPBLAS_STATUS_SUCCESS != hipblas_status)
+        {
+            rocblas_cerr << "rocBLAS internal error: Unable to destroy hipblaslt: "
+                         << hipblas_status << std::endl;
+            rocblas_abort();
+        }
+        hipblasLtHandle.reset();
+    }
+#endif
 }
 
 /*******************************************************************************
