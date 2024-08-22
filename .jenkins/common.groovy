@@ -2,13 +2,22 @@
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
 
-def runCompileCommand(platform, project, jobName)
+def runCompileCommand(platform, project, jobName, boolean sameOrg=true)
 {
     project.paths.construct_build_prefix()
 
     String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ':'
     String dynamicBuildCommand = project.paths.build_command
     String dynamicOptions = ""
+
+    def getDependenciesCommand = ""
+    if (project.installLibraryDependenciesFromCI)
+    {
+        project.libraryDependencies.each
+        { libraryName ->
+            getDependenciesCommand += auxiliary.getLibrary(libraryName, platform.jenkinsLabel, null, sameOrg)
+        }
+    }
 
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
@@ -42,6 +51,7 @@ def runCompileCommand(platform, project, jobName)
                 set -x
                 cd ${project.paths.project_build_prefix}
                 ${centos7}
+                ${getDependenciesCommand}
                 ${auxiliary.gfxTargetParser()}
                 ${dynamicBuildCommand} ${dynamicOptions}
                 """

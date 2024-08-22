@@ -29,6 +29,10 @@
  * or reference Tensile identifiers. tensile_host.hpp defines the interface. *
  *****************************************************************************/
 
+#ifdef BUILD_WITH_HIPBLASLT
+#include "hipblaslt_host.hpp"
+#endif
+
 #include "tensile_host.hpp"
 //#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
@@ -68,6 +72,7 @@
 #define ROCBLAS_LIB_PATH "/opt/rocm/lib"
 #endif
 
+// cppcheck-suppress preprocessorErrorDirective
 #if __has_include(<filesystem>)
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -1097,6 +1102,17 @@ inline bool fallbackTensileProblem(Tensile::ContractionProblem& tensile_prob)
     return false;
 }
 
+template <typename TiA, typename To, typename Tc, typename TiB, typename TcA, typename TcB>
+bool useHipBLASLt(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob)
+{
+#ifdef BUILD_WITH_HIPBLASLT
+    bool problemSpecific = true; // On supported architectures use hipBLASLT on all problems.
+    return prob.handle->useHipBLASLt(problemSpecific);
+#else
+    return false;
+#endif
+}
+
 /******************************************************************************
  * runContractionProblem calls Tensile to run a contraction problem described *
  * by RocblasContractionProblem                                               *
@@ -1107,6 +1123,31 @@ rocblas_status
                           rocblas_gemm_algo                                            algo,
                           int32_t solution_index)
 {
+#ifdef BUILD_WITH_HIPBLASLT
+    if(useHipBLASLt(prob))
+    {
+        try
+        {
+            rocblas_internal_ostream msg;
+            auto hipblasltResult = runContractionProblemHipBlasLT(prob, algo, solution_index);
+
+            if(hipblasltResult == rocblas_status_success
+               || (algo == rocblas_gemm_algo_solution_index && solution_index > 0))
+            {
+                return hipblasltResult;
+            }
+        }
+        catch(...)
+        {
+            rocblas_internal_ostream msg;
+            print_once(msg << "\nrocBLAS warning: hipBlasLT exception encountered. ");
+        }
+
+        rocblas_internal_ostream msg;
+        print_once(msg << "\nrocBLAS warning: hipBlasLT failed, falling back to tensile. ");
+    }
+#endif
+
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
 
@@ -1223,6 +1264,13 @@ rocblas_status getAllSolutions(const RocblasContractionProblem<TiA, To, Tc, TiB,
                                rocblas_int* list_array,
                                rocblas_int* list_size)
 {
+#ifdef BUILD_WITH_HIPBLASLT
+    if(useHipBLASLt(prob))
+    {
+        return getAllSolutionsHipBlasLT(prob, option, list_array, list_size);
+    }
+#endif
+
     rocblas_status                                          status = rocblas_status_internal_error;
     std::set<std::shared_ptr<Tensile::ContractionSolution>> solutions;
     try

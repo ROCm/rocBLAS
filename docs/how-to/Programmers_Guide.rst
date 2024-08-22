@@ -1267,7 +1267,7 @@ HPA cases (gemm_ex)
 How to set rocblas-bench parameters in a yaml file
 ''''''''''''''''''''''''''''''''''''''''''''''''''
 
-If you want to benchmark many sizes, it is recommended to use rocblas-bench with the batch call to eliminate the latency in loading the Tensile library which rocblas links to.  The batch call takes a yaml file with a list of all problem sizes. You can have multiple sizes of different types in one yaml file. The benchmark setting is different from the direct call to the rocblas-bench. A sample setting for each function is listed below. Once you have the yaml file, you can benchmark the sizes as follows:
+If you want to benchmark many sizes, it is recommended to use rocblas-bench with the batch call to eliminate the latency in loading the GEMM library which rocblas links to.  The batch call takes a yaml file with a list of all problem sizes. You can have multiple sizes of different types in one yaml file. The benchmark setting is different from the direct call to the rocblas-bench. A sample setting for each function is listed below. Once you have the yaml file, you can benchmark the sizes as follows:
 
 .. code-block:: bash
 

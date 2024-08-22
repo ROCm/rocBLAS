@@ -118,6 +118,8 @@ void testing_gemm_ex_get_solutions(const Arguments& arg)
     rocblas_int              size_large = size * 2;
     std::vector<rocblas_int> ary(size_large, -1);
 
+    ASSERT_GT(size, 0);
+
     if(size >= 2)
     {
         rocblas_int size_small = size / 2;

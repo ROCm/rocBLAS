@@ -182,6 +182,8 @@ struct Arguments
     bool graph_test;
     bool repeatability_check;
 
+    int use_hipblaslt;
+
     /*************************************************************************
      *                     End Of Arguments                                  *
      *************************************************************************/
@@ -266,7 +268,8 @@ struct Arguments
     OPER(outofplace) SEP             \
     OPER(HMM) SEP                    \
     OPER(graph_test) SEP             \
-    OPER(repeatability_check)
+    OPER(repeatability_check) SEP    \
+    OPER(use_hipblaslt)
     // clang-format on
 
     // Validate input format.
