@@ -54,7 +54,7 @@ Tests:
   - name: trsm_batched_substitution
     category: bench
     function: trsm_batched
-    precision: *trsm_batched
+    precision: *single_double_precisions
     transA: [ N, C ]
     side: [ L ]
     uplo: [ L, U ]
