@@ -153,6 +153,11 @@ void Arguments::init()
     repeatability_check = false;
 
     use_hipblaslt = -1;
+
+    dA = nullptr;
+    dB = nullptr;
+    dC = nullptr;
+    dD = nullptr;
 }
 
 bool Arguments::validate()

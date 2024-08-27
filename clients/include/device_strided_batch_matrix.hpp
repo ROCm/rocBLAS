@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,11 +50,34 @@ public:
     //! @param m           The number of rows of the Matrix.
     //! @param n           The number of cols of the Matrix.
     //! @param lda         The leading dimension of the Matrix.
-    //! @param stride The stride.
+    //! @param stride      The stride.
     //! @param batch_count The batch count.
     //! @param HMM         HipManagedMemory Flag.
     //!
     explicit device_strided_batch_matrix(size_t         m,
+                                         size_t         n,
+                                         size_t         lda,
+                                         rocblas_stride stride,
+                                         int64_t        batch_count,
+                                         bool           HMM     = false,
+                                         bool           cleanup = true)
+        : d_vector<T>(calculate_nmemb(n, lda, stride, batch_count), HMM)
+        , m_m(m)
+        , m_n(n)
+        , m_lda(lda)
+        , m_stride(stride)
+        , m_batch_count(batch_count)
+        , m_cleanup(cleanup)
+    {
+        bool valid_parameters = calculate_nmemb(n, lda, stride, batch_count) > 0;
+        if(valid_parameters)
+        {
+            this->m_data = this->device_vector_setup();
+        }
+    }
+
+    explicit device_strided_batch_matrix(void*          data,
+                                         size_t         m,
                                          size_t         n,
                                          size_t         lda,
                                          rocblas_stride stride,
@@ -70,7 +93,16 @@ public:
         bool valid_parameters = calculate_nmemb(n, lda, stride, batch_count) > 0;
         if(valid_parameters)
         {
-            this->m_data = this->device_vector_setup();
+            if(data != nullptr)
+            {
+                this->m_cleanup = false;
+                this->m_data    = (T*)data;
+            }
+            else
+            {
+                this->m_cleanup = true;
+                this->m_data    = this->device_vector_setup();
+            }
         }
     }
 
@@ -79,10 +111,13 @@ public:
     //!
     ~device_strided_batch_matrix()
     {
-        if(nullptr != this->m_data)
+        if(m_cleanup)
         {
-            this->device_vector_teardown(this->m_data);
-            this->m_data = nullptr;
+            if(nullptr != this->m_data)
+            {
+                this->device_vector_teardown(this->m_data);
+                this->m_data = nullptr;
+            }
         }
     }
 
@@ -246,6 +281,7 @@ private:
     rocblas_stride m_stride{};
     int64_t        m_batch_count{};
     T*             m_data{};
+    bool           m_cleanup{};
 
     static size_t calculate_nmemb(size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
     {
