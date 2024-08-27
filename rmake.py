@@ -439,7 +439,7 @@ def config_cmd():
         else:
             fatal("Could not detect GPU as requested. Not continuing.")
     # not just for tensile
-    cmake_options.append(f'-DAMDGPU_TARGETS=\"{args.gpu_architecture}\"')
+    cmake_options.append(f'-DGPU_TARGETS=\"{args.gpu_architecture}\"')
 
     if not args.build_tensile:
         cmake_options.append(f"-DBUILD_WITH_TENSILE=OFF")

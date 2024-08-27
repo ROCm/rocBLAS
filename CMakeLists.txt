@@ -129,28 +129,38 @@ else()
   set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
 endif()
 
-# gpu arch configuration
-set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
-set_property(CACHE AMDGPU_TARGETS PROPERTY STRINGS
+if( AMDGPU_TARGETS AND NOT GPU_TARGETS )
+  message( DEPRECATION "AMDGPU_TARGETS use is deprecated. Use GPU_TARGETS." )
+  set( GFX_LIST ${AMDGPU_TARGETS} )
+elseif( GPU_TARGETS )
+  set( GFX_LIST ${GPU_TARGETS} )
+else ()
+  set( GFX_LIST "all" ) # default if not set
+endif()
+
+# gpu arch configuration. GFX_LIST is ignored if already set by -DGPU_TARGETS
+set( GPU_TARGETS ${GFX_LIST} CACHE STRING "List of GPUs (gfx targets) to support")
+set_property(CACHE GPU_TARGETS PROPERTY STRINGS
   all
   ${SUPPORTED_TARGETS})
 
-# Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
-# Sets the AMDGPU_TARGETS with backward compatibility
-if (AMDGPU_TARGETS STREQUAL "all")
+# Detect if target ID syntax if supported for default all GPU_TARGETS list
+# Sets the GPU_TARGETS with backward compatibility
+if (GPU_TARGETS STREQUAL "all")
   rocm_check_target_ids(target_list TARGETS "${SUPPORTED_TARGETS}")
 else()
-  rocm_check_target_ids(target_list TARGETS "${AMDGPU_TARGETS}")
+  rocm_check_target_ids(target_list TARGETS "${GPU_TARGETS}")
 endif()
 
 # if 'target_list' is empty, then compile does not support the gpu arch passed as an argument.
 if(target_list STREQUAL "")
-  message(FATAL_ERROR "Unsupported target ${AMDGPU_TARGETS} by compiler, List of supported targets:  ${SUPPORTED_TARGETS}")
+  message(FATAL_ERROR "Unsupported target ${GPU_TARGETS} by compiler, List of supported targets: ${SUPPORTED_TARGETS}")
 endif()
 
-# must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
-# to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
-set( AMDGPU_TARGETS "${target_list}" CACHE STRING "AMD GPU targets to compile for" FORCE )
+# set GPU_TARGETS and AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
+# to set --offload-arch flags via hip-config.cmake hip::device dependency
+set( GPU_TARGETS "${target_list}" CACHE STRING "List of GPUs (gfx targets) to support" FORCE )
+set( AMDGPU_TARGETS "${GPU_TARGETS}" CACHE STRING "List of GPUs (gfx targets) to support" FORCE ) # for old hip cmake files backward compatibility
 
 option( BUILD_WITH_HIPBLASLT "Build with HipBLASLt" ON )
 set( hipblaslt_path "/opt/rocm" CACHE PATH "Use local HipBLASLt directory" )
@@ -174,7 +184,7 @@ endfunction( )
 if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
-    set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
+    set( Tensile_ARCHITECTURE "${GPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
 
     list_replace( Tensile_ARCHITECTURE "gfx90a" "gfx90a:xnack+\;gfx90a:xnack-")
 
@@ -207,7 +217,7 @@ if(NOT SKIP_LIBRARY)
   endif()
 endif()
 
-message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
+message(STATUS "Using GPU_TARGETS: ${GPU_TARGETS}")
 
 # Find HIP dependencies
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
