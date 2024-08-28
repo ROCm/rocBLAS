@@ -57,20 +57,15 @@ void testing_set_get_matrix(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_matrix<T> hA(rows, cols, lda);
-    host_matrix<T> hB(rows, cols, ldb);
-    host_matrix<T> hB_gold(rows, cols, ldb);
-
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hB_gold.memcheck());
+    HOST_MEMCHECK(host_matrix<T>, hA, (rows, cols, lda));
+    HOST_MEMCHECK(host_matrix<T>, hB, (rows, cols, ldb));
+    HOST_MEMCHECK(host_matrix<T>, hB_gold, (rows, cols, ldb));
 
     double cpu_time_used;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_matrix<T> dD(rows, cols, ldd);
-    CHECK_DEVICE_ALLOCATION(dD.memcheck());
+    DEVICE_MEMCHECK(device_matrix<T>, dD, (rows, cols, ldd));
 
     // Initial Data on CPU
     rocblas_seedrand();

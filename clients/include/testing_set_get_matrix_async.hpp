@@ -63,20 +63,17 @@ void testing_set_get_matrix_async(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory,
-    host_pinned_vector<T> hA(cols * size_t(lda)); // using vector layout to reuse pinned_vector
-    host_pinned_vector<T> hB(cols * size_t(ldb));
-    host_vector<T>        hB_gold(cols * size_t(ldb));
-
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hB_gold.memcheck());
+    HOST_MEMCHECK(host_pinned_vector<T>,
+                  hA,
+                  (cols * size_t(lda))); // using vector layout to reuse pinned_vector
+    HOST_MEMCHECK(host_pinned_vector<T>, hB, (cols * size_t(ldb)));
+    HOST_MEMCHECK(host_vector<T>, hB_gold, (cols * size_t(ldb)));
 
     double cpu_time_used;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> dD(cols * size_t(ldd)); // vector layout
-    CHECK_DEVICE_ALLOCATION(dD.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dD, (cols * size_t(ldd))); // vector layout
 
     // Initial Data on CPU
     rocblas_seedrand();
