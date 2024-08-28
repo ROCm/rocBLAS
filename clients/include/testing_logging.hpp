@@ -172,10 +172,8 @@ void testing_logging(const Arguments& arg)
     float alpha_float = 1.5;
     float beta_float  = 0.5;
 
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, d_alpha, (1));
+    DEVICE_MEMCHECK(device_vector<T>, d_beta, (1));
 
     bool device_mode = test_pointer_mode == rocblas_pointer_mode_device;
     if(device_mode)
@@ -203,31 +201,22 @@ void testing_logging(const Arguments& arg)
     int64_t size_d = stride_d * batch_count;
 
     // allocate memory on device
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
-    device_vector<T> da(size_a);
-    device_vector<T> db(size_b);
-    device_vector<T> dc(size_c);
-    device_vector<T> dd(size_d);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(da.memcheck());
-    CHECK_DEVICE_ALLOCATION(db.memcheck());
-    CHECK_DEVICE_ALLOCATION(dc.memcheck());
-    CHECK_DEVICE_ALLOCATION(dd.memcheck());
+    DEVICE_MEMCHECK(device_vector<T>, dx, (size_x));
+    DEVICE_MEMCHECK(device_vector<T>, dy, (size_y));
+    DEVICE_MEMCHECK(device_vector<T>, da, (size_a));
+    DEVICE_MEMCHECK(device_vector<T>, db, (size_b));
+    DEVICE_MEMCHECK(device_vector<T>, dc, (size_c));
+    DEVICE_MEMCHECK(device_vector<T>, dd, (size_d));
 
     // enclose in {} so rocblas_local_handle destructor called as it goes out of scope
     {
         int64_t     h_i64_result;
         rocblas_int h_i32_result;
 
-        device_vector<int64_t> d_i64_result(1);
-        CHECK_DEVICE_ALLOCATION(d_i64_result.memcheck());
-        device_vector<rocblas_int> d_i32_result(1);
-        CHECK_DEVICE_ALLOCATION(d_i32_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<int64_t>, d_i64_result, (1));
+        DEVICE_MEMCHECK(device_vector<rocblas_int>, d_i32_result, (1));
 
-        device_vector<T> d_result(1);
-        CHECK_DEVICE_ALLOCATION(d_result.memcheck());
+        DEVICE_MEMCHECK(device_vector<T>, d_result, (1));
 
         T            h_result;
         T*           result     = &h_result;
@@ -437,20 +426,14 @@ void testing_logging(const Arguments& arg)
             rocblas_datatype  d_type;
             rocblas_datatype  compute_type;
 
-            device_vector<rocblas_half> d_alpha_half(1);
-            device_vector<rocblas_half> d_beta_half(1);
-            CHECK_DEVICE_ALLOCATION(d_alpha_half.memcheck());
-            CHECK_DEVICE_ALLOCATION(d_beta_half.memcheck());
+            DEVICE_MEMCHECK(device_vector<rocblas_half>, d_alpha_half, (1));
+            DEVICE_MEMCHECK(device_vector<rocblas_half>, d_beta_half, (1));
 
-            device_vector<float> d_alpha_float(1);
-            device_vector<float> d_beta_float(1);
-            CHECK_DEVICE_ALLOCATION(d_alpha_float.memcheck());
-            CHECK_DEVICE_ALLOCATION(d_beta_float.memcheck());
+            DEVICE_MEMCHECK(device_vector<float>, d_alpha_float, (1));
+            DEVICE_MEMCHECK(device_vector<float>, d_beta_float, (1));
 
-            device_vector<double> d_alpha_double(1);
-            device_vector<double> d_beta_double(1);
-            CHECK_DEVICE_ALLOCATION(d_alpha_double.memcheck());
-            CHECK_DEVICE_ALLOCATION(d_beta_double.memcheck());
+            DEVICE_MEMCHECK(device_vector<double>, d_alpha_double, (1));
+            DEVICE_MEMCHECK(device_vector<double>, d_beta_double, (1));
 
             if(std::is_same_v<T, rocblas_half>)
             {
