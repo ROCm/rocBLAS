@@ -59,29 +59,6 @@ public:
                                          size_t         lda,
                                          rocblas_stride stride,
                                          int64_t        batch_count,
-                                         bool           HMM     = false,
-                                         bool           cleanup = true)
-        : d_vector<T>(calculate_nmemb(n, lda, stride, batch_count), HMM)
-        , m_m(m)
-        , m_n(n)
-        , m_lda(lda)
-        , m_stride(stride)
-        , m_batch_count(batch_count)
-        , m_cleanup(cleanup)
-    {
-        bool valid_parameters = calculate_nmemb(n, lda, stride, batch_count) > 0;
-        if(valid_parameters)
-        {
-            this->m_data = this->device_vector_setup();
-        }
-    }
-
-    explicit device_strided_batch_matrix(void*          data,
-                                         size_t         m,
-                                         size_t         n,
-                                         size_t         lda,
-                                         rocblas_stride stride,
-                                         int64_t        batch_count,
                                          bool           HMM = false)
         : d_vector<T>(calculate_nmemb(n, lda, stride, batch_count), HMM)
         , m_m(m)
@@ -93,16 +70,7 @@ public:
         bool valid_parameters = calculate_nmemb(n, lda, stride, batch_count) > 0;
         if(valid_parameters)
         {
-            if(data != nullptr)
-            {
-                this->m_cleanup = false;
-                this->m_data    = (T*)data;
-            }
-            else
-            {
-                this->m_cleanup = true;
-                this->m_data    = this->device_vector_setup();
-            }
+            this->m_data = this->device_vector_setup();
         }
     }
 
@@ -111,13 +79,10 @@ public:
     //!
     ~device_strided_batch_matrix()
     {
-        if(m_cleanup)
+        if(nullptr != this->m_data)
         {
-            if(nullptr != this->m_data)
-            {
-                this->device_vector_teardown(this->m_data);
-                this->m_data = nullptr;
-            }
+            this->device_vector_teardown(this->m_data);
+            this->m_data = nullptr;
         }
     }
 
@@ -274,6 +239,24 @@ public:
             return hipErrorOutOfMemory;
     }
 
+    //!
+    //! @brief Resize the matrix, only if it fits in the currently allocated memory.
+    //! @return true if resize was successful.
+    //!
+    bool resize(size_t m, size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
+    {
+        if(calculate_nmemb(n, lda, stride, batch_count) > this->nmemb())
+        {
+            return false;
+        }
+        m_m           = m;
+        m_n           = n;
+        m_lda         = lda;
+        m_stride      = stride;
+        m_batch_count = batch_count;
+        return true;
+    }
+
 private:
     size_t         m_m{};
     size_t         m_n{};
@@ -281,7 +264,6 @@ private:
     rocblas_stride m_stride{};
     int64_t        m_batch_count{};
     T*             m_data{};
-    bool           m_cleanup{};
 
     static size_t calculate_nmemb(size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
     {

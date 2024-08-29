@@ -1283,150 +1283,36 @@ int run_bench_test(bool               init,
     return 0;
 }
 
-template <typename data_type, bool altInit>
-void* setup_shared_matrix(size_t         row,
-                          size_t         col,
-                          size_t         ld,
-                          rocblas_stride stride,
-                          Arguments      arg,
-                          size_t         a_b_c_cached_size,
-                          bool           seedReset,
-                          bool           alternate_sign)
-{
-    size_t flush_batch_count = calculate_flush_batch_count(
-        arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
-
-    rocblas_stride aligned_stride = align_stride<data_type>(stride);
-
-    device_strided_batch_matrix<data_type> dA(
-        row, col, ld, aligned_stride, flush_batch_count, false, false);
-    // HOST_MEMCHECK(host_matrix<data_type>, hA, (row, col, ld));
-    host_matrix<data_type> hA(row, col, ld);
-    rocblas_init_matrix<data_type, altInit>(hA,
-                                            arg,
-                                            rocblas_client_alpha_sets_nan,
-                                            rocblas_client_general_matrix,
-                                            seedReset,
-                                            alternate_sign);
-    //CHECK_HIP_ERROR(
-    dA.broadcast_one_matrix_from(hA);
-    //    );
-    return dA.data();
-}
-
-template <bool altInit = false>
-void* setup_shared_matrix(size_t           row,
-                          size_t           col,
-                          size_t           ld,
-                          rocblas_stride   stride,
-                          rocblas_datatype type,
-                          Arguments        arg,
-                          size_t           a_b_c_cached_size,
-                          bool             seedReset      = false,
-                          bool             alternate_sign = false)
-{
-    switch(type)
-    {
-    case rocblas_datatype_f16_r:
-    {
-        return setup_shared_matrix<rocblas_half, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_f32_r:
-    {
-        return setup_shared_matrix<rocblas_float, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_f8_r:
-    {
-        return setup_shared_matrix<rocblas_f8, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_bf8_r:
-    {
-        return setup_shared_matrix<rocblas_bf8, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_f64_r:
-    {
-        return setup_shared_matrix<rocblas_double, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_f32_c:
-    {
-        return setup_shared_matrix<rocblas_float_complex, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_f64_c:
-    {
-        return setup_shared_matrix<rocblas_double_complex, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_i8_r:
-    {
-        return setup_shared_matrix<int8_t, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_u8_r:
-    {
-        return setup_shared_matrix<uint8_t, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_i32_r:
-    {
-        return setup_shared_matrix<int32_t, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_u32_r:
-    {
-        return setup_shared_matrix<uint32_t, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    case rocblas_datatype_bf16_r:
-    {
-        return setup_shared_matrix<rocblas_bfloat16, altInit>(
-            row, col, ld, stride, arg, a_b_c_cached_size, seedReset, alternate_sign);
-    }
-    default:
-        return nullptr;
-    }
-}
-
-void setup_shared_memory(std::vector<Arguments>& args)
+void setup_shared_matrix_sizes(std::vector<Arguments>& args)
 {
     if(args.empty())
     {
         return;
     }
-    Arguments arg0   = args.front();
-    size_t    maxA_n = 0, maxB_n = 0, maxC_n = 0, maxD_n = 0;
-    size_t    maxA_ld = 1, maxB_ld = 1, maxC_ld = 1, maxD_ld = 1;
-
-    // Check if shared memory can be used
-    for(const Arguments& arg : args)
+    Arguments& arg0 = args.front();
+    for(Arguments& arg : args)
     {
         auto A_cols = arg.transA == 'N' ? arg.K : arg.M;
         auto B_cols = arg.transB == 'N' ? arg.N : arg.K;
-
-        if(arg.lda * A_cols > maxA_ld * maxA_n)
+        if(arg.lda * A_cols > arg0.max_a_ld * arg0.max_a_n)
         {
-            maxA_n  = A_cols;
-            maxA_ld = arg.lda;
+            arg0.max_a_ld = arg.lda;
+            arg0.max_a_n  = A_cols;
         }
-        if(arg.ldb * B_cols > maxB_ld * maxB_n)
+        if(arg.ldb * B_cols > arg0.max_b_ld * arg0.max_b_n)
         {
-            maxB_n  = B_cols;
-            maxB_ld = arg.ldb;
+            arg0.max_b_ld = arg.ldb;
+            arg0.max_b_n  = B_cols;
         }
-        if(arg.ldc * arg.N > maxC_ld * maxC_n)
+        if(arg.ldc * arg.N > arg0.max_c_ld * arg0.max_c_n)
         {
-            maxC_n  = arg.N;
-            maxC_ld = arg.ldc;
+            arg0.max_c_ld = arg.ldc;
+            arg0.max_c_n  = arg.N;
         }
-        if(arg.ldd * arg.N > maxD_ld * maxD_n)
+        if(arg.ldd * arg.N > arg0.max_d_ld * arg0.max_d_n)
         {
-            maxD_n  = arg.N;
-            maxD_ld = arg.ldd;
+            arg0.max_d_ld = arg.ldd;
+            arg0.max_d_n  = arg.N;
         }
         if(arg.a_type != arg0.a_type || arg.b_type != arg0.b_type || arg.c_type != arg0.c_type
            || arg.d_type != arg0.d_type || arg.initialization != arg0.initialization
@@ -1434,34 +1320,9 @@ void setup_shared_memory(std::vector<Arguments>& args)
         {
             return;
         }
+        arg.cleanup = false;
     }
-
-    rocblas_stride stride_a = maxA_ld * maxA_n;
-    rocblas_stride stride_b = maxB_ld * maxB_n;
-    rocblas_stride stride_c = maxC_ld * maxC_n;
-    rocblas_stride stride_d = arg0.outofplace ? maxD_ld * maxD_n : 0;
-
-    size_t a_b_c_cached_size = maxA_ld * maxA_n * rocblas_sizeof_datatype(arg0.a_type)
-                               + maxB_ld * maxB_n * rocblas_sizeof_datatype(arg0.b_type)
-                               + maxC_ld * maxC_n * rocblas_sizeof_datatype(arg0.c_type);
-
-    void* dA = setup_shared_matrix(
-        maxA_ld, maxA_n, maxA_ld, stride_a, arg0.a_type, arg0, a_b_c_cached_size, true);
-    void* dB = setup_shared_matrix<true>(
-        maxB_ld, maxB_n, maxB_ld, stride_b, arg0.b_type, arg0, a_b_c_cached_size, false, true);
-    void* dC = setup_shared_matrix<true>(
-        maxC_ld, maxC_n, maxC_ld, stride_c, arg0.c_type, arg0, a_b_c_cached_size);
-    void* dD = (arg0.outofplace) ? setup_shared_matrix<true>(
-                   maxD_ld, maxD_n, maxD_ld, stride_d, arg0.d_type, arg0, a_b_c_cached_size)
-                                 : dC;
-
-    for(Arguments& arg : args)
-    {
-        arg.dA = dA;
-        arg.dB = dB;
-        arg.dC = dC;
-        arg.dD = dD;
-    }
+    args.back().cleanup = true;
 }
 
 int rocblas_bench_datafile(const std::string& filter,
@@ -1472,7 +1333,7 @@ int rocblas_bench_datafile(const std::string& filter,
     auto                   arg_iter = RocBLAS_TestData();
     std::vector<Arguments> args{arg_iter.begin(), arg_iter.end()};
 
-    setup_shared_memory(args);
+    setup_shared_matrix_sizes(args);
 
     for(Arguments arg : args)
     {

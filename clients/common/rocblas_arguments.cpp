@@ -154,10 +154,17 @@ void Arguments::init()
 
     use_hipblaslt = -1;
 
-    dA = nullptr;
-    dB = nullptr;
-    dC = nullptr;
-    dD = nullptr;
+    max_a_ld = 0;
+    max_b_ld = 0;
+    max_c_ld = 0;
+    max_d_ld = 0;
+
+    max_a_n = 0;
+    max_b_n = 0;
+    max_c_n = 0;
+    max_d_n = 0;
+
+    cleanup = true;
 }
 
 bool Arguments::validate()

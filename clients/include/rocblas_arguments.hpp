@@ -184,10 +184,17 @@ struct Arguments
 
     int use_hipblaslt;
 
-    void* dA;
-    void* dB;
-    void* dC;
-    void* dD;
+    int64_t max_a_ld;
+    int64_t max_b_ld;
+    int64_t max_c_ld;
+    int64_t max_d_ld;
+
+    int64_t max_a_n;
+    int64_t max_b_n;
+    int64_t max_c_n;
+    int64_t max_d_n;
+
+    bool cleanup;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -275,10 +282,15 @@ struct Arguments
     OPER(graph_test) SEP             \
     OPER(repeatability_check) SEP    \
     OPER(use_hipblaslt) SEP          \
-    OPER(dA) SEP                     \
-    OPER(dB) SEP                     \
-    OPER(dC) SEP                     \
-    OPER(dD)
+    OPER(max_a_ld) SEP               \
+    OPER(max_b_ld) SEP               \
+    OPER(max_c_ld) SEP               \
+    OPER(max_d_ld) SEP               \
+    OPER(max_a_n) SEP                \
+    OPER(max_b_n) SEP                \
+    OPER(max_c_n) SEP                \
+    OPER(max_d_n) SEP                \
+    OPER(cleanup)
     // clang-format on
 
     // Validate input format.

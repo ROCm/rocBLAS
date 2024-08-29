@@ -579,6 +579,62 @@ void testing_gemm_ex(const Arguments& arg)
         //   from cache before they are reused.
         // - The individual matrices are aligned on the same byte boundaries provided by hipMalloc.
 
+        static std::unique_ptr<device_strided_batch_matrix<Ti>> dA_alloc;
+        static std::unique_ptr<device_strided_batch_matrix<Ti>> dB_alloc;
+        static std::unique_ptr<device_strided_batch_matrix<To>> dC_alloc;
+        static std::unique_ptr<device_strided_batch_matrix<To>> dD_alloc;
+        if(!dA_alloc && arg.max_a_ld > 0)
+        {
+            rocblas_stride max_stride_a = align_stride<Ti>(arg.max_a_ld * arg.max_a_n);
+            rocblas_stride max_stride_b = align_stride<Ti>(arg.max_b_ld * arg.max_b_n);
+            rocblas_stride max_stride_c = align_stride<To>(arg.max_c_ld * arg.max_c_n);
+            rocblas_stride max_stride_d = align_stride<To>(arg.max_d_ld * arg.max_d_n);
+
+            size_t max_a_cached_size = arg.max_a_ld * arg.max_a_n * sizeof(Ti);
+            size_t max_b_cached_size = arg.max_b_ld * arg.max_b_n * sizeof(Ti);
+            size_t max_c_cached_size = arg.max_c_ld * arg.max_c_n * sizeof(To);
+            size_t max_d_cached_size = arg.max_d_ld * arg.max_d_n * sizeof(To);
+
+            size_t a_flush_batch_count = calculate_flush_batch_count(
+                arg.flush_batch_count, arg.flush_memory_size, max_a_cached_size);
+            size_t b_flush_batch_count = calculate_flush_batch_count(
+                arg.flush_batch_count, arg.flush_memory_size, max_b_cached_size);
+            size_t c_flush_batch_count = calculate_flush_batch_count(
+                arg.flush_batch_count, arg.flush_memory_size, max_c_cached_size);
+            size_t d_flush_batch_count = calculate_flush_batch_count(
+                arg.flush_batch_count, arg.flush_memory_size, max_d_cached_size);
+
+            dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
+                arg.max_a_ld, arg.max_a_n, arg.max_a_ld, max_stride_a, a_flush_batch_count);
+            dB_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
+                arg.max_b_ld, arg.max_b_n, arg.max_b_ld, max_stride_b, b_flush_batch_count);
+            dC_alloc = std::make_unique<device_strided_batch_matrix<To>>(
+                arg.max_c_ld, arg.max_c_n, arg.max_c_ld, max_stride_c, c_flush_batch_count);
+            if(arg.outofplace)
+            {
+                dD_alloc = std::make_unique<device_strided_batch_matrix<To>>(
+                    arg.max_d_ld, arg.max_d_n, arg.max_d_ld, max_stride_d, d_flush_batch_count);
+            }
+
+            // Allocate host memory
+            HOST_MEMCHECK(host_matrix<Ti>, hA, (arg.max_a_ld, arg.max_a_n, arg.max_a_ld));
+            HOST_MEMCHECK(host_matrix<Ti>, hB, (arg.max_b_ld, arg.max_b_n, arg.max_b_ld));
+            HOST_MEMCHECK(host_matrix<To>, hC, (arg.max_c_ld, arg.max_c_n, arg.max_c_ld));
+
+            // Initialize data on host memory
+            rocblas_init_matrix<Ti>(
+                hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+            rocblas_init_matrix<Ti, true>(
+                hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+            rocblas_init_matrix<To, true>(
+                hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+
+            // copy data from CPU to device
+            CHECK_HIP_ERROR(dA_alloc->broadcast_one_matrix_from(hA));
+            CHECK_HIP_ERROR(dB_alloc->broadcast_one_matrix_from(hB));
+            CHECK_HIP_ERROR(dC_alloc->broadcast_one_matrix_from(hC));
+        }
+
         rocblas_stride stride_a = lda * A_col;
         rocblas_stride stride_b = ldb * B_col;
         rocblas_stride stride_c = ldc * N;
@@ -600,45 +656,46 @@ void testing_gemm_ex(const Arguments& arg)
         size_t flush_batch_count = calculate_flush_batch_count(
             arg.flush_batch_count, arg.flush_memory_size, a_b_c_cached_size);
 
-        // Allocate device memory
-        DEVICE_MEMCHECK(device_strided_batch_matrix<Ti>,
-                        dA,
-                        (arg.dA, A_row, A_col, lda, aligned_stride_a, flush_batch_count));
-        DEVICE_MEMCHECK(device_strided_batch_matrix<Ti>,
-                        dB,
-                        (arg.dB, B_row, B_col, ldb, aligned_stride_b, flush_batch_count));
-        DEVICE_MEMCHECK(device_strided_batch_matrix<To>,
-                        dC,
-                        (arg.dC, M, N, ldc, aligned_stride_c, flush_batch_count));
-        // if C!=D, allocate C and D normally
-        // if C==D, allocate C big enough for the larger of C and D; D points to C
-        device_strided_batch_matrix<To> dD_alloc
-            = (arg.outofplace)
-                  ? device_strided_batch_matrix<To>(arg.dD, M, N, ldd, stride_d, flush_batch_count)
-                  : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dD_alloc.memcheck());
-        device_strided_batch_matrix<To>& dD = (arg.outofplace) ? dD_alloc : dC;
-
-        if(arg.dA == nullptr)
+        if(!dA_alloc || !dA_alloc->resize(A_row, A_col, lda, aligned_stride_a, flush_batch_count))
         {
-            // Allocate host memory
+            dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
+                A_row, A_col, lda, aligned_stride_a, flush_batch_count);
             HOST_MEMCHECK(host_matrix<Ti>, hA, (A_row, A_col, lda));
-            HOST_MEMCHECK(host_matrix<Ti>, hB, (B_row, B_col, ldb));
-            HOST_MEMCHECK(host_matrix<To>, hC, (M, N, ldc));
-
-            // Initialize data on host memory
             rocblas_init_matrix<Ti>(
                 hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+            CHECK_HIP_ERROR(dA_alloc->broadcast_one_matrix_from(hA));
+        }
+        if(!dB_alloc || !dB_alloc->resize(B_row, B_col, ldb, aligned_stride_b, flush_batch_count))
+        {
+            dB_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
+                B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
+            HOST_MEMCHECK(host_matrix<Ti>, hB, (B_row, B_col, ldb));
             rocblas_init_matrix<Ti, true>(
                 hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+            CHECK_HIP_ERROR(dB_alloc->broadcast_one_matrix_from(hB));
+        }
+        if(!dC_alloc || !dC_alloc->resize(M, N, ldc, aligned_stride_c, flush_batch_count))
+        {
+            dC_alloc = std::make_unique<device_strided_batch_matrix<To>>(
+                M, N, ldc, aligned_stride_c, flush_batch_count);
+            HOST_MEMCHECK(host_matrix<To>, hC, (M, N, ldc));
             rocblas_init_matrix<To, true>(
                 hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
-
-            // copy data from CPU to device
-            CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
-            CHECK_HIP_ERROR(dB.broadcast_one_matrix_from(hB));
-            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
+            CHECK_HIP_ERROR(dC_alloc->broadcast_one_matrix_from(hC));
         }
+        if(arg.outofplace)
+        {
+            if(!dC_alloc || !dD_alloc->resize(M, N, ldd, aligned_stride_d, flush_batch_count))
+            {
+                dD_alloc = std::make_unique<device_strided_batch_matrix<To>>(
+                    M, N, ldd, aligned_stride_d, flush_batch_count);
+            }
+        }
+
+        auto& dA = *dA_alloc;
+        auto& dB = *dB_alloc;
+        auto& dC = *dC_alloc;
+        auto& dD = (arg.outofplace) ? *dD_alloc : dC;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -686,6 +743,14 @@ void testing_gemm_ex(const Arguments& arg)
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         freq_monitor.stop();
+
+        if(arg.cleanup)
+        {
+            dA_alloc.reset();
+            dB_alloc.reset();
+            dC_alloc.reset();
+            dD_alloc.reset();
+        }
 
         ArgumentModel<e_transA,
                       e_transB,
