@@ -48,7 +48,7 @@ namespace
         }
 
         size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size<API_INT, NB>(n, 1, execution_type);
+            = rocblas_reduction_workspace_size<API_INT, NB>(n, incx, incx, 1, execution_type);
 
         if(handle->is_device_memory_size_query())
         {

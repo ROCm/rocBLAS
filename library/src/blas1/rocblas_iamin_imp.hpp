@@ -53,9 +53,8 @@ namespace
         static constexpr API_INT batch_count_1 = 1;
 
         size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size_chunked<API_INT,
-                                                              ROCBLAS_IAMAX_NB,
-                                                              index_val_t>(n, batch_count_1);
+            = rocblas_single_pass_reduction_workspace_size<API_INT, ROCBLAS_IAMAX_NB, index_val_t>(
+                n, batch_count_1);
 
         if(handle->is_device_memory_size_query())
         {
