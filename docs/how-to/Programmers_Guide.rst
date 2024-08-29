@@ -906,6 +906,12 @@ There are three client executables that can be used with rocBLAS. They are:
 
 These three clients can be built by following the instructions in the Building and Installing section of the User Guide. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
 
+.. note::
+  The ``rocblas-bench`` and ``rocblas-test`` executables use AMD's ILP64 version of AOCL-BLAS 4.2 as the host reference BLAS to verify correctness. However, there is a known issue with AOCL-BLAS that can cause these executables to hang. This problem can arise because the AOCL-BLAS library launches multiple threads to perform computations. If the number of threads matches the total number of CPU threads, it can lead to thread oversubscription, causing the program to hang.
+  To prevent this issue, we recommend limiting the number of threads that the AOCL-BLAS library uses to fewer than the available CPU cores. You can do this by setting the ``OMP_NUM_THREADS`` environment variable.
+
+  For example, on a server with 32 cores, you can limit the number of threads to 28 by setting ``export OMP_NUM_THREADS=28``
+
 The next three sections will provide a brief explanation and the usage of each rocBLAS client.
 
 rocblas-bench
