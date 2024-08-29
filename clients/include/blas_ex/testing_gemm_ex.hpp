@@ -685,7 +685,7 @@ void testing_gemm_ex(const Arguments& arg)
         }
         if(arg.outofplace)
         {
-            if(!dC_alloc || !dD_alloc->resize(M, N, ldd, aligned_stride_d, flush_batch_count))
+            if(!dD_alloc || !dD_alloc->resize(M, N, ldd, aligned_stride_d, flush_batch_count))
             {
                 dD_alloc = std::make_unique<device_strided_batch_matrix<To>>(
                     M, N, ldd, aligned_stride_d, flush_batch_count);
