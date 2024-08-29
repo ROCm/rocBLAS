@@ -71,7 +71,7 @@ rocblas_status rocblas_internal_dot_launcher_64(rocblas_handle __restrict__ hand
     static constexpr int WIN      = rocblas_dot_WIN<T>();
     int64_t              n_passes = (n_64 - 1) / c_i64_grid_X_chunk + 1;
 
-    if(std::abs(incx_64) <= c_ILP64_i32_max && std::abs(incy_64) < c_ILP64_i32_max)
+    if(std::abs(incx_64) <= c_ILP64_i32_max && std::abs(incy_64) <= c_ILP64_i32_max)
     {
         if(n_64 <= c_ILP64_i32_max && batch_count_64 < c_i64_grid_YZ_chunk)
         {
