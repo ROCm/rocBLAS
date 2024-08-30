@@ -171,6 +171,7 @@ Definitions:
     - { M:   191, N:   193, K:   194, lda:   195, ldb:   196, ldc:   197, ldd:   197 }
     - { M:   500, N:   501, K:   502, lda:   503, ldb:   604, ldc:   505, ldd:   505 }
     - { M:   639, N:   640, K:   347, lda:   960, ldb:   961, ldc:  1062, ldd:  1062 }
+    - { M:   375, N:   4309, K:   375, lda:   375, ldb:   4309, ldc:  4309, ldd:  4309 } # SWDEV-481147
 
   - &large_matrix_size_range
     - { M:  1000, N:  1001, K:   101, lda:  2002, ldb:  1003, ldc:  1004, ldd:  1004 }
