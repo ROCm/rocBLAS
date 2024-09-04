@@ -264,7 +264,7 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
     set(GFORTRAN_DEB "libgfortran5")
   elseif(CLIENTS_OS STREQUAL "sles")
     set(OPENMP_RPM "libgomp1")
-  elseif(CLIENTS_OS STREQUAL "mariner")
+  elseif(CLIENTS_OS STREQUAL "mariner" OR CLIENTS_OS STREQUAL "azurelinux")
     set(GFORTRAN_RPM "gfortran")
   endif()
 
