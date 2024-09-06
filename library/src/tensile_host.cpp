@@ -1106,7 +1106,7 @@ template <typename TiA, typename To, typename Tc, typename TiB, typename TcA, ty
 bool useHipBLASLt(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob)
 {
 #ifdef BUILD_WITH_HIPBLASLT
-    bool problemSpecific = true; // On supported architectures use hipBLASLT on all problems.
+    bool problemSpecific = prob.batch_A == 0; // Only use hipblaslt for non-batch problems.
     return prob.handle->useHipBLASLt(problemSpecific);
 #else
     return false;
