@@ -43,7 +43,11 @@ rocBLAS uses CMake for build automation, and CMake downloads Tensile and hipBLAS
 configures them as part of the build, so no further action is required by the
 user to set it up.  No external facing API for Tensile or hipBLASLt are provided.
 
-The choice of whether to use Tensile or hipBLASLt is handled automatically based on architecture and data types
+The choice of whether to use Tensile or hipBLASLt is handled automatically based on architecture and problem.
+hipBLASLt is used as the default backend for:
+
+- non-batched and strided batched problems on gfx12
+
 The environment variable ``ROCBLAS_USE_HIPBLASLT`` is provided to manually control which GEMM backend is used in the following ways:
 
 - ``ROCBLAS_USE_HIPBLASLT is not set``: the GEMM backend is automatically selected.
