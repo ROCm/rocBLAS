@@ -54,17 +54,20 @@ rocblas_ger_kernel(rocblas_int    m,
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
 
-    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     if(!alpha)
         return;
 
-    const T* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
-    const T* __restrict__ y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
+    const T* __restrict__ x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    const T* __restrict__ y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    T* __restrict__ A = load_ptr_batch(Aa, blockIdx.z, shifta, strideA);
+    T* __restrict__ A = load_ptr_batch(Aa, blockIdx.y, shifta, strideA);
 
-    int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    int ty = blockIdx.y * blockDim.y + threadIdx.y;
+    int num_blocksx = (m - 1) / DIM_X + 1;
+    int blkx        = blockIdx.x % num_blocksx;
+    int blky        = blockIdx.x / num_blocksx;
+    int tx          = blkx * DIM_X + threadIdx.x;
+    int ty          = blky * DIM_Y + threadIdx.y;
     ty *= WIN;
 
     // shared data base index
@@ -352,8 +355,9 @@ rocblas_status rocblas_internal_ger_launcher(rocblas_handle handle,
         static constexpr int WIN     = 2; // work item number of elements to process
         rocblas_int          blocksX = (m - 1) / DIM_X + 1;
         rocblas_int          blocksY = (n - 1) / (DIM_Y * WIN) + 1; // WIN columns/work item
+        blocksX *= blocksY;
 
-        dim3 ger_grid(blocksX, blocksY, batch_count);
+        dim3 ger_grid(blocksX, batch_count);
         dim3 ger_threads(DIM_X, DIM_Y);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
