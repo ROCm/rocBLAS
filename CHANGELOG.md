@@ -9,6 +9,10 @@ rocBLAS documentation is available at
 
 * Remove Device_Memory_Allocation.pdf link in documentation
 
+### Fixes
+
+* Fixed error/warn message during rocblas_set_stream() call
+
 ## rocBLAS 4.2.0 for ROCm 6.2
 
 ### Additions
