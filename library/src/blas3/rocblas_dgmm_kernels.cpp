@@ -41,15 +41,16 @@ rocblas_dgmm_device(rocblas_int    m,
                     rocblas_stride stride_c)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
-    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if(tx < m && ty < n)
+    //looping over ty
+    for(rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y; ty < n && tx < m;
+        ty += blockDim.y * gridDim.y)
     {
         auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
         auto* X = load_ptr_batch(Xa, blockIdx.z, shift_x, stride_x);
         auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
-        if(side_right)
+        if constexpr(side_right)
         {
             C[tx + ldc * ty] = A[tx + lda * ty] * X[ty * incx];
         }
@@ -106,7 +107,8 @@ rocblas_status rocblas_internal_dgmm_launcher(rocblas_handle handle,
         static constexpr int DGMM_DIM_Y = 16;
 
         rocblas_int blocksX = (m - 1) / DGMM_DIM_X + 1;
-        rocblas_int blocksY = (n - 1) / DGMM_DIM_Y + 1;
+        //blocksY should be less than 2^16 (65536) to avoid overflow as grid y and z dimensions support only 16-bit values on some gfx
+        rocblas_int blocksY = std::min((c_YZ_grid_launch_limit - 1), (n - 1) / DGMM_DIM_Y + 1);
 
         dim3 dgmm_grid(blocksX, blocksY, batch_count);
         dim3 dgmm_threads(DGMM_DIM_X, DGMM_DIM_Y);
