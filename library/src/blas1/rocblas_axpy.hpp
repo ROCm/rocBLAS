@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,20 +83,28 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride  stride_y,
                                            rocblas_int     batch_count);
 
-template <typename Ta, typename Tx, typename Ty>
+template <typename API_INT, typename Ta, typename Tx, typename Ty>
 inline rocblas_status rocblas_axpy_arg_check(rocblas_handle handle,
-                                             int64_t        n,
+                                             API_INT        n,
                                              const Ta*      alpha,
                                              Tx             x,
                                              rocblas_stride offset_x,
-                                             int64_t        incx,
+                                             API_INT        incx,
                                              rocblas_stride stride_x,
                                              Ty             y,
                                              rocblas_stride offset_y,
-                                             int64_t        incy,
+                                             API_INT        incy,
                                              rocblas_stride stride_y,
-                                             int64_t        batch_count)
+                                             API_INT        batch_count)
 {
+    if constexpr(std::is_same_v<API_INT, int>)
+    {
+        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+        {
+            return rocblas_status_invalid_size;
+        }
+    }
+
     if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
