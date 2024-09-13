@@ -32,8 +32,11 @@ rocblas_geam_zero_matrix_device(rocblas_int    m,
                                 int64_t        ldc,
                                 rocblas_stride stride_c)
 {
-    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
+    int num_blocksx = (m - 1) / DIM_X + 1;
+    int blkx        = blockIdx.x % num_blocksx;
+    int blky        = blockIdx.x / num_blocksx;
+    int tx          = blkx * DIM_X + threadIdx.x;
+    int ty          = blky * DIM_Y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -65,8 +68,11 @@ rocblas_geam_device(rocblas_operation transA,
                     int64_t           ldc,
                     rocblas_stride    stride_c)
 {
-    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
+    int num_blocksx = (m - 1) / DIM_X + 1;
+    int blkx        = blockIdx.x % num_blocksx;
+    int blky        = blockIdx.x / num_blocksx;
+    int tx          = blkx * DIM_X + threadIdx.x;
+    int ty          = blky * DIM_Y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -127,8 +133,11 @@ rocblas_geam_2matrix_device(rocblas_operation transA,
                             int64_t           ldc,
                             rocblas_stride    stride_c)
 {
-    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
+    int num_blocksx = (m - 1) / DIM_X + 1;
+    int blkx        = blockIdx.x % num_blocksx;
+    int blky        = blockIdx.x / num_blocksx;
+    int tx          = blkx * DIM_X + threadIdx.x;
+    int ty          = blky * DIM_Y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -189,7 +198,7 @@ rocblas_geam_1D_device(size_t         size,
         auto alpha = load_scalar(alpha_device_host);
         auto beta  = load_scalar(beta_device_host);
 
-        auto* C = load_ptr_batch(Ca, blockIdx.y, offset_c, stride_c);
+        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         if(alpha == 0 && beta == 0)
         {
@@ -197,8 +206,8 @@ rocblas_geam_1D_device(size_t         size,
         }
         else
         {
-            auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, offset_a, stride_a);
-            auto* B = cond_load_ptr_batch(beta, Ba, blockIdx.y, offset_b, stride_b);
+            auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.z, offset_a, stride_a);
+            auto* B = cond_load_ptr_batch(beta, Ba, blockIdx.z, offset_b, stride_b);
 
             C[tx] = (beta ? beta * B[tx] : 0) + (alpha ? alpha * A[tx] : 0);
         }
@@ -226,7 +235,7 @@ rocblas_geam_1D_2matrix_device(size_t         size,
     {
         auto alpha = load_scalar(alpha_device_host);
 
-        auto* C = load_ptr_batch(Ca, blockIdx.y, offset_c, stride_c);
+        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         if(alpha == 0)
         {
@@ -234,7 +243,7 @@ rocblas_geam_1D_2matrix_device(size_t         size,
         }
         else
         {
-            auto* A = load_ptr_batch(Aa, blockIdx.y, offset_a, stride_a);
+            auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
             C[tx]   = alpha * A[tx];
         }
     }
@@ -258,8 +267,11 @@ rocblas_geam_inplace_device(rocblas_operation transB,
                             int64_t           ldc,
                             rocblas_stride    stride_c)
 {
-    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
+    int num_blocksx = (m - 1) / DIM_X + 1;
+    int blkx        = blockIdx.x % num_blocksx;
+    int blky        = blockIdx.x / num_blocksx;
+    int tx          = blkx * DIM_X + threadIdx.x;
+    int ty          = blky * DIM_Y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
@@ -352,8 +364,9 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
 
         rocblas_int blocksX = (m - 1) / GEAM_DIM_X + 1;
         rocblas_int blocksY = (n - 1) / GEAM_DIM_Y + 1;
+        blocksX *= blocksY;
 
-        dim3 geam_grid(blocksX, blocksY, batch_count);
+        dim3 geam_grid(blocksX, 1, batch_count);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         ROCBLAS_LAUNCH_KERNEL((rocblas_geam_zero_matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
@@ -376,8 +389,9 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         static constexpr int GEAM_DIM_Y = 16;
         rocblas_int          blocksX    = (m - 1) / GEAM_DIM_X + 1;
         rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
+        blocksX *= blocksY; // overflow only on TB+
 
-        dim3 geam_grid(blocksX, blocksY, batch_count);
+        dim3 geam_grid(blocksX, 1, batch_count);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         if(pointer_mode == rocblas_pointer_mode_host)
@@ -431,8 +445,9 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         static constexpr int GEAM_DIM_Y = 16;
         rocblas_int          blocksX    = (m - 1) / GEAM_DIM_X + 1;
         rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
+        blocksX *= blocksY; // overflow only on TB+
 
-        dim3 geam_grid(blocksX, blocksY, batch_count);
+        dim3 geam_grid(blocksX, 1, batch_count);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         if(pointer_mode == rocblas_pointer_mode_host)
@@ -489,7 +504,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             size_t               size     = size_t(m) * n;
             int                  blocks   = (size - 1) / GEAM_DIM + 1;
 
-            dim3 geam_grid(blocks, batch_count);
+            dim3 geam_grid(blocks, 1, batch_count);
             dim3 geam_threads(GEAM_DIM);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_1D_2matrix_device<GEAM_DIM>),
@@ -514,8 +529,9 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             static constexpr int GEAM_DIM_Y = 16;
             rocblas_int          blocksX    = (m - 1) / GEAM_DIM_X + 1;
             rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
+            blocksX *= blocksY; // overflow only on TB+
 
-            dim3 geam_grid(blocksX, blocksY, batch_count);
+            dim3 geam_grid(blocksX, 1, batch_count);
             dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
@@ -548,7 +564,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             int                  size     = m * n;
             int                  blocks   = (size - 1) / GEAM_DIM + 1;
 
-            dim3 geam_grid(blocks, batch_count);
+            dim3 geam_grid(blocks, 1, batch_count);
             dim3 geam_threads(GEAM_DIM);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_1D_2matrix_device<GEAM_DIM>),
@@ -574,8 +590,9 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
 
             rocblas_int blocksX = (m - 1) / GEAM_DIM_X + 1;
             rocblas_int blocksY = (n - 1) / GEAM_DIM_Y + 1;
+            blocksX *= blocksY; // overflow only on TB+
 
-            dim3 geam_grid(blocksX, blocksY, batch_count);
+            dim3 geam_grid(blocksX, 1, batch_count);
             dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
@@ -607,7 +624,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         int                  blocks   = (size - 1) / GEAM_DIM + 1;
         // GEAM_DIM needs to be large to prevent blocks overflowing int datatype.
 
-        dim3 geam_grid(blocks, batch_count);
+        dim3 geam_grid(blocks, 1, batch_count);
         dim3 geam_threads(GEAM_DIM);
 
         if(rocblas_pointer_mode_host == pointer_mode)
@@ -659,8 +676,9 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
 
         rocblas_int blocksX = (m - 1) / GEAM_DIM_X + 1;
         rocblas_int blocksY = (n - 1) / GEAM_DIM_Y + 1;
+        blocksX *= blocksY; // overflow only on TB+
 
-        dim3 geam_grid(blocksX, blocksY, batch_count);
+        dim3 geam_grid(blocksX, 1, batch_count);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         if(pointer_mode == rocblas_pointer_mode_host)
