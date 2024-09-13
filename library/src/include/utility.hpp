@@ -31,6 +31,8 @@
 #include <new>
 #include <type_traits>
 
+constexpr int c_YZ_grid_launch_limit = 1 << 16; // on some gfx
+
 #pragma STDC CX_LIMITED_RANGE ON
 
 // half vectors
