@@ -138,7 +138,7 @@ namespace
             }
         }
 
-        rocblas_status arg_status = rocblas_tbmv_arg_check<T>(
+        rocblas_status arg_status = rocblas_tbmv_arg_check(
             handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;

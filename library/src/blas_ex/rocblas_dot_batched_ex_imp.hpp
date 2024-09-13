@@ -49,6 +49,14 @@ namespace
             return rocblas_status_invalid_handle;
         }
 
+        if constexpr(std::is_same_v<API_INT, int>)
+        {
+            if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+            {
+                return rocblas_status_invalid_size;
+            }
+        }
+
         size_t dev_bytes = rocblas_reduction_workspace_size<API_INT, ROCBLAS_DOT_NB>(
             n, incx, incy, batch_count, execution_type);
         if(handle->is_device_memory_size_query())

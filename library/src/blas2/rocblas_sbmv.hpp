@@ -25,29 +25,37 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
-template <typename T, typename U, typename V, typename W>
+template <typename API_INT, typename T, typename U, typename V, typename W>
 inline rocblas_status rocblas_sbmv_arg_check(rocblas_handle handle,
                                              rocblas_fill   uplo,
-                                             int64_t        n,
-                                             int64_t        k,
+                                             API_INT        n,
+                                             API_INT        k,
                                              const V*       alpha,
                                              rocblas_stride stride_alpha,
                                              const U*       A,
                                              rocblas_stride offseta,
-                                             int64_t        lda,
+                                             API_INT        lda,
                                              rocblas_stride strideA,
                                              const U*       x,
                                              rocblas_stride offsetx,
-                                             int64_t        incx,
+                                             API_INT        incx,
                                              rocblas_stride stridex,
                                              const V*       beta,
                                              rocblas_stride stride_beta,
                                              const W*       y,
                                              rocblas_stride offsety,
-                                             int64_t        incy,
+                                             API_INT        incy,
                                              rocblas_stride stridey,
-                                             int64_t        batch_count)
+                                             API_INT        batch_count)
 {
+    if constexpr(std::is_same_v<API_INT, int>)
+    {
+        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+        {
+            return rocblas_status_invalid_size;
+        }
+    }
+
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 

@@ -38,6 +38,10 @@ inline rocblas_status rocblas_trtri_arg_check(rocblas_handle   handle,
                                               rocblas_int      ldinvA,
                                               rocblas_int      batch_count)
 {
+    if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+    {
+        return rocblas_status_invalid_size;
+    }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;

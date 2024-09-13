@@ -247,6 +247,11 @@ public:
         return max_mem;
     }
 
+    bool isYZGridDim16bit()
+    {
+        return archMajor == 12;
+    }
+
     bool isDefaultHipBLASLtArch()
     {
         int arch = getArch();

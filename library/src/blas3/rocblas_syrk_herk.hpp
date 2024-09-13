@@ -43,6 +43,14 @@ inline rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
                                              rocblas_stride    strideC,
                                              API_INT           batch_count)
 {
+    if constexpr(std::is_same_v<API_INT, int>)
+    {
+        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+        {
+            return rocblas_status_invalid_size;
+        }
+    }
+
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 
@@ -100,6 +108,14 @@ inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
                                              rocblas_stride    strideC,
                                              API_INT           batch_count)
 {
+    if constexpr(std::is_same_v<API_INT, int>)
+    {
+        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+        {
+            return rocblas_status_invalid_size;
+        }
+    }
+
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
     if(transA != rocblas_operation_none && transA != rocblas_operation_conjugate_transpose)

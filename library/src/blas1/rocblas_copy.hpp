@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,36 @@ ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE
                                                                API_INT        incy,
                                                                rocblas_stride stridey,
                                                                API_INT        batch_count);
+
+template <typename API_INT, typename T, typename U>
+inline rocblas_status rocblas_copy_arg_check(rocblas_handle handle,
+                                             API_INT        n,
+                                             T              x,
+                                             rocblas_stride offsetx,
+                                             API_INT        incx,
+                                             rocblas_stride stridex,
+                                             U              y,
+                                             rocblas_stride offsety,
+                                             API_INT        incy,
+                                             rocblas_stride stridey,
+                                             API_INT        batch_count)
+{
+    if(n <= 0 || batch_count <= 0)
+        return rocblas_status_success;
+
+    if(!x || !y)
+        return rocblas_status_invalid_pointer;
+
+    if constexpr(std::is_same_v<API_INT, int>)
+    {
+        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+        {
+            return rocblas_status_invalid_size;
+        }
+    }
+
+    return rocblas_status_continue;
+}
 
 template <typename API_INT, typename T, typename U>
 ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE rocblas_status

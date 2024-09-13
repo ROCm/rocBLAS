@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,14 @@ inline rocblas_status rocblas_ger_arg_check(rocblas_handle handle,
                                             rocblas_stride strideA,
                                             API_INT        batch_count)
 {
+    if constexpr(std::is_same_v<API_INT, int>)
+    {
+        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
+        {
+            return rocblas_status_invalid_size;
+        }
+    }
+
     if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
         return rocblas_status_invalid_size;
 
