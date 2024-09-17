@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -498,8 +498,10 @@ namespace
         constexpr int BUFB_M = TRANSB ? BLK_N / DIM_M_B : BLK_K / DIM_M_B;
         constexpr int BUFB_N = TRANSB ? BLK_K / DIM_N_B : BLK_N / DIM_N_B;
 
-        int blx   = blockIdx.x; // block's m position in C/D
-        int bly   = blockIdx.y; // block's n position in C/D
+        int num_blocksx = (M - 1) / BLK_M + 1;
+        int blx         = blockIdx.x % num_blocksx; // block's m position in C/D
+        int bly         = blockIdx.x / num_blocksx; // block's n position in C/D
+
         int idx   = threadIdx.x; // thread's m position in C/D
         int idy   = threadIdx.y; // thread's n position in C/D
         int idt   = DIM_M * idy + idx; // thread's global number
@@ -795,8 +797,12 @@ namespace
         auto C    = beta ? load_ptr_batch(dC, blockIdx.z, offset_c, stride_c) : nullptr;
         auto D    = load_ptr_batch(dD, blockIdx.z, offset_d, stride_d);
 
-        auto tx = blockIdx.x * blockDim.x + threadIdx.x;
-        auto ty = blockIdx.y * blockDim.y + threadIdx.y;
+        int num_blocksx = (m - 1) / DIM_X + 1;
+        int blx         = blockIdx.x % num_blocksx;
+        int bly         = blockIdx.x / num_blocksx;
+
+        auto tx = blx * DIM_X + threadIdx.x;
+        auto ty = bly * DIM_Y + threadIdx.y;
 
         if(tx < m && ty < n)
         {
@@ -822,8 +828,12 @@ namespace
         auto C    = beta ? load_ptr_batch(dC, blockIdx.z, offset_c, stride_c) : nullptr;
         auto D    = load_ptr_batch(dD, blockIdx.z, offset_d, stride_d);
 
-        auto tx = blockIdx.x * blockDim.x + threadIdx.x;
-        auto ty = blockIdx.y * blockDim.y + threadIdx.y;
+        int num_blocksx = (m - 1) / DIM_X + 1;
+        int blx         = blockIdx.x % num_blocksx;
+        int bly         = blockIdx.x / num_blocksx;
+
+        auto tx = blx * DIM_X + threadIdx.x;
+        auto ty = bly * DIM_Y + threadIdx.y;
 
         if(tx < m && ty < n)
         {
@@ -906,8 +916,9 @@ namespace
 
             rocblas_int blocksX = (m - 1) / GEAM_SCALE_DIM_X + 1;
             rocblas_int blocksY = (n - 1) / GEAM_SCALE_DIM_Y + 1;
+            blocksX *= blocksY; // overflow only on TB+
 
-            dim3 geam_scale_grid(blocksX, blocksY, batch_count);
+            dim3 geam_scale_grid(blocksX, 1, batch_count);
             dim3 geam_scale_threads(GEAM_SCALE_DIM_X, GEAM_SCALE_DIM_Y);
 
             if(ptr_mode == rocblas_pointer_mode_host)
@@ -955,8 +966,9 @@ namespace
 
             rocblas_int blocksX = (m - 1) / GEAM_ROUND_DIM_X + 1;
             rocblas_int blocksY = (n - 1) / GEAM_ROUND_DIM_Y + 1;
+            blocksX *= blocksY; // overflow only on TB+
 
-            dim3 geam_round_grid(blocksX, blocksY, batch_count);
+            dim3 geam_round_grid(blocksX, 1, batch_count);
             dim3 geam_round_threads(GEAM_ROUND_DIM_X, GEAM_ROUND_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((geam_ex_round_kernel<GEAM_ROUND_DIM_X, GEAM_ROUND_DIM_Y, T>),
@@ -979,275 +991,278 @@ namespace
             return rocblas_status_success;
         }
 
-#define LAUNCH_GEAM_SOURCE_KERNEL(                                               \
-    TRANSA_, TRANSB_, DIM_M_A_, DIM_N_A_, DIM_M_B_, DIM_N_B_, MINPLUS_)          \
-    if(m % BLK_M == 0 && n % BLK_N == 0 && k % BLK_K == 0)                       \
-    {                                                                            \
-        dim3 dimBlock(DIM_M, DIM_N, 1);                                          \
-        dim3 dimGrid(m / BLK_M, n / BLK_N, batch_count);                         \
-        if(ptr_mode == rocblas_pointer_mode_device)                              \
-        {                                                                        \
-            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,                       \
-                                                        Tab,                     \
-                                                        Tc,                      \
-                                                        DIM_M,                   \
-                                                        DIM_N,                   \
-                                                        BLK_M,                   \
-                                                        BLK_N,                   \
-                                                        BLK_K,                   \
-                                                        DIM_M_A_,                \
-                                                        DIM_N_A_,                \
-                                                        DIM_M_B_,                \
-                                                        DIM_N_B_,                \
-                                                        TRANSA_,                 \
-                                                        TRANSB_,                 \
-                                                        false,                   \
-                                                        false,                   \
-                                                        MINPLUS_>),              \
-                                  dimGrid,                                       \
-                                  dimBlock,                                      \
-                                  0,                                             \
-                                  stream,                                        \
-                                  m,                                             \
-                                  n,                                             \
-                                  k,                                             \
-                                  alpha,                                         \
-                                  dA_krn,                                        \
-                                  lda,                                           \
-                                  a_st_or_of,                                    \
-                                  dB_krn,                                        \
-                                  ldb,                                           \
-                                  b_st_or_of,                                    \
-                                  beta,                                          \
-                                  dC_krn,                                        \
-                                  ldc,                                           \
-                                  c_st_or_of,                                    \
-                                  dD_krn,                                        \
-                                  ldd,                                           \
-                                  d_st_or_of,                                    \
-                                  batch_count,                                   \
-                                  geam_ex_op);                                   \
-        }                                                                        \
-        else if(*alpha == 1)                                                     \
-        {                                                                        \
-            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,                       \
-                                                        Tab,                     \
-                                                        Tc,                      \
-                                                        DIM_M,                   \
-                                                        DIM_N,                   \
-                                                        BLK_M,                   \
-                                                        BLK_N,                   \
-                                                        BLK_K,                   \
-                                                        DIM_M_A_,                \
-                                                        DIM_N_A_,                \
-                                                        DIM_M_B_,                \
-                                                        DIM_N_B_,                \
-                                                        TRANSA_,                 \
-                                                        TRANSB_,                 \
-                                                        true,                    \
-                                                        false,                   \
-                                                        MINPLUS_>),              \
-                                  dimGrid,                                       \
-                                  dimBlock,                                      \
-                                  0,                                             \
-                                  stream,                                        \
-                                  m,                                             \
-                                  n,                                             \
-                                  k,                                             \
-                                  *alpha,                                        \
-                                  dA_krn,                                        \
-                                  lda,                                           \
-                                  a_st_or_of,                                    \
-                                  dB_krn,                                        \
-                                  ldb,                                           \
-                                  b_st_or_of,                                    \
-                                  *beta,                                         \
-                                  dC_krn,                                        \
-                                  ldc,                                           \
-                                  c_st_or_of,                                    \
-                                  dD_krn,                                        \
-                                  ldd,                                           \
-                                  d_st_or_of,                                    \
-                                  batch_count,                                   \
-                                  geam_ex_op);                                   \
-        }                                                                        \
-        else                                                                     \
-        {                                                                        \
-            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,                       \
-                                                        Tab,                     \
-                                                        Tc,                      \
-                                                        DIM_M,                   \
-                                                        DIM_N,                   \
-                                                        BLK_M,                   \
-                                                        BLK_N,                   \
-                                                        BLK_K,                   \
-                                                        DIM_M_A_,                \
-                                                        DIM_N_A_,                \
-                                                        DIM_M_B_,                \
-                                                        DIM_N_B_,                \
-                                                        TRANSA_,                 \
-                                                        TRANSB_,                 \
-                                                        false,                   \
-                                                        false,                   \
-                                                        MINPLUS_>),              \
-                                  dimGrid,                                       \
-                                  dimBlock,                                      \
-                                  0,                                             \
-                                  stream,                                        \
-                                  m,                                             \
-                                  n,                                             \
-                                  k,                                             \
-                                  *alpha,                                        \
-                                  dA_krn,                                        \
-                                  lda,                                           \
-                                  a_st_or_of,                                    \
-                                  dB_krn,                                        \
-                                  ldb,                                           \
-                                  b_st_or_of,                                    \
-                                  *beta,                                         \
-                                  dC_krn,                                        \
-                                  ldc,                                           \
-                                  c_st_or_of,                                    \
-                                  dD_krn,                                        \
-                                  ldd,                                           \
-                                  d_st_or_of,                                    \
-                                  batch_count,                                   \
-                                  geam_ex_op);                                   \
-        }                                                                        \
-    }                                                                            \
-    else                                                                         \
-    {                                                                            \
-        dim3 dimBlock(DIM_M, DIM_N, 1);                                          \
-        dim3 dimGrid(((m - 1) / BLK_M) + 1, ((n - 1) / BLK_N) + 1, batch_count); \
-        if(ptr_mode == rocblas_pointer_mode_device)                              \
-        {                                                                        \
-            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,                       \
-                                                        Tab,                     \
-                                                        Tc,                      \
-                                                        DIM_M,                   \
-                                                        DIM_N,                   \
-                                                        BLK_M,                   \
-                                                        BLK_N,                   \
-                                                        BLK_K,                   \
-                                                        DIM_M_A_,                \
-                                                        DIM_N_A_,                \
-                                                        DIM_M_B_,                \
-                                                        DIM_N_B_,                \
-                                                        TRANSA_,                 \
-                                                        TRANSB_,                 \
-                                                        false,                   \
-                                                        true,                    \
-                                                        MINPLUS_>),              \
-                                  dimGrid,                                       \
-                                  dimBlock,                                      \
-                                  0,                                             \
-                                  stream,                                        \
-                                  m,                                             \
-                                  n,                                             \
-                                  k,                                             \
-                                  alpha,                                         \
-                                  dA_krn,                                        \
-                                  lda,                                           \
-                                  a_st_or_of,                                    \
-                                  dB_krn,                                        \
-                                  ldb,                                           \
-                                  b_st_or_of,                                    \
-                                  beta,                                          \
-                                  dC_krn,                                        \
-                                  ldc,                                           \
-                                  c_st_or_of,                                    \
-                                  dD_krn,                                        \
-                                  ldd,                                           \
-                                  d_st_or_of,                                    \
-                                  batch_count,                                   \
-                                  geam_ex_op);                                   \
-        }                                                                        \
-        else if(*alpha == 1)                                                     \
-        {                                                                        \
-            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,                       \
-                                                        Tab,                     \
-                                                        Tc,                      \
-                                                        DIM_M,                   \
-                                                        DIM_N,                   \
-                                                        BLK_M,                   \
-                                                        BLK_N,                   \
-                                                        BLK_K,                   \
-                                                        DIM_M_A_,                \
-                                                        DIM_N_A_,                \
-                                                        DIM_M_B_,                \
-                                                        DIM_N_B_,                \
-                                                        TRANSA_,                 \
-                                                        TRANSB_,                 \
-                                                        true,                    \
-                                                        true,                    \
-                                                        MINPLUS_>),              \
-                                  dimGrid,                                       \
-                                  dimBlock,                                      \
-                                  0,                                             \
-                                  stream,                                        \
-                                  m,                                             \
-                                  n,                                             \
-                                  k,                                             \
-                                  *alpha,                                        \
-                                  dA_krn,                                        \
-                                  lda,                                           \
-                                  a_st_or_of,                                    \
-                                  dB_krn,                                        \
-                                  ldb,                                           \
-                                  b_st_or_of,                                    \
-                                  *beta,                                         \
-                                  dC_krn,                                        \
-                                  ldc,                                           \
-                                  c_st_or_of,                                    \
-                                  dD_krn,                                        \
-                                  ldd,                                           \
-                                  d_st_or_of,                                    \
-                                  batch_count,                                   \
-                                  geam_ex_op);                                   \
-        }                                                                        \
-        else                                                                     \
-        {                                                                        \
-            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,                       \
-                                                        Tab,                     \
-                                                        Tc,                      \
-                                                        DIM_M,                   \
-                                                        DIM_N,                   \
-                                                        BLK_M,                   \
-                                                        BLK_N,                   \
-                                                        BLK_K,                   \
-                                                        DIM_M_A_,                \
-                                                        DIM_N_A_,                \
-                                                        DIM_M_B_,                \
-                                                        DIM_N_B_,                \
-                                                        TRANSA_,                 \
-                                                        TRANSB_,                 \
-                                                        false,                   \
-                                                        true,                    \
-                                                        MINPLUS_>),              \
-                                  dimGrid,                                       \
-                                  dimBlock,                                      \
-                                  0,                                             \
-                                  stream,                                        \
-                                  m,                                             \
-                                  n,                                             \
-                                  k,                                             \
-                                  *alpha,                                        \
-                                  dA_krn,                                        \
-                                  lda,                                           \
-                                  a_st_or_of,                                    \
-                                  dB_krn,                                        \
-                                  ldb,                                           \
-                                  b_st_or_of,                                    \
-                                  *beta,                                         \
-                                  dC_krn,                                        \
-                                  ldc,                                           \
-                                  c_st_or_of,                                    \
-                                  dD_krn,                                        \
-                                  ldd,                                           \
-                                  d_st_or_of,                                    \
-                                  batch_count,                                   \
-                                  geam_ex_op);                                   \
-        }                                                                        \
+#define LAUNCH_GEAM_SOURCE_KERNEL(                                      \
+    TRANSA_, TRANSB_, DIM_M_A_, DIM_N_A_, DIM_M_B_, DIM_N_B_, MINPLUS_) \
+    if(m % BLK_M == 0 && n % BLK_N == 0 && k % BLK_K == 0)              \
+    {                                                                   \
+        dim3 dimBlock(DIM_M, DIM_N, 1);                                 \
+        dim3 dimGrid((m / BLK_M) * (n / BLK_N), 1, batch_count);        \
+        if(ptr_mode == rocblas_pointer_mode_device)                     \
+        {                                                               \
+            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,              \
+                                                        Tab,            \
+                                                        Tc,             \
+                                                        DIM_M,          \
+                                                        DIM_N,          \
+                                                        BLK_M,          \
+                                                        BLK_N,          \
+                                                        BLK_K,          \
+                                                        DIM_M_A_,       \
+                                                        DIM_N_A_,       \
+                                                        DIM_M_B_,       \
+                                                        DIM_N_B_,       \
+                                                        TRANSA_,        \
+                                                        TRANSB_,        \
+                                                        false,          \
+                                                        false,          \
+                                                        MINPLUS_>),     \
+                                  dimGrid,                              \
+                                  dimBlock,                             \
+                                  0,                                    \
+                                  stream,                               \
+                                  m,                                    \
+                                  n,                                    \
+                                  k,                                    \
+                                  alpha,                                \
+                                  dA_krn,                               \
+                                  lda,                                  \
+                                  a_st_or_of,                           \
+                                  dB_krn,                               \
+                                  ldb,                                  \
+                                  b_st_or_of,                           \
+                                  beta,                                 \
+                                  dC_krn,                               \
+                                  ldc,                                  \
+                                  c_st_or_of,                           \
+                                  dD_krn,                               \
+                                  ldd,                                  \
+                                  d_st_or_of,                           \
+                                  batch_count,                          \
+                                  geam_ex_op);                          \
+        }                                                               \
+        else if(*alpha == 1)                                            \
+        {                                                               \
+            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,              \
+                                                        Tab,            \
+                                                        Tc,             \
+                                                        DIM_M,          \
+                                                        DIM_N,          \
+                                                        BLK_M,          \
+                                                        BLK_N,          \
+                                                        BLK_K,          \
+                                                        DIM_M_A_,       \
+                                                        DIM_N_A_,       \
+                                                        DIM_M_B_,       \
+                                                        DIM_N_B_,       \
+                                                        TRANSA_,        \
+                                                        TRANSB_,        \
+                                                        true,           \
+                                                        false,          \
+                                                        MINPLUS_>),     \
+                                  dimGrid,                              \
+                                  dimBlock,                             \
+                                  0,                                    \
+                                  stream,                               \
+                                  m,                                    \
+                                  n,                                    \
+                                  k,                                    \
+                                  *alpha,                               \
+                                  dA_krn,                               \
+                                  lda,                                  \
+                                  a_st_or_of,                           \
+                                  dB_krn,                               \
+                                  ldb,                                  \
+                                  b_st_or_of,                           \
+                                  *beta,                                \
+                                  dC_krn,                               \
+                                  ldc,                                  \
+                                  c_st_or_of,                           \
+                                  dD_krn,                               \
+                                  ldd,                                  \
+                                  d_st_or_of,                           \
+                                  batch_count,                          \
+                                  geam_ex_op);                          \
+        }                                                               \
+        else                                                            \
+        {                                                               \
+            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,              \
+                                                        Tab,            \
+                                                        Tc,             \
+                                                        DIM_M,          \
+                                                        DIM_N,          \
+                                                        BLK_M,          \
+                                                        BLK_N,          \
+                                                        BLK_K,          \
+                                                        DIM_M_A_,       \
+                                                        DIM_N_A_,       \
+                                                        DIM_M_B_,       \
+                                                        DIM_N_B_,       \
+                                                        TRANSA_,        \
+                                                        TRANSB_,        \
+                                                        false,          \
+                                                        false,          \
+                                                        MINPLUS_>),     \
+                                  dimGrid,                              \
+                                  dimBlock,                             \
+                                  0,                                    \
+                                  stream,                               \
+                                  m,                                    \
+                                  n,                                    \
+                                  k,                                    \
+                                  *alpha,                               \
+                                  dA_krn,                               \
+                                  lda,                                  \
+                                  a_st_or_of,                           \
+                                  dB_krn,                               \
+                                  ldb,                                  \
+                                  b_st_or_of,                           \
+                                  *beta,                                \
+                                  dC_krn,                               \
+                                  ldc,                                  \
+                                  c_st_or_of,                           \
+                                  dD_krn,                               \
+                                  ldd,                                  \
+                                  d_st_or_of,                           \
+                                  batch_count,                          \
+                                  geam_ex_op);                          \
+        }                                                               \
+    }                                                                   \
+    else                                                                \
+    {                                                                   \
+        dim3        dimBlock(DIM_M, DIM_N, 1);                          \
+        rocblas_int blocksX = (m - 1) / BLK_M + 1;                      \
+        rocblas_int blocksY = (n - 1) / BLK_N + 1;                      \
+        blocksX *= blocksY; /* overflow only on TB+ */                  \
+        dim3 dimGrid(blocksX, 1, batch_count);                          \
+        if(ptr_mode == rocblas_pointer_mode_device)                     \
+        {                                                               \
+            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,              \
+                                                        Tab,            \
+                                                        Tc,             \
+                                                        DIM_M,          \
+                                                        DIM_N,          \
+                                                        BLK_M,          \
+                                                        BLK_N,          \
+                                                        BLK_K,          \
+                                                        DIM_M_A_,       \
+                                                        DIM_N_A_,       \
+                                                        DIM_M_B_,       \
+                                                        DIM_N_B_,       \
+                                                        TRANSA_,        \
+                                                        TRANSB_,        \
+                                                        false,          \
+                                                        true,           \
+                                                        MINPLUS_>),     \
+                                  dimGrid,                              \
+                                  dimBlock,                             \
+                                  0,                                    \
+                                  stream,                               \
+                                  m,                                    \
+                                  n,                                    \
+                                  k,                                    \
+                                  alpha,                                \
+                                  dA_krn,                               \
+                                  lda,                                  \
+                                  a_st_or_of,                           \
+                                  dB_krn,                               \
+                                  ldb,                                  \
+                                  b_st_or_of,                           \
+                                  beta,                                 \
+                                  dC_krn,                               \
+                                  ldc,                                  \
+                                  c_st_or_of,                           \
+                                  dD_krn,                               \
+                                  ldd,                                  \
+                                  d_st_or_of,                           \
+                                  batch_count,                          \
+                                  geam_ex_op);                          \
+        }                                                               \
+        else if(*alpha == 1)                                            \
+        {                                                               \
+            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,              \
+                                                        Tab,            \
+                                                        Tc,             \
+                                                        DIM_M,          \
+                                                        DIM_N,          \
+                                                        BLK_M,          \
+                                                        BLK_N,          \
+                                                        BLK_K,          \
+                                                        DIM_M_A_,       \
+                                                        DIM_N_A_,       \
+                                                        DIM_M_B_,       \
+                                                        DIM_N_B_,       \
+                                                        TRANSA_,        \
+                                                        TRANSB_,        \
+                                                        true,           \
+                                                        true,           \
+                                                        MINPLUS_>),     \
+                                  dimGrid,                              \
+                                  dimBlock,                             \
+                                  0,                                    \
+                                  stream,                               \
+                                  m,                                    \
+                                  n,                                    \
+                                  k,                                    \
+                                  *alpha,                               \
+                                  dA_krn,                               \
+                                  lda,                                  \
+                                  a_st_or_of,                           \
+                                  dB_krn,                               \
+                                  ldb,                                  \
+                                  b_st_or_of,                           \
+                                  *beta,                                \
+                                  dC_krn,                               \
+                                  ldc,                                  \
+                                  c_st_or_of,                           \
+                                  dD_krn,                               \
+                                  ldd,                                  \
+                                  d_st_or_of,                           \
+                                  batch_count,                          \
+                                  geam_ex_op);                          \
+        }                                                               \
+        else                                                            \
+        {                                                               \
+            ROCBLAS_LAUNCH_KERNEL((geam_min_plus_kernel<T,              \
+                                                        Tab,            \
+                                                        Tc,             \
+                                                        DIM_M,          \
+                                                        DIM_N,          \
+                                                        BLK_M,          \
+                                                        BLK_N,          \
+                                                        BLK_K,          \
+                                                        DIM_M_A_,       \
+                                                        DIM_N_A_,       \
+                                                        DIM_M_B_,       \
+                                                        DIM_N_B_,       \
+                                                        TRANSA_,        \
+                                                        TRANSB_,        \
+                                                        false,          \
+                                                        true,           \
+                                                        MINPLUS_>),     \
+                                  dimGrid,                              \
+                                  dimBlock,                             \
+                                  0,                                    \
+                                  stream,                               \
+                                  m,                                    \
+                                  n,                                    \
+                                  k,                                    \
+                                  *alpha,                               \
+                                  dA_krn,                               \
+                                  lda,                                  \
+                                  a_st_or_of,                           \
+                                  dB_krn,                               \
+                                  ldb,                                  \
+                                  b_st_or_of,                           \
+                                  *beta,                                \
+                                  dC_krn,                               \
+                                  ldc,                                  \
+                                  c_st_or_of,                           \
+                                  dD_krn,                               \
+                                  ldd,                                  \
+                                  d_st_or_of,                           \
+                                  batch_count,                          \
+                                  geam_ex_op);                          \
+        }                                                               \
     }
 
         constexpr rocblas_int DIM_M_A = 64;
