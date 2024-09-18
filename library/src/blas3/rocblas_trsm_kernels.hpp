@@ -154,13 +154,14 @@ copy_matrix_trsm(rocblas_int    rows,
                  rocblas_stride offset_a,
                  rocblas_stride offset_b)
 {
+    size_t tx = blockIdx.x * DIM_X + threadIdx.x;
+
     const T* xa = load_ptr_batch(a, blockIdx.z, offset_a, stride_a);
     T*       xb = load_ptr_batch(b, blockIdx.z, offset_b, stride_b);
 
-    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
-
-    if(tx < rows && ty < cols)
+    //looping over ty
+    for(size_t ty = blockIdx.y * DIM_Y + threadIdx.y; ty < cols && tx < rows;
+        ty += DIM_Y * gridDim.y)
         xb[tx + size_t(ldb) * ty] = xa[tx + size_t(lda) * ty];
 }
 
@@ -179,12 +180,17 @@ rocblas_status copy_block_unit(rocblas_handle handle,
                                rocblas_stride offset_src = 0,
                                rocblas_stride offset_dst = 0)
 {
-    rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
-    rocblas_int blocksY = (n - 1) / 8 + 1;
-    dim3        grid(blocksX, blocksY, batch_count);
-    dim3        threads(128, 8);
+    static constexpr int COPY_DIM_X = 128;
+    static constexpr int COPY_DIM_Y = 8;
 
-    ROCBLAS_LAUNCH_KERNEL((copy_matrix_trsm<128, 8, T>),
+    rocblas_int blocks_X = (m - 1) / COPY_DIM_X + 1; // parameters for device kernel
+
+    //blocksY should be less than 2^16 (65536) to avoid overflow as grid y and z dimensions support only 16-bit values on some gfx
+    rocblas_int blocks_Y = std::min(c_YZ_grid_launch_limit, (n - 1) / COPY_DIM_Y + 1);
+    dim3        grid(blocks_X, blocks_Y, batch_count);
+    dim3        threads(COPY_DIM_X, COPY_DIM_Y);
+
+    ROCBLAS_LAUNCH_KERNEL((copy_matrix_trsm<COPY_DIM_X, COPY_DIM_Y, T>),
                           grid,
                           threads,
                           0,
