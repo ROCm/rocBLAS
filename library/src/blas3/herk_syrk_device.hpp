@@ -1285,3 +1285,84 @@ rocblas_status rocblas_syr2k_her2k_dispatch(rocblas_fill      uplo,
 
     return rocblas_status_success;
 }
+
+template <bool copy_from_C_to_W_C, bool is_upper, typename T, typename TPtr, int DIM_X, int DIM_Y>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+rocbals_copy_triangular_excluding_diagonal_kernel(
+    rocblas_int n, TPtr d_C, rocblas_int ldc, rocblas_stride stride_C, T* W_C)
+{
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
+    if(DIM_X * DIM_Y != num_threads)
+        return; // need to launch exactly the same number of threads as template parameters indicate
+
+    auto* C = load_ptr_batch(d_C, blockIdx.z, 0, stride_C);
+
+    // offset W_C by batch
+    W_C += ((int64_t(n) * (n - 1)) / 2) * blockIdx.z;
+
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // if is_upper is true copy the lower triangular matrix else copy the upper triangular matrix and exclude diagonal elements
+    if constexpr(is_upper)
+    {
+        // Ensure row and col are within matrix bounds and exclude diagonal elements
+        if(row < n && col < n && row > col)
+        {
+            // Calculate the index in the destination matrix W_C
+            int index = (row * (row - 1)) / 2 + col;
+            if constexpr(copy_from_C_to_W_C)
+                W_C[index] = C[row + col * int64_t(ldc)];
+            else
+                C[row + col * int64_t(ldc)] = W_C[index];
+        }
+    }
+    else
+    {
+        // Ensure row and col are within matrix bounds and exclude diagonal elements
+        if(row < n && col < n && row < col)
+        {
+            // Calculate the index in the destination matrix W_C
+            int index = (row * (2 * n - row - 1)) / 2 + (col - row - 1);
+            if constexpr(copy_from_C_to_W_C)
+                W_C[index] = C[row + col * int64_t(ldc)];
+            else
+                C[row + col * int64_t(ldc)] = W_C[index];
+        }
+    }
+}
+
+template <bool copy_from_C_to_W_C, bool is_upper, typename T, typename TPtr>
+rocblas_status rocbals_copy_triangular_excluding_diagonal(rocblas_int    n,
+                                                          TPtr           C,
+                                                          rocblas_int    ldc,
+                                                          rocblas_stride stride_C,
+                                                          T*             W_C,
+                                                          rocblas_int    batch_count,
+                                                          hipStream_t    rocblas_stream)
+{
+    constexpr int DIM_X = 16;
+    constexpr int DIM_Y = 16;
+    // Define block and grid sizes
+    dim3 blockDim(DIM_X, DIM_Y); // Block size (can be tuned)
+    dim3 gridDim((n - 1) / blockDim.x + 1, (n - 1) / blockDim.y + 1, batch_count);
+
+    // Launch kernel
+    ROCBLAS_LAUNCH_KERNEL((rocbals_copy_triangular_excluding_diagonal_kernel<copy_from_C_to_W_C,
+                                                                             is_upper,
+                                                                             T,
+                                                                             TPtr,
+                                                                             DIM_X,
+                                                                             DIM_Y>),
+                          gridDim,
+                          blockDim,
+                          0,
+                          rocblas_stream,
+                          n,
+                          C,
+                          ldc,
+                          stride_C,
+                          W_C);
+
+    return rocblas_status_success;
+}
