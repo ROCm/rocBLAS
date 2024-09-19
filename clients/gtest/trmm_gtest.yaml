@@ -691,6 +691,18 @@ Tests:
   alpha: *alpha_range
   outofplace: [       true] # test outofplace
 
+- name: trmm_grid_y_outofplace
+  category: nightly
+  function: trmm
+  precision: *single_precision
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+  matrix_size:
+#   - { M: 3, N: 1000000, lda: 3, ldb: 3, ldc: 3} # < scal limit, < trmm limit
+    - { M: 3, N: 2200000, lda: 3, ldb: 3, ldc: 3} # > scal limit, > trmm limit
+  pointer_mode_host: true
+  alpha: [ 0, 1 ]
+  outofplace: [       true] # test outofplace
 
 - name: trmm_large_inplace
   category: nightly

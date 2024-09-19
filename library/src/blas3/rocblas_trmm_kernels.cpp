@@ -82,16 +82,19 @@ rocblas_set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                              int64_t        lda,
                                              rocblas_stride a_st_or_of)
 {
-    ptrdiff_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    ptrdiff_t ty = blockIdx.y * blockDim.y + threadIdx.y;
+    ptrdiff_t tx = blockIdx.x * DIM_X + threadIdx.x;
 
     auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
 
-    if(tx < m && ty < n && alpha == 0)
+    if(alpha == 0)
     {
-        auto* A = load_ptr_batch(Aa, blockIdx.z, a_st_or_of);
+        for(ptrdiff_t ty = blockIdx.y * DIM_Y + threadIdx.y; tx < m && ty < n;
+            ty += DIM_Y * gridDim.y)
+        {
+            auto* A = load_ptr_batch(Aa, blockIdx.z, a_st_or_of);
 
-        A[tx + size_t(lda) * ty] = 0;
+            A[tx + size_t(lda) * ty] = 0;
+        }
     }
 }
 
@@ -115,7 +118,7 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
     static constexpr int GEMV_DIM_X = 16;
     static constexpr int GEMV_DIM_Y = 16;
     rocblas_int          blocksX    = (m - 1) / GEMV_DIM_X + 1;
-    rocblas_int          blocksY    = (n - 1) / GEMV_DIM_Y + 1;
+    rocblas_int          blocksY    = std::min(c_YZ_grid_launch_limit, (n - 1) / GEMV_DIM_Y + 1);
 
     dim3 grid(blocksX, blocksY, batch_count);
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
@@ -198,133 +201,137 @@ rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
     const rocblas_int tx = threadIdx.x;
     const rocblas_int ty = threadIdx.y;
     const rocblas_int bx = blockIdx.x;
-    const rocblas_int by = blockIdx.y;
 
     __shared__ T sA[NB][NB];
     __shared__ T sB[NB][NB];
 
     T rC[THR_DIM][THR_DIM];
 
-    // A and B offset by blocks and threads
-    // For LEFT,  bx is block row of A. For upper triangular, we need to offset the column
-    //            as well since the first (lower) portion doesn't need to be accessed.
-    // For RIGHT, by is block column of A. For lower triangular, we need to offset the row
-    //            as well since the first (upper) portion doesn't need to be accessed.
-    //
-    rocblas_stride A_col_offset
-        = LEFT ? (ITER_UPPER ? bx * NB + ty : ty) : (ITER_UPPER ? by * NB + ty : ty + NB * by);
-    rocblas_stride A_row_offset = LEFT ? bx * NB + tx : (ITER_UPPER ? tx : by * NB + tx);
-    rocblas_stride B_row_offset = LEFT ? (ITER_UPPER ? NB * bx + tx : tx) : bx * NB + tx;
-    rocblas_stride B_col_offset = LEFT ? by * NB + ty : (ITER_UPPER ? ty : ty + NB * by);
-
-    const T* dA
-        = A + (TRANSPOSE ? A_col_offset + A_row_offset * lda : A_row_offset + A_col_offset * lda);
-    const T* dB = B + B_row_offset + B_col_offset * ldb;
-
-    // zero out result matrix
-    for(rocblas_int i = 0; i < THR_DIM; i++)
+    for(rocblas_int by = blockIdx.y; by < ((n - 1) / NB + 1); by += gridDim.y)
     {
-        for(rocblas_int j = 0; j < THR_DIM; j++)
-        {
-            rC[i][j] = 0.0;
-        }
-    }
+        // A and B offset by blocks and threads
+        // For LEFT,  bx is block row of A. For upper triangular, we need to offset the column
+        //            as well since the first (lower) portion doesn't need to be accessed.
+        // For RIGHT, by is block column of A. For lower triangular, we need to offset the row
+        //            as well since the first (upper) portion doesn't need to be accessed.
+        //
+        rocblas_stride A_col_offset
+            = LEFT ? (ITER_UPPER ? bx * NB + ty : ty) : (ITER_UPPER ? by * NB + ty : ty + NB * by);
+        rocblas_stride A_row_offset = LEFT ? bx * NB + tx : (ITER_UPPER ? tx : by * NB + tx);
+        rocblas_stride B_row_offset = LEFT ? (ITER_UPPER ? NB * bx + tx : tx) : bx * NB + tx;
+        rocblas_stride B_col_offset = LEFT ? by * NB + ty : (ITER_UPPER ? ty : ty + NB * by);
 
-    // full blocks of A. bx is the block row which is equal to
-    // the number of full blocks in that block row (for lower triangular)
-    const rocblas_int full_blocks = LEFT ? NB * bx : NB * by;
+        const T* dA
+            = A
+              + (TRANSPOSE ? A_col_offset + A_row_offset * lda : A_row_offset + A_col_offset * lda);
+        const T* dB = B + B_row_offset + B_col_offset * ldb;
 
-    // Iterate through the blocks. If we iterate up the triangular matrix on the left, we use the inverse of what is calculated above,
-    // otherwise we add a BLK for the triangular block.
-    rocblas_int block_iter_end
-        = ((ITER_UPPER && LEFT) || (!ITER_UPPER && !LEFT)) ? k - full_blocks : full_blocks + NB;
-    for(rocblas_int blk_iter = 0; blk_iter < block_iter_end; blk_iter += NB)
-    {
-        // store A in shared memory
-        for(rocblas_int i = 0; i < NB; i += DIM)
+        // zero out result matrix
+        for(rocblas_int i = 0; i < THR_DIM; i++)
         {
-            for(rocblas_int j = 0; j < NB; j += DIM)
+            for(rocblas_int j = 0; j < THR_DIM; j++)
             {
-                // Check if the A index is within the bounds of the matrix, is on a diagonal, and is within the triangular section.
-                size_t A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
-                bool   in_diag
-                    = diag == rocblas_diagonal_unit && j + A_row_offset == i + A_col_offset;
-                bool in_size   = j + A_row_offset < k && i + A_col_offset < k;
-                bool in_bounds = in_size
-                                 && (UPPER ? (TRANSPOSE ? (j + A_row_offset >= i + A_col_offset)
-                                                        : (j + A_row_offset <= i + A_col_offset))
-                                           : (TRANSPOSE ? (j + A_row_offset <= i + A_col_offset)
-                                                        : (j + A_row_offset >= i + A_col_offset)));
-
-                if(in_bounds && !in_diag)
-                    sA[i + ty][j + tx] = CONJ ? conj(dA[A_idx]) : dA[A_idx];
-                else if(in_diag)
-                    sA[i + ty][j + tx] = 1;
-                else
-                    sA[i + ty][j + tx] = 0;
+                rC[i][j] = 0.0;
             }
         }
 
-        // store B in shared memory
-        for(rocblas_int i = 0; i < NB; i += DIM)
-        {
-            for(rocblas_int j = 0; j < NB; j += DIM)
-            {
-                if(i + B_col_offset < n && j + B_row_offset < m)
-                    sB[i + ty][j + tx] = dB[j + i * size_t(ldb)];
-                else
-                    sB[i + ty][j + tx] = 0;
-            }
-        }
+        // full blocks of A. bx is the block row which is equal to
+        // the number of full blocks in that block row (for lower triangular)
+        const rocblas_int full_blocks = LEFT ? NB * bx : NB * by;
 
-        __syncthreads();
-
-        // multiply C = AB
-        for(rocblas_int i = 0; i < NB; i++)
+        // Iterate through the blocks. If we iterate up the triangular matrix on the left, we use the inverse of what is calculated above,
+        // otherwise we add a BLK for the triangular block.
+        rocblas_int block_iter_end
+            = ((ITER_UPPER && LEFT) || (!ITER_UPPER && !LEFT)) ? k - full_blocks : full_blocks + NB;
+        for(rocblas_int blk_iter = 0; blk_iter < block_iter_end; blk_iter += NB)
         {
-            for(rocblas_int jn = 0; jn < THR_DIM; jn++)
+            // store A in shared memory
+            for(rocblas_int i = 0; i < NB; i += DIM)
             {
-                for(rocblas_int jm = 0; jm < THR_DIM; jm++)
+                for(rocblas_int j = 0; j < NB; j += DIM)
                 {
-                    if(LEFT)
-                        rC[jn][jm] += sA[i][jm * DIM + tx] * sB[jn * DIM + ty][i];
+                    // Check if the A index is within the bounds of the matrix, is on a diagonal, and is within the triangular section.
+                    size_t A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
+                    bool   in_diag
+                        = diag == rocblas_diagonal_unit && j + A_row_offset == i + A_col_offset;
+                    bool in_size = j + A_row_offset < k && i + A_col_offset < k;
+                    bool in_bounds
+                        = in_size
+                          && (UPPER ? (TRANSPOSE ? (j + A_row_offset >= i + A_col_offset)
+                                                 : (j + A_row_offset <= i + A_col_offset))
+                                    : (TRANSPOSE ? (j + A_row_offset <= i + A_col_offset)
+                                                 : (j + A_row_offset >= i + A_col_offset)));
+
+                    if(in_bounds && !in_diag)
+                        sA[i + ty][j + tx] = CONJ ? conj(dA[A_idx]) : dA[A_idx];
+                    else if(in_diag)
+                        sA[i + ty][j + tx] = 1;
                     else
-                        rC[jn][jm] += sB[i][jm * DIM + tx] * sA[jn * DIM + ty][i];
+                        sA[i + ty][j + tx] = 0;
                 }
             }
-        }
 
-        // Iterate to next block column of A to multiply
-        // For transpose, we iterate down the row of memory, effectively
-        // iterating across the column of the transposed matrix
-        if(LEFT)
-        {
-            dA += TRANSPOSE ? NB : NB * size_t(lda);
-            A_col_offset += NB;
-            dB += NB;
-            B_row_offset += NB;
-        }
-        else
-        {
-            dA += !TRANSPOSE ? NB : NB * size_t(lda);
-            A_row_offset += NB;
-            dB += NB * size_t(ldb);
-            B_col_offset += NB;
-        }
-
-        __syncthreads();
-    }
-
-    // store the C matrix
-    for(rocblas_int jn = 0; jn < THR_DIM; jn++)
-    {
-        rocblas_int c_idxn = by * NB + jn * DIM + ty;
-        for(rocblas_int jm = 0; jm < THR_DIM; jm++)
-        {
-            rocblas_int c_idxm = bx * NB + jm * DIM + tx;
-            if(c_idxm < m && c_idxn < n)
+            // store B in shared memory
+            for(rocblas_int i = 0; i < NB; i += DIM)
             {
-                C[c_idxn * size_t(ldc) + c_idxm] += alpha * rC[jn][jm];
+                for(rocblas_int j = 0; j < NB; j += DIM)
+                {
+                    if(i + B_col_offset < n && j + B_row_offset < m)
+                        sB[i + ty][j + tx] = dB[j + i * size_t(ldb)];
+                    else
+                        sB[i + ty][j + tx] = 0;
+                }
+            }
+
+            __syncthreads();
+
+            // multiply C = AB
+            for(rocblas_int i = 0; i < NB; i++)
+            {
+                for(rocblas_int jn = 0; jn < THR_DIM; jn++)
+                {
+                    for(rocblas_int jm = 0; jm < THR_DIM; jm++)
+                    {
+                        if(LEFT)
+                            rC[jn][jm] += sA[i][jm * DIM + tx] * sB[jn * DIM + ty][i];
+                        else
+                            rC[jn][jm] += sB[i][jm * DIM + tx] * sA[jn * DIM + ty][i];
+                    }
+                }
+            }
+
+            // Iterate to next block column of A to multiply
+            // For transpose, we iterate down the row of memory, effectively
+            // iterating across the column of the transposed matrix
+            if(LEFT)
+            {
+                dA += TRANSPOSE ? NB : NB * size_t(lda);
+                A_col_offset += NB;
+                dB += NB;
+                B_row_offset += NB;
+            }
+            else
+            {
+                dA += !TRANSPOSE ? NB : NB * size_t(lda);
+                A_row_offset += NB;
+                dB += NB * size_t(ldb);
+                B_col_offset += NB;
+            }
+
+            __syncthreads();
+        }
+
+        // store the C matrix
+        for(rocblas_int jn = 0; jn < THR_DIM; jn++)
+        {
+            rocblas_int c_idxn = by * NB + jn * DIM + ty;
+            for(rocblas_int jm = 0; jm < THR_DIM; jm++)
+            {
+                rocblas_int c_idxm = bx * NB + jm * DIM + tx;
+                if(c_idxm < m && c_idxn < n)
+                {
+                    C[c_idxn * size_t(ldc) + c_idxm] += alpha * rC[jn][jm];
+                }
             }
         }
     }
@@ -365,7 +372,7 @@ rocblas_status rocblas_trmm_outofplace_dispatch(rocblas_handle   handle,
     constexpr rocblas_int THR_DIM        = 2;
     hipStream_t           rocblas_stream = handle->get_stream();
     const rocblas_int     blkx           = ((m - 1) / NB + 1);
-    const rocblas_int     blky           = ((n - 1) / NB + 1);
+    const rocblas_int     blky           = std::min(c_YZ_grid_launch_limit, ((n - 1) / NB + 1));
     dim3                  grid(blkx, blky, batch_count);
 
     dim3 threads(NB / THR_DIM, NB / THR_DIM, 1);
