@@ -45,9 +45,9 @@ ROCBLAS_KERNEL_ILF void
     rocblas_symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, int64_t ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
-    auto ty = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if(tx < m && ty < n)
+    for(ptrdiff_t ty = blockIdx.y * blockDim.y + threadIdx.y; tx < m && ty < n;
+        ty += blockDim.y * gridDim.y)
     {
         C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
     }
@@ -94,117 +94,120 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];
 
-    int col_pos = blockIdx.y * TILE_NK;
-    int row_pos = blockIdx.x * TILE_NK;
-
-    int row = row_pos + threadIdx.x;
-    int col = col_pos + threadIdx.y;
-
-    int from, to;
-
-    int k_end = !RIGHT ? m : n;
-    for(int k_pos = 0; k_pos < k_end; k_pos += TILE_NK)
+    for(int blockIdxY = blockIdx.y; blockIdxY < (n - 1) / TILE_NK + 1; blockIdxY += gridDim.y)
     {
-        // tiling over dimension K
+        int col_pos = blockIdxY * TILE_NK;
+        int row_pos = blockIdx.x * TILE_NK;
 
-        int row_loc, col_loc;
-        int r, c;
+        int row = row_pos + threadIdx.x;
+        int col = col_pos + threadIdx.y; // blockIdx.y * TILE_NK + threadIdx.y
 
-        // when HERM ^H instead of ^T fetch A
+        int from, to;
 
-        if(!RIGHT)
+        int k_end = !RIGHT ? m : n;
+        for(int k_pos = 0; k_pos < k_end; k_pos += TILE_NK)
         {
-            // premultiply: alpha*A*B
+            // tiling over dimension K
 
-            // fetch tile of symm matrix A
-            row_loc = row_pos + threadIdx.x;
-            col_loc = k_pos + threadIdx.y;
+            int row_loc, col_loc;
+            int r, c;
 
-            from = is_upper ? row_loc : col_loc;
-            to   = is_upper ? col_loc : row_loc;
+            // when HERM ^H instead of ^T fetch A
 
-            r = from > to ? col_loc : row_loc;
-            c = from > to ? row_loc : col_loc;
-
-            if(!HERM)
+            if(!RIGHT)
             {
-                atile[threadIdx.x][threadIdx.y] = (r < m && c < m) ? A[c * lda + r] : 0;
+                // premultiply: alpha*A*B
+
+                // fetch tile of symm matrix A
+                row_loc = row_pos + threadIdx.x;
+                col_loc = k_pos + threadIdx.y;
+
+                from = is_upper ? row_loc : col_loc;
+                to   = is_upper ? col_loc : row_loc;
+
+                r = from > to ? col_loc : row_loc;
+                c = from > to ? row_loc : col_loc;
+
+                if(!HERM)
+                {
+                    atile[threadIdx.x][threadIdx.y] = (r < m && c < m) ? A[c * lda + r] : 0;
+                }
+                else
+                {
+                    // clang-format off
+                    T e = (r < m && c < m)
+                              ? (from > to ? conj(A[c * lda + r])
+                                           : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
+                              : 0;
+                    // clang-format on
+                    atile[threadIdx.x][threadIdx.y] = e;
+                }
+
+                // fetch tile of matrix B
+                row_loc = k_pos + threadIdx.x;
+                col_loc = col_pos + threadIdx.y;
+                r       = row_loc;
+                c       = col_loc;
+
+                btile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
+
+                __syncthreads();
             }
             else
             {
-                // clang-format off
-                T e = (r < m && c < m)
-                          ? (from > to ? conj(A[c * lda + r])
-                                       : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
-                          : 0;
-                // clang-format on
-                atile[threadIdx.x][threadIdx.y] = e;
+                // post multiply: alpha*B*A
+
+                // fetch tile of matrix B  into tileA
+                row_loc = row_pos + threadIdx.x;
+                col_loc = k_pos + threadIdx.y;
+                r       = row_loc;
+                c       = col_loc;
+
+                atile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
+
+                // fetch tile of symm matrix A into tileB
+                row_loc = k_pos + threadIdx.x;
+                col_loc = col_pos + threadIdx.y;
+
+                from = is_upper ? row_loc : col_loc;
+                to   = is_upper ? col_loc : row_loc;
+
+                r = from > to ? col_loc : row_loc;
+                c = from > to ? row_loc : col_loc;
+
+                if(!HERM)
+                {
+                    btile[threadIdx.x][threadIdx.y] = (r < n && c < n) ? A[c * lda + r] : 0;
+                }
+                else
+                {
+                    // clang-format off
+                    T e = (r < n && c < n)
+                              ? (from > to ? conj(A[c * lda + r])
+                                           : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
+                              : 0;
+                    // clang-format on
+                    btile[threadIdx.x][threadIdx.y] = e;
+                }
+
+                __syncthreads();
             }
 
-            // fetch tile of matrix B
-            row_loc = k_pos + threadIdx.x;
-            col_loc = col_pos + threadIdx.y;
-            r       = row_loc;
-            c       = col_loc;
-
-            btile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
-
-            __syncthreads();
-        }
-        else
-        {
-            // post multiply: alpha*B*A
-
-            // fetch tile of matrix B  into tileA
-            row_loc = row_pos + threadIdx.x;
-            col_loc = k_pos + threadIdx.y;
-            r       = row_loc;
-            c       = col_loc;
-
-            atile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
-
-            // fetch tile of symm matrix A into tileB
-            row_loc = k_pos + threadIdx.x;
-            col_loc = col_pos + threadIdx.y;
-
-            from = is_upper ? row_loc : col_loc;
-            to   = is_upper ? col_loc : row_loc;
-
-            r = from > to ? col_loc : row_loc;
-            c = from > to ? row_loc : col_loc;
-
-            if(!HERM)
+            // m x n output, tile zero where invalid
+            if(row < m && col < n)
             {
-                btile[threadIdx.x][threadIdx.y] = (r < n && c < n) ? A[c * lda + r] : 0;
-            }
-            else
-            {
-                // clang-format off
-                T e = (r < n && c < n)
-                          ? (from > to ? conj(A[c * lda + r])
-                                       : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
-                          : 0;
-                // clang-format on
-                btile[threadIdx.x][threadIdx.y] = e;
+                T sum = T(0);
+                for(int ki = 0; ki < TILE_NK; ++ki)
+                {
+                    sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
+                }
+                C[col * ldc + row] += alpha * sum;
             }
 
             __syncthreads();
-        }
 
-        // m x n output, tile zero where invalid
-        if(row < m && col < n)
-        {
-            T sum = T(0);
-            for(int ki = 0; ki < TILE_NK; ++ki)
-            {
-                sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
-            }
-            C[col * ldc + row] += alpha * sum;
-        }
-
-        __syncthreads();
-
-    } // k_pos
+        } // k_pos
+    }
 }
 
 /**
@@ -282,13 +285,14 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
     static constexpr int symm_SCALE_DIM_X = 128;
     static constexpr int symm_SCALE_DIM_Y = 8;
     rocblas_int          gx               = (m - 1) / (symm_SCALE_DIM_X) + 1;
-    rocblas_int          gy               = (n - 1) / (symm_SCALE_DIM_Y) + 1;
-    dim3                 symm_scale_grid(gx, gy, batch_count);
-    dim3                 symm_scale_threads(symm_SCALE_DIM_X, symm_SCALE_DIM_Y);
+    rocblas_int          gy = std::min(c_YZ_grid_launch_limit, (n - 1) / (symm_SCALE_DIM_Y) + 1);
+
+    dim3 symm_scale_grid(gx, gy, batch_count);
+    dim3 symm_scale_threads(symm_SCALE_DIM_X, symm_SCALE_DIM_Y);
 
     static constexpr int symm_DIM_XY = 32;
     rocblas_int          bx          = (m - 1) / (symm_DIM_XY) + 1;
-    rocblas_int          by          = (n - 1) / (symm_DIM_XY) + 1;
+    rocblas_int          by = std::min(c_YZ_grid_launch_limit, (n - 1) / (symm_DIM_XY) + 1);
     dim3                 symm_grid(bx, by, batch_count);
     dim3                 symm_threads(symm_DIM_XY, symm_DIM_XY);
 

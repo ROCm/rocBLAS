@@ -63,6 +63,19 @@ Tests:
   alpha_beta:
     - { alpha:  3.0, alphai:  0.0, beta:  2.0, betai: 0.0 }
 
+- name: symm_grid_y_16
+  category: nightly
+  function: symm
+  precision: *single_precision
+  arguments:
+    - { side: L, uplo: L}
+  matrix_size:
+#   - { M:     4, N:  525000, lda: 4, ldb:     4, ldc:     4 } # n > 2^16 * 8 = 524288   # < scal limit < symm limit
+#   - { M:     4, N:  524000, lda: 4, ldb:     4, ldc:     4 } # n < 2^16 * 8 = 524288   # > scal limit < symm limit
+    - { M:     4, N: 2097200, lda: 4, ldb:     4, ldc:     4 } # n < 2^16 * 32 = 2097152 # > scal limit > symm limit
+  alpha: [ 0, 2 ]
+  beta: [ 0, 2 ]
+
 - name: symm_quick
   category: quick
   function: symm
