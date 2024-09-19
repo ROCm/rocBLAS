@@ -14,14 +14,22 @@ Definitions:
 
   - &tiny_matrix_size
     - { N:   199, lda:  199, K:  32,   ldc: 199 }
+    #test the kernels which uses only gemm to compute syrk
+    - { N:   2, lda:  501, K:  501,   ldc: 2 }
 
   - &medium_matrix_size_range
     - { N:   199, lda:  199, K:  32,   ldc: 199 }
     - { N:    88, lda:  200, K:  200,  ldc: 88 }
+    #test the kernels which uses only gemm to compute syrk
+    - { N:    51, lda:  201, K:  201,  ldc: 51 }
+    - { N:    601, lda:  806, K:  805,  ldc: 601 }
 
   - &large_matrix_size_range
     - { N:  2011, lda:  2011, K:  253, ldc: 2048 }
     - { N:  5000, lda:  5008, K:  164, ldc: 5000 }
+    #test the kernels which uses only gemm to compute syrk
+    - { N:  601, lda:  2001, K:  2001, ldc: 601 }
+    - { N:  64, lda:  5000, K:  5000, ldc: 64 }
 
   - &alpha_beta_range
     - { alpha:  1.5, alphai:  1.5, beta:  0.0, betai: 0.0 }

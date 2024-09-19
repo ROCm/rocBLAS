@@ -57,7 +57,13 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+        size_t size = rocblas_internal_syrk_herk_workspace<T>(handle, n, k, batch_count);
+        if(handle->is_device_memory_size_query())
+        {
+            if(!n)
+                return rocblas_status_size_unchanged;
+            return handle->set_optimal_device_memory_size(size);
+        }
 
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
@@ -145,6 +151,10 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
+        auto w_mem = handle->device_malloc(size);
+        if(!w_mem)
+            return rocblas_status_memory_error;
+
         static constexpr bool Hermetian = false;
         if(check_numerics)
         {
@@ -186,7 +196,8 @@ namespace
                                                                      offset_C,
                                                                      ldc,
                                                                      stride_C,
-                                                                     batch_count);
+                                                                     batch_count,
+                                                                     (T*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

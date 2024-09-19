@@ -15,14 +15,22 @@ Definitions:
 
   - &tiny_matrix_size
     - { N:   199, lda:  199, K:  32,   ldc: 199 }
+    #test the kernels which uses only gemm to compute herk
+    - { N:   1, lda:  902, K:  801,   ldc: 1 }
 
   - &medium_matrix_size_range
     - { N:   199, lda:  199, K:  32,   ldc: 199 }
     - { N:    88, lda:  200, K:  200,  ldc: 88 }
+    #test the kernels which uses only gemm to compute herk
+    - { N:    41, lda:  200, K:  200,  ldc: 41 }
+    - { N:    500, lda:  1000, K:  1000,  ldc: 500 }
 
   - &large_matrix_size_range
     - { N:  2011, lda:  2011, K:  253, ldc: 2048 }
     - { N:  5000, lda:  5008, K:  164, ldc: 5000 }
+    #test the kernels which uses only gemm to compute herk
+    - { N:  500, lda:  1600, K:  1600, ldc: 500 }
+    - { N:  64, lda:  8000, K:  8000, ldc: 64 }
 
   - &alpha_beta_range
     - { alpha:  1.5, beta:  0.0 }

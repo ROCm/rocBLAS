@@ -24,6 +24,49 @@
 
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
+#include "rocblas_gemm.hpp"
+#include "rocblas_level3_threshold.hpp"
+
+template <typename T>
+inline constexpr bool rocblas_use_only_gemm(rocblas_handle handle, rocblas_int n, rocblas_int k)
+{
+    //Identifying the architecture to have an appropriate optimization
+    bool is_gfx942 = handle->getArch() == 942 ? true : false;
+    bool is_gfx90a = handle->getArch() == 910 ? true : false;
+
+    //Identifying the precision to have an appropriate optimization
+    constexpr bool is_float          = std::is_same_v<T, float>;
+    constexpr bool is_double         = std::is_same_v<T, double>;
+    constexpr bool is_complex_float  = std::is_same_v<T, rocblas_float_complex>;
+    constexpr bool is_complex_double = std::is_same_v<T, rocblas_double_complex>;
+
+    //Optimized kernel which uses only GEMM
+    return k >= syrk_k_lower_threshold
+           && ((is_gfx942
+                && (((is_float || is_double) && n < sdsyrk_gfx942_n_higher_threshold)
+                    || (is_complex_double && n < zsyrk_gfx942_n_higher_threshold)
+                    || (is_complex_float && n < csyrk_gfx942_n_higher_threshold)))
+               || (is_gfx90a
+                   && (((is_float || is_double) && n < sdsyrk_gfx90a_n_higher_threshold)
+                       || (is_complex_float || is_complex_double)
+                              && n < czsyrk_gfx90a_n_higher_threshold)));
+}
+
+template <typename T>
+inline size_t rocblas_internal_syrk_herk_workspace(rocblas_handle handle,
+                                                   rocblas_int    n,
+                                                   rocblas_int    k,
+                                                   rocblas_int    batch_count)
+{
+    size_t size = 1;
+
+    //Allocating workspace memory when only using gemm
+    if(rocblas_use_only_gemm<T>(handle, n, k))
+        if(n > 0 && batch_count > 0)
+            size = ((int64_t(n) * (n - 1)) / 2) * sizeof(T) * batch_count;
+
+    return size;
+}
 
 template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
@@ -145,6 +188,31 @@ inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
+template <rocblas_int NB,
+          bool        BATCHED,
+          bool        HERM,
+          typename T,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr>
+rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
+                                                   rocblas_fill      uplo,
+                                                   rocblas_operation trans_A,
+                                                   rocblas_int       n,
+                                                   rocblas_int       k,
+                                                   const TScal*      alpha_in,
+                                                   TConstPtr         A,
+                                                   rocblas_stride    offset_A,
+                                                   rocblas_int       lda,
+                                                   rocblas_stride    stride_A,
+                                                   const TScal*      beta_in,
+                                                   TPtr              C,
+                                                   rocblas_stride    offset_C,
+                                                   rocblas_int       ldc,
+                                                   rocblas_stride    stride_C,
+                                                   rocblas_int       batch_count,
+                                                   T*                w_mem);
+
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
                                                 rocblas_handle    handle,
@@ -183,7 +251,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offsetC,
                                    rocblas_int       ldc,
                                    rocblas_stride    strideC,
-                                   rocblas_int       batch_count);
+                                   rocblas_int       batch_count,
+                                   T*                w_mem);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -206,7 +275,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offsetC,
                                            rocblas_int       ldc,
                                            rocblas_stride    strideC,
-                                           rocblas_int       batch_count);
+                                           rocblas_int       batch_count,
+                                           T*                w_mem);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -229,7 +299,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offsetC,
                                    rocblas_int       ldc,
                                    rocblas_stride    strideC,
-                                   rocblas_int       batch_count);
+                                   rocblas_int       batch_count,
+                                   T*                w_mem);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -252,4 +323,5 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offsetC,
                                            rocblas_int       ldc,
                                            rocblas_stride    strideC,
-                                           rocblas_int       batch_count);
+                                           rocblas_int       batch_count,
+                                           T*                w_mem);
