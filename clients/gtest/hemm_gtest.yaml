@@ -102,6 +102,19 @@ Tests:
   gpu_arch: '90a'
   os_flags: LINUX
 
+- name: hemm_grid_y_16
+  category: nightly
+  function: hemm
+  precision: *single_precision_complex
+  arguments:
+    - { side: L, uplo: L}
+  matrix_size:
+#   - { M:     4, N:  525000, lda: 4, ldb:     4, ldc:     4 } # n > 2^16 * 8 = 524288   # < scal limit < hemm limit
+#   - { M:     4, N:  524000, lda: 4, ldb:     4, ldc:     4 } # n < 2^16 * 8 = 524288   # > scal limit < hemm limit
+    - { M:     4, N: 2097200, lda: 4, ldb:     4, ldc:     4 } # n < 2^16 * 32 = 2097152 # > scal limit > hemm limit
+  alpha: [ 0, 2 ]
+  beta: [ 0, 2 ]
+
 # batched
 
 - name: hemm_batched_NaN
