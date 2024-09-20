@@ -138,31 +138,45 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
             m, n, *beta, C, offset_c, ldc, stride_c, batch_count, rocblas_stream);
     }
 
-    return rocblas_gemm_source_solution_64<BATCHED>(trans_a,
-                                                    trans_b,
-                                                    m,
-                                                    n,
-                                                    k,
-                                                    *alpha,
-                                                    A,
-                                                    lda,
-                                                    stride_a,
-                                                    offset_a,
-                                                    B,
-                                                    ldb,
-                                                    stride_b,
-                                                    offset_b,
-                                                    *beta,
-                                                    C,
-                                                    ldc,
-                                                    stride_c,
-                                                    offset_c,
-                                                    C,
-                                                    ldc,
-                                                    stride_c,
-                                                    offset_c,
-                                                    batch_count,
-                                                    rocblas_stream);
+    rocblas_status status = rocblas_status_success;
+    for(int64_t n_base = 0; n_base < n; n_base += c_i64_grid_YZ_chunk)
+    {
+        // don't need to block through M as it's 32 bit and can use full 32-bits in X-dim of grid
+        int32_t nblock = int32_t(std::min(n - n_base, c_i64_grid_YZ_chunk));
+
+        status = rocblas_gemm_source_solution_64<BATCHED>(
+            trans_a,
+            trans_b,
+            m,
+            nblock,
+            k,
+            *alpha,
+            A,
+            lda,
+            stride_a,
+            offset_a,
+            B,
+            ldb,
+            stride_b,
+            offset_b + (trans_b == rocblas_operation_none ? n_base * ldb : n_base),
+            *beta,
+            (TConstPtr)C,
+            ldc,
+            stride_c,
+            offset_c + n_base * ldc,
+            C,
+            ldc,
+            stride_c,
+            offset_c + n_base * ldc,
+            batch_count,
+            rocblas_stream);
+
+        if(status != rocblas_status_success)
+            return status;
+    }
+
+    return status;
+
 #endif // BUILD_WITH_TENSILE
 }
 

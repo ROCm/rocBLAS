@@ -171,9 +171,9 @@ namespace
         static constexpr int GEMM_DIM_X = 32;
         static constexpr int GEMM_DIM_Y = 32;
 
-        for(int64_t n_base = 0; n_base < n_64; n_base += c_i64_grid_X_chunk)
+        for(int64_t n_base = 0; n_base < n_64; n_base += c_i64_grid_YZ_chunk)
         {
-            int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_X_chunk));
+            int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_YZ_chunk));
 
             int64_t n_shift = n_base * ldc_64;
 

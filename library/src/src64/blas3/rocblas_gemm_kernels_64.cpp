@@ -125,34 +125,48 @@ rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
                 if(!source_dims_supported)
                     return rocblas_status_invalid_size;
 
-                status = rocblas_gemm_source_solution_64<BATCHED>(trans_a,
-                                                                  trans_b,
-                                                                  m_64,
-                                                                  n_64,
-                                                                  k_64,
-                                                                  *alpha,
-                                                                  A_ptr,
-                                                                  lda_64,
-                                                                  stride_a,
-                                                                  offset_a,
-                                                                  B_ptr,
-                                                                  ldb_64,
-                                                                  stride_b,
-                                                                  offset_b,
-                                                                  *beta,
-                                                                  (TConstPtr)C_ptr,
-                                                                  ldc_64,
-                                                                  stride_c,
-                                                                  offset_c,
-                                                                  C_ptr,
-                                                                  ldc_64,
-                                                                  stride_c,
-                                                                  offset_c,
-                                                                  batch_count,
-                                                                  rocblas_stream);
+                for(int64_t n_base = 0; n_base < n_64; n_base += c_i64_grid_YZ_chunk)
+                {
+                    int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_YZ_chunk));
+
+                    for(int64_t m_base = 0; m_base < m_64; m_base += c_i64_grid_X_chunk)
+                    {
+                        int32_t m = int32_t(std::min(m_64 - m_base, c_i64_grid_X_chunk));
+
+                        status = rocblas_gemm_source_solution_64<BATCHED>(
+                            trans_a,
+                            trans_b,
+                            m,
+                            n,
+                            k_64,
+                            *alpha,
+                            A_ptr,
+                            lda_64,
+                            stride_a,
+                            offset_a
+                                + (trans_a == rocblas_operation_none ? m_base : m_base * lda_64),
+                            B_ptr,
+                            ldb_64,
+                            stride_b,
+                            offset_b
+                                + (trans_b == rocblas_operation_none ? n_base * ldb_64 : n_base),
+                            *beta,
+                            (TConstPtr)C_ptr,
+                            ldc_64,
+                            stride_c,
+                            offset_c + m_base + n_base * ldc_64,
+                            C_ptr,
+                            ldc_64,
+                            stride_c,
+                            offset_c + m_base + n_base * ldc_64,
+                            batch_count,
+                            rocblas_stream);
+
+                        if(status != rocblas_status_success)
+                            return status;
+                    }
+                }
             }
-            if(status != rocblas_status_success)
-                return status;
         }
     }
 
