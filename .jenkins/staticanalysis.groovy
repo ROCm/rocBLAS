@@ -14,7 +14,6 @@ def runCI =
     nodeDetails, jobName->
 
     def prj  = new rocProject('rocBLAS', 'StaticAnalysis')
-    prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
