@@ -38,7 +38,7 @@ Definitions:
     - { alpha:  0.0, alphai:  0.0, beta:  2.0, betai: 0.5 } # scale step only
 
   - &alpha_beta
-    - { alpha: -1.0, alphai:  0.3, beta: -0.5, betai: 0.6 }
+    - { alpha: -1.0, alphai:  0.5, beta: -0.5, betai: 0.5 }
     # These larger values below on large_matrices require a tolerance rather than equality
     # due to least significant digit difference CPU to GPU on windows
     # I expect only accumulation difference from scheduling variation on windows
