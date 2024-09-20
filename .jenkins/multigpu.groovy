@@ -14,10 +14,16 @@ def runCI =
     nodeDetails, jobName->
 
     def prj = new rocProject('rocBLAS', 'MultiGPU')
-    prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
 
     // customize for project
     prj.paths.build_command = './install.sh -c'
+
+    def noHipblasLT = env.BRANCH_NAME ==~ /PR-\d+/ && pullRequest.labels.contains("noHipblasLT")
+
+    if (!noHipblasLT)
+    {
+        prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
+    }
 
     prj.defaults.ccache = true
     prj.timeout.compile = 480

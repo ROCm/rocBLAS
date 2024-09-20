@@ -26,6 +26,11 @@ def runCompileCommand(platform, project, jobName, boolean sameOrg=false)
             dynamicBuildCommand = dynamicBuildCommand + ' -n'
         }
 
+        if (pullRequest.labels.contains("noHipblasLT"))
+        {
+            dynamicBuildCommand = dynamicBuildCommand + ' --no_hipblaslt'
+        }
+
         // in PR if we are targeting develop branch build ONLY what CI pipeline will test, unless bug label
         if (env.CHANGE_TARGET == "develop" && !pullRequest.labels.contains("bug"))
         {
