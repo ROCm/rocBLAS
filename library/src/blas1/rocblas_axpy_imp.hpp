@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,7 +86,7 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
 
-        static constexpr rocblas_int    batch_count_1 = 1;
+        static constexpr API_INT        batch_count_1 = 1;
         static constexpr rocblas_stride stride_0      = 0;
         static constexpr rocblas_stride offset_0      = 0;
 
