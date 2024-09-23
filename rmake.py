@@ -133,6 +133,9 @@ def parse_args():
     experimental_opts.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
                         help='Build Tensile backend not to use MessagePack and so use YAML (optional)')
 
+    general_opts.add_argument( '--no-offload-compress', dest='no_offload_compress', required=False, default=False, action='store_true',
+                        help='Do not apply offload compression.')
+
     general_opts.add_argument( '-r', '--relocatable', required=False, default=False, action='store_true',
                         help='Linux only: Add RUNPATH (based on ROCM_RPATH) and remove ldconf entry.')
 
@@ -398,6 +401,9 @@ def config_cmd():
 
     if args.address_sanitizer:
         cmake_options.append(f"-DBUILD_ADDRESS_SANITIZER=ON")
+
+    if args.no_offload_compress:
+        cmake_options.append(f"-DBUILD_OFFLOAD_COMPRESS=OFF")
 
     # clean
     delete_dir(build_path)
