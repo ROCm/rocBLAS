@@ -179,11 +179,9 @@ size_t rocblas_single_pass_reduction_workspace_size(API_INT n, API_INT batch_cou
 
     if constexpr(std::is_same_v<API_INT, int64_t>)
     {
-        auto    passes  = rocblas_reduction_kernel_pass_count(n);
         int64_t batches = std::min(batch_count, c_i64_grid_YZ_chunk);
 
-        // no pass based reduction over blocks so all terms are mulitiplied
-        return sizeof(To) * (blocks + 1) * batches * passes;
+        return sizeof(To) * (blocks + 1) * batches;
     }
     else
     {
