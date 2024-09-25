@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,8 +80,6 @@ rocblas_status rocblas_internal_iamax_iamin_launcher_64(rocblas_handle handle,
                                                         Tr*            results)
 {
 
-    int64_t n_passes = (n_64 - 1) / c_i64_grid_X_chunk + 1;
-
     for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
     {
         int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
@@ -97,48 +95,28 @@ rocblas_status rocblas_internal_iamax_iamin_launcher_64(rocblas_handle handle,
         // additional workspace if n_passes as results are only partial sum
         To* partial_results = workspace;
 
-        int64_t total_blocks = 0;
-        int64_t batch_offset = 0;
-        int     block_size   = 0;
+        int32_t n      = int32_t(std::min(n_64, c_i64_grid_X_chunk));
+        int     blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-        for(int64_t n_base = 0, pass = 0; n_base < n_64; n_base += c_i64_grid_X_chunk, pass++)
-        {
-            int32_t n      = int32_t(std::min(n_64 - n_base, c_i64_grid_X_chunk));
-            int     blocks = rocblas_reduction_kernel_block_count(n, NB);
-            total_blocks += blocks;
-            if(n_base == 0)
-            {
-                // this is size of partial results even for last smaller chunk
-                block_size   = blocks;
-                batch_offset = block_size * n_passes;
-            }
-
-            int64_t offsetx = n_base * incx_64; // negative inc is quick return
-
-            ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part1_64<NB, FETCH, REDUCE>),
-                                  dim3(blocks, batch_count),
-                                  NB,
-                                  0,
-                                  handle->get_stream(),
-                                  n,
-                                  x_ptr,
-                                  offsetx,
-                                  incx_64,
-                                  stridex,
-                                  batch_offset,
-                                  n_base,
-                                  partial_results + pass * block_size);
-        }
-
-        // reduce all n partial results within batch chunk
-
-        ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2_64<NB, REDUCE>),
-                              dim3(1, batch_count),
-                              NB,
+        ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part1_64<NB, FETCH, REDUCE>),
+                              dim3(blocks, 1, batch_count),
+                              dim3(NB),
                               0,
                               handle->get_stream(),
-                              total_blocks,
-                              batch_offset,
+                              n_64,
+                              x_ptr,
+                              shiftx,
+                              incx_64,
+                              stridex,
+                              partial_results);
+
+        // reduce all n partial results within batch chunk
+        ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2_64<NB, REDUCE>),
+                              dim3(1, 1, batch_count),
+                              dim3(NB),
+                              0,
+                              handle->get_stream(),
+                              blocks,
                               partial_results,
                               output);
 

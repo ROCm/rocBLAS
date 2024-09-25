@@ -513,7 +513,7 @@ Tests:
     category: nightly
     N: [ 1025 ]
     arguments:
-      - { incx: 1, batch_count: 1 }
+      - { incx: 1, batch_count: 2 }
     initialization: hpl
     api: [ FORTRAN_64 ]
     function:

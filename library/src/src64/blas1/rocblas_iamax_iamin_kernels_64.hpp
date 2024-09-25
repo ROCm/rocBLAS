@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,11 @@
 
 // iamax, iamin kernels
 
-template <int N, typename REDUCE, typename T>
-__inline__ __device__ rocblas_index_64_value_t<T>
-                      rocblas_wavefront_reduce_method_64(rocblas_index_64_value_t<T> x)
+template <int DIM_X, typename REDUCE, typename T>
+ROCBLAS_KERNEL_ILF rocblas_index_64_value_t<T>
+                   rocblas_wavefront_reduce_method_64(rocblas_index_64_value_t<T> x)
 {
-    constexpr int WFBITS = rocblas_log2ui(N);
+    constexpr int WFBITS = rocblas_log2ui(DIM_X);
     int           offset = 1 << (WFBITS - 1);
     for(int i = 0; i < WFBITS; i++)
     {
@@ -48,8 +48,8 @@ __inline__ __device__ rocblas_index_64_value_t<T>
     return x;
 }
 
-template <int NB, typename REDUCE, typename T>
-__inline__ __device__ T rocblas_shuffle_block_reduce_method_64(T val)
+template <int DIM_X, typename REDUCE, typename T>
+ROCBLAS_KERNEL_ILF T rocblas_shuffle_block_reduce_method_64(T val)
 {
     __shared__ T psums[warpSize];
 
@@ -67,7 +67,7 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method_64(T val)
     __syncthreads(); // Wait for all wavefront reductions
 
     // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = NB / warpSize;
+    static constexpr rocblas_int num_wavefronts = DIM_X / warpSize;
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T{};
     if(wavefront == 0)
         val = rocblas_wavefront_reduce_method_64<num_wavefronts, REDUCE>(val); // sum wavefront sums
@@ -77,53 +77,56 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method_64(T val)
 
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
-template <int NB, typename FETCH, typename REDUCE, typename TPtrX, typename To>
-ROCBLAS_KERNEL(NB)
-rocblas_iamax_iamin_kernel_part1_64(rocblas_int    n,
+template <int DIM_X, typename FETCH, typename REDUCE, typename TPtrX, typename To>
+ROCBLAS_KERNEL(DIM_X)
+rocblas_iamax_iamin_kernel_part1_64(int64_t        n,
                                     TPtrX          xvec,
                                     rocblas_stride shiftx,
                                     int64_t        incx,
                                     rocblas_stride stridex,
-                                    int64_t        batch_offset,
-                                    int64_t        indexOffset,
                                     To*            workspace)
 {
-    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    To      sum;
+    int64_t tid = blockIdx.x * DIM_X + threadIdx.x;
 
-    const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
+    const auto* x = load_ptr_batch(xvec, blockIdx.z, shiftx, stridex);
 
-    // bound
-    if(tid < n)
-        sum = FETCH{}(x[tid * incx], tid + 1 + indexOffset); // 1 based indexing
-    else
-        sum = rocblas_default_value<To>{}(); // pad with default value
+    To winner = rocblas_default_value<To>{}(); // pad with default value
+    for(int64_t i = tid; i < n; i += DIM_X * gridDim.x)
+    {
+        To sum;
 
-    sum = rocblas_shuffle_block_reduce_method_64<NB, REDUCE>(sum);
+        // bound
+        if(tid < n)
+            sum = FETCH{}(x[i * incx], i + 1); // 1 based indexing
+        else
+            sum = rocblas_default_value<To>{}(); // pad with default value
 
+        sum = rocblas_shuffle_block_reduce_method_64<DIM_X, REDUCE>(sum);
+
+        if(threadIdx.x == 0)
+            REDUCE{}(winner, sum);
+    }
     if(threadIdx.x == 0)
-        workspace[blockIdx.y * batch_offset + blockIdx.x] = sum;
+        workspace[size_t(blockIdx.z) * gridDim.x + blockIdx.x] = winner;
 }
 
 // kernel 2 gathers all the partial results in workspace and finishes the final reduction;
-// number of threads (NB) loop blocks
-template <int NB, typename REDUCE, typename To, typename Tr>
-ROCBLAS_KERNEL(NB)
-rocblas_iamax_iamin_kernel_part2_64(int64_t nblocks,
-                                    int64_t batch_offset,
-                                    To*     workspace,
-                                    Tr*     result)
+// number of threads (DIM_X) loop blocks
+template <int DIM_X, typename REDUCE, typename To, typename Tr>
+ROCBLAS_KERNEL(DIM_X)
+rocblas_iamax_iamin_kernel_part2_64(int nblocks, To* workspace, Tr* result)
 {
     int tx = threadIdx.x;
-    To  winner;
+
+    To winner;
 
     if(tx < nblocks)
     {
-        To* work = workspace + blockIdx.y * batch_offset;
+        To* work = workspace + size_t(nblocks) * blockIdx.z;
         winner   = work[tx];
 
         // bound, loop
-        for(int64_t i = tx + NB; i < nblocks; i += NB)
+        for(int i = tx + DIM_X; i < nblocks; i += DIM_X)
             REDUCE{}(winner, work[i]);
     }
     else
@@ -131,9 +134,9 @@ rocblas_iamax_iamin_kernel_part2_64(int64_t nblocks,
         winner = rocblas_default_value<To>{}();
     }
 
-    winner = rocblas_shuffle_block_reduce_method_64<NB, REDUCE>(winner);
+    winner = rocblas_shuffle_block_reduce_method_64<DIM_X, REDUCE>(winner);
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[blockIdx.y] = winner.index;
+        result[blockIdx.z] = winner.index;
 }
