@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,10 +91,10 @@ namespace
                         "batch_count",
                         batch_count);
 
-        if(n <= 0 || batch_count <= 0)
-            return rocblas_status_success;
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status
+            = rocblas_copy_arg_check(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {

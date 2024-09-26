@@ -22,9 +22,10 @@ Definitions:
     - { M:    10, N:    11, lda:   100, incx:     3, ldc:    13 }
 
   - &large_matrix_size_range
-    - { M:   192, N:   193, lda:   194, incx:     1, ldc:   196 }
-    - { M:   640, N:   641, lda:   960, incx:    -2, ldc:   962 }
-    - { M:  1001, N:  1000, lda:  1003, incx:     3, ldc:  1001 }
+    - { M:   192, N:     193,   lda:   194, incx:     1, ldc:   196 }
+    - { M:   640, N:     641,   lda:   960, incx:    -2, ldc:   962 }
+    - { M:  1001, N:    1000,   lda:  1003, incx:     3, ldc:  1001 }
+    - { M:     2, N: 4300000,   lda:     2, incx:     1, ldc:     4 } # Test 16-bit overflow in grid Y
 
   - &huge_matrix_size_range
     - { M:  4011, N:  4012, lda:  4012, incx:     2, ldc:  4014 }

@@ -96,6 +96,7 @@ enum class Processor : int
     gfx1100 = 1100,
     gfx1101 = 1101,
     gfx1102 = 1102,
+    gfx1151 = 1151,
     gfx1200 = 1200,
     gfx1201 = 1201
 };
@@ -244,6 +245,11 @@ public:
         THROW_IF_HIP_ERROR(hipDeviceGetAttribute(
             &max_mem, hipDeviceAttribute_t(hipDeviceAttributeMaxSharedMemoryPerBlock), device));
         return max_mem;
+    }
+
+    bool isYZGridDim16bit()
+    {
+        return archMajor == 12;
     }
 
     bool isDefaultHipBLASLtArch()

@@ -161,33 +161,27 @@ inline size_t rocblas_reduction_kernel_pass_count(int64_t n)
     return size_t(passes);
 }
 
-/*! \brief rocblas_reduction_batched_kernel_workspace_size
-    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count.
-    Additional passes add to workspace requirement for ILP64 subdivisions
-
-    @param[in]
-    outputType To*
-        Type of output values
-    @param[in]
-    batch_count rocblas_int
-        Number of batches
-    ********************************************************************/
 template <typename API_INT, int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count = 1)
+size_t rocblas_single_pass_reduction_workspace_size(API_INT n, API_INT batch_count = 1)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
     if(batch_count <= 0)
         batch_count = 1;
 
-    auto blocks = rocblas_reduction_kernel_block_count<API_INT>(n, NB);
+    API_INT n_chunked = n;
+    if constexpr(std::is_same_v<API_INT, int64_t>)
+    {
+        // algorithm in launcher required to always chunk, no 32bit pass-through for n < int32 max
+        n_chunked = std::min(n_chunked, c_i64_grid_X_chunk);
+    }
+    auto blocks = rocblas_reduction_kernel_block_count<API_INT>(n_chunked, NB);
 
     if constexpr(std::is_same_v<API_INT, int64_t>)
     {
-        auto    passes  = rocblas_reduction_kernel_pass_count(n);
         int64_t batches = std::min(batch_count, c_i64_grid_YZ_chunk);
 
-        return sizeof(To) * (blocks + 1) * batches * passes;
+        return sizeof(To) * (blocks + 1) * batches;
     }
     else
     {
@@ -196,8 +190,11 @@ size_t rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count = 
     }
 }
 
+/*! \brief rocblas_multi_pass_reduction_workspace_size
+    Work area where each chunk is fully reduced to single value
+    ********************************************************************/
 template <typename API_INT, int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size_chunked(API_INT n, API_INT batch_count = 1)
+size_t rocblas_multi_pass_reduction_workspace_size(API_INT n, API_INT batch_count = 1)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
@@ -217,7 +214,8 @@ size_t rocblas_reduction_kernel_workspace_size_chunked(API_INT n, API_INT batch_
         auto    passes  = rocblas_reduction_kernel_pass_count(n);
         int64_t batches = std::min(batch_count, c_i64_grid_YZ_chunk);
 
-        return sizeof(To) * (blocks + 1) * batches * passes;
+        // each pass is reduced so only addition of passes * batches
+        return sizeof(To) * ((blocks + 1) * batches + passes * batches);
     }
     else
     {
@@ -226,43 +224,103 @@ size_t rocblas_reduction_kernel_workspace_size_chunked(API_INT n, API_INT batch_
     }
 }
 
-/*! \brief rocblas_reduction_batched_kernel_workspace_size
-    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
+/*! \brief rocblas_reduction_workspace_non_chunked_size
+    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count.
 
     @param[in]
-    outputType To*
+    outputType To
         Type of output values
     @param[in]
     batch_count rocblas_int
         Number of batches
     ********************************************************************/
 template <typename API_INT, int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count, To* output_type)
+size_t rocblas_reduction_workspace_non_chunked_size(API_INT n, API_INT batch_count = 1)
 {
-    return rocblas_reduction_kernel_workspace_size<API_INT, NB, To>(n, batch_count);
+    if(n <= 0)
+        n = 1; // allow for return value of empty set
+    if(batch_count <= 0)
+        batch_count = 1;
+
+    auto blocks = rocblas_reduction_kernel_block_count<API_INT>(n, NB);
+
+    // original API
+
+    return sizeof(To) * (blocks + 1) * batch_count;
+}
+
+/*! \brief rocblas_reduction_batched_kernel_workspace_size
+    Work area for reductions where full reduction to single value occurs
+    Additional passes add to workspace requirement for ILP64 subdivisions but size limited to chunks
+
+    @param[in]
+    outputType To
+        Type of output values
+    @param[in]
+    batch_count rocblas_int
+        Number of batches
+    ********************************************************************/
+template <typename API_INT, int NB, typename To>
+size_t
+    rocblas_reduction_workspace_size(API_INT n, API_INT incx, API_INT incy, API_INT batch_count = 1)
+{
+    if(n <= 0)
+        n = 1; // allow for return value of empty set
+    if(batch_count <= 0)
+        batch_count = 1;
+
+    if constexpr(std::is_same_v<API_INT, int64_t>)
+    {
+        // must track _64 kernel decision code
+
+        if(std::abs(incx) <= c_i32_max && std::abs(incy) <= c_i32_max && n <= c_i32_max
+           && batch_count < c_i64_grid_YZ_chunk)
+        {
+            // reusing 32- bit API
+            return rocblas_reduction_workspace_non_chunked_size<API_INT, NB, To>(n, batch_count);
+        }
+        else
+        {
+            // algorithm in launcher required to always chunk for these sizes or workspace too small
+            return rocblas_multi_pass_reduction_workspace_size<API_INT, NB, To>(n, batch_count);
+        }
+    }
+    else
+    {
+        // original API
+        return rocblas_reduction_workspace_non_chunked_size<API_INT, NB, To>(n, batch_count);
+    }
+}
+
+template <typename API_INT, int NB, typename To>
+size_t rocblas_reduction_workspace_size(
+    API_INT n, API_INT incx, API_INT incy, API_INT batch_count, To* output_type)
+{
+    return rocblas_reduction_workspace_size<API_INT, NB, To>(n, incx, incy, batch_count);
 }
 
 template <typename API_INT, int NB>
-size_t
-    rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count, rocblas_datatype type)
+size_t rocblas_reduction_workspace_size(
+    API_INT n, API_INT incx, API_INT incy, API_INT batch_count, rocblas_datatype type)
 {
     switch(type)
     {
     case rocblas_datatype_f16_r:
-        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_half>(n, batch_count);
+        return rocblas_reduction_workspace_size<API_INT, NB, rocblas_half>(
+            n, incx, incy, batch_count);
     case rocblas_datatype_bf16_r:
-        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_bfloat16>(n,
-                                                                                      batch_count);
+        return rocblas_reduction_workspace_size<API_INT, NB, rocblas_bfloat16>(
+            n, incx, incy, batch_count);
     case rocblas_datatype_f32_r:
-        return rocblas_reduction_kernel_workspace_size<API_INT, NB, float>(n, batch_count);
+        return rocblas_reduction_workspace_size<API_INT, NB, float>(n, incx, incy, batch_count);
     case rocblas_datatype_f64_r:
-        return rocblas_reduction_kernel_workspace_size<API_INT, NB, double>(n, batch_count);
+        return rocblas_reduction_workspace_size<API_INT, NB, double>(n, incx, incy, batch_count);
     case rocblas_datatype_f32_c:
-        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_float_complex>(
-            n, batch_count);
+        return rocblas_reduction_workspace_size<API_INT, NB, rocblas_float_complex>(
+            n, incx, incy, batch_count);
     case rocblas_datatype_f64_c:
-        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_double_complex>(
-            n, batch_count);
+        return rocblas_reduction_workspace_size<API_INT, NB, rocblas_double_complex>(
+            n, incx, incy, batch_count);
     default:
         return 0;
     }

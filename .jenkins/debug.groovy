@@ -15,10 +15,17 @@ def runCI =
     nodeDetails, jobName->
 
     def prj = new rocProject('rocBLAS', 'Debug')
-    prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
 
     // customize for project
     prj.paths.build_command = './install.sh -c -g'
+
+    def noHipblasLT = env.BRANCH_NAME ==~ /PR-\d+/ && pullRequest.labels.contains("noHipblasLT")
+
+    if (!noHipblasLT)
+    {
+        prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
+    }
+
     prj.defaults.ccache = true
 
     // Define test architectures, optional rocm version argument is available
