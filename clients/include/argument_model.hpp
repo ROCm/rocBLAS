@@ -80,6 +80,14 @@ public:
         // per/us to per/sec *10^6
         const double c_per_usec_to_per_sec = 1e6;
 
+        // Print total number of cold iterations
+        name_line << ",cold_iters";
+        val_line << ", " << arg.cold_iters;
+
+        // Print total number of hot iterations
+        name_line << ",hot_iters";
+        val_line << ", " << arg.iters;
+
         // append performance fields
         if(gflops != ArgumentLogging::NA_value)
         {
