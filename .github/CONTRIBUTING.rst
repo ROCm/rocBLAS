@@ -122,7 +122,7 @@ Coding Style
 
     rocBLAS device memory manager also provides support for stream order allocation ( using ``hipMallocAsync()`` and ``hipFreeAsync()`` ).
 
-    For more information refer to `rocBLAS Device Memory Allocation <https://rocblas.readthedocs.io/en/master/Programmers_Guide.html#device-memory-allocation>`__ and `Stream Order Allocation <https://rocblas.readthedocs.io/en/master/API_Reference_Guide.html#stream-ordered-memory-allocation>`__.
+    For more information refer to `rocBLAS Device Memory Allocation <https://rocm.docs.amd.com/projects/rocBLAS/en/latest/how-to/Programmers_Guide.html#device-memory-allocation>`__ and `Stream Order Allocation <https://rocm.docs.amd.com/projects/rocBLAS/en/latest/how-to/Programmers_Guide.html#handle-stream-and-device-management>`__.
 
 #.  Logging, argument error checking and device memory allocation should
     only occur at the top-level API functions. Therefore, if one
@@ -207,7 +207,7 @@ Coding Style
     The ``_impl`` template starts with an additional template typename API_INT which will be instantiated as either rocblas_int
     or int64_t.   The macro ``ROCBLAS_API`` may be used to call the ``_64`` or original form of a template instantiation.
 
-    For more information refer to the `rocBLAS Programmers Guide <https://rocblas.readthedocs.io/en/master/Programmers_Guide.html>`__
+    For more information refer to the `rocBLAS Programmers Guide <https://rocm.docs.amd.com/projects/rocBLAS/en/latest/how-to/Programmers_Guide.html>`__
 
 #.  The pointer mode should be temporarily switched to host mode during
     kernels which pass constants to other kernels, so that host-side
