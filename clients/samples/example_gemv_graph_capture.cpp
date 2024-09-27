@@ -174,5 +174,9 @@ int main()
     CHECK_HIP_ERROR(hipStreamDestroy(stream_1));
     CHECK_HIP_ERROR(hipStreamDestroy(stream_2));
 
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dX));
+    CHECK_HIP_ERROR(hipFree(dY));
+
     return EXIT_SUCCESS;
 }

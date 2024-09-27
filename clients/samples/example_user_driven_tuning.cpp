@@ -290,5 +290,10 @@ int main()
     // Solve using default solution
     CHECK_ROCBLAS_ERROR(rocblas_gemm_exM(GEMM_EX_ARGS, 0, rocblas_gemm_flags_none));
 
+    CHECK_HIP_ERROR(hipFree(da));
+    CHECK_HIP_ERROR(hipFree(db));
+    CHECK_HIP_ERROR(hipFree(dc));
+    CHECK_ROCBLAS_ERROR(rocblas_destroy_handle(handle));
+
     return EXIT_SUCCESS;
 }
