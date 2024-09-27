@@ -52,12 +52,19 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        size_t size = rocblas_internal_syrk_herk_workspace<T>(handle, n, k, 1);
+        //Check if the handle is in the device memory size query, as there are two algorithms one which requires extra workspace memory and one which doesn't
         if(handle->is_device_memory_size_query())
         {
-            if(!n)
-                return rocblas_status_size_unchanged;
-            return handle->set_optimal_device_memory_size(size);
+            //If rocblas_use_only_gemm is true then it is required to allocate extra workspace memory
+            if(rocblas_use_only_gemm<T>(handle, n, k))
+            {
+                if(!n)
+                    return rocblas_status_size_unchanged;
+                size_t size = rocblas_internal_syrk_herk_workspace<T>(handle, n, k, 1);
+                return handle->set_optimal_device_memory_size(size);
+            }
+            else
+                RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         }
 
         auto layer_mode     = handle->layer_mode;
@@ -142,10 +149,6 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        auto w_mem = handle->device_malloc(size);
-        if(!w_mem)
-            return rocblas_status_memory_error;
-
         static constexpr bool Hermetian = true;
         if(check_numerics)
         {
@@ -187,8 +190,7 @@ namespace
                                                              offset_C,
                                                              ldc,
                                                              stride_C,
-                                                             batch_count,
-                                                             (T*)w_mem);
+                                                             batch_count);
         if(status != rocblas_status_success)
             return status;
 

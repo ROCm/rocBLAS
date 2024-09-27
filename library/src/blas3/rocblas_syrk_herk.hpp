@@ -210,8 +210,7 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
                                                    rocblas_stride    offset_C,
                                                    rocblas_int       ldc,
                                                    rocblas_stride    stride_C,
-                                                   rocblas_int       batch_count,
-                                                   T*                w_mem);
+                                                   rocblas_int       batch_count);
 
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
@@ -251,8 +250,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offsetC,
                                    rocblas_int       ldc,
                                    rocblas_stride    strideC,
-                                   rocblas_int       batch_count,
-                                   T*                w_mem);
+                                   rocblas_int       batch_count);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -275,8 +273,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offsetC,
                                            rocblas_int       ldc,
                                            rocblas_stride    strideC,
-                                           rocblas_int       batch_count,
-                                           T*                w_mem);
+                                           rocblas_int       batch_count);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -299,8 +296,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offsetC,
                                    rocblas_int       ldc,
                                    rocblas_stride    strideC,
-                                   rocblas_int       batch_count,
-                                   T*                w_mem);
+                                   rocblas_int       batch_count);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -323,5 +319,4 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offsetC,
                                            rocblas_int       ldc,
                                            rocblas_stride    strideC,
-                                           rocblas_int       batch_count,
-                                           T*                w_mem);
+                                           rocblas_int       batch_count);

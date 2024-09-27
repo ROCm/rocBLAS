@@ -54,14 +54,20 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
                                                    rocblas_stride    offset_C,
                                                    rocblas_int       ldc,
                                                    rocblas_stride    stride_C,
-                                                   rocblas_int       batch_count,
-                                                   T*                w_mem)
+                                                   rocblas_int       batch_count)
 {
 
     //Optimized kernel which uses only GEMM to do the entire computation
     //rocblas_use_only_gemm is defined in rocblas_syrk_herk.hpp
     if(rocblas_use_only_gemm<T>(handle, n, k))
     {
+        size_t size = rocblas_internal_syrk_herk_workspace<T>(handle, n, k, batch_count);
+
+        //Allocate Workspace memory
+        auto w_mem = handle->device_malloc(size);
+        if(!w_mem)
+            return rocblas_status_memory_error;
+
         hipStream_t rocblas_stream = handle->get_stream();
         // Copy over alpha and beta
         TScal alpha_h;
@@ -98,10 +104,10 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
         // Launch kernel to copy the data from triangular matrix to the workspace memory
         if(rocblas_fill_upper == uplo)
             RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<true, true>(
-                n, C, ldc, stride_C, w_mem, batch_count, rocblas_stream)));
+                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
         else
             RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<true, false>(
-                n, C, ldc, stride_C, w_mem, batch_count, rocblas_stream)));
+                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_64<BATCHED>(handle,
                                                                    trans_orig,
@@ -128,10 +134,10 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
         // Launch kernel to copy the data from workspace memory back to triangular matrix
         if(rocblas_fill_upper == uplo)
             RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<false, true>(
-                n, C, ldc, stride_C, w_mem, batch_count, rocblas_stream)));
+                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
         else
             RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<false, false>(
-                n, C, ldc, stride_C, w_mem, batch_count, rocblas_stream)));
+                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
 
         return rocblas_status_success;
     }
@@ -165,7 +171,7 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
 
 #define ROCBLAS_INTERNAL_SYRK_HERK_PARAMS                                                   \
     handle, uplo, trans_A, n, k, alpha, A, offset_A, lda, stride_A, beta, C, offset_C, ldc, \
-        stride_C, batch_count, w_mem
+        stride_C, batch_count
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -184,8 +190,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offset_C,
                                    rocblas_int       ldc,
                                    rocblas_stride    stride_C,
-                                   rocblas_int       batch_count,
-                                   T*                w_mem)
+                                   rocblas_int       batch_count)
 {
     constexpr bool BATCHED = false;
     constexpr bool HERM    = false;
@@ -222,8 +227,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offset_C,
                                            rocblas_int       ldc,
                                            rocblas_stride    stride_C,
-                                           rocblas_int       batch_count,
-                                           T*                w_mem)
+                                           rocblas_int       batch_count)
 {
     constexpr bool BATCHED = true;
     constexpr bool HERM    = false;
@@ -260,8 +264,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offset_C,
                                    rocblas_int       ldc,
                                    rocblas_stride    stride_C,
-                                   rocblas_int       batch_count,
-                                   T*                w_mem)
+                                   rocblas_int       batch_count)
 {
     constexpr bool BATCHED = false;
     constexpr bool HERM    = true;
@@ -292,8 +295,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offset_C,
                                            rocblas_int       ldc,
                                            rocblas_stride    stride_C,
-                                           rocblas_int       batch_count,
-                                           T*                w_mem)
+                                           rocblas_int       batch_count)
 {
     constexpr bool BATCHED = true;
     constexpr bool HERM    = true;
@@ -391,8 +393,7 @@ rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
         rocblas_stride    offset_C,                                                              \
         rocblas_int       ldc,                                                                   \
         rocblas_stride    stride_C,                                                              \
-        rocblas_int       batch_count,                                                           \
-        T_*               w_mem);
+        rocblas_int       batch_count);
 
 INSTANTIATE_SYRK_TEMPLATE(float)
 INSTANTIATE_SYRK_TEMPLATE(double)
@@ -405,25 +406,24 @@ INSTANTIATE_SYRK_TEMPLATE(rocblas_double_complex)
 #error INSTANTIATE_SYRK_BATCHED_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYRK_BATCHED_TEMPLATE(T_)                                     \
-    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                      \
-        rocblas_internal_syrk_batched_template<T_>(rocblas_handle    handle,      \
-                                                   rocblas_fill      uplo,        \
-                                                   rocblas_operation trans_A,     \
-                                                   rocblas_int       n,           \
-                                                   rocblas_int       k,           \
-                                                   const T_*         alpha,       \
-                                                   const T_* const*  A,           \
-                                                   rocblas_stride    offset_A,    \
-                                                   rocblas_int       lda,         \
-                                                   rocblas_stride    stride_A,    \
-                                                   const T_*         beta,        \
-                                                   T_* const*        C,           \
-                                                   rocblas_stride    offset_C,    \
-                                                   rocblas_int       ldc,         \
-                                                   rocblas_stride    stride_C,    \
-                                                   rocblas_int       batch_count, \
-                                                   T_*               w_mem);
+#define INSTANTIATE_SYRK_BATCHED_TEMPLATE(T_)                                  \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                   \
+        rocblas_internal_syrk_batched_template<T_>(rocblas_handle    handle,   \
+                                                   rocblas_fill      uplo,     \
+                                                   rocblas_operation trans_A,  \
+                                                   rocblas_int       n,        \
+                                                   rocblas_int       k,        \
+                                                   const T_*         alpha,    \
+                                                   const T_* const*  A,        \
+                                                   rocblas_stride    offset_A, \
+                                                   rocblas_int       lda,      \
+                                                   rocblas_stride    stride_A, \
+                                                   const T_*         beta,     \
+                                                   T_* const*        C,        \
+                                                   rocblas_stride    offset_C, \
+                                                   rocblas_int       ldc,      \
+                                                   rocblas_stride    stride_C, \
+                                                   rocblas_int       batch_count);
 
 INSTANTIATE_SYRK_BATCHED_TEMPLATE(float)
 INSTANTIATE_SYRK_BATCHED_TEMPLATE(double)
@@ -453,8 +453,7 @@ INSTANTIATE_SYRK_BATCHED_TEMPLATE(rocblas_double_complex)
         rocblas_stride    offset_C,                                                              \
         rocblas_int       ldc,                                                                   \
         rocblas_stride    stride_C,                                                              \
-        rocblas_int       batch_count,                                                           \
-        T_*               w_mem);
+        rocblas_int       batch_count);
 
 INSTANTIATE_HERK_TEMPLATE(rocblas_float_complex)
 INSTANTIATE_HERK_TEMPLATE(rocblas_double_complex)
@@ -465,25 +464,24 @@ INSTANTIATE_HERK_TEMPLATE(rocblas_double_complex)
 #error INSTANTIATE_HERK_BATCHED_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_HERK_BATCHED_TEMPLATE(T_)                                     \
-    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                      \
-        rocblas_internal_herk_batched_template<T_>(rocblas_handle    handle,      \
-                                                   rocblas_fill      uplo,        \
-                                                   rocblas_operation trans_A,     \
-                                                   rocblas_int       n,           \
-                                                   rocblas_int       k,           \
-                                                   const real_t<T_>* alpha,       \
-                                                   const T_* const*  A,           \
-                                                   rocblas_stride    offset_A,    \
-                                                   rocblas_int       lda,         \
-                                                   rocblas_stride    stride_A,    \
-                                                   const real_t<T_>* beta,        \
-                                                   T_* const*        C,           \
-                                                   rocblas_stride    offset_C,    \
-                                                   rocblas_int       ldc,         \
-                                                   rocblas_stride    stride_C,    \
-                                                   rocblas_int       batch_count, \
-                                                   T_*               w_mem);
+#define INSTANTIATE_HERK_BATCHED_TEMPLATE(T_)                                  \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                   \
+        rocblas_internal_herk_batched_template<T_>(rocblas_handle    handle,   \
+                                                   rocblas_fill      uplo,     \
+                                                   rocblas_operation trans_A,  \
+                                                   rocblas_int       n,        \
+                                                   rocblas_int       k,        \
+                                                   const real_t<T_>* alpha,    \
+                                                   const T_* const*  A,        \
+                                                   rocblas_stride    offset_A, \
+                                                   rocblas_int       lda,      \
+                                                   rocblas_stride    stride_A, \
+                                                   const real_t<T_>* beta,     \
+                                                   T_* const*        C,        \
+                                                   rocblas_stride    offset_C, \
+                                                   rocblas_int       ldc,      \
+                                                   rocblas_stride    stride_C, \
+                                                   rocblas_int       batch_count);
 
 INSTANTIATE_HERK_BATCHED_TEMPLATE(rocblas_float_complex)
 INSTANTIATE_HERK_BATCHED_TEMPLATE(rocblas_double_complex)

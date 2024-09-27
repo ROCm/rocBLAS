@@ -46,8 +46,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       rocblas_stride    offsetC,
                                       int64_t           ldc_64,
                                       rocblas_stride    strideC,
-                                      int64_t           batch_count_64,
-                                      T*                w_mem);
+                                      int64_t           batch_count_64);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -70,8 +69,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                               rocblas_stride    offsetC,
                                               int64_t           ldc_64,
                                               rocblas_stride    strideC,
-                                              int64_t           batch_count_64,
-                                              T*                w_mem);
+                                              int64_t           batch_count_64);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -94,8 +92,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       rocblas_stride    offsetC,
                                       int64_t           ldc_64,
                                       rocblas_stride    strideC,
-                                      int64_t           batch_count_64,
-                                      T*                w_mem);
+                                      int64_t           batch_count_64);
 
 /*
  * internal rocBLAS template function, also used by rocSOLVER.
@@ -118,5 +115,4 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                               rocblas_stride    offsetC,
                                               int64_t           ldc_64,
                                               rocblas_stride    strideC,
-                                              int64_t           batch_count_64,
-                                              T*                w_mem);
+                                              int64_t           batch_count_64);
