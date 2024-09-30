@@ -19,6 +19,7 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#pragma once
 
 #include "handle.hpp"
 #include "int64_helpers.hpp"
