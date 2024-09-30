@@ -26,7 +26,7 @@ def runCI =
         prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
     }
 
-    prj.defaults.ccache = true
+    prj.defaults.ccache = false
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
