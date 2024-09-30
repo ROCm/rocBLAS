@@ -28,7 +28,7 @@
 #include "rocblas_level3_threshold.hpp"
 
 template <typename T>
-inline constexpr bool rocblas_use_only_gemm(rocblas_handle handle, rocblas_int n, rocblas_int k)
+inline bool rocblas_use_only_gemm(rocblas_handle handle, rocblas_int n, rocblas_int k)
 {
     //Identifying the architecture to have an appropriate optimization
     bool is_gfx942 = handle->getArch() == 942 ? true : false;
