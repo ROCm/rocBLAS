@@ -5,27 +5,37 @@ rocBLAS documentation is available at
 
 ## (Unreleased) rocBLAS 4.3.0
 
-###Additions
+### Additions
 
 * Level 3 and EX functions have additional ILP64 API for both C and FORTRAN (_64 name suffix) with int64_t function arguments
 
-###Optimizations
+### Optimizations
 
 * Improved performance of Level 2 gbmv
 * Improved performance of Level 2 gemv for float and double precisions for problem sizes (TransA == N && m==n && m % 128 == 0) measured on a gfx942 GPU
 
-###Changed
+### Changed
 
 * amdclang used as default compiler instead of hipcc
 * Internal performance scripts use amd-smi instead of deprecated rocm-smi
 
-###Fixed
+### Fixed
 
 * Fixed stbsv_strided_batched_64 Fortran binding
 
-###Deprecations
+### Deprecations
 
 * rocblas_Xgemm_kernel_name APIs deprecated
+
+## rocBLAS 4.2.1 for ROCm 6.2.1
+
+### Removals
+
+* Removed Device_Memory_Allocation.pdf link in documentation.
+
+### Resolved issues
+
+* Fixed error/warning message during `rocblas_set_stream()` call.
 
 ## rocBLAS 4.2.0 for ROCm 6.2
 
