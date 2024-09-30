@@ -25,7 +25,7 @@ def runCI =
         prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
     }
 
-    prj.defaults.ccache = true
+    prj.defaults.ccache = false
     prj.timeout.compile = 480
     prj.timeout.test = 420
 
