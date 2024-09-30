@@ -19,6 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#pragma once
+
 #include "int64_helpers.hpp"
 #include "logging.hpp"
 #include "rocblas_trmm.hpp"
