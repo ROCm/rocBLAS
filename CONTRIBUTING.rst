@@ -64,8 +64,8 @@ Coding Guidelines
     that this is allocated workspace memory, such as ``workspace`` or using a ``w_`` prefix.
 
     Details are in the `Device Memory
-    Allocation <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf>`__
-    design document. Examples of how to use the device memory allocator
+    Allocation <https://rocm.docs.amd.com/projects/rocBLAS/en/latest/how-to/Programmers_Guide.html#device-memory-allocation>`__
+    documentation. Examples of how to use the device memory allocator
     are in
     `TRSV <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas2/rocblas_trsv.cpp>`__
     and
