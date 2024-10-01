@@ -100,6 +100,9 @@ def parse_args():
     general_opts.add_argument('-j', '--jobs', type=int, required=False, default=0,
                         help='Specify number of parallel jobs to launch, affects memory usage (default: heuristic around logical core count)')
 
+    general_opts.add_argument('--ninja', required=False, default=False, action='store_true',
+                        help='Build using ninja generator (default: false on Linux, true on windows)')
+
     experimental_opts.add_argument('-k', '--relwithdebinfo', required=False, default=False, action='store_true',
                         help='Build in Release with Debug Info (optional, default: False)')
 
@@ -349,6 +352,8 @@ def config_cmd():
     else:
         rocm_raw_path = os.getenv('ROCM_PATH', "/opt/rocm")
         rocm_path = rocm_raw_path
+        if (args.ninja):
+            cmake_platform_opts.append(f"-G Ninja")
         cmake_platform_opts.append(f"-DROCM_DIR:PATH={rocm_path} -DCPACK_PACKAGING_INSTALL_PREFIX={rocm_path}")
         cmake_platform_opts.append(f'-DCMAKE_INSTALL_PREFIX="rocblas-install"')
         toolchain = "toolchain-linux.cmake"
@@ -512,21 +517,22 @@ def make_cmd():
 
     make_options = []
 
-    if os.name == "nt":
+    if os.name == "nt" or args.ninja:
         # the CMAKE_BUILD_PARALLEL_LEVEL currently doesn't work for windows build, so using -j
         # make_executable = f"cmake.exe -DCMAKE_BUILD_PARALLEL_LEVEL=4 --build . " # ninja
-        make_executable = f"ninja.exe -j {args.jobs}"
+        exe_suffix = ".exe" if os.name == "nt" else ""
+        make_executable = f"ninja{exe_suffix} -j {args.jobs}"
         if args.verbose:
             make_options.append("--verbose")
-        make_options.append("all")  # for cmake "--target all" )
+        make_options.append("all")
         if args.install:
-            make_options.append("package install")  # for cmake "--target package --target install" )
+            make_options.append("package")
     else:
         make_executable = f"make -j{args.jobs}"
         if args.verbose:
             make_options.append("VERBOSE=1")
-        if not args.clients_only:
-            make_options.append("install")
+    if not args.clients_only:
+        make_options.append("install")
     cmd_opts = " ".join(make_options)
 
     return make_executable, cmd_opts
