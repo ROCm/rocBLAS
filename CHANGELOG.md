@@ -3,7 +3,7 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
-## rocBLAS 4.2.2 for ROCm 6.2.4
+## rocBLAS 4.2.4 for ROCm 6.2.4
 
 ### Additions
 
