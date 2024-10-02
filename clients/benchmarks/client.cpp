@@ -1283,13 +1283,39 @@ int run_bench_test(bool               init,
     return 0;
 }
 
+void check_device_matrix_reuse(std::vector<Arguments>& args)
+{
+    if(args.empty())
+    {
+        return;
+    }
+    auto* arg_prev = &args.front();
+    for(auto& arg : args)
+    {
+        if(arg.a_type == arg_prev->a_type && arg.b_type == arg_prev->b_type
+           && arg.c_type == arg_prev->c_type && arg.d_type == arg_prev->d_type
+           && arg.initialization == arg_prev->initialization)
+        {
+            arg_prev->cleanup = false;
+        }
+        arg_prev = &arg;
+    }
+}
+
 int rocblas_bench_datafile(const std::string& filter,
                            const std::string& name_filter,
                            bool               any_stride)
 {
-    int ret = 0;
-    for(Arguments arg : RocBLAS_TestData())
+    int                    ret      = 0;
+    auto                   arg_iter = RocBLAS_TestData();
+    std::vector<Arguments> args{arg_iter.begin(), arg_iter.end()};
+
+    check_device_matrix_reuse(args);
+
+    for(Arguments arg : args)
+    {
         ret |= run_bench_test(true, arg, filter, name_filter, any_stride, true);
+    }
     test_cleanup::cleanup();
     return ret;
 }
