@@ -153,6 +153,8 @@ void Arguments::init()
     repeatability_check = false;
 
     use_hipblaslt = -1;
+
+    cleanup = true;
 }
 
 bool Arguments::validate()

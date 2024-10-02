@@ -184,6 +184,8 @@ struct Arguments
 
     int use_hipblaslt;
 
+    bool cleanup;
+
     /*************************************************************************
      *                     End Of Arguments                                  *
      *************************************************************************/
@@ -269,7 +271,8 @@ struct Arguments
     OPER(HMM) SEP                    \
     OPER(graph_test) SEP             \
     OPER(repeatability_check) SEP    \
-    OPER(use_hipblaslt)
+    OPER(use_hipblaslt) SEP          \
+    OPER(cleanup)
     // clang-format on
 
     // Validate input format.

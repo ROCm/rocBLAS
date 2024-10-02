@@ -114,6 +114,10 @@ Test harness functions are templated by data type and are defined in separate fi
 When a function also supports the ILP64 API then both forms can be tested by the same template and is controlled the Arguments api member variable.
 This follows the pattern for FORTRAN API testing and includes FORTRAN_64 for the ILP64 form.
 
+Code for benchmarking gemm_ex (see testing_gemm_ex.hpp) through rocblas-bench tries to reuse device memory between consecutive calls.
+To get best memory reuse and hence better performance, the larger GEMMs should be listed first in the yaml input file.
+Device memory is only reused between consecutive calls with the same precision, so GEMMs should be grouped by precisions.
+
 clients/common
 ''''''''''''''
 

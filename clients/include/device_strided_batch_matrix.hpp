@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ public:
     //! @param m           The number of rows of the Matrix.
     //! @param n           The number of cols of the Matrix.
     //! @param lda         The leading dimension of the Matrix.
-    //! @param stride The stride.
+    //! @param stride      The stride.
     //! @param batch_count The batch count.
     //! @param HMM         HipManagedMemory Flag.
     //!
@@ -237,6 +237,30 @@ public:
             return hipSuccess;
         else
             return hipErrorOutOfMemory;
+    }
+
+    //!
+    //! @brief Resize the matrix, only if it fits in the currently allocated memory.
+    //! The allocation size as reported by this->nmemb() is preserved.
+    //! @param m            The new number of rows of the Matrix.
+    //! @param n            The new number of cols of the Matrix.
+    //! @param lda          The new leading dimension of the Matrix.
+    //! @param stride       The new stride.
+    //! @param batch_count  The new batch count.
+    //! @return true if resize was successful, false otherwise (matrix is not modified).
+    //!
+    bool resize(size_t m, size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
+    {
+        if(calculate_nmemb(n, lda, stride, batch_count) > this->nmemb())
+        {
+            return false;
+        }
+        m_m           = m;
+        m_n           = n;
+        m_lda         = lda;
+        m_stride      = stride;
+        m_batch_count = batch_count;
+        return true;
     }
 
 private:
