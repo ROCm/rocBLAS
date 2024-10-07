@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,13 @@ __device__ inline uint64_t
     pseudo_random(size_t i, size_t j, size_t b, rocblas_int M, rocblas_int N, size_t offset = 0)
 {
     // LCG from MMIX by D. Knuth to seed the actual PRNG
-    auto s = (i + j * M + b * M * N) * 6364136223846793005LL + 1442695040888963407LL;
+    uint64_t s = (i + j * M + b * M * N) * 6364136223846793005ULL + 1442695040888963407ULL;
     // Run a few extra iterations to make the generators diverge
     // in case the seeds are still poor (consecutive ints)
     for(int i = 0; i < 2 + offset; i++)
     {
         // Marsaglia, G. (2003). "Xorshift RNGs". Journal of Statistical Software. 8 (14). doi:10.18637/jss.v008.i14
+        // See also https://en.wikipedia.org/wiki/Xorshift
         s ^= s << 13;
         s ^= s >> 7;
         s ^= s << 17;
@@ -346,20 +347,19 @@ rocblas_init_matrix_kernel(F                         f,
 }
 
 template <typename T, typename F>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_init_matrix_template(F&&                             f,
-                                 rocblas_handle                  handle,
-                                 char                            uplo,
-                                 rocblas_check_matrix_type       matrix_type,
-                                 device_strided_batch_matrix<T>& dA,
-                                 bool                            seedReset        = false,
-                                 bool                            alternating_sign = false)
+rocblas_status rocblas_init_matrix_template(F&&                             f,
+                                            rocblas_handle                  handle,
+                                            char                            uplo,
+                                            rocblas_check_matrix_type       matrix_type,
+                                            device_strided_batch_matrix<T>& dA,
+                                            bool                            seedReset = false,
+                                            bool alternating_sign                     = false)
 {
     //Graph capture do not support any use of sync APIs.
     //Quick return: check numerics not supported
     if(handle->is_stream_in_capture_mode())
     {
-        return rocblas_status_success;
+        return rocblas_status_invalid_handle;
     }
 
     T*             A              = dA[0];
@@ -508,15 +508,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE void rocblas_init_matrix(rocblas_handle        
 #ifdef INST
 #error INST IS ALREADY DEFINED
 #endif
-#define INST(T, altInit)                                                            \
-    template ROCBLAS_INTERNAL_EXPORT_NOINLINE void rocblas_init_matrix<T, altInit>( \
-        rocblas_handle handle,                                                      \
-        device_strided_batch_matrix<T> & dA,                                        \
-        const Arguments&          arg,                                              \
-        rocblas_check_nan_init    nan_init,                                         \
-        rocblas_check_matrix_type matrix_type,                                      \
-        bool                      seedReset,                                        \
-        bool                      alternate_sign)
+#define INST(T, altInit)                                                                 \
+    template void rocblas_init_matrix<T, altInit>(rocblas_handle handle,                 \
+                                                  device_strided_batch_matrix<T> & dA,   \
+                                                  const Arguments&          arg,         \
+                                                  rocblas_check_nan_init    nan_init,    \
+                                                  rocblas_check_matrix_type matrix_type, \
+                                                  bool                      seedReset,   \
+                                                  bool                      alternate_sign)
 
 INST(signed char, true);
 INST(int, true);
