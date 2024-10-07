@@ -611,45 +611,38 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(!dA_alloc || !dA_alloc->resize(A_row, A_col, lda, aligned_stride_a, flush_batch_count))
         {
-            // Allocate matrix as aligned_stride_a x 1, then initialize, then resize, to make sure there are no uninitialized gaps due to the stride.
-            dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(aligned_stride_a,
-                                                                         1,
-                                                                         aligned_stride_a,
-                                                                         aligned_stride_a,
-                                                                         flush_batch_count
-                                                                             * extra_memory);
-            HOST_MEMCHECK(host_matrix<Ti>, hA, (aligned_stride_a, 1, aligned_stride_a));
-            rocblas_init_matrix<Ti>(
-                hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
-            CHECK_HIP_ERROR(dA_alloc->broadcast_one_matrix_from(hA));
+            dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
+                A_row, A_col, lda, aligned_stride_a, flush_batch_count * extra_memory);
+            rocblas_init_matrix<Ti>(handle,
+                                    *dA_alloc,
+                                    arg,
+                                    rocblas_client_alpha_sets_nan,
+                                    rocblas_client_general_matrix,
+                                    true);
             dA_alloc->resize(A_row, A_col, lda, aligned_stride_a, flush_batch_count);
         }
         if(!dB_alloc || !dB_alloc->resize(B_row, B_col, ldb, aligned_stride_b, flush_batch_count))
         {
-            dB_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(aligned_stride_b,
-                                                                         1,
-                                                                         aligned_stride_b,
-                                                                         aligned_stride_b,
-                                                                         flush_batch_count
-                                                                             * extra_memory);
-            HOST_MEMCHECK(host_matrix<Ti>, hB, (aligned_stride_b, 1, aligned_stride_b));
-            rocblas_init_matrix<Ti, true>(
-                hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
-            CHECK_HIP_ERROR(dB_alloc->broadcast_one_matrix_from(hB));
+            dB_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
+                B_row, B_col, ldb, aligned_stride_b, flush_batch_count * extra_memory);
+            rocblas_init_matrix<Ti>(handle,
+                                    *dB_alloc,
+                                    arg,
+                                    rocblas_client_alpha_sets_nan,
+                                    rocblas_client_general_matrix,
+                                    false,
+                                    true);
             dB_alloc->resize(B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
         }
         if(!dC_alloc || !dC_alloc->resize(M, N, ldc, aligned_stride_c, flush_batch_count))
         {
-            dC_alloc = std::make_unique<device_strided_batch_matrix<To>>(aligned_stride_c,
-                                                                         1,
-                                                                         aligned_stride_c,
-                                                                         aligned_stride_c,
-                                                                         flush_batch_count
-                                                                             * extra_memory);
-            HOST_MEMCHECK(host_matrix<To>, hC, (aligned_stride_c, 1, aligned_stride_c));
-            rocblas_init_matrix<To, true>(
-                hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
-            CHECK_HIP_ERROR(dC_alloc->broadcast_one_matrix_from(hC));
+            dC_alloc = std::make_unique<device_strided_batch_matrix<To>>(
+                M, N, ldc, aligned_stride_c, flush_batch_count * extra_memory);
+            rocblas_init_matrix<To>(handle,
+                                    *dC_alloc,
+                                    arg,
+                                    rocblas_client_beta_sets_nan,
+                                    rocblas_client_general_matrix);
             dC_alloc->resize(M, N, ldc, aligned_stride_c, flush_batch_count);
         }
         if(arg.outofplace)
@@ -750,6 +743,11 @@ void testing_gemm_ex(const Arguments& arg)
             dB_alloc.reset();
             dC_alloc.reset();
             dD_alloc.reset();
+        }
+        else if(!arg.outofplace)
+        {
+            rocblas_init_matrix<To>(
+                handle, dC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
         }
 
         ArgumentModel<e_transA,
