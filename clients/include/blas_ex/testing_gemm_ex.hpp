@@ -611,8 +611,12 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(!dA_alloc || !dA_alloc->resize(A_row, A_col, lda, aligned_stride_a, flush_batch_count))
         {
-            dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
-                A_row, A_col, lda, aligned_stride_a, flush_batch_count * extra_memory);
+            dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(aligned_stride_a,
+                                                                         1,
+                                                                         aligned_stride_a,
+                                                                         aligned_stride_a,
+                                                                         flush_batch_count
+                                                                             * extra_memory);
             rocblas_init_matrix<Ti>(handle,
                                     *dA_alloc,
                                     arg,
@@ -623,8 +627,12 @@ void testing_gemm_ex(const Arguments& arg)
         }
         if(!dB_alloc || !dB_alloc->resize(B_row, B_col, ldb, aligned_stride_b, flush_batch_count))
         {
-            dB_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(
-                B_row, B_col, ldb, aligned_stride_b, flush_batch_count * extra_memory);
+            dB_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(aligned_stride_b,
+                                                                         1,
+                                                                         aligned_stride_b,
+                                                                         aligned_stride_b,
+                                                                         flush_batch_count
+                                                                             * extra_memory);
             rocblas_init_matrix<Ti>(handle,
                                     *dB_alloc,
                                     arg,
@@ -636,8 +644,12 @@ void testing_gemm_ex(const Arguments& arg)
         }
         if(!dC_alloc || !dC_alloc->resize(M, N, ldc, aligned_stride_c, flush_batch_count))
         {
-            dC_alloc = std::make_unique<device_strided_batch_matrix<To>>(
-                M, N, ldc, aligned_stride_c, flush_batch_count * extra_memory);
+            dC_alloc = std::make_unique<device_strided_batch_matrix<To>>(aligned_stride_c,
+                                                                         1,
+                                                                         aligned_stride_c,
+                                                                         aligned_stride_c,
+                                                                         flush_batch_count
+                                                                             * extra_memory);
             rocblas_init_matrix<To>(handle,
                                     *dC_alloc,
                                     arg,
