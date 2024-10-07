@@ -251,6 +251,9 @@ def get_compiler_jobs(env_var: str) -> int:
         return cjobs
 
 def get_env_compiler_parallelism() -> int:
+    # disable for now due to windows compiler issue and linux ignored warning
+    return 1
+
     # new and legacy env
     hip_clang_job_env = os.getenv('HIP_CLANG_NUM_PARALLEL_JOBS', "0")
 
