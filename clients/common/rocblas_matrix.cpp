@@ -75,7 +75,8 @@ struct hpl_functor
 {
     __device__ T operator()(size_t i, size_t j, size_t b, rocblas_int M, rocblas_int N, bool)
     {
-        return T(double(pseudo_random(i, j, b, M, N)) / double(UINT64_MAX) - 0.5);
+        auto r = pseudo_random(i, j, b, M, N);
+        return T(double(r) / double(std::numeric_limits<decltype(r)>::max()) - 0.5);
     }
 };
 
@@ -176,6 +177,7 @@ struct rand_nan_functor
     template <typename UINT_T, int SIG, int EXP, typename REAL_T = T>
     __device__ __host__ REAL_T random_nan_data(uint64_t r)
     {
+        static_assert(sizeof(UINT_T) == sizeof(REAL_T), "Type sizes do not match");
         union
         {
             UINT_T u;
