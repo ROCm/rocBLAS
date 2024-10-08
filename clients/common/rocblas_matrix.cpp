@@ -27,14 +27,11 @@
 __device__ inline uint64_t
     pseudo_random(size_t i, size_t j, size_t b, rocblas_int M, rocblas_int N, size_t offset = 0)
 {
-    // LCG from MMIX by D. Knuth to seed the actual PRNG
     uint64_t s = (i + j * M + b * M * N) * 6364136223846793005ULL + 1442695040888963407ULL;
     // Run a few extra iterations to make the generators diverge
     // in case the seeds are still poor (consecutive ints)
     for(int i = 0; i < 2 + offset; i++)
     {
-        // Marsaglia, G. (2003). "Xorshift RNGs". Journal of Statistical Software. 8 (14). doi:10.18637/jss.v008.i14
-        // See also https://en.wikipedia.org/wiki/Xorshift
         s ^= s << 13;
         s ^= s >> 7;
         s ^= s << 17;
@@ -425,13 +422,13 @@ rocblas_status rocblas_init_matrix_template(F&&                             f,
 }
 
 template <typename T, bool altInit>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE void rocblas_init_matrix(rocblas_handle                  handle,
-                                                          device_strided_batch_matrix<T>& dA,
-                                                          const Arguments&                arg,
-                                                          rocblas_check_nan_init          nan_init,
-                                                          rocblas_check_matrix_type matrix_type,
-                                                          bool                      seedReset,
-                                                          bool alternating_sign)
+void rocblas_init_matrix(rocblas_handle                  handle,
+                         device_strided_batch_matrix<T>& dA,
+                         const Arguments&                arg,
+                         rocblas_check_nan_init          nan_init,
+                         rocblas_check_matrix_type       matrix_type,
+                         bool                            seedReset,
+                         bool                            alternating_sign)
 {
     // TODO seedReset
     // seed is the same for every call to this routine
