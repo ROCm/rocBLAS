@@ -5,9 +5,9 @@ rocBLAS documentation is available at
 
 ## rocBLAS 4.2.4 for ROCm 6.2.4
 
-### Additions
+### Added
 
-* GFX1151 Support
+* Support for the gfx1151 architecture
 
 ## rocBLAS 4.2.1 for ROCm 6.2.1
 
