@@ -7,6 +7,10 @@ rocBLAS documentation is available at
 
 ### Additions
 
+* GFX1034 Support
+
+### Additions
+
 * GFX1151 Support
 
 ## rocBLAS 4.2.1 for ROCm 6.2.1

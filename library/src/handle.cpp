@@ -129,6 +129,10 @@ static Processor getActiveArch(int deviceId)
     {
         return Processor::gfx1030;
     }
+    else if(deviceString.find("gfx1034") != std::string::npos)
+    {
+        return Processor::gfx1034;
+    }
     else if(deviceString.find("gfx1100") != std::string::npos)
     {
         return Processor::gfx1100;
