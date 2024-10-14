@@ -307,6 +307,13 @@ namespace
                 print_once(msg << "hipBLASLt error: Cannot find specified solution index!");
                 return rocblas_status_invalid_value;
             }
+
+            if(heuristicResults.empty())
+            {
+                rocblas_internal_ostream msg;
+                print_once(msg << "rocBLAS error: No hipBLASLt solution found");
+                return rocblas_status_invalid_value;
+            }
         }
         else
         {
@@ -317,13 +324,13 @@ namespace
                 print_once(msg << "hipBLASLt error: Heuristic Fetch Failed!");
                 return rocblas_status_internal_error;
             }
-        }
 
-        if(heuristicResults.empty())
-        {
-            rocblas_internal_ostream msg;
-            print_once(msg << "rocBLAS error: No hipBLASLt solution found");
-            return rocblas_status_not_implemented;
+            if(heuristicResults.empty())
+            {
+                rocblas_internal_ostream msg;
+                print_once(msg << "rocBLAS error: No hipBLASLt solution found");
+                return rocblas_status_not_implemented;
+            }
         }
 
         heuristicResult = heuristicResults[0];
