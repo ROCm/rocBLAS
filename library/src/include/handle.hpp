@@ -252,6 +252,18 @@ public:
         return archMajor == 12;
     }
 
+    int getBatchGridDim(int batch_count)
+    {
+        // c_YZ_grid_launch_limit <= min(MaxGridSize[2], MaxGridSize[3]) from hipDeviceProp.MaxGridSize[3]
+        // in file /opt/rocm/include/hip/hip_runtime_api.h
+        // This function returns a grid size that will not exceed c_YZ_grid_launch_limit
+        // for now we are using a simple constant as there is only one variability (unsigned 16-bit/32-bit)
+        if(isYZGridDim16bit())
+            return std::min(batch_count, int(c_YZ_grid_launch_limit));
+        else
+            return batch_count;
+    }
+
     bool isDefaultHipBLASLtArch()
     {
         int arch = getArch();

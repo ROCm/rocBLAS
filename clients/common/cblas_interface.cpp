@@ -106,12 +106,11 @@ void ref_asum<float>(int64_t n, const float* x, int64_t incx, float* result)
     int64_t blocks     = (n - 1) / block_size + 1;
     for(int64_t b = 0; b < blocks; b++)
     {
-        float partial_sum = 0;
-        for(int64_t i = 0; i < block_size; i++)
+        float   partial_sum = 0;
+        int64_t idx         = b * block_size;
+        for(int64_t i = 0; i < block_size && idx < n; i++, idx++)
         {
-            int64_t idx = i + b * block_size;
-            if(idx < n)
-                partial_sum += std::abs(x[idx * incx]);
+            partial_sum += std::abs(x[idx * incx]);
         }
         sum += partial_sum;
     }

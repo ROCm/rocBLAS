@@ -42,14 +42,14 @@ constexpr int rocblas_dot_one_block_threshold()
 
 template <bool ONE_BLOCK, typename V, typename T>
 __inline__ __device__ void
-    rocblas_dot_save_sum(V sum, V* __restrict__ workspace, T* __restrict__ out)
+    rocblas_dot_save_sum(V sum, size_t batch, V* __restrict__ workspace, T* __restrict__ out)
 {
     if(threadIdx.x == 0)
     {
         if(ONE_BLOCK || gridDim.x == 1) // small N avoid second kernel
-            out[blockIdx.y] = T(sum);
+            out[batch] = T(sum);
         else
-            workspace[blockIdx.x + size_t(blockIdx.y) * gridDim.x] = sum;
+            workspace[blockIdx.x + batch * gridDim.x] = sum;
     }
 }
 
@@ -62,26 +62,36 @@ rocblas_dot_kernel_inc1(rocblas_int n,
                         const U __restrict__ ya,
                         rocblas_stride shifty,
                         rocblas_stride stridey,
+                        rocblas_int    batch_count,
                         V* __restrict__ workspace,
                         T* __restrict__ out)
 {
-    const auto* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
-    const auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+    int      i     = !ONE_BLOCK ? blockIdx.x * NB + threadIdx.x : threadIdx.x;
+    uint32_t batch = blockIdx.z;
 
-    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
-
-    V sum = 0;
-
-    // sum WIN elements per thread
-    int inc = !ONE_BLOCK ? blockDim.x * gridDim.x : blockDim.x;
-    for(int j = 0; j < WIN && i < n; j++, i += inc)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
+#endif
+        const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+        const auto* y = load_ptr_batch(ya, batch, shifty, stridey);
+
+        V sum = 0;
+
+        // sum WIN elements per thread
+        int inc = !ONE_BLOCK ? NB * gridDim.x : NB;
+        for(int j = 0; j < WIN && i < n; j++, i += inc)
+        {
+            sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
+        }
+
+        sum = rocblas_dot_block_reduce<NB>(sum);
+
+        rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
+
+#if DEVICE_GRID_YZ_16BIT
     }
-
-    sum = rocblas_dot_block_reduce<NB>(sum);
-
-    rocblas_dot_save_sum<ONE_BLOCK>(sum, workspace, out);
+#endif
 }
 
 template <bool ONE_BLOCK, int NB, int WIN, bool CONJ, typename T, typename U, typename V>
@@ -93,50 +103,62 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            const U __restrict__ ya,
                            rocblas_stride shifty,
                            rocblas_stride stridey,
+                           rocblas_int    batch_count,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
-    const auto* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
-    const auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+    int      i     = !ONE_BLOCK ? blockIdx.x * NB + threadIdx.x : threadIdx.x;
+    uint32_t batch = blockIdx.z;
 
-    V   sum = 0;
-    int i   = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
-
-    // sum WIN elements per thread
-    int inc = !ONE_BLOCK ? blockDim.x * gridDim.x : blockDim.x;
-
-    if constexpr(
-        std::is_same_v<
-            T,
-            rocblas_half> || std::is_same_v<T, rocblas_bfloat16> || std::is_same_v<T, rocblas_float>)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        i *= 2;
-        inc *= 2;
-        for(int j = 0; j < WIN && i < n - 1; j++, i += inc)
+#endif
+
+        const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+        const auto* y = load_ptr_batch(ya, batch, shifty, stridey);
+
+        V sum = 0;
+
+        // sum WIN elements per thread
+        int inc = !ONE_BLOCK ? NB * gridDim.x : NB;
+
+        if constexpr(
+            std::is_same_v<
+                T,
+                rocblas_half> || std::is_same_v<T, rocblas_bfloat16> || std::is_same_v<T, rocblas_float>)
         {
-#pragma unroll
-            for(int k = 0; k < 2; ++k)
+            i *= 2;
+            inc *= 2;
+            for(int j = 0; j < WIN && i < n - 1; j++, i += inc)
             {
-                sum += V(y[i + k]) * V(CONJ ? conj(x[i + k]) : x[i + k]);
+#pragma unroll
+                for(int k = 0; k < 2; ++k)
+                {
+                    sum += V(y[i + k]) * V(CONJ ? conj(x[i + k]) : x[i + k]);
+                }
+            }
+            // If `n` is odd then the computation of last element is covered below.
+            if(n % 2 && i == n - 1)
+            {
+                sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
             }
         }
-        // If `n` is odd then the computation of last element is covered below.
-        if(n % 2 && i == n - 1)
+        else
         {
-            sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
+            for(int j = 0; j < WIN && i < n; j++, i += inc)
+            {
+                sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
+            }
         }
-    }
-    else
-    {
-        for(int j = 0; j < WIN && i < n; j++, i += inc)
-        {
-            sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
-        }
-    }
 
-    sum = rocblas_dot_block_reduce<NB>(sum);
+        sum = rocblas_dot_block_reduce<NB>(sum);
 
-    rocblas_dot_save_sum<ONE_BLOCK>(sum, workspace, out);
+        rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <typename API_INT,
@@ -157,26 +179,37 @@ rocblas_dot_kernel(rocblas_int n,
                    rocblas_stride shifty,
                    API_INT        incy,
                    rocblas_stride stridey,
+                   rocblas_int    batch_count,
                    V* __restrict__ workspace,
                    T* __restrict__ out)
 {
-    const auto* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
-    const auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+    int      i     = !ONE_BLOCK ? blockIdx.x * NB + threadIdx.x : threadIdx.x;
+    uint32_t batch = blockIdx.z;
 
-    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
-
-    V sum = 0;
-
-    // sum WIN elements per thread
-    int inc = blockDim.x * gridDim.x;
-    for(int j = 0; j < WIN && i < n; j++, i += inc)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        sum += V(y[i * int64_t(incy)])
-               * V(CONJ ? conj(x[i * int64_t(incx)]) : x[i * int64_t(incx)]);
-    }
-    sum = rocblas_dot_block_reduce<NB>(sum);
+#endif
 
-    rocblas_dot_save_sum<ONE_BLOCK>(sum, workspace, out);
+        const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+        const auto* y = load_ptr_batch(ya, batch, shifty, stridey);
+
+        V sum = 0;
+
+        // sum WIN elements per thread
+        int inc = NB * gridDim.x;
+        for(int j = 0; j < WIN && i < n; j++, i += inc)
+        {
+            sum += V(y[i * int64_t(incy)])
+                   * V(CONJ ? conj(x[i * int64_t(incx)]) : x[i * int64_t(incx)]);
+        }
+        sum = rocblas_dot_block_reduce<NB>(sum);
+
+        rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <typename API_INT,
@@ -193,25 +226,36 @@ rocblas_dot_kernel_magsq(rocblas_int n,
                          rocblas_stride shiftx,
                          API_INT        incx,
                          rocblas_stride stridex,
+                         rocblas_int    batch_count,
                          V* __restrict__ workspace,
                          T* __restrict__ out)
 {
-    const auto* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    int      i     = !ONE_BLOCK ? blockIdx.x * NB + threadIdx.x : threadIdx.x;
+    uint32_t batch = blockIdx.z;
 
-    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
-
-    V sum = 0;
-
-    // sum WIN elements per thread
-    int inc = blockDim.x * gridDim.x;
-    for(int j = 0; j < WIN && i < n; j++, i += inc)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        int64_t idx = i * int64_t(incx);
-        sum += V(x[idx]) * V(CONJ ? conj(x[idx]) : x[idx]);
-    }
-    sum = rocblas_dot_block_reduce<NB>(sum);
+#endif
 
-    rocblas_dot_save_sum<ONE_BLOCK>(sum, workspace, out);
+        const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+
+        V sum = 0;
+
+        // sum WIN elements per thread
+        int inc = NB * gridDim.x;
+        for(int j = 0; j < WIN && i < n; j++, i += inc)
+        {
+            int64_t idx = i * int64_t(incx);
+            sum += V(x[idx]) * V(CONJ ? conj(x[idx]) : x[idx]);
+        }
+        sum = rocblas_dot_block_reduce<NB>(sum);
+
+        rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <int NB, int WIN, typename V, typename T = V>
@@ -220,10 +264,10 @@ rocblas_dot_kernel_reduce(int n_sums, V* __restrict__ in, T* __restrict__ out)
 {
     V sum = 0;
 
-    size_t offset = size_t(blockIdx.y) * n_sums;
+    size_t offset = size_t(blockIdx.x) * n_sums;
     in += offset;
 
-    int inc = blockDim.x * gridDim.x * WIN;
+    int inc = NB * gridDim.x * WIN;
 
     int i         = threadIdx.x * WIN;
     int remainder = n_sums % WIN;
@@ -240,7 +284,7 @@ rocblas_dot_kernel_reduce(int n_sums, V* __restrict__ in, T* __restrict__ out)
 
     sum = rocblas_dot_block_reduce<NB>(sum);
     if(threadIdx.x == 0)
-        out[blockIdx.y] = T(sum);
+        out[blockIdx.x] = T(sum);
 }
 
 template <typename API_INT, int NB_X, int NB_Y, bool CONJ, typename V, typename T, typename U>
@@ -257,16 +301,18 @@ rocblas_dot_batched_4_kernel(rocblas_int n,
                              rocblas_int    batch_count,
                              T* __restrict__ out)
 {
-    // Thread Blocks more than or equal to the batch_count could be safely returned
-    if(blockIdx.x * NB_Y + threadIdx.y >= batch_count)
+
+    uint32_t batch = blockIdx.x * NB_Y + threadIdx.y;
+
+    if(batch >= batch_count)
         return;
 
-    const auto* x = load_ptr_batch(xa, blockIdx.x * NB_Y + threadIdx.y, shiftx, stridex);
-    const auto* y = load_ptr_batch(ya, blockIdx.x * NB_Y + threadIdx.y, shifty, stridey);
+    const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+    const auto* y = load_ptr_batch(ya, batch, shifty, stridey);
 
     V reg_x = V(0), reg_y = V(0), sum = V(0);
 
-    for(int tid = threadIdx.x; tid < n; tid += blockDim.x)
+    for(int tid = threadIdx.x; tid < n; tid += NB_X)
     {
         reg_x = V(CONJ ? conj(x[tid * int64_t(incx)]) : x[tid * int64_t(incx)]);
         reg_y = V(y[tid * int64_t(incy)]);
@@ -277,7 +323,7 @@ rocblas_dot_batched_4_kernel(rocblas_int n,
     sum = rocblas_wavefront_reduce<NB_X>(sum); // sum over wavefront
 
     if(threadIdx.x == 0)
-        out[blockIdx.x * NB_Y + threadIdx.y] = T(sum);
+        out[batch] = T(sum);
 }
 
 // assume workspace has already been allocated, recommended for repeated calling of dot_strided_batched product
@@ -420,7 +466,9 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         assert(blocks == 1);
         static constexpr bool ONE_BLOCK = true;
 
-        dim3 grid(blocks, batch_count);
+        int batches = handle->getBatchGridDim((int)batch_count);
+
+        dim3 grid(blocks, 1, batches);
         dim3 threads(NB_OB);
 
         T* output = results; // device mode output directly to results
@@ -447,6 +495,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                     y,
                     shifty,
                     stridey,
+                    batch_count,
                     workspace,
                     output);
             }
@@ -467,6 +516,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                     shifty,
                     incy,
                     stridey,
+                    batch_count,
                     workspace,
                     output);
             }
@@ -484,6 +534,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                 shiftx,
                 incx,
                 stridex,
+                batch_count,
                 workspace,
                 output);
         }
@@ -503,8 +554,11 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         static constexpr bool ONE_BLOCK = false;
 
         rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB * WIN);
-        dim3        grid(blocks, batch_count);
-        dim3        threads(NB);
+
+        int batches = handle->getBatchGridDim((int)batch_count);
+
+        dim3 grid(blocks, 1, batches);
+        dim3 threads(NB);
 
         T* output = results;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
@@ -529,6 +583,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                                       y,
                                       shifty,
                                       stridey,
+                                      batch_count,
                                       workspace,
                                       output);
             }
@@ -548,6 +603,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                                       shifty,
                                       incy,
                                       stridey,
+                                      batch_count,
                                       workspace,
                                       output);
             }
@@ -564,13 +620,14 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                                   shiftx,
                                   incx,
                                   stridex,
+                                  batch_count,
                                   workspace,
                                   output);
         }
 
         if(blocks > 1) // if single block first kernel did all work
             ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_reduce<NB, WIN>),
-                                  dim3(1, batch_count),
+                                  dim3(batch_count),
                                   threads,
                                   0,
                                   handle->get_stream(),

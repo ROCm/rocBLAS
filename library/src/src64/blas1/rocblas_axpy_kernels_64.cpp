@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ rocblas_status rocblas_internal_axpy_launcher_64(rocblas_handle handle,
                 int32_t n32 = int32_t(std::min(n - n_base, c_i64_grid_X_chunk));
 
                 int  blocks = (n32 - 1) / NB + 1;
-                dim3 grid(blocks, batch_count32);
+                dim3 grid(blocks, 1, batch_count32);
                 dim3 threads(NB);
 
                 // Not using launcher, so shifting to very end of 64-bit array
@@ -133,7 +133,8 @@ rocblas_status rocblas_internal_axpy_launcher_64(rocblas_handle handle,
                                           y_ptr,
                                           shifty,
                                           incy,
-                                          stride_y);
+                                          stride_y,
+                                          batch_count);
                 else
                     ROCBLAS_LAUNCH_KERNEL((rocblas_axpy_kernel<int64_t, NB, Tex>),
                                           grid,
@@ -150,7 +151,8 @@ rocblas_status rocblas_internal_axpy_launcher_64(rocblas_handle handle,
                                           y_ptr,
                                           shifty,
                                           incy,
-                                          stride_y);
+                                          stride_y,
+                                          batch_count);
             }
         }
     }
