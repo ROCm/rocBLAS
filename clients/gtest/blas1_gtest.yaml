@@ -244,14 +244,17 @@ Tests:
 
   - name: blas1_axpy_large_batch
     category: pre_checkin
-    N: [ 7, 1000 ]
+    N: [ 4 ]
     incx_incy: *incx_incy_range_small
-    alpha: [ 0, 1 ]
-    batch_count: [ 8193 ]
+    alpha: [ 1 ]
+    batch_count: [ *c_grid_yz_require_passes ]
     stride_scale: [ 1 ]
     function:
+      - axpy_batched_ex: *half_precision
       - axpy_batched: *single_precision
+      - axpy_strided_batched_ex: *half_precision
       - axpy_strided_batched: *single_precision
+
 
   - name: blas1_with_alpha
     category: pre_checkin
@@ -971,6 +974,16 @@ Tests:
       - iamax_strided_batched: *single_double_precisions_complex_real
       - iamin_strided_batched: *single_double_precisions_complex_real
 
+  - name: blas1_large_batch
+    category: stress
+    arguments:
+      - { N: 2, incx: 1, stride_x: 2, batch_count: *c_grid_yz_require_passes }
+    function:
+      - asum_batched: *single_precision
+      - asum_strided_batched: *single_precision
+      - nrm2_batched: *single_precision
+      - nrm2_strided_batched: *single_precision
+
 # pre_checkin
   - name: blas1
     category: pre_checkin
@@ -1373,6 +1386,16 @@ Tests:
       - dotc_strided_batched_ex:  *double_precision_complex_real
       - rot_strided_batched_ex: *rot_ex_precisions
       - rotm_strided_batched:  *single_double_precisions
+
+  - name: dot_large_batch
+    category: stress
+    arguments:
+      - { N: 3, incx: 1, incy: 1, stride_x: 3, stride_y: 3, batch_count: *c_grid_yz_require_passes }
+    function:
+      - dot_batched: *half_precision
+      - dot_batched_ex: *half_precision
+      - dot_strided_batched: *half_precision
+      - dot_strided_batched_ex: *half_precision
 
 # Tests for testing rocblas_dot_batched_4_kernel
   - name: dot_batched_kernel_test

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,8 @@
 // atomic operation. However, atomic operation is new and is not used in rocBLAS
 // yet. rocBLAS still use the classic standard parallel reduction right now.
 
+#include "device_macros.hpp"
+
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
 template <typename API_INT, int NB, typename FETCH, typename TPtrX, typename To>
@@ -84,23 +86,32 @@ rocblas_reduction_kernel_part1(rocblas_int    n,
                                rocblas_stride shiftx,
                                API_INT        incx,
                                rocblas_stride stridex,
+                               rocblas_int    batch_count,
                                To*            workspace)
 {
-    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * NB + threadIdx.x;
     To      sum;
 
-    const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
+    uint32_t batch = blockIdx.z;
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        const auto* x = load_ptr_batch(xvec, batch, shiftx, stridex);
 
-    // bound
-    if(tid < n)
-        sum = FETCH{}(x[tid * incx]);
-    else
-        sum = rocblas_default_value<To>{}(); // pad with default value
+        // bound
+        if(tid < n)
+            sum = FETCH{}(x[tid * incx]);
+        else
+            sum = rocblas_default_value<To>{}(); // pad with default value
 
-    sum = rocblas_dot_block_reduce<NB, To>(sum); // sum reduction only
+        sum = rocblas_dot_block_reduce<NB, To>(sum); // sum reduction only
 
-    if(threadIdx.x == 0)
-        workspace[blockIdx.y * nblocks + blockIdx.x] = sum;
+        if(threadIdx.x == 0)
+            workspace[batch * nblocks + blockIdx.x] = sum;
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 // kernel 2 is used from non-strided reduction_batched see include file
@@ -115,7 +126,7 @@ rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 
     if(tx < nblocks)
     {
-        To* work = workspace + blockIdx.y * nblocks;
+        To* work = workspace + blockIdx.x * nblocks;
         sum      = work[tx];
 
         // bound, loop
@@ -131,7 +142,7 @@ rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[blockIdx.y] = Tr(FINALIZE{}(sum));
+        result[blockIdx.x] = Tr(FINALIZE{}(sum));
 }
 
 /*! \brief
@@ -193,9 +204,11 @@ rocblas_status rocblas_internal_asum_nrm2_launcher(rocblas_handle handle,
 
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part1<API_INT, NB, FETCH>),
-                          dim3(blocks, batch_count),
-                          NB,
+                          dim3(blocks, 1, batches),
+                          dim3(NB),
                           0,
                           handle->get_stream(),
                           n,
@@ -204,13 +217,14 @@ rocblas_status rocblas_internal_asum_nrm2_launcher(rocblas_handle handle,
                           shiftx,
                           incx,
                           stridex,
+                          batch_count,
                           workspace);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
-                              dim3(1, batch_count),
-                              NB,
+                              dim3(batch_count),
+                              dim3(NB),
                               0,
                               handle->get_stream(),
                               blocks,
@@ -228,8 +242,8 @@ rocblas_status rocblas_internal_asum_nrm2_launcher(rocblas_handle handle,
         if(reduceKernel)
         {
             ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
-                                  dim3(1, batch_count),
-                                  NB,
+                                  dim3(batch_count),
+                                  dim3(NB),
                                   0,
                                   handle->get_stream(),
                                   blocks,

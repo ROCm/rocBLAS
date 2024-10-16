@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ rocblas_reduction_kernel_part2_64(rocblas_int nblocks, To* workspace, Tr* result
 
     if(tx < nblocks)
     {
-        To* work = workspace + blockIdx.y * nblocks;
+        To* work = workspace + blockIdx.x * nblocks;
         sum      = work[tx];
 
         // bound, loop
@@ -56,7 +56,7 @@ rocblas_reduction_kernel_part2_64(rocblas_int nblocks, To* workspace, Tr* result
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[blockIdx.y] = Tr(is_finalize ? FINALIZE{}(sum) : sum);
+        result[blockIdx.x] = Tr(is_finalize ? FINALIZE{}(sum) : sum);
 }
 
 //Using specialized launcher which does the FINALIZE only when bool is_finalize is true.
@@ -82,10 +82,12 @@ rocblas_status rocblas_internal_asum_nrm2_kernel_launcher(rocblas_handle handle,
 
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     //Calling the original rocblas_reduction_kernel_part1 kernel in rocbblas_asum_nrm2_kernels.hpp
     ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part1<API_INT, NB, FETCH>),
-                          dim3(blocks, batch_count),
-                          NB,
+                          dim3(blocks, 1, batches),
+                          dim3(NB),
                           0,
                           handle->get_stream(),
                           n,
@@ -94,11 +96,12 @@ rocblas_status rocblas_internal_asum_nrm2_kernel_launcher(rocblas_handle handle,
                           shiftx,
                           incx,
                           stridex,
+                          batch_count,
                           workspace);
 
     ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part2_64<is_finalize, NB, FINALIZE>),
-                          dim3(1, batch_count),
-                          NB,
+                          dim3(batch_count),
+                          dim3(NB),
                           0,
                           handle->get_stream(),
                           blocks,

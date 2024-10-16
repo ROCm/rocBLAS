@@ -108,14 +108,6 @@ rocblas_status rocblas_asum_nrm2_arg_check(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
-    }
-
     if(!x)
     {
         return rocblas_status_invalid_pointer;
