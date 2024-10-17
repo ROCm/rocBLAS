@@ -86,14 +86,13 @@ rocblas_status rocblas_internal_iamax_iamin_launcher_64(rocblas_handle handle,
 
         auto x_ptr = adjust_ptr_batch(x, b_base, stridex);
 
-        Tr* output = &results[b_base];
+        Tr* output          = &results[b_base];
+        To* partial_results = workspace;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
-            output = (Tr*)(workspace);
+            output          = (Tr*)(workspace);
+            partial_results = (To*)(output + batch_count); // move past output
         }
-
-        // additional workspace if n_passes as results are only partial sum
-        To* partial_results = workspace;
 
         int32_t n      = int32_t(std::min(n_64, c_i64_grid_X_chunk));
         int     blocks = rocblas_reduction_kernel_block_count(n, NB);
