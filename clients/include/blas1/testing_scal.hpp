@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "benchmark.hpp"
 #include "testing_common.hpp"
 
 #include "blas1/rocblas_scal.hpp" // internal API
@@ -60,6 +61,7 @@ void testing_scal(const Arguments& arg)
     int64_t N       = arg.N;
     int64_t incx    = arg.incx;
     U       h_alpha = arg.get_alpha<U>();
+    bool    HMM     = arg.HMM;
 
     rocblas_local_handle handle{arg};
 
@@ -79,7 +81,6 @@ void testing_scal(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
     DEVICE_MEMCHECK(device_vector<U>, d_alpha, (1));
 
     // Initial Data on CPU
@@ -88,14 +89,17 @@ void testing_scal(const Arguments& arg)
     // copy vector is easy in STL; hx_gold = hx: hx_gold which will be output of CPU BLAS
     hx_gold = hx;
 
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dx.transfer_from(hx));
-
     double gpu_time_used, cpu_time_used;
     double rocblas_error_host   = 0.0;
     double rocblas_error_device = 0.0;
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        DEVICE_MEMCHECK(device_vector<T>, dx, (N, incx));
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+
         if(arg.pointer_mode_host)
         {
             // GPU BLAS, rocblas_pointer_mode_host
@@ -206,26 +210,36 @@ void testing_scal(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int total_calls       = number_cold_calls + arg.iters;
+        size_t aligned_stride_x = align_stride<T>(size_t(N) * (incx >= 0 ? incx : -incx));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        size_t x_size        = incx >= 0 ? N * incx * sizeof(T) : N * (-incx) * sizeof(T);
+        size_t x_cached_size = x_size;
+
+        size_t flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, x_cached_size);
+
+        // allocate device rotating buffer arrays
+        DEVICE_MEMCHECK(device_strided_batch_vector<T>,
+                        dx_rot_buff,
+                        (N, incx, aligned_stride_x, flush_batch_count, HMM));
+
+        CHECK_HIP_ERROR(dx_rot_buff.broadcast_one_vector_from(hx));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        for(int iter = 0; iter < total_calls; iter++)
-        {
-            if(iter == number_cold_calls)
-                gpu_time_used = get_time_us_sync(stream);
 
-            DAPI_DISPATCH(rocblas_scal_fn, (handle, N, &h_alpha, dx, incx));
-        }
+        auto lambda_to_benchmark = [&](int flush_index) {
+            DAPI_DISPATCH(rocblas_scal_fn, (handle, N, &h_alpha, dx_rot_buff[flush_index], incx));
+        };
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        Benchmark<decltype(lambda_to_benchmark)> benchmark_scal(
+            lambda_to_benchmark, stream, arg, flush_batch_count);
+
+        benchmark_scal.run_timer();
 
         ArgumentModel<e_N, e_alpha, e_incx>{}.log_args<T>(rocblas_cout,
                                                           arg,
-                                                          gpu_time_used,
+                                                          benchmark_scal.get_hot_time(),
                                                           scal_gflop_count<T, U>(N),
                                                           scal_gbyte_count<T>(N),
                                                           cpu_time_used,
