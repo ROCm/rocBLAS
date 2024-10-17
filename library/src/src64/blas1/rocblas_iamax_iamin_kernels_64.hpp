@@ -91,12 +91,14 @@ rocblas_iamax_iamin_kernel_part1_64(int64_t        n,
     const auto* x = load_ptr_batch(xvec, blockIdx.z, shiftx, stridex);
 
     To winner = rocblas_default_value<To>{}(); // pad with default value
-    for(int64_t i = tid; i < n; i += DIM_X * gridDim.x)
+    for(int64_t offset = 0; offset < n; offset += DIM_X * gridDim.x)
     {
+        int64_t i = tid + offset;
+
         To sum;
 
         // bound
-        if(tid < n)
+        if(i < n)
             sum = FETCH{}(x[i * incx], i + 1); // 1 based indexing
         else
             sum = rocblas_default_value<To>{}(); // pad with default value
