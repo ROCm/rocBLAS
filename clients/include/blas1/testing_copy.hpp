@@ -141,8 +141,6 @@ void testing_copy(const Arguments& arg)
         CHECK_HIP_ERROR(dx_rot_buff.broadcast_one_vector_from(hx));
         CHECK_HIP_ERROR(dy_rot_buff.broadcast_one_vector_from(hy));
 
-        double gpu_time_used;
-
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
 
@@ -155,11 +153,11 @@ void testing_copy(const Arguments& arg)
         Benchmark<decltype(lambda_to_benchmark)> benchmark_copy(
             lambda_to_benchmark, stream, arg, flush_batch_count);
 
-        gpu_time_used = benchmark_copy.timer();
+        benchmark_copy.run_timer();
 
         ArgumentModel<e_N, e_incx, e_incy>{}.log_args<T>(rocblas_cout,
                                                          arg,
-                                                         gpu_time_used,
+                                                         benchmark_copy.get_hot_time(),
                                                          ArgumentLogging::NA_value,
                                                          copy_gbyte_count<T>(N),
                                                          cpu_time_used,
