@@ -356,7 +356,7 @@ rocblas_status rocblas_init_matrix_template(F&&                             f,
     //Quick return: check numerics not supported
     if(handle->is_stream_in_capture_mode())
     {
-        return rocblas_status_invalid_handle;
+        return rocblas_status_internal_error;
     }
 
     T*             A              = dA[0];
