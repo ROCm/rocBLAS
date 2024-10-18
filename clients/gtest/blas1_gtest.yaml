@@ -513,7 +513,7 @@ Tests:
     category: nightly
     N: [ 1025 ]
     arguments:
-      - { incx: 1, batch_count: 2 }
+      - { incx: 1, batch_count: 3 }
     initialization: hpl
     api: [ FORTRAN_64 ]
     function:
@@ -897,7 +897,7 @@ Tests:
 #fortran
   - name: blas1
     category: quick
-    N: [-1, 0, 1024]
+    N: [-1, 0, 1025]
     incx: *incx_range_small
     api: FORTRAN
     function:
@@ -909,7 +909,7 @@ Tests:
 
   - name: blas1_batched
     category: quick
-    N: [-1, 0, 1024]
+    N: [-1, 0, 1026]
     incx: *incx_range_small
     batch_count: [ -1, 0, 5 ]
     api: FORTRAN
@@ -922,7 +922,7 @@ Tests:
 
   - name: blas1_strided_batched
     category: quick
-    N: [-1, 0, 1024]
+    N: [-1, 0, 1027]
     incx: *incx_range_small
     batch_count: [ -1, 0, 5 ]
     stride_scale: [ 1, 2 ]
