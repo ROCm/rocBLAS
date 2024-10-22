@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,13 +49,13 @@ inline __host__ rocblas_bfloat16 float_to_bfloat16_truncate(float val)
 /*! \brief negate a value */
 
 template <class T>
-inline T negate(T x)
+__device__ __host__ inline T negate(T x)
 {
     return -x;
 }
 
 template <>
-inline rocblas_half negate(rocblas_half arg)
+__device__ __host__ inline rocblas_half negate(rocblas_half arg)
 {
     union
     {
@@ -68,21 +68,21 @@ inline rocblas_half negate(rocblas_half arg)
 }
 
 template <>
-inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
+__device__ __host__ inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
 {
     x.data ^= 0x8000;
     return x;
 }
 
 template <>
-inline rocblas_f8 negate(rocblas_f8 x)
+__device__ __host__ inline rocblas_f8 negate(rocblas_f8 x)
 {
     x.data ^= 0x80;
     return x;
 }
 
 template <>
-inline rocblas_bf8 negate(rocblas_bf8 x)
+__device__ __host__ inline rocblas_bf8 negate(rocblas_bf8 x)
 {
     x.data ^= 0x80;
     return x;
