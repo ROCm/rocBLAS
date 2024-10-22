@@ -75,6 +75,7 @@ set(rocblas_common_source
     rocblas_parse_data.cpp
     host_alloc.cpp
     gtest_helpers.cpp
+    rocblas_matrix.cpp
 )
 
 set(rocblas_testing_common_source
