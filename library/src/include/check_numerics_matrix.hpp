@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 #include "rocblas.h"
 
 template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE rocblas_status
     rocblas_internal_check_numerics_matrix_template(const char*               function_name,
                                                     rocblas_handle            handle,
                                                     rocblas_operation         trans_a,

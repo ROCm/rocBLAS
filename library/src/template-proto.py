@@ -1,4 +1,4 @@
-"""Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -47,27 +47,28 @@ def translateToProto(templateCode):
         print(proto.rstrip() + ";\n")
 
 
-def parseForExportedTemplates(inputFileName):
+def parseForExportedFunctions(inputFileName):
     with open(inputFileName) as f:
-        haveTemplate = False
+        haveFunction = False
         lines = f.readlines()
         for line in lines:
-            # TODO: what about non-templated functions?
-            filter = re.match(r'^template', line)
-            if (filter):
-                # TODO: end-of-function matching needs to be better
-                if (haveTemplate):
-                    translateToProto(body)
-                haveTemplate = True
-                body = []
+            if(not haveFunction):
+                start = re.match(r'^template|^ROCBLAS_INTERNAL_EXPORT_NOINLINE', line)
+                if(start):
+                    end = re.match(r'.*\)', line)
+                    if(end):
+                        translateToProto(line)
+                    else:
+                        body = []
+                        body.append(line)
+                        haveFunction = True
+            else:
                 body.append(line)
-            elif (haveTemplate):
-                body.append(line)
-                if re.match(r'^\}', line) is not None:
+                end = re.match(r'.*\)', line)
+                if(end):
                     translateToProto(body)
-                    haveTemplate = False
-        if (haveTemplate):
-            translateToProto(body)
+                    haveFunction = False
+
 
 
 def RunExporter():
@@ -101,7 +102,7 @@ def RunExporter():
 
     headerFiles = sorted(files)
     for f in headerFiles:
-        parseForExportedTemplates(f)
+        parseForExportedFunctions(f)
 
 
 ###############################################################################
