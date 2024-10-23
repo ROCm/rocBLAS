@@ -111,7 +111,7 @@ rocblas_status rocblas_internal_iamax_iamin_launcher_64(rocblas_handle handle,
 
         // reduce all n partial results within batch chunk
         ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2_64<NB, REDUCE>),
-                              dim3(1, 1, batch_count),
+                              dim3(batch_count),
                               dim3(NB),
                               0,
                               handle->get_stream(),

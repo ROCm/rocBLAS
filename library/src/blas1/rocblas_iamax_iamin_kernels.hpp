@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  * ************************************************************************ */
 #pragma once
 
+#include "device_macros.hpp"
 #include "reduction.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_iamax_iamin.hpp"
@@ -28,11 +29,11 @@
 
 // iamax, iamin kernels
 
-template <int N, typename REDUCE, typename T>
+template <int NB, typename REDUCE, typename T>
 __inline__ __device__ rocblas_index_value_t<T>
                       rocblas_wavefront_reduce_method(rocblas_index_value_t<T> x)
 {
-    constexpr int WFBITS = rocblas_log2ui(N);
+    constexpr int WFBITS = rocblas_log2ui(NB);
     int           offset = 1 << (WFBITS - 1);
     for(int i = 0; i < WFBITS; i++)
     {
@@ -82,23 +83,35 @@ rocblas_iamax_iamin_kernel_part1(rocblas_int    n,
                                  rocblas_stride shiftx,
                                  rocblas_int    incx,
                                  rocblas_stride stridex,
+                                 rocblas_int    batch_count,
                                  To*            workspace)
 {
-    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * NB + threadIdx.x;
     To      sum;
 
-    const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
+    uint32_t batch = blockIdx.z;
 
-    // bound
-    if(tid < n)
-        sum = FETCH{}(x[tid * incx], tid + 1); // 1-based indexing
-    else
-        sum = rocblas_default_value<To>{}(); // pad with default value
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
 
-    sum = rocblas_shuffle_block_reduce_method<NB, REDUCE>(sum);
+        const auto* x = load_ptr_batch(xvec, batch, shiftx, stridex);
 
-    if(threadIdx.x == 0)
-        workspace[blockIdx.y * nblocks + blockIdx.x] = sum;
+        // bound
+        if(tid < n)
+            sum = FETCH{}(x[tid * incx], tid + 1); // 1-based indexing
+        else
+            sum = rocblas_default_value<To>{}(); // pad with default value
+
+        sum = rocblas_shuffle_block_reduce_method<NB, REDUCE>(sum);
+
+        if(threadIdx.x == 0)
+            workspace[batch * nblocks + blockIdx.x] = sum;
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 // kernel 2 gathers all the partial results in workspace and finishes the final reduction;
@@ -112,7 +125,7 @@ rocblas_iamax_iamin_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 
     if(tx < nblocks)
     {
-        To* work = workspace + blockIdx.y * nblocks;
+        To* work = workspace + blockIdx.x * nblocks;
         sum      = work[tx];
 
         // bound, loop
@@ -128,5 +141,5 @@ rocblas_iamax_iamin_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[blockIdx.y] = sum.index;
+        result[blockIdx.x] = sum.index;
 }

@@ -165,14 +165,6 @@ rocblas_status rocblas_scal_ex_template(rocblas_handle   handle,
                                         API_INT          batch_count,
                                         rocblas_datatype execution_type)
 {
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
-    }
-
     // Error checking
     if(n <= 0 || incx <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
         return rocblas_status_success;

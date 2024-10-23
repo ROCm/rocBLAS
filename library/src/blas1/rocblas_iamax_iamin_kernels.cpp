@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,9 +79,11 @@ rocblas_status rocblas_internal_iamax_iamin_launcher(rocblas_handle handle,
 {
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part1<NB, FETCH, REDUCE>),
-                          dim3(blocks, batch_count),
-                          NB,
+                          dim3(blocks, 1, batches),
+                          dim3(NB),
                           0,
                           handle->get_stream(),
                           n,
@@ -90,13 +92,14 @@ rocblas_status rocblas_internal_iamax_iamin_launcher(rocblas_handle handle,
                           shiftx,
                           incx,
                           stridex,
+                          batch_count,
                           workspace);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE>),
-                              dim3(1, batch_count),
-                              NB,
+                              dim3(batch_count),
+                              dim3(NB),
                               0,
                               handle->get_stream(),
                               blocks,
@@ -117,8 +120,8 @@ rocblas_status rocblas_internal_iamax_iamin_launcher(rocblas_handle handle,
         if(reduceKernel)
         {
             ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE>),
-                                  dim3(1, batch_count),
-                                  NB,
+                                  dim3(batch_count),
+                                  dim3(NB),
                                   0,
                                   handle->get_stream(),
                                   blocks,
