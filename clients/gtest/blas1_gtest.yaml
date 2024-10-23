@@ -243,7 +243,7 @@ Tests:
     api: [ INTERNAL, INTERNAL_64 ]
 
   - name: blas1_axpy_large_batch
-    category: pre_checkin
+    category: stress
     N: [ 4 ]
     incx_incy: *incx_incy_range_small
     alpha: [ 1 ]
@@ -983,6 +983,8 @@ Tests:
       - asum_strided_batched: *single_precision
       - nrm2_batched: *single_precision
       - nrm2_strided_batched: *single_precision
+      - nrm2_batched_ex: *nrm2_ex_precisions_double
+      - nrm2_strided_batched_ex: *nrm2_ex_precisions_double
 
 # pre_checkin
   - name: blas1
@@ -1078,6 +1080,34 @@ Tests:
       - rot:   *rot_precisions
       - rot_ex: *rot_ex_precisions
       - rotm:  *single_double_precisions
+
+  - name: blas1_large_batch
+    category: stress
+    N: [ 5 ]
+    incx: 1
+    incy: 1
+    batch_count: [ *c_grid_yz_require_passes ]
+    stride_scale: [ 1 ]
+    function:
+      - copy_batched:  *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
+      - iamax_batched: *double_precision_complex_real
+      - iamin_batched: *double_precision_complex_real
+      - iamax_strided_batched: *double_precision_complex_real
+      - iamin_strided_batched: *double_precision_complex_real
+      - rot_batched:   *rot_precisions
+      - rot_batched_ex: *rot_ex_precisions
+      - rot_strided_batched:   *rot_precisions
+      - rot_strided_batched_ex: *rot_ex_precisions
+      - rotm_batched:  *single_double_precisions
+      - rotm_strided_batched:  *single_double_precisions
+      - scal_batched:  *single_double_precisions_complex_real
+      - scal_strided_batched:  *single_double_precisions_complex_real
+      - scal_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_strided_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - swap_batched:  *single_double_precisions_complex_real
+      - swap_strided_batched:  *single_double_precisions_complex_real
+
 
   # quick tests will fallback to original kernels at launcher level
   - name: copy_64

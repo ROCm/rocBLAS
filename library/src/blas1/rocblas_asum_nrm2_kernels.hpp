@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../blas1/rocblas_reduction.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "int64_helpers.hpp"
 #include "rocblas.h"
@@ -73,8 +74,6 @@
 // Kernel 2's computation can be merged into Kernel 1. One such mechanism is called
 // atomic operation. However, atomic operation is new and is not used in rocBLAS
 // yet. rocBLAS still use the classic standard parallel reduction right now.
-
-#include "device_macros.hpp"
 
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks

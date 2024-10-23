@@ -124,7 +124,7 @@ rocblas_iamax_iamin_kernel_part2_64(int nblocks, To* workspace, Tr* result)
 
     if(tx < nblocks)
     {
-        To* work = workspace + size_t(nblocks) * blockIdx.z;
+        To* work = workspace + size_t(nblocks) * blockIdx.x;
         winner   = work[tx];
 
         // bound, loop
@@ -140,5 +140,5 @@ rocblas_iamax_iamin_kernel_part2_64(int nblocks, To* workspace, Tr* result)
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[blockIdx.z] = winner.index;
+        result[blockIdx.x] = winner.index;
 }

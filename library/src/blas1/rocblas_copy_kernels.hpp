@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,59 +22,85 @@
 
 #pragma once
 
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "int64_helpers.hpp"
 #include "rocblas.h"
 #include "rocblas_copy.hpp"
 
-template <typename API_INT, typename T, typename U>
-ROCBLAS_KERNEL_NO_BOUNDS rocblas_copy_kernel(rocblas_int    n,
-                                             const T        xa,
-                                             rocblas_stride shiftx,
-                                             API_INT        incx,
-                                             rocblas_stride stridex,
-                                             U              ya,
-                                             rocblas_stride shifty,
-                                             API_INT        incy,
-                                             rocblas_stride stridey)
+template <typename API_INT, int DIM_X, typename T, typename U>
+ROCBLAS_KERNEL(DIM_X)
+rocblas_copy_kernel(rocblas_int    n,
+                    const T        xa,
+                    rocblas_stride shiftx,
+                    API_INT        incx,
+                    rocblas_stride stridex,
+                    U              ya,
+                    rocblas_stride shifty,
+                    API_INT        incy,
+                    rocblas_stride stridey,
+                    rocblas_int    batch_count)
 {
-    int64_t     tid = blockIdx.x * blockDim.x + threadIdx.x;
-    const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
-    auto*       y   = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
-    if(tid < n)
-    {
+    int64_t  tid   = blockIdx.x * DIM_X + threadIdx.x;
+    uint32_t batch = blockIdx.z;
 
-        y[tid * incy] = x[tid * incx];
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+        auto*       y = load_ptr_batch(ya, batch, shifty, stridey);
+        if(tid < n)
+        {
+
+            y[tid * incy] = x[tid * incx];
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 //! @brief Optimized kernel for the floating points.
 //!
-template <rocblas_int NB, typename T, typename U>
-ROCBLAS_KERNEL(NB)
+template <int DIM_X, typename T, typename U>
+ROCBLAS_KERNEL(DIM_X)
 rocblas_scopy_2_kernel(rocblas_int n,
-                       const T __restrict xa,
+                       const T __restrict__ xa,
                        rocblas_stride shiftx,
                        rocblas_stride stridex,
-                       U __restrict ya,
+                       U __restrict__ ya,
                        rocblas_stride shifty,
-                       rocblas_stride stridey)
+                       rocblas_stride stridey,
+                       rocblas_int    batch_count)
 {
-    int64_t     tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
-    const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
-    auto*       y   = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
-    if(tid < n - 1)
+    int64_t  tid   = (blockIdx.x * DIM_X + threadIdx.x) * 2;
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        for(int j = 0; j < 2; ++j)
+#endif
+
+        const auto* x = load_ptr_batch(xa, batch, shiftx, stridex);
+        auto*       y = load_ptr_batch(ya, batch, shifty, stridey);
+        if(tid < n - 1)
         {
-            y[tid + j] = x[tid + j];
+            for(int j = 0; j < 2; ++j)
+            {
+                y[tid + j] = x[tid + j];
+            }
         }
+        if(n % 2 != 0 && tid == n - 1)
+            y[tid] = x[tid];
+
+#if DEVICE_GRID_YZ_16BIT
     }
-    if(n % 2 != 0 && tid == n - 1)
-        y[tid] = x[tid];
+#endif
 }
 
-template <typename API_INT, rocblas_int NB, typename T, typename U>
+template <typename API_INT, int NB, typename T, typename U>
 rocblas_status rocblas_internal_copy_launcher(rocblas_handle handle,
                                               API_INT        n,
                                               T              x,
@@ -97,6 +123,8 @@ rocblas_status rocblas_internal_copy_launcher(rocblas_handle handle,
     static constexpr bool using_rocblas_float
         = std::is_same_v<U, rocblas_float*> || std::is_same_v<U, rocblas_float* const*>;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     if(!using_rocblas_float || incx != 1 || incy != 1)
     {
         // In case of negative inc shift pointer to end of data for negative indexing tid*inc
@@ -104,10 +132,10 @@ rocblas_status rocblas_internal_copy_launcher(rocblas_handle handle,
         int64_t shifty = offsety - ((incy < 0) ? int64_t(incy) * (n - 1) : 0);
 
         int  blocks = (n - 1) / NB + 1;
-        dim3 grid(blocks, batch_count);
+        dim3 grid(blocks, 1, batches);
         dim3 threads(NB);
 
-        ROCBLAS_LAUNCH_KERNEL(rocblas_copy_kernel,
+        ROCBLAS_LAUNCH_KERNEL((rocblas_copy_kernel<API_INT, NB>),
                               grid,
                               threads,
                               0,
@@ -120,7 +148,8 @@ rocblas_status rocblas_internal_copy_launcher(rocblas_handle handle,
                               y,
                               shifty,
                               incy,
-                              stridey);
+                              stridey,
+                              batch_count);
     }
     else if constexpr(using_rocblas_float)
     {
@@ -130,8 +159,8 @@ rocblas_status rocblas_internal_copy_launcher(rocblas_handle handle,
         int64_t shiftx = offsetx - 0;
         int64_t shifty = offsety - 0;
 
-        int  blocks = 1 + ((n - 1) / (NB * 2));
-        dim3 grid(blocks, batch_count);
+        int  blocks = (n - 1) / (NB * 2) + 1;
+        dim3 grid(blocks, 1, batches);
         dim3 threads(NB);
 
         ROCBLAS_LAUNCH_KERNEL(rocblas_scopy_2_kernel<NB>,
@@ -145,7 +174,8 @@ rocblas_status rocblas_internal_copy_launcher(rocblas_handle handle,
                               stridex,
                               y,
                               shifty,
-                              stridey);
+                              stridey,
+                              batch_count);
     }
     return rocblas_status_success;
 }

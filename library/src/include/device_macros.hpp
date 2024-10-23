@@ -20,18 +20,18 @@
  *
  * ************************************************************************ */
 
-#pragma once
+// do not use pragma once
 
 /*******************************************************************************
  * Macros
  ******************************************************************************/
 
-#ifndef DEVICE_GRID_YZ_16BIT
+#ifdef DEVICE_GRID_YZ_16BIT
+#undef DEVICE_GRID_YZ_16BIT
+#endif
 
-#if defined(__gfx1200__) || defined(__gfx1201__) || defined(__gfx1202__)
+#if defined(__HIP_DEVICE_COMPILE__) && defined(__GFX12__)
 #define DEVICE_GRID_YZ_16BIT 1
 #else
 #define DEVICE_GRID_YZ_16BIT 0
-#endif
-
 #endif

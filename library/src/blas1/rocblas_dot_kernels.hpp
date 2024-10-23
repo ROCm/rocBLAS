@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "device_macros.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_dot.hpp"
 

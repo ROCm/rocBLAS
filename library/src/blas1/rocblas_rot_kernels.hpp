@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  * ************************************************************************ */
 #pragma once
 
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "int64_helpers.hpp"
 #include "rocblas.h"
@@ -56,7 +57,7 @@ template <typename API_INT,
           typename Tc,
           typename Ts,
           std::enable_if_t<!rocblas_is_complex<Ts>, int> = 0>
-__device__ void
+__forceinline__ __device__ void
     rocblas_rot_kernel_calc(rocblas_int n, Tx* x, int64_t incx, Ty* y, int64_t incy, Tc c, Ts s)
 {
     int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -79,7 +80,7 @@ template <typename API_INT,
           typename Tc,
           typename Ts,
           std::enable_if_t<rocblas_is_complex<Ts>, int> = 0>
-__device__ void
+__forceinline__ __device__ void
     rocblas_rot_kernel_calc(rocblas_int n, Tx* x, int64_t incx, Ty* y, int64_t incy, Tc c, Ts s)
 {
     int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -115,12 +116,24 @@ rocblas_rot_kernel(rocblas_int    n,
                    Tc             c_in,
                    rocblas_stride c_stride,
                    Ts             s_in,
-                   rocblas_stride s_stride)
+                   rocblas_stride s_stride,
+                   rocblas_int    batch_count)
 {
-    auto c = std::real(load_scalar(c_in, blockIdx.y, c_stride));
-    auto s = load_scalar(s_in, blockIdx.y, s_stride);
-    auto x = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
-    auto y = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
+    uint32_t batch = blockIdx.z;
 
-    rocblas_rot_kernel_calc<API_INT, Tex>(n, x, incx, y, incy, c, s);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        auto c = std::real(load_scalar(c_in, batch, c_stride));
+        auto s = load_scalar(s_in, batch, s_stride);
+        auto x = load_ptr_batch(x_in, batch, offset_x, stride_x);
+        auto y = load_ptr_batch(y_in, batch, offset_y, stride_y);
+
+        rocblas_rot_kernel_calc<API_INT, Tex>(n, x, incx, y, incy, c, s);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }

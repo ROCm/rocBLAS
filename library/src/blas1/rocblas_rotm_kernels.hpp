@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 #pragma once
 
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas_block_sizes.h"
@@ -41,10 +42,11 @@ __forceinline__ __device__ void rocblas_rotm_kernel_calc(rocblas_int    n,
                                                          U              h11,
                                                          U              h21,
                                                          U              h12,
-                                                         U              h22)
+                                                         U              h22,
+                                                         rocblas_int    batch)
 {
-    auto    x   = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
-    auto    y   = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
+    auto    x   = load_ptr_batch(x_in, batch, offset_x, stride_x);
+    auto    y   = load_ptr_batch(y_in, batch, offset_y, stride_y);
     int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n && flag != -2)
@@ -90,28 +92,41 @@ rocblas_rotm_kernel_batched(rocblas_int    n,
                             rocblas_stride stride_y,
                             U              param,
                             rocblas_stride offset_param,
-                            rocblas_stride stride_param)
+                            rocblas_stride stride_param,
+                            rocblas_int    batch_count)
 {
-    auto p    = load_ptr_batch(param, blockIdx.y, offset_param, stride_param);
-    auto flag = p[0];
-    auto h11  = p[1];
-    auto h21  = p[2];
-    auto h12  = p[3];
-    auto h22  = p[4];
-    rocblas_rotm_kernel_calc(n,
-                             x_in,
-                             offset_x,
-                             incx,
-                             stride_x,
-                             y_in,
-                             offset_y,
-                             incy,
-                             stride_y,
-                             flag,
-                             h11,
-                             h21,
-                             h12,
-                             h22);
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        auto p    = load_ptr_batch(param, batch, offset_param, stride_param);
+        auto flag = p[0];
+        auto h11  = p[1];
+        auto h21  = p[2];
+        auto h12  = p[3];
+        auto h22  = p[4];
+        rocblas_rotm_kernel_calc(n,
+                                 x_in,
+                                 offset_x,
+                                 incx,
+                                 stride_x,
+                                 y_in,
+                                 offset_y,
+                                 incy,
+                                 stride_y,
+                                 flag,
+                                 h11,
+                                 h21,
+                                 h12,
+                                 h22,
+                                 batch);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <int NB, typename T, typename U>
@@ -144,7 +159,8 @@ rocblas_rotm_kernel_regular(rocblas_int    n,
                              load_scalar(h11),
                              load_scalar(h21),
                              load_scalar(h12),
-                             load_scalar(h22));
+                             load_scalar(h22),
+                             0);
 }
 
 // Workaround to avoid constexpr if - Helper function to quick return when param[0] == -2
