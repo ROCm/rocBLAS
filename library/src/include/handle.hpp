@@ -104,6 +104,12 @@ enum class Processor : int
 // helper function in handle.cpp
 static rocblas_status free_existing_device_memory(rocblas_handle);
 
+// declare data packet methods for internal API
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_set_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr);
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_get_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr);
+
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle() and the returned handle mus
@@ -351,6 +357,18 @@ public:
     std::unique_ptr<rocblas_internal_ostream> log_profile_os;
     void                                      init_logging();
     void                                      init_check_numerics();
+
+    // data pointer for rocSOLVER
+    std::shared_ptr<void> data_ptr;
+
+    void get_data_ptr(std::shared_ptr<void>& data_ptr) const
+    {
+        data_ptr = this->data_ptr;
+    }
+    void set_data_ptr(std::shared_ptr<void>& data_ptr)
+    {
+        this->data_ptr = data_ptr;
+    }
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);

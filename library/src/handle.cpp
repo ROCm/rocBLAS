@@ -410,6 +410,40 @@ bool _rocblas_handle::device_allocator(size_t size)
 #endif
 
 /*******************************************************************************
+ * Set the external data packet pointer
+ ******************************************************************************/
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_set_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    handle->set_data_ptr(data_ptr);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * Get the external data packet pointer
+ ******************************************************************************/
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_get_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    handle->get_data_ptr(data_ptr);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
  * start device memory size queries
  ******************************************************************************/
 extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle)
