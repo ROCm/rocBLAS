@@ -58,6 +58,9 @@ def parse_args():
     general_opts.add_argument(      '--build_dir', type=str, required=False, default="build",
                         help='Specify path to configure & build process output directory.(optional, default: ./build)')
 
+    general_opts.add_argument(      '--ci_labels', type=str, required=False, default="",
+                        help='Semi-colon seperated list of labels that may modify build (optional, e.g. "gfx12;noTensile")')
+    
     general_opts.add_argument(      '--cleanup', required=False, default=False, action='store_true',
                         help='Remove intermediary build files after build to reduce disk usage. (Linux only handled by install.sh)')
 
@@ -540,7 +543,15 @@ def make_cmd():
 
     return make_executable, cmd_opts
 
+def label_modifiers(labels):
+    global args
 
+    processed = ["noTensile"]
+    overlap = [v for v in processed if v in labels]
+    if len(overlap):
+        if "noTensile" in overlap:
+            args.build_tensile = False
+    
 def run_cmd(exe, opts):
     program = f"{exe} {opts}"
     print(program)
@@ -552,6 +563,8 @@ def main():
     global args
     os_detect()
     args = parse_args()
+
+    label_modifiers(args.ci_labels.split(';'))
 
     if args.jobs == 0:
         args.jobs = jobs_heuristic()
