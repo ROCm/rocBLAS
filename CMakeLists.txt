@@ -364,6 +364,9 @@ endif( )
 
 set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" )
 
+# work around code object stripping failure if using /usr/bin/strip
+set( CPACK_RPM_SPEC_MORE_DEFINE "%define __strip ${rocm_bin}/../llvm/bin/llvm-strip")
+
 # Give rocblas compiled for CUDA backend a different name
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
     set( package_name rocblas )
