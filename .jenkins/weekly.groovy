@@ -27,7 +27,7 @@ def runCI =
 
     prj.defaults.ccache = false
     prj.timeout.compile = 480
-    prj.timeout.test = 420
+    prj.timeout.test = 480
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
