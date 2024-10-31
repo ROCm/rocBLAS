@@ -796,10 +796,9 @@ ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_lower_calc(rocblas_int n,
     }
     __syncthreads();
 
-// symmetrize 32x32 diag block, copying lower to upper triangle,
-// as four 32x8 sections in parallel:
-// columns 0,4,8,12,16,20,24,28; then 1,5,...,29; then 2,6,...,30, then 3,7,...,31
-#pragma unroll
+    // symmetrize 32x32 diag block, copying lower to upper triangle,
+    // as four 32x8 sections in parallel:
+    // columns 0,4,8,12,16,20,24,28; then 1,5,...,29; then 2,6,...,30, then 3,7,...,31
     for(int j = ty2 * 4; j < ty2 * 4 + 4; j++)
     {
         if(j < tx2)
@@ -874,8 +873,7 @@ ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_lower_calc(rocblas_int n,
     }
     __syncthreads();
 
-// symmetrize 32x32 diag block, copying lower to upper triangle
-#pragma unroll
+    // symmetrize 32x32 diag block, copying lower to upper triangle
     for(int j = ty2 * 4; j < ty2 * 4 + 4; j++)
     {
         if(j < tx2)
@@ -1520,7 +1518,6 @@ ROCBLAS_KERNEL_ILF void
         if(tx < n_mod_DIM_X)
         {
             int j;
-#pragma unroll
             for(j = 0; j < n_mod_DIM_X / DIM_Y; j++)
                 la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * lda];
 
@@ -2188,7 +2185,6 @@ ROCBLAS_KERNEL_ILF void
         if(tx < n_mod_DIM_X)
         {
             int j;
-#pragma unroll
             for(j = 0; j < n_mod_DIM_X / DIM_Y; j++)
                 la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * lda];
 
