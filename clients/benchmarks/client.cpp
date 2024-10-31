@@ -1663,6 +1663,10 @@ try
          bool_switch(&log_datatype)->default_value(false),
          "Include datatypes used in output.")
 
+        ("use_hipblaslt",
+         value<int32_t>(&arg.use_hipblaslt)->default_value(-1),
+         "Whether to use hipblaslt (default: -1, always: 1, never: 0)")
+
         ("function_filter",
          value<std::string>(&filter),
          "Simple strstr filter on function name only without wildcards")
