@@ -73,37 +73,37 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(
+            logger.log_trace(
                 handle, rocblas_asum_strided_batched_name<Ti>, n, x, incx, stridex, batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f asum_strided_batched -r",
-                      rocblas_precision_string<Ti>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--stride_x",
-                      stridex,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f asum_strided_batched -r",
+                             rocblas_precision_string<Ti>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--stride_x",
+                             stridex,
+                             "--batch_count",
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_asum_strided_batched_name<Ti>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "stride_x",
-                        stridex,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_asum_strided_batched_name<Ti>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "stride_x",
+                               stridex,
+                               "batch_count",
+                               batch_count);
 
         rocblas_status arg_status
             = rocblas_asum_nrm2_arg_check(handle, n, x, incx, stridex, batch_count, result);

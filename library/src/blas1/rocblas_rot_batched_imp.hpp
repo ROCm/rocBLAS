@@ -65,37 +65,39 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_rot_name<T, V>, n, x, incx, y, incy, c, s, batch_count);
+            logger.log_trace(
+                handle, rocblas_rot_name<T, V>, n, x, incx, y, incy, c, s, batch_count);
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH "-f rot_batched --a_type",
-                      rocblas_precision_string<T>,
-                      "--b_type",
-                      rocblas_precision_string<U>,
-                      "--c_type",
-                      rocblas_precision_string<V>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH "-f rot_batched --a_type",
+                             rocblas_precision_string<T>,
+                             "--b_type",
+                             rocblas_precision_string<U>,
+                             "--c_type",
+                             rocblas_precision_string<V>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy,
+                             "--batch_count",
+                             batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_rot_name<T, V>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "incy",
-                        incy,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_rot_name<T, V>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "incy",
+                               incy,
+                               "batch_count",
+                               batch_count);
 
         if(n <= 0 || batch_count <= 0)
             return rocblas_status_success;

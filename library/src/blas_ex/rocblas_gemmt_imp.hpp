@@ -61,8 +61,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -72,64 +73,64 @@ namespace
             auto transB_letter = rocblas_transpose_letter(transB);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_gemmt_name<T>,
-                          uplo,
-                          transA,
-                          transB,
-                          n,
-                          k,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          B,
-                          ldb,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          C,
-                          ldc);
+                logger.log_trace(handle,
+                                 rocblas_gemmt_name<T>,
+                                 uplo,
+                                 transA,
+                                 transB,
+                                 n,
+                                 k,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 A,
+                                 lda,
+                                 B,
+                                 ldb,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 C,
+                                 ldc);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "ROCBLAS_API_BENCH -f gemmt -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transA_letter,
-                          "--transposeB",
-                          transB_letter,
-                          "-n",
-                          n,
-                          "-k",
-                          k,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--ldb",
-                          ldb,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--ldc",
-                          ldc);
+                logger.log_bench(handle,
+                                 "ROCBLAS_API_BENCH -f gemmt -r",
+                                 rocblas_precision_string<T>,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "--transposeA",
+                                 transA_letter,
+                                 "--transposeB",
+                                 transB_letter,
+                                 "-n",
+                                 n,
+                                 "-k",
+                                 k,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--lda",
+                                 lda,
+                                 "--ldb",
+                                 ldb,
+                                 LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                 "--ldc",
+                                 ldc);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_gemmt_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "--transposeA",
-                            transA_letter,
-                            "--transposeB",
-                            transB_letter,
-                            "N",
-                            n,
-                            "K",
-                            k,
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb,
-                            "ldc",
-                            ldc);
+                logger.log_profile(handle,
+                                   rocblas_gemmt_name<T>,
+                                   "uplo",
+                                   uplo_letter,
+                                   "--transposeA",
+                                   transA_letter,
+                                   "--transposeB",
+                                   transB_letter,
+                                   "N",
+                                   n,
+                                   "K",
+                                   k,
+                                   "lda",
+                                   lda,
+                                   "ldb",
+                                   ldb,
+                                   "ldc",
+                                   ldc);
         }
 
         API_INT                         batch_count = 1;

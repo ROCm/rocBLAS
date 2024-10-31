@@ -64,24 +64,24 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_iamin_name<T>, n, x, incx);
+            logger.log_trace(handle, rocblas_iamin_name<T>, n, x, incx);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f iamin",
-                      "-r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f iamin",
+                             "-r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_iamin_name<T>, "N", n, "incx", incx);
+            logger.log_profile(handle, rocblas_iamin_name<T>, "N", n, "incx", incx);
 
         static constexpr rocblas_stride shiftx_0  = 0;
         static constexpr rocblas_stride stridex_0 = 0;

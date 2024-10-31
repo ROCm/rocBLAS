@@ -57,7 +57,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto check_numerics = handle->check_numerics;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(!handle->is_device_memory_size_query())
         {
             auto layer_mode = handle->layer_mode;
@@ -68,49 +69,49 @@ namespace
                 auto uplo_letter = rocblas_fill_letter(uplo);
 
                 if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_symv_name<T>,
-                              uplo,
-                              n,
-                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                              A,
-                              lda,
-                              x,
-                              incx,
-                              LOG_TRACE_SCALAR_VALUE(handle, beta),
-                              y,
-                              incy);
+                    logger.log_trace(handle,
+                                     rocblas_symv_name<T>,
+                                     uplo,
+                                     n,
+                                     LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                     A,
+                                     lda,
+                                     x,
+                                     incx,
+                                     LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                     y,
+                                     incy);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f symv -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx,
-                              LOG_BENCH_SCALAR_VALUE(handle, beta),
-                              "--incy",
-                              incy);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f symv -r",
+                                     rocblas_precision_string<T>,
+                                     "--uplo",
+                                     uplo_letter,
+                                     "-n",
+                                     n,
+                                     LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                     "--lda",
+                                     lda,
+                                     "--incx",
+                                     incx,
+                                     LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                     "--incy",
+                                     incy);
 
                 if(layer_mode & rocblas_layer_mode_log_profile)
-                    log_profile(handle,
-                                rocblas_symv_name<T>,
-                                "uplo",
-                                uplo_letter,
-                                "N",
-                                n,
-                                "lda",
-                                lda,
-                                "incx",
-                                incx,
-                                "incy",
-                                incy);
+                    logger.log_profile(handle,
+                                       rocblas_symv_name<T>,
+                                       "uplo",
+                                       uplo_letter,
+                                       "N",
+                                       n,
+                                       "lda",
+                                       lda,
+                                       "incx",
+                                       incx,
+                                       "incy",
+                                       incy);
             }
         }
 

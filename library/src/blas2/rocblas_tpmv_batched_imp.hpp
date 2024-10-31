@@ -55,6 +55,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        Logger logger;
+
         if(!handle->is_device_memory_size_query())
         {
             auto layer_mode = handle->layer_mode;
@@ -67,53 +69,53 @@ namespace
                 auto diag_letter   = rocblas_diag_letter(diag);
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    log_trace(handle,
-                              rocblas_tpmv_batched_name<T>,
-                              uplo,
-                              transa,
-                              diag,
-                              n,
-                              a,
-                              x,
-                              incx,
-                              batch_count);
+                    logger.log_trace(handle,
+                                     rocblas_tpmv_batched_name<T>,
+                                     uplo,
+                                     transa,
+                                     diag,
+                                     n,
+                                     a,
+                                     x,
+                                     incx,
+                                     batch_count);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f tpmv_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transa_letter,
-                              "--diag",
-                              diag_letter,
-                              "-n",
-                              n,
-                              "--incx",
-                              incx,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f tpmv_batched -r",
+                                     rocblas_precision_string<T>,
+                                     "--uplo",
+                                     uplo_letter,
+                                     "--transposeA",
+                                     transa_letter,
+                                     "--diag",
+                                     diag_letter,
+                                     "-n",
+                                     n,
+                                     "--incx",
+                                     incx,
+                                     "--batch_count",
+                                     batch_count);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_profile)
                 {
-                    log_profile(handle,
-                                rocblas_tpmv_batched_name<T>,
-                                "uplo",
-                                uplo_letter,
-                                "transA",
-                                transa_letter,
-                                "diag",
-                                diag_letter,
-                                "N",
-                                n,
-                                "incx",
-                                incx,
-                                "batch_count",
-                                batch_count);
+                    logger.log_profile(handle,
+                                       rocblas_tpmv_batched_name<T>,
+                                       "uplo",
+                                       uplo_letter,
+                                       "transA",
+                                       transa_letter,
+                                       "diag",
+                                       diag_letter,
+                                       "N",
+                                       n,
+                                       "incx",
+                                       incx,
+                                       "batch_count",
+                                       batch_count);
                 }
             }
         }

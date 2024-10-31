@@ -61,23 +61,25 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        Logger logger;
+
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_tbsv_name<T>,
-                      uplo,
-                      transA,
-                      diag,
-                      n,
-                      k,
-                      A,
-                      lda,
-                      stride_A,
-                      x,
-                      incx,
-                      stride_x,
-                      batch_count);
+            logger.log_trace(handle,
+                             rocblas_tbsv_name<T>,
+                             uplo,
+                             transA,
+                             diag,
+                             n,
+                             k,
+                             A,
+                             lda,
+                             stride_A,
+                             x,
+                             incx,
+                             stride_x,
+                             batch_count);
 
         if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
         {
@@ -88,54 +90,54 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 if(handle->pointer_mode == rocblas_pointer_mode_host)
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f tbsv_strided_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-n",
-                              n,
-                              "-k",
-                              k,
-                              "--lda",
-                              lda,
-                              "--stride_a",
-                              stride_A,
-                              "--incx",
-                              incx,
-                              "--stride_x",
-                              stride_x,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f tbsv_strided_batched -r",
+                                     rocblas_precision_string<T>,
+                                     "--uplo",
+                                     uplo_letter,
+                                     "--transposeA",
+                                     transA_letter,
+                                     "--diag",
+                                     diag_letter,
+                                     "-n",
+                                     n,
+                                     "-k",
+                                     k,
+                                     "--lda",
+                                     lda,
+                                     "--stride_a",
+                                     stride_A,
+                                     "--incx",
+                                     incx,
+                                     "--stride_x",
+                                     stride_x,
+                                     "--batch_count",
+                                     batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_tbsv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "N",
-                            n,
-                            "K",
-                            k,
-                            "lda",
-                            lda,
-                            "stride_a",
-                            stride_A,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_tbsv_name<T>,
+                                   "uplo",
+                                   uplo_letter,
+                                   "transA",
+                                   transA_letter,
+                                   "diag",
+                                   diag_letter,
+                                   "N",
+                                   n,
+                                   "K",
+                                   k,
+                                   "lda",
+                                   lda,
+                                   "stride_a",
+                                   stride_A,
+                                   "incx",
+                                   incx,
+                                   "stride_x",
+                                   stride_x,
+                                   "batch_count",
+                                   batch_count);
         }
 
         rocblas_status arg_status = rocblas_tbsv_arg_check<API_INT>(

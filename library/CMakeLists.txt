@@ -79,10 +79,12 @@ function( rocblas_library_settings lib_target_ )
   if (WIN32)
     target_link_libraries( ${lib_target_} PRIVATE hip::device )
   else()
-    target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc )
+    target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc)
+    if (BUILD_SHARED_LIBS)
+      target_link_libraries(${lib_target_} PRIVATE -lroctx64)
+    endif()
   endif()
     target_link_libraries( ${lib_target_} PRIVATE Threads::Threads )
-
   #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
   set_target_properties( ${lib_target_} PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )

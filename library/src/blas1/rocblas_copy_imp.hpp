@@ -53,24 +53,25 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_copy_name<T>, n, x, incx, y, incy);
+            logger.log_trace(handle, rocblas_copy_name<T>, n, x, incx, y, incy);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f copy -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f copy -r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_copy_name<T>, "N", n, "incx", incx, "incy", incy);
+            logger.log_profile(handle, rocblas_copy_name<T>, "N", n, "incx", incx, "incy", incy);
 
         rocblas_status arg_status
             = rocblas_copy_arg_check(handle, n, x, 0, incx, 0, y, 0, incy, 0, API_INT(1));

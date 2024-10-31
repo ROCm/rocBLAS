@@ -68,8 +68,9 @@ namespace
             handle, alpha, beta, alpha_h, beta_h, m && n));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
                   | rocblas_layer_mode_log_profile)
@@ -81,72 +82,72 @@ namespace
             auto diag_letter   = rocblas_diag_letter(diag);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_trmm_batched_name<T>,
-                          side,
-                          uplo,
-                          transa,
-                          diag,
-                          m,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          a,
-                          lda,
-                          b,
-                          ldb,
-                          c,
-                          ldc,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_trmm_batched_name<T>,
+                                 side,
+                                 uplo,
+                                 transa,
+                                 diag,
+                                 m,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 a,
+                                 lda,
+                                 b,
+                                 ldb,
+                                 c,
+                                 ldc,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f trmm_batched -r",
-                          rocblas_precision_string<T>,
-                          "--side",
-                          side_letter,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transa_letter,
-                          "--diag",
-                          diag_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--ldb",
-                          ldb,
-                          "--ldc",
-                          ldc,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f trmm_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--side",
+                                 side_letter,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "--transposeA",
+                                 transa_letter,
+                                 "--diag",
+                                 diag_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--lda",
+                                 lda,
+                                 "--ldb",
+                                 ldb,
+                                 "--ldc",
+                                 ldc,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_trmm_batched_name<T>,
-                            "side",
-                            side_letter,
-                            "uplo",
-                            uplo_letter,
-                            "transa",
-                            transa_letter,
-                            "diag",
-                            diag_letter,
-                            "m",
-                            m,
-                            "n",
-                            n,
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb,
-                            "ldc",
-                            ldc,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_trmm_batched_name<T>,
+                                   "side",
+                                   side_letter,
+                                   "uplo",
+                                   uplo_letter,
+                                   "transa",
+                                   transa_letter,
+                                   "diag",
+                                   diag_letter,
+                                   "m",
+                                   m,
+                                   "n",
+                                   n,
+                                   "lda",
+                                   lda,
+                                   "ldb",
+                                   ldb,
+                                   "ldc",
+                                   ldc,
+                                   "batch_count",
+                                   batch_count);
         }
 
         static constexpr rocblas_stride offset_a     = 0;

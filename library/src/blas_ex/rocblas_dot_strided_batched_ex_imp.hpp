@@ -61,7 +61,8 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode = handle->layer_mode;
+        auto   layer_mode = handle->layer_mode;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -73,73 +74,73 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_trace)
             {
-                log_trace(handle,
-                          name,
-                          n,
-                          x,
-                          x_type_str,
-                          incx,
-                          stride_x,
-                          y,
-                          y_type_str,
-                          incy,
-                          stride_y,
-                          batch_count,
-                          result_type_str,
-                          ex_type_str);
+                logger.log_trace(handle,
+                                 name,
+                                 n,
+                                 x,
+                                 x_type_str,
+                                 incx,
+                                 stride_x,
+                                 y,
+                                 y_type_str,
+                                 incy,
+                                 stride_y,
+                                 batch_count,
+                                 result_type_str,
+                                 ex_type_str);
             }
 
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f",
-                          bench_name,
-                          "-n",
-                          n,
-                          "--a_type",
-                          x_type_str,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stride_x,
-                          "--b_type",
-                          y_type_str,
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stride_y,
-                          "--batch_count",
-                          batch_count,
-                          "--c_type",
-                          result_type_str,
-                          "--compute_type",
-                          ex_type_str);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f",
+                                 bench_name,
+                                 "-n",
+                                 n,
+                                 "--a_type",
+                                 x_type_str,
+                                 "--incx",
+                                 incx,
+                                 "--stride_x",
+                                 stride_x,
+                                 "--b_type",
+                                 y_type_str,
+                                 "--incy",
+                                 incy,
+                                 "--stride_y",
+                                 stride_y,
+                                 "--batch_count",
+                                 batch_count,
+                                 "--c_type",
+                                 result_type_str,
+                                 "--compute_type",
+                                 ex_type_str);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
-                log_profile(handle,
-                            name,
-                            "N",
-                            n,
-                            "a_type",
-                            x_type_str,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "b_type",
-                            y_type_str,
-                            "incy",
-                            incy,
-                            "stride_y",
-                            stride_y,
-                            "batch_count",
-                            batch_count,
-                            "c_type",
-                            result_type_str,
-                            "compute_type",
-                            ex_type_str);
+                logger.log_profile(handle,
+                                   name,
+                                   "N",
+                                   n,
+                                   "a_type",
+                                   x_type_str,
+                                   "incx",
+                                   incx,
+                                   "stride_x",
+                                   stride_x,
+                                   "b_type",
+                                   y_type_str,
+                                   "incy",
+                                   incy,
+                                   "stride_y",
+                                   stride_y,
+                                   "batch_count",
+                                   batch_count,
+                                   "c_type",
+                                   result_type_str,
+                                   "compute_type",
+                                   ex_type_str);
             }
         }
 

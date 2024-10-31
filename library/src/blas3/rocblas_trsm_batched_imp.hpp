@@ -73,7 +73,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto check_numerics = handle->check_numerics;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         /////////////
         // LOGGING //
         /////////////
@@ -90,69 +91,69 @@ namespace
                 auto diag_letter   = rocblas_diag_letter(diag);
 
                 if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_trsm_name<T>,
-                              side,
-                              uplo,
-                              transA,
-                              diag,
-                              m,
-                              n,
-                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                              A,
-                              lda,
-                              B,
-                              ldb,
-                              batch_count);
+                    logger.log_trace(handle,
+                                     rocblas_trsm_name<T>,
+                                     side,
+                                     uplo,
+                                     transA,
+                                     diag,
+                                     m,
+                                     n,
+                                     LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                     A,
+                                     lda,
+                                     B,
+                                     ldb,
+                                     batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f trsm_batched -r",
-                              rocblas_precision_string<T>,
-                              "--side",
-                              side_letter,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                              "--lda",
-                              lda,
-                              "--ldb",
-                              ldb,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f trsm_batched -r",
+                                     rocblas_precision_string<T>,
+                                     "--side",
+                                     side_letter,
+                                     "--uplo",
+                                     uplo_letter,
+                                     "--transposeA",
+                                     transA_letter,
+                                     "--diag",
+                                     diag_letter,
+                                     "-m",
+                                     m,
+                                     "-n",
+                                     n,
+                                     LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                     "--lda",
+                                     lda,
+                                     "--ldb",
+                                     ldb,
+                                     "--batch_count",
+                                     batch_count);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_profile)
                 {
-                    log_profile(handle,
-                                rocblas_trsm_name<T>,
-                                "side",
-                                side_letter,
-                                "uplo",
-                                uplo_letter,
-                                "transA",
-                                transA_letter,
-                                "diag",
-                                diag_letter,
-                                "m",
-                                m,
-                                "n",
-                                n,
-                                "lda",
-                                lda,
-                                "ldb",
-                                ldb,
-                                "batch_count",
-                                batch_count);
+                    logger.log_profile(handle,
+                                       rocblas_trsm_name<T>,
+                                       "side",
+                                       side_letter,
+                                       "uplo",
+                                       uplo_letter,
+                                       "transA",
+                                       transA_letter,
+                                       "diag",
+                                       diag_letter,
+                                       "m",
+                                       m,
+                                       "n",
+                                       n,
+                                       "lda",
+                                       lda,
+                                       "ldb",
+                                       ldb,
+                                       "batch_count",
+                                       batch_count);
                 }
             }
         }

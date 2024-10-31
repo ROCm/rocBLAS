@@ -58,8 +58,9 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -67,45 +68,45 @@ namespace
             auto uplo_letter = rocblas_fill_letter(uplo);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_syr_batched_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          x,
-                          incx,
-                          A,
-                          lda);
+                logger.log_trace(handle,
+                                 rocblas_syr_batched_name<T>,
+                                 uplo,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 x,
+                                 incx,
+                                 A,
+                                 lda);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f syr_batched -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--incx",
-                          incx,
-                          "--lda",
-                          lda,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f syr_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--incx",
+                                 incx,
+                                 "--lda",
+                                 lda,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_syr_batched_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "N",
-                            n,
-                            "incx",
-                            incx,
-                            "lda",
-                            lda,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_syr_batched_name<T>,
+                                   "uplo",
+                                   uplo_letter,
+                                   "N",
+                                   n,
+                                   "incx",
+                                   incx,
+                                   "lda",
+                                   lda,
+                                   "batch_count",
+                                   batch_count);
         }
 
         rocblas_status arg_status = rocblas_syr_arg_check<API_INT, T>(

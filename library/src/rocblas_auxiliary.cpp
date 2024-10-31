@@ -53,8 +53,9 @@ try
     if(!handle)
         return rocblas_status_invalid_handle;
     *mode = handle->pointer_mode;
+    Logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_get_pointer_mode", *mode);
+        logger.log_trace(handle, "rocblas_get_pointer_mode", *mode);
     return rocblas_status_success;
 }
 catch(...)
@@ -71,8 +72,11 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+    Logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_set_pointer_mode", mode);
+    {
+        logger.log_trace(handle, "rocblas_set_pointer_mode", mode);
+    }
     handle->pointer_mode = mode;
     return rocblas_status_success;
 }
@@ -92,8 +96,9 @@ try
     if(!handle)
         return rocblas_status_invalid_handle;
     *mode = handle->atomics_mode;
+    Logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_get_atomics_mode", *mode);
+        logger.log_trace(handle, "rocblas_get_atomics_mode", *mode);
     return rocblas_status_success;
 }
 catch(...)
@@ -110,8 +115,9 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+    Logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_set_atomics_mode", mode);
+        logger.log_trace(handle, "rocblas_set_atomics_mode", mode);
     handle->atomics_mode = mode;
     return rocblas_status_success;
 }
@@ -129,9 +135,10 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+    Logger logger;
     *mode = handle->math_mode;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_get_math_mode", *mode);
+        logger.log_trace(handle, "rocblas_get_math_mode", *mode);
     return rocblas_status_success;
 }
 catch(...)
@@ -148,6 +155,8 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+
+    Logger logger;
 
     bool supported = true;
     switch(mode)
@@ -166,12 +175,12 @@ try
     if(!supported)
     {
         if(handle->layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, "rocblas_set_math_mode", mode, "is not supported");
+            logger.log_trace(handle, "rocblas_set_math_mode", mode, "is not supported");
     }
     else
     {
         if(handle->layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, "rocblas_set_math_mode", mode);
+            logger.log_trace(handle, "rocblas_set_math_mode", mode);
 
         handle->math_mode = mode;
     }
@@ -194,9 +203,9 @@ try
 
     // allocate on heap
     *handle = new _rocblas_handle;
-
+    Logger logger;
     if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(*handle, "rocblas_create_handle");
+        logger.log_trace(*handle, "rocblas_create_handle");
 
     return rocblas_status_success;
 }
@@ -214,8 +223,9 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+    Logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_destroy_handle");
+        logger.log_trace(handle, "rocblas_destroy_handle");
     // call destructor
     delete handle;
 
@@ -237,10 +247,10 @@ try
     // If handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-
+    Logger logger;
     // Log rocblas_set_stream
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_set_stream", stream);
+        logger.log_trace(handle, "rocblas_set_stream", stream);
 
     // If the stream is unchanged, return immediately
     if(stream == handle->stream)
@@ -287,8 +297,9 @@ try
         return rocblas_status_invalid_handle;
     if(!stream_id)
         return rocblas_status_invalid_pointer;
+    Logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_get_stream", *stream_id);
+        logger.log_trace(handle, "rocblas_get_stream", *stream_id);
     *stream_id = handle->get_stream();
     return rocblas_status_success;
 }

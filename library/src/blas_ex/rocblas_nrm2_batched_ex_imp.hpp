@@ -64,52 +64,53 @@ namespace
             }
         }
 
-        auto x_type_str      = rocblas_datatype_string(x_type);
-        auto result_type_str = rocblas_datatype_string(result_type);
-        auto ex_type_str     = rocblas_datatype_string(execution_type);
-        auto layer_mode      = handle->layer_mode;
+        auto   x_type_str      = rocblas_datatype_string(x_type);
+        auto   result_type_str = rocblas_datatype_string(result_type);
+        auto   ex_type_str     = rocblas_datatype_string(execution_type);
+        auto   layer_mode      = handle->layer_mode;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
         {
-            log_trace(handle,
-                      ROCBLAS_API_STR(nrm2_batched_ex),
-                      n,
-                      x,
-                      x_type_str,
-                      incx,
-                      result_type_str,
-                      batch_count,
-                      ex_type_str);
+            logger.log_trace(handle,
+                             ROCBLAS_API_STR(nrm2_batched_ex),
+                             n,
+                             x,
+                             x_type_str,
+                             incx,
+                             result_type_str,
+                             batch_count,
+                             ex_type_str);
         }
 
         if(layer_mode & rocblas_layer_mode_log_bench)
         {
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f nrm2_batched_ex",
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--batch_count",
-                      batch_count,
-                      log_bench_ex_precisions(x_type, result_type, execution_type));
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f nrm2_batched_ex",
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--batch_count",
+                             batch_count,
+                             log_bench_ex_precisions(x_type, result_type, execution_type));
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
         {
-            log_profile(handle,
-                        ROCBLAS_API_STR(nrm2_batched_ex),
-                        "N",
-                        n,
-                        "a_type",
-                        x_type_str,
-                        "incx",
-                        incx,
-                        "b_type",
-                        result_type_str,
-                        "batch_count",
-                        batch_count,
-                        "compute_type",
-                        ex_type_str);
+            logger.log_profile(handle,
+                               ROCBLAS_API_STR(nrm2_batched_ex),
+                               "N",
+                               n,
+                               "a_type",
+                               x_type_str,
+                               "incx",
+                               incx,
+                               "b_type",
+                               result_type_str,
+                               "batch_count",
+                               batch_count,
+                               "compute_type",
+                               ex_type_str);
         }
 
         if(!results)

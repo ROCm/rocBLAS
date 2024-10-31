@@ -58,9 +58,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -69,59 +69,59 @@ namespace
             auto transB_letter = rocblas_transpose_letter(transB);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_geam_name<T>,
-                          transA,
-                          transB,
-                          m,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          B,
-                          ldb,
-                          C,
-                          ldc);
+                logger.log_trace(handle,
+                                 rocblas_geam_name<T>,
+                                 transA,
+                                 transB,
+                                 m,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 A,
+                                 lda,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 B,
+                                 ldb,
+                                 C,
+                                 ldc);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f geam -r",
-                          rocblas_precision_string<T>,
-                          "--transposeA",
-                          transA_letter,
-                          "--transposeB",
-                          transB_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--ldb",
-                          ldb,
-                          "--ldc",
-                          ldc);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f geam -r",
+                                 rocblas_precision_string<T>,
+                                 "--transposeA",
+                                 transA_letter,
+                                 "--transposeB",
+                                 transB_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--lda",
+                                 lda,
+                                 LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                 "--ldb",
+                                 ldb,
+                                 "--ldc",
+                                 ldc);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_geam_name<T>,
-                            "transA",
-                            transA_letter,
-                            "transB",
-                            transB_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb,
-                            "ldc",
-                            ldc);
+                logger.log_profile(handle,
+                                   rocblas_geam_name<T>,
+                                   "transA",
+                                   transA_letter,
+                                   "transB",
+                                   transB_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "lda",
+                                   lda,
+                                   "ldb",
+                                   ldb,
+                                   "ldc",
+                                   ldc);
         }
 
         static constexpr rocblas_stride offset_A = 0, offset_B = 0, offset_C = 0;

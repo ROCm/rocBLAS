@@ -57,8 +57,9 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -66,64 +67,64 @@ namespace
             auto uplo_letter = rocblas_fill_letter(uplo);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_hpmv_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          AP,
-                          stride_A,
-                          x,
-                          incx,
-                          stride_x,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          y,
-                          incy,
-                          stride_y,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_hpmv_name<T>,
+                                 uplo,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 AP,
+                                 stride_A,
+                                 x,
+                                 incx,
+                                 stride_x,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 y,
+                                 incy,
+                                 stride_y,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f hpmv_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--stride_a",
-                          stride_A,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stride_x,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stride_y,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f hpmv_strided_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--stride_a",
+                                 stride_A,
+                                 "--incx",
+                                 incx,
+                                 "--stride_x",
+                                 stride_x,
+                                 LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                 "--incy",
+                                 incy,
+                                 "--stride_y",
+                                 stride_y,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_hpmv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "N",
-                            n,
-                            "stride_a",
-                            stride_A,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "incy",
-                            incy,
-                            "stride_y",
-                            stride_y,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_hpmv_name<T>,
+                                   "uplo",
+                                   uplo_letter,
+                                   "N",
+                                   n,
+                                   "stride_a",
+                                   stride_A,
+                                   "incx",
+                                   incx,
+                                   "stride_x",
+                                   stride_x,
+                                   "incy",
+                                   incy,
+                                   "stride_y",
+                                   stride_y,
+                                   "batch_count",
+                                   batch_count);
         }
 
         constexpr rocblas_stride offset_A = 0, offset_x = 0, offset_y = 0;

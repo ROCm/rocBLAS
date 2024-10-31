@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,49 +60,50 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_rotg_name<T>,
-                      a,
-                      stride_a,
-                      b,
-                      stride_b,
-                      c,
-                      stride_c,
-                      s,
-                      stride_s,
-                      batch_count);
+            logger.log_trace(handle,
+                             rocblas_rotg_name<T>,
+                             a,
+                             stride_a,
+                             b,
+                             stride_b,
+                             c,
+                             stride_c,
+                             s,
+                             stride_s,
+                             batch_count);
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f rotg_strided_batched --a_type",
-                      rocblas_precision_string<T>,
-                      "--b_type",
-                      rocblas_precision_string<U>,
-                      "--stride_a",
-                      stride_a,
-                      "--stride_b",
-                      stride_b,
-                      "--stride_c",
-                      stride_c,
-                      "--stride_d",
-                      stride_s,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f rotg_strided_batched --a_type",
+                             rocblas_precision_string<T>,
+                             "--b_type",
+                             rocblas_precision_string<U>,
+                             "--stride_a",
+                             stride_a,
+                             "--stride_b",
+                             stride_b,
+                             "--stride_c",
+                             stride_c,
+                             "--stride_d",
+                             stride_s,
+                             "--batch_count",
+                             batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_rotg_name<T>,
-                        "stride_a",
-                        stride_a,
-                        "stride_b",
-                        stride_b,
-                        "stride_c",
-                        stride_c,
-                        "stride_d",
-                        stride_s,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_rotg_name<T>,
+                               "stride_a",
+                               stride_a,
+                               "stride_b",
+                               stride_b,
+                               "stride_c",
+                               stride_c,
+                               "stride_d",
+                               stride_s,
+                               "batch_count",
+                               batch_count);
 
         if(batch_count <= 0)
             return rocblas_status_success;

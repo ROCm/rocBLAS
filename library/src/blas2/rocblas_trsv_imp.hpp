@@ -55,9 +55,11 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
+        auto   layer_mode = handle->layer_mode;
+        Logger logger;
+
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, n, A, lda, B, incx);
+            logger.log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, n, A, lda, B, incx);
 
         if(!handle->is_device_memory_size_query())
         {
@@ -70,38 +72,38 @@ namespace
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     if(handle->pointer_mode == rocblas_pointer_mode_host) // TODO log both modes
-                        log_bench(handle,
-                                  ROCBLAS_API_BENCH " -f trsv -r",
-                                  rocblas_precision_string<T>,
-                                  "--uplo",
-                                  uplo_letter,
-                                  "--transposeA",
-                                  transA_letter,
-                                  "--diag",
-                                  diag_letter,
-                                  "-n",
-                                  n,
-                                  "--lda",
-                                  lda,
-                                  "--incx",
-                                  incx);
+                        logger.log_bench(handle,
+                                         ROCBLAS_API_BENCH " -f trsv -r",
+                                         rocblas_precision_string<T>,
+                                         "--uplo",
+                                         uplo_letter,
+                                         "--transposeA",
+                                         transA_letter,
+                                         "--diag",
+                                         diag_letter,
+                                         "-n",
+                                         n,
+                                         "--lda",
+                                         lda,
+                                         "--incx",
+                                         incx);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_profile)
-                    log_profile(handle,
-                                rocblas_trsv_name<T>,
-                                "uplo",
-                                uplo_letter,
-                                "transA",
-                                transA_letter,
-                                "diag",
-                                diag_letter,
-                                "N",
-                                n,
-                                "lda",
-                                lda,
-                                "incx",
-                                incx);
+                    logger.log_profile(handle,
+                                       rocblas_trsv_name<T>,
+                                       "uplo",
+                                       uplo_letter,
+                                       "transA",
+                                       transA_letter,
+                                       "diag",
+                                       diag_letter,
+                                       "N",
+                                       n,
+                                       "lda",
+                                       lda,
+                                       "incx",
+                                       incx);
             }
         }
 

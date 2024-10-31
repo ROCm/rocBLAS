@@ -68,32 +68,32 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_asum_batched_name<Ti>, n, x, incx, batch_count);
+            logger.log_trace(handle, rocblas_asum_batched_name<Ti>, n, x, incx, batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f asum_batched -r",
-                      rocblas_precision_string<Ti>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f asum_batched -r",
+                             rocblas_precision_string<Ti>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--batch_count",
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_asum_batched_name<Ti>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_asum_batched_name<Ti>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "batch_count",
+                               batch_count);
 
         static constexpr rocblas_stride stridex_0 = 0;
         static constexpr rocblas_stride shiftx_0  = 0;

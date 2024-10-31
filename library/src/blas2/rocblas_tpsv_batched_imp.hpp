@@ -57,18 +57,20 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        Logger logger;
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_tpsv_batched_name<T>,
-                      uplo,
-                      transA,
-                      diag,
-                      n,
-                      AP,
-                      x,
-                      incx,
-                      batch_count);
+            logger.log_trace(handle,
+                             rocblas_tpsv_batched_name<T>,
+                             uplo,
+                             transA,
+                             diag,
+                             n,
+                             AP,
+                             x,
+                             incx,
+                             batch_count);
 
         if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
         {
@@ -79,38 +81,38 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 if(handle->pointer_mode == rocblas_pointer_mode_host)
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f tpsv_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-n",
-                              n,
-                              "--incx",
-                              incx,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f tpsv_batched -r",
+                                     rocblas_precision_string<T>,
+                                     "--uplo",
+                                     uplo_letter,
+                                     "--transposeA",
+                                     transA_letter,
+                                     "--diag",
+                                     diag_letter,
+                                     "-n",
+                                     n,
+                                     "--incx",
+                                     incx,
+                                     "--batch_count",
+                                     batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_tpsv_batched_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "N",
-                            n,
-                            "incx",
-                            incx,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_tpsv_batched_name<T>,
+                                   "uplo",
+                                   uplo_letter,
+                                   "transA",
+                                   transA_letter,
+                                   "diag",
+                                   diag_letter,
+                                   "N",
+                                   n,
+                                   "incx",
+                                   incx,
+                                   "batch_count",
+                                   batch_count);
         }
 
         rocblas_status arg_status = rocblas_tpsv_arg_check<API_INT>(

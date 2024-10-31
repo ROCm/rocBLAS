@@ -71,38 +71,38 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(
+            logger.log_trace(
                 handle, rocblas_iamax_strided_batched_name<T>, n, x, incx, stridex, batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f iamax_strided_batched",
-                      "-r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "stride_x",
-                      stridex,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f iamax_strided_batched",
+                             "-r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "stride_x",
+                             stridex,
+                             "--batch_count",
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_iamax_strided_batched_name<T>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "stride_x",
-                        stridex,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_iamax_strided_batched_name<T>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "stride_x",
+                               stridex,
+                               "batch_count",
+                               batch_count);
 
         static constexpr rocblas_stride shiftx_0 = 0;
 

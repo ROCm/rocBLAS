@@ -50,58 +50,59 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode  = handle->layer_mode;
-        auto x_type_str  = rocblas_datatype_string(x_type);
-        auto y_type_str  = rocblas_datatype_string(y_type);
-        auto cs_type_str = rocblas_datatype_string(cs_type);
-        auto ex_type_str = rocblas_datatype_string(execution_type);
+        auto   layer_mode  = handle->layer_mode;
+        auto   x_type_str  = rocblas_datatype_string(x_type);
+        auto   y_type_str  = rocblas_datatype_string(y_type);
+        auto   cs_type_str = rocblas_datatype_string(cs_type);
+        auto   ex_type_str = rocblas_datatype_string(execution_type);
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      ROCBLAS_API_STR(rocblas_rot_ex),
-                      n,
-                      x,
-                      x_type_str,
-                      incx,
-                      y,
-                      y_type_str,
-                      incy,
-                      c,
-                      s,
-                      cs_type_str,
-                      ex_type_str);
+            logger.log_trace(handle,
+                             ROCBLAS_API_STR(rocblas_rot_ex),
+                             n,
+                             x,
+                             x_type_str,
+                             incx,
+                             y,
+                             y_type_str,
+                             incy,
+                             c,
+                             s,
+                             cs_type_str,
+                             ex_type_str);
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH "-f rot_ex --a_type",
-                      x_type_str,
-                      "--b_type",
-                      y_type_str,
-                      "--c_type",
-                      cs_type_str,
-                      "--compute_type",
-                      ex_type_str,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH "-f rot_ex --a_type",
+                             x_type_str,
+                             "--b_type",
+                             y_type_str,
+                             "--c_type",
+                             cs_type_str,
+                             "--compute_type",
+                             ex_type_str,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        ROCBLAS_API_STR(rocblas_rot_ex),
-                        "N",
-                        n,
-                        "a_type",
-                        x_type_str,
-                        "incx",
-                        incx,
-                        "b_type",
-                        y_type_str,
-                        "incy",
-                        incy,
-                        "c_type",
-                        cs_type_str,
-                        "compute_type",
-                        ex_type_str);
+            logger.log_profile(handle,
+                               ROCBLAS_API_STR(rocblas_rot_ex),
+                               "N",
+                               n,
+                               "a_type",
+                               x_type_str,
+                               "incx",
+                               incx,
+                               "b_type",
+                               y_type_str,
+                               "incy",
+                               incy,
+                               "c_type",
+                               cs_type_str,
+                               "compute_type",
+                               ex_type_str);
 
         if(n <= 0)
             return rocblas_status_success;

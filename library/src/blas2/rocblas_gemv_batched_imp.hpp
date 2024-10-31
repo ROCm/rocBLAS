@@ -83,9 +83,9 @@ namespace
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -93,91 +93,91 @@ namespace
             auto transA_letter = rocblas_transpose_letter(transA);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_gemv_name<Ti, To>,
-                          transA,
-                          m,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          x,
-                          incx,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          y,
-                          incy,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_gemv_name<Ti, To>,
+                                 transA,
+                                 m,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 A,
+                                 lda,
+                                 x,
+                                 incx,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 y,
+                                 incy,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 if constexpr(std::is_same<Ti, rocblas_half>{}
                              || std::is_same<Ti, rocblas_bfloat16>{})
                 {
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f gemv_batched --a_type",
-                              rocblas_precision_string<Ti>,
-                              "--c_type",
-                              rocblas_precision_string<To>,
-                              "--compute_type",
-                              rocblas_precision_string<Tex>,
-                              "--transposeA",
-                              transA_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx,
-                              LOG_BENCH_SCALAR_VALUE(handle, beta),
-                              "--incy",
-                              incy,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f gemv_batched --a_type",
+                                     rocblas_precision_string<Ti>,
+                                     "--c_type",
+                                     rocblas_precision_string<To>,
+                                     "--compute_type",
+                                     rocblas_precision_string<Tex>,
+                                     "--transposeA",
+                                     transA_letter,
+                                     "-m",
+                                     m,
+                                     "-n",
+                                     n,
+                                     LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                     "--lda",
+                                     lda,
+                                     "--incx",
+                                     incx,
+                                     LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                     "--incy",
+                                     incy,
+                                     "--batch_count",
+                                     batch_count);
                 }
                 else
                 {
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f gemv_batched -r",
-                              rocblas_precision_string<Ti>,
-                              "--transposeA",
-                              transA_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx,
-                              LOG_BENCH_SCALAR_VALUE(handle, beta),
-                              "--incy",
-                              incy,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f gemv_batched -r",
+                                     rocblas_precision_string<Ti>,
+                                     "--transposeA",
+                                     transA_letter,
+                                     "-m",
+                                     m,
+                                     "-n",
+                                     n,
+                                     LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                     "--lda",
+                                     lda,
+                                     "--incx",
+                                     incx,
+                                     LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                     "--incy",
+                                     incy,
+                                     "--batch_count",
+                                     batch_count);
                 }
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_gemv_name<Ti, To>,
-                            "transA",
-                            transA_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "incx",
-                            incx,
-                            "incy",
-                            incy,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_gemv_name<Ti, To>,
+                                   "transA",
+                                   transA_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "lda",
+                                   lda,
+                                   "incx",
+                                   incx,
+                                   "incy",
+                                   incy,
+                                   "batch_count",
+                                   batch_count);
         }
 
         rocblas_status arg_status = rocblas_internal_gemv_arg_check(handle,

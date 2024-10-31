@@ -61,8 +61,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -71,64 +72,64 @@ namespace
             auto side_letter = rocblas_side_letter(side);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_symm_name<T>,
-                          side,
-                          uplo,
-                          m,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          B,
-                          ldb,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          C,
-                          ldc,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_symm_name<T>,
+                                 side,
+                                 uplo,
+                                 m,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 A,
+                                 lda,
+                                 B,
+                                 ldb,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 C,
+                                 ldc,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f symm_batched -r",
-                          rocblas_precision_string<T>,
-                          "--side",
-                          side_letter,
-                          "--uplo",
-                          uplo_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--ldb",
-                          ldb,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--ldc",
-                          ldc,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f symm_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--side",
+                                 side_letter,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--lda",
+                                 lda,
+                                 "--ldb",
+                                 ldb,
+                                 LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                 "--ldc",
+                                 ldc,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_symm_name<T>,
-                            "side",
-                            side_letter,
-                            "uplo",
-                            uplo_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb,
-                            "ldc",
-                            ldc,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_symm_name<T>,
+                                   "side",
+                                   side_letter,
+                                   "uplo",
+                                   uplo_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "lda",
+                                   lda,
+                                   "ldb",
+                                   ldb,
+                                   "ldc",
+                                   ldc,
+                                   "batch_count",
+                                   batch_count);
         }
 
         static constexpr rocblas_stride offset_C = 0, offset_A = 0, offset_B = 0;

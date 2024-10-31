@@ -51,7 +51,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto   layer_mode = handle->layer_mode;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -69,18 +70,18 @@ namespace
                     if(log_trace_alpha_beta_ex(alpha_type, alpha, nullptr, alphass, betass)
                        == rocblas_status_success)
                     {
-                        log_trace(handle,
-                                  ROCBLAS_API_STR(rocblas_axpy_ex),
-                                  n,
-                                  alphass.str(),
-                                  alpha_type_str,
-                                  x,
-                                  x_type_str,
-                                  incx,
-                                  y,
-                                  y_type_str,
-                                  incy,
-                                  ex_type_str);
+                        logger.log_trace(handle,
+                                         ROCBLAS_API_STR(rocblas_axpy_ex),
+                                         n,
+                                         alphass.str(),
+                                         alpha_type_str,
+                                         x,
+                                         x_type_str,
+                                         incx,
+                                         y,
+                                         y_type_str,
+                                         incy,
+                                         ex_type_str);
                     }
                 }
 
@@ -90,59 +91,59 @@ namespace
                     if(log_bench_alpha_beta_ex(alpha_type, alpha, nullptr, alphas, betas)
                        == rocblas_status_success)
                     {
-                        log_bench(handle,
-                                  ROCBLAS_API_BENCH " -f axpy_ex",
-                                  "-n",
-                                  n,
-                                  alphas,
-                                  "--a_type",
-                                  alpha_type_str,
-                                  "--b_type",
-                                  x_type_str,
-                                  "--incx",
-                                  incx,
-                                  "--c_type",
-                                  y_type_str,
-                                  "--incy",
-                                  incy,
-                                  "--compute_type",
-                                  ex_type_str);
+                        logger.log_bench(handle,
+                                         ROCBLAS_API_BENCH " -f axpy_ex",
+                                         "-n",
+                                         n,
+                                         alphas,
+                                         "--a_type",
+                                         alpha_type_str,
+                                         "--b_type",
+                                         x_type_str,
+                                         "--incx",
+                                         incx,
+                                         "--c_type",
+                                         y_type_str,
+                                         "--incy",
+                                         incy,
+                                         "--compute_type",
+                                         ex_type_str);
                     }
                 }
             }
             else if(layer_mode & rocblas_layer_mode_log_trace)
             {
-                log_trace(handle,
-                          ROCBLAS_API_STR(rocblas_axpy_ex),
-                          n,
-                          alpha_type_str,
-                          x,
-                          x_type_str,
-                          incx,
-                          y,
-                          y_type_str,
-                          incy,
-                          ex_type_str);
+                logger.log_trace(handle,
+                                 ROCBLAS_API_STR(rocblas_axpy_ex),
+                                 n,
+                                 alpha_type_str,
+                                 x,
+                                 x_type_str,
+                                 incx,
+                                 y,
+                                 y_type_str,
+                                 incy,
+                                 ex_type_str);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
-                log_profile(handle,
-                            ROCBLAS_API_STR(rocblas_axpy_ex),
-                            "N",
-                            n,
-                            "a_type",
-                            alpha_type_str,
-                            "b_type",
-                            x_type_str,
-                            "incx",
-                            incx,
-                            "c_type",
-                            y_type_str,
-                            "incy",
-                            incy,
-                            "compute_type",
-                            ex_type_str);
+                logger.log_profile(handle,
+                                   ROCBLAS_API_STR(rocblas_axpy_ex),
+                                   "N",
+                                   n,
+                                   "a_type",
+                                   alpha_type_str,
+                                   "b_type",
+                                   x_type_str,
+                                   "incx",
+                                   incx,
+                                   "c_type",
+                                   y_type_str,
+                                   "incy",
+                                   incy,
+                                   "compute_type",
+                                   ex_type_str);
             }
         }
 

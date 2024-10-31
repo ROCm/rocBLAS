@@ -87,52 +87,53 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_dot_strided_batched_name<CONJ, T>,
-                      n,
-                      x,
-                      incx,
-                      stridex,
-                      y,
-                      incy,
-                      stridey,
-                      batch_count);
+            logger.log_trace(handle,
+                             rocblas_dot_strided_batched_name<CONJ, T>,
+                             n,
+                             x,
+                             incx,
+                             stridex,
+                             y,
+                             incy,
+                             stridey,
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f dot_strided_batched -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--stride_x",
-                      stridex,
-                      "--incy",
-                      incy,
-                      "--stride_y",
-                      stridey,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f dot_strided_batched -r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--stride_x",
+                             stridex,
+                             "--incy",
+                             incy,
+                             "--stride_y",
+                             stridey,
+                             "--batch_count",
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_dot_strided_batched_name<CONJ, T>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "stride_x",
-                        stridex,
-                        "incy",
-                        incy,
-                        "stride_y",
-                        stridey,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_dot_strided_batched_name<CONJ, T>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "stride_x",
+                               stridex,
+                               "incy",
+                               incy,
+                               "stride_y",
+                               stridey,
+                               "batch_count",
+                               batch_count);
 
         // Quick return if possible.
         if(batch_count <= 0)

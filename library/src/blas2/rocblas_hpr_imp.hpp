@@ -50,8 +50,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -59,29 +60,30 @@ namespace
             auto uplo_letter = rocblas_fill_letter(uplo);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_hpr_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          x,
-                          incx,
-                          AP);
+                logger.log_trace(handle,
+                                 rocblas_hpr_name<T>,
+                                 uplo,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 x,
+                                 incx,
+                                 AP);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f hpr -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--incx",
-                          incx);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f hpr -r",
+                                 rocblas_precision_string<T>,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--incx",
+                                 incx);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle, rocblas_hpr_name<T>, "uplo", uplo_letter, "N", n, "incx", incx);
+                logger.log_profile(
+                    handle, rocblas_hpr_name<T>, "uplo", uplo_letter, "N", n, "incx", incx);
         }
 
         static constexpr API_INT        batch_count = 1;

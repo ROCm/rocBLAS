@@ -63,9 +63,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -73,71 +73,71 @@ namespace
             auto side_letter = rocblas_side_letter(side);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_dgmm_strided_batched_name<T>,
-                          side,
-                          m,
-                          n,
-                          A,
-                          lda,
-                          stride_a,
-                          x,
-                          incx,
-                          stride_x,
-                          C,
-                          ldc,
-                          stride_c,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_dgmm_strided_batched_name<T>,
+                                 side,
+                                 m,
+                                 n,
+                                 A,
+                                 lda,
+                                 stride_a,
+                                 x,
+                                 incx,
+                                 stride_x,
+                                 C,
+                                 ldc,
+                                 stride_c,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f dgmm_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--side",
-                          side_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          stride_a,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stride_x,
-                          "--ldc",
-                          ldc,
-                          "--stride_c",
-                          stride_c,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f dgmm_strided_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--side",
+                                 side_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 "--lda",
+                                 lda,
+                                 "--stride_a",
+                                 stride_a,
+                                 "--incx",
+                                 incx,
+                                 "--stride_x",
+                                 stride_x,
+                                 "--ldc",
+                                 ldc,
+                                 "--stride_c",
+                                 stride_c,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
-                log_profile(handle,
-                            rocblas_dgmm_strided_batched_name<T>,
-                            "side",
-                            side_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "--stride_a",
-                            stride_a,
-                            "incx",
-                            incx,
-                            "--stride_x",
-                            stride_x,
-                            "ldc",
-                            ldc,
-                            "--stride_c",
-                            stride_c,
-                            "--batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_dgmm_strided_batched_name<T>,
+                                   "side",
+                                   side_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "lda",
+                                   lda,
+                                   "--stride_a",
+                                   stride_a,
+                                   "incx",
+                                   incx,
+                                   "--stride_x",
+                                   stride_x,
+                                   "ldc",
+                                   ldc,
+                                   "--stride_c",
+                                   stride_c,
+                                   "--batch_count",
+                                   batch_count);
             }
         }
 

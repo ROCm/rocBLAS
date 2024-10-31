@@ -58,8 +58,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -67,62 +68,62 @@ namespace
             auto uplo_letter = rocblas_fill_letter(uplo);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_spr2_strided_batched_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          x,
-                          incx,
-                          stride_x,
-                          y,
-                          incy,
-                          stride_y,
-                          AP,
-                          stride_AP,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_spr2_strided_batched_name<T>,
+                                 uplo,
+                                 n,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 x,
+                                 incx,
+                                 stride_x,
+                                 y,
+                                 incy,
+                                 stride_y,
+                                 AP,
+                                 stride_AP,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f spr2_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--incx",
-                          incx,
-                          "--incy",
-                          incy,
-                          "--stride_x",
-                          stride_x,
-                          "--stride_y",
-                          stride_y,
-                          "--stride_a",
-                          stride_AP,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f spr2_strided_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--uplo",
+                                 uplo_letter,
+                                 "-n",
+                                 n,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--incx",
+                                 incx,
+                                 "--incy",
+                                 incy,
+                                 "--stride_x",
+                                 stride_x,
+                                 "--stride_y",
+                                 stride_y,
+                                 "--stride_a",
+                                 stride_AP,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_spr2_strided_batched_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "N",
-                            n,
-                            "incx",
-                            incx,
-                            "incy",
-                            incy,
-                            "stride_x",
-                            stride_x,
-                            "stride_y",
-                            stride_y,
-                            "stride_a",
-                            stride_AP,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_spr2_strided_batched_name<T>,
+                                   "uplo",
+                                   uplo_letter,
+                                   "N",
+                                   n,
+                                   "incx",
+                                   incx,
+                                   "incy",
+                                   incy,
+                                   "stride_x",
+                                   stride_x,
+                                   "stride_y",
+                                   stride_y,
+                                   "stride_a",
+                                   stride_AP,
+                                   "batch_count",
+                                   batch_count);
         }
 
         static constexpr rocblas_stride offset_x = 0, offset_y = 0, offset_AP = 0;

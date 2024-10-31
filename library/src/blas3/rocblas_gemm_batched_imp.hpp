@@ -74,8 +74,9 @@ namespace
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         // Perform logging
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -84,73 +85,73 @@ namespace
             auto trans_b_letter = rocblas_transpose_letter(trans_b);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_gemm_batched_name<T>,
-                          trans_a,
-                          trans_b,
-                          m,
-                          n,
-                          k,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          B,
-                          ldb,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          C,
-                          ldc,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_gemm_batched_name<T>,
+                                 trans_a,
+                                 trans_b,
+                                 m,
+                                 n,
+                                 k,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 A,
+                                 lda,
+                                 B,
+                                 ldb,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 C,
+                                 ldc,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f gemm_batched -r",
-                          rocblas_precision_string<T>,
-                          "--transposeA",
-                          trans_a_letter,
-                          "--transposeB",
-                          trans_b_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          "-k",
-                          k,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--ldb",
-                          ldb,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--ldc",
-                          ldc,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f gemm_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--transposeA",
+                                 trans_a_letter,
+                                 "--transposeB",
+                                 trans_b_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 "-k",
+                                 k,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--lda",
+                                 lda,
+                                 "--ldb",
+                                 ldb,
+                                 LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                 "--ldc",
+                                 ldc,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_gemm_batched_name<T>,
-                            "transA",
-                            trans_a_letter,
-                            "transB",
-                            trans_b_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "K",
-                            k,
-                            "alpha",
-                            value_category(*alpha),
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb,
-                            "beta",
-                            value_category(*beta),
-                            "ldc",
-                            ldc,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_gemm_batched_name<T>,
+                                   "transA",
+                                   trans_a_letter,
+                                   "transB",
+                                   trans_b_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "K",
+                                   k,
+                                   "alpha",
+                                   value_category(*alpha),
+                                   "lda",
+                                   lda,
+                                   "ldb",
+                                   ldb,
+                                   "beta",
+                                   value_category(*beta),
+                                   "ldc",
+                                   ldc,
+                                   "batch_count",
+                                   batch_count);
         }
 
         auto validArgs = rocblas_gemm_arg_check(

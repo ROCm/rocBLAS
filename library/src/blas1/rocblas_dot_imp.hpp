@@ -79,24 +79,26 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
+            logger.log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f dot -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f dot -r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
+            logger.log_profile(
+                handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
 
         // Quick return if possible.
         if(n <= 0)

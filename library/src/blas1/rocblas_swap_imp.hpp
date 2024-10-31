@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,22 +53,23 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto   layer_mode     = handle->layer_mode;
+        auto   check_numerics = handle->check_numerics;
+        Logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_swap_name<T>, n, x, incx, y, incy);
+            logger.log_trace(handle, rocblas_swap_name<T>, n, x, incx, y, incy);
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f swap -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f swap -r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_swap_name<T>, "N", n, "incx", incx, "incy", incy);
+            logger.log_profile(handle, rocblas_swap_name<T>, "N", n, "incx", incx, "incy", incy);
 
         if(n <= 0)
             return rocblas_status_success;

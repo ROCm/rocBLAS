@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,10 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+
+#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#include <roctracer/roctx.h>
+#endif
 
 /************************************************************************************
  * Profile kernel arguments
@@ -130,62 +134,6 @@ public:
         return;
     }
 };
-
-// if profile logging is turned on with
-// (handle->layer_mode & rocblas_layer_mode_log_profile) != 0
-// log_profile will call argument_profile to profile actual arguments,
-// keeping count of the number of times each set of arguments is used
-template <typename... Ts>
-void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
-{
-    // Make a tuple with the arguments
-    auto tup = std::make_tuple(
-        "rocblas_function", func, "atomics_mode", handle->atomics_mode, std::forward<Ts>(xs)...);
-
-    // Set up profile
-    static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
-
-    // Add at_quick_exit handler in case the program exits early
-    static int aqe = at_quick_exit([] { profile.~argument_profile(); });
-
-    // Profile the tuple
-    profile(std::move(tup));
-}
-
-/********************************************
- * Log values (for log_trace and log_bench) *
- ********************************************/
-template <typename H, typename... Ts>
-void log_arguments(rocblas_internal_ostream& os, const char* sep, H&& head, Ts&&... xs)
-{
-    os << std::forward<H>(head);
-    // TODO: Replace with C++17 fold expression
-    // ((os << sep << std::forward<Ts>(xs)), ...);
-    (void)(int[]){(os << sep << std::forward<Ts>(xs), 0)...};
-    os << std::endl;
-}
-
-// if trace logging is turned on with
-// (handle->layer_mode & rocblas_layer_mode_log_trace) != 0
-// log_function will call log_arguments to log arguments with a comma separator
-template <typename... Ts>
-void log_trace(rocblas_handle handle, Ts&&... xs)
-{
-    log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)..., handle->atomics_mode);
-}
-
-// if bench logging is turned on with
-// (handle->layer_mode & rocblas_layer_mode_log_bench) != 0
-// log_bench will call log_arguments to log a string that
-// can be input to the executable rocblas-bench.
-template <typename... Ts>
-void log_bench(rocblas_handle handle, Ts&&... xs)
-{
-    if(handle->atomics_mode == rocblas_atomics_not_allowed)
-        log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)..., "--atomics_not_allowed");
-    else
-        log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
-}
 
 /*************************************************
  * Trace log scalar values pointed to by pointer *
@@ -495,3 +443,98 @@ auto value_category(const T* beta, rocblas_computetype compute_type)
         throw rocblas_status_internal_error;
     }
 }
+
+/******************************************************************
+ * ROCBLAS LOGGER *
+ ******************************************************************/
+
+class Logger
+{
+public:
+    Logger() = default;
+
+#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+    void log_range(const std::string& name)
+    {
+        if(!m_active)
+        {
+            roctxRangePush(name.c_str());
+            m_active = true;
+        }
+    }
+#endif
+
+    template <typename H, typename... Ts>
+    void log_arguments(rocblas_internal_ostream& os, const char* sep, H&& head, Ts&&... xs)
+    {
+        os << std::forward<H>(head);
+        // TODO: Replace with C++17 fold expression
+        // ((os << sep << std::forward<Ts>(xs)), ...);
+        (void)(int[]){(os << sep << std::forward<Ts>(xs), 0)...};
+
+#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+        log_range(os.str());
+#endif
+        os << std::endl;
+    }
+
+    // if trace logging is turned on with
+    // (handle->layer_mode & rocblas_layer_mode_log_trace) != 0
+    // log_function will call log_arguments to log arguments with a comma separator
+    template <typename... Ts>
+    void log_trace(rocblas_handle handle, Ts&&... xs)
+    {
+        log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)..., handle->atomics_mode);
+    }
+
+    // if bench logging is turned on with
+    // (handle->layer_mode & rocblas_layer_mode_log_bench) != 0
+    // log_bench will call log_arguments to log a string that
+    // can be input to the executable rocblas-bench.
+    template <typename... Ts>
+    void log_bench(rocblas_handle handle, Ts&&... xs)
+    {
+        if(handle->atomics_mode == rocblas_atomics_not_allowed)
+            log_arguments(
+                *handle->log_bench_os, " ", std::forward<Ts>(xs)..., "--atomics_not_allowed");
+        else
+            log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
+    }
+
+    // if profile logging is turned on with
+    // (handle->layer_mode & rocblas_layer_mode_log_profile) != 0
+    // log_profile will call argument_profile to profile actual arguments,
+    // keeping count of the number of times each set of arguments is used
+    template <typename... Ts>
+    void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
+    {
+        // Make a tuple with the arguments
+        auto tup = std::make_tuple("rocblas_function",
+                                   func,
+                                   "atomics_mode",
+                                   handle->atomics_mode,
+                                   std::forward<Ts>(xs)...);
+
+        // Set up profile
+        static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
+
+        // Add at_quick_exit handler in case the program exits early
+        static int aqe = at_quick_exit([] { profile.~argument_profile(); });
+
+        // Profile the tuple
+        profile(std::move(tup));
+    }
+
+    ~Logger()
+    {
+#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+        if(m_active)
+        {
+            roctxRangePop();
+        }
+#endif
+    }
+
+private:
+    bool m_active{false};
+};
