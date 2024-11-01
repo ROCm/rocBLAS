@@ -243,6 +243,20 @@ Tests:
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
 
+- name: gemmt_large_batch
+  category: stress
+  function:
+    - gemmt_batched
+    - gemmt_strided_batched
+  precision: *single_precision
+  uplo: [ L ]
+  transA: [ T ]
+  transB: [ N ]
+  matrix_size:
+    - { N: 3, K: 3, lda: 3, ldb: 3, ldc: 3, batch_count: *c_grid_yz_require_passes }
+  alpha_beta:
+    - { alpha:  0.5, beta:  0.5 }
+
 - name: gemmt_strided_batched_64 # TODO: add tests for K, lda, ldb, ldc > int32_t_max
   category: stress
   api: [C_64]

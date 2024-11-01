@@ -193,6 +193,18 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
 
+- name: her2k_large_batch
+  category: stress
+  uplo: [ U, L ]
+  arguments:
+    - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: C}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  function:
+    - her2k_batched: *single_precision_complex
+    - her2k_strided_batched: *single_precision_complex
+  stride_scale: 1
+
 - name: her2k_64
   category: stress
   uplo: [ U, L ]

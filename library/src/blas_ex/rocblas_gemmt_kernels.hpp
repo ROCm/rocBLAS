@@ -24,6 +24,7 @@
 
 #include "../blas3/rocblas_gemm.hpp"
 #include "definitions.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "int64_helpers.hpp"
 #include "rocblas_blas_ex_threshold.hpp"
@@ -72,91 +73,101 @@ rocblas_internal_gemmt_kernel(rocblas_int    N,
     int idt  = DIM_N * thy + thx; // thread's number
     int blx  = blockIdx.x; // block's m position
     int bly  = blockIdx.y; // block's n position
-    int blz  = blockIdx.z; // block's matrix in the batch
     int thxA = idt % BLK_N; // thread's m position for loading A
     int thyA = idt / BLK_N; // thread's n position for loading A
     int thxB = idt % BLK_K; // thread's m position for loading B
     int thyB = idt / BLK_K; // thread's n position for loading B
 
-    auto* dA = load_ptr_batch(dA_array, blz, stride_a);
-    auto* dB = load_ptr_batch(dB_array, blz, stride_b);
-    auto* dC = load_ptr_batch(dC_array, blz, stride_c);
+    uint32_t blz = blockIdx.z; // block's matrix in the batch
 
-    __shared__ T sA[BLK_K][BLK_N]; // shared memory for A
-    __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
-    T            rC[BLK_N / DIM_N][BLK_N / DIM_N]; // registers for C
-
-    int a_i_offset = thxA + BLK_N * blx;
-    int a_j_offset = thyA;
-    int b_i_offset = thxB;
-    int b_j_offset = thyB + BLK_N * bly;
-
-    for(int n = 0; n < BLK_N / DIM_N; ++n)
-        for(int m = 0; m < BLK_N / DIM_N; ++m)
-            rC[n][m] = 0.0;
-
-    if(alpha != T(0))
+#if DEVICE_GRID_YZ_16BIT
+    for(; blz < batch_count; blz += c_YZ_grid_launch_limit)
     {
-        for(int kk = 0; kk < K; kk += BLK_K)
+#endif
+
+        auto* dA = load_ptr_batch(dA_array, blz, stride_a);
+        auto* dB = load_ptr_batch(dB_array, blz, stride_b);
+        auto* dC = load_ptr_batch(dC_array, blz, stride_c);
+
+        __shared__ T sA[BLK_K][BLK_N]; // shared memory for A
+        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
+        T            rC[BLK_N / DIM_N][BLK_N / DIM_N]; // registers for C
+
+        int a_i_offset = thxA + BLK_N * blx;
+        int a_j_offset = thyA;
+        int b_i_offset = thxB;
+        int b_j_offset = thyB + BLK_N * bly;
+
+        for(int n = 0; n < BLK_N / DIM_N; ++n)
+            for(int m = 0; m < BLK_N / DIM_N; ++m)
+                rC[n][m] = 0.0;
+
+        if(alpha != T(0))
         {
-            int i = a_i_offset;
-            int j = kk + a_j_offset;
-            if(i < N && j < K)
+            for(int kk = 0; kk < K; kk += BLK_K)
             {
-                if(TRANSA == 'N')
-                    sA[thyA][thxA] = dA[i + j * size_t(lda)];
-                if(TRANSA == 'T')
-                    sA[thyA][thxA] = dA[i * size_t(lda) + j];
-                if(TRANSA == 'C')
-                    sA[thyA][thxA] = conj_if_true<HERM_A>(dA[i * size_t(lda) + j]);
-            }
-            else
-            {
-                sA[thyA][thxA] = 0.0;
-            }
-            i = kk + b_i_offset;
-            j = b_j_offset;
-            if(i < K && j < N)
-            {
-                if(TRANSB == 'N')
-                    sB[thyB][thxB] = dB[i + j * size_t(ldb)];
-                if(TRANSB == 'T')
-                    sB[thyB][thxB] = dB[i * size_t(ldb) + j];
-                if(TRANSB == 'C')
-                    sB[thyB][thxB] = conj_if_true<HERM_B>(dB[i * size_t(ldb) + j]);
-            }
-            else
-            {
-                sB[thyB][thxB] = 0;
-            }
-
-            __syncthreads();
-
-            for(int k = 0; k < BLK_K; ++k)
-                for(int n = 0; n < BLK_N / DIM_N; ++n)
-                    for(int m = 0; m < BLK_N / DIM_N; ++m)
-                        rC[n][m] += sA[k][m * DIM_N + thx] * sB[n * DIM_N + thy][k];
-
-            __syncthreads();
-        }
-    }
-    for(int n = 0; n < BLK_N / DIM_N; ++n)
-    {
-        for(int m = 0; m < BLK_N / DIM_N; ++m)
-        {
-            int coord_dCm = blx * BLK_N + m * DIM_N + thx;
-            int coord_dCn = bly * BLK_N + n * DIM_N + thy;
-            if((UPLO == 'L' && coord_dCn <= coord_dCm && coord_dCm < N)
-               || (UPLO == 'U' && coord_dCm <= coord_dCn && coord_dCn < N))
-            {
-                if(beta == 0)
-                    dC[coord_dCn * size_t(ldc) + coord_dCm] = alpha * rC[n][m];
+                int i = a_i_offset;
+                int j = kk + a_j_offset;
+                if(i < N && j < K)
+                {
+                    if(TRANSA == 'N')
+                        sA[thyA][thxA] = dA[i + j * size_t(lda)];
+                    if(TRANSA == 'T')
+                        sA[thyA][thxA] = dA[i * size_t(lda) + j];
+                    if(TRANSA == 'C')
+                        sA[thyA][thxA] = conj_if_true<HERM_A>(dA[i * size_t(lda) + j]);
+                }
                 else
-                    dC[coord_dCn * size_t(ldc) + coord_dCm]
-                        = alpha * rC[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm];
+                {
+                    sA[thyA][thxA] = 0.0;
+                }
+                i = kk + b_i_offset;
+                j = b_j_offset;
+                if(i < K && j < N)
+                {
+                    if(TRANSB == 'N')
+                        sB[thyB][thxB] = dB[i + j * size_t(ldb)];
+                    if(TRANSB == 'T')
+                        sB[thyB][thxB] = dB[i * size_t(ldb) + j];
+                    if(TRANSB == 'C')
+                        sB[thyB][thxB] = conj_if_true<HERM_B>(dB[i * size_t(ldb) + j]);
+                }
+                else
+                {
+                    sB[thyB][thxB] = 0;
+                }
+
+                __syncthreads();
+
+                for(int k = 0; k < BLK_K; ++k)
+                    for(int n = 0; n < BLK_N / DIM_N; ++n)
+                        for(int m = 0; m < BLK_N / DIM_N; ++m)
+                            rC[n][m] += sA[k][m * DIM_N + thx] * sB[n * DIM_N + thy][k];
+
+                __syncthreads();
             }
         }
+        for(int n = 0; n < BLK_N / DIM_N; ++n)
+        {
+            for(int m = 0; m < BLK_N / DIM_N; ++m)
+            {
+                int coord_dCm = blx * BLK_N + m * DIM_N + thx;
+                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
+                if((UPLO == 'L' && coord_dCn <= coord_dCm && coord_dCm < N)
+                   || (UPLO == 'U' && coord_dCm <= coord_dCn && coord_dCn < N))
+                {
+                    if(beta == 0)
+                        dC[coord_dCn * size_t(ldc) + coord_dCm] = alpha * rC[n][m];
+                    else
+                        dC[coord_dCn * size_t(ldc) + coord_dCm]
+                            = alpha * rC[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm];
+                }
+            }
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 template <typename API_INT, typename TScal, typename TConstPtr, typename TPtr>
@@ -179,7 +190,8 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
                                                        rocblas_stride    stride_c,
                                                        rocblas_int       batch_count)
 {
-    hipStream_t stream = handle->get_stream();
+    hipStream_t stream  = handle->get_stream();
+    int         batches = handle->getBatchGridDim((int)batch_count);
 
     constexpr bool rocblas_is_complex
         = std::is_same_v<TScal,
@@ -189,7 +201,7 @@ rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
     const int blk_n = 32;
     const int blk_k = 8;
     dim3      dimBlock(dim_n, dim_n);
-    dim3      dimGrid(((n - 1) / blk_n) + 1, ((n - 1) / blk_n) + 1, batch_count);
+    dim3      dimGrid(((n - 1) / blk_n) + 1, ((n - 1) / blk_n) + 1, batches);
 
 #define ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha_, beta_)                                     \
     dimGrid, dimBlock, 0, stream, n, k, alpha_, dA, lda, stride_a, dB, ldb, stride_b, beta_, dC, \

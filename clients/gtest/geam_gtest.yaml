@@ -261,6 +261,17 @@ Tests:
   alpha_beta: *huge_complex_alpha_beta_range
   pointer_mode_device: false
 
+- name: geam_large_batch
+  category: pre_checkin # TODO
+  arguments:
+    - {  M: 2, N: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T, transB: T }
+  alpha: [1.0, 0.0]
+  beta: 1.0
+  function:
+    - geam_batched: *single_precision
+    - geam_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: geam_64
   category: stress
   arguments:

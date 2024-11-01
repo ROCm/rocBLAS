@@ -27,6 +27,7 @@
 
 #ifdef BUILD_WITH_TENSILE
 
+#include "int64_helpers.hpp"
 #include "tensile_host.hpp"
 
 /*******************************************************************************
@@ -62,6 +63,17 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle     handle,
                                            int32_t            solution_index = 0,
                                            rocblas_gemm_flags flags = rocblas_gemm_flags_none)
 {
+    size_t grid_z_limit = handle->getBatchGridDim(batch_count);
+
+    for(size_t b_base = 0; b_base < batch_count; b_base += grid_z_limit)
+    {
+        auto A_ptr = adjust_ptr_batch(batchA, b_base, stride_a);
+        auto B_ptr = adjust_ptr_batch(batchB, b_base, stride_b);
+        auto C_ptr = adjust_ptr_batch(batchC, b_base, stride_c);
+        auto D_ptr = adjust_ptr_batch(batchD, b_base, stride_d);
+
+        int32_t batches = int32_t(std::min(batch_count - b_base, grid_z_limit));
+
 #if 0
     // if tensile supports we can remove special case handling here
     if(k == 0 || (alpha && !*alpha))
@@ -71,25 +83,27 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle     handle,
                                               m,
                                               n,
                                               *beta,
-                                              batchC,
+                                              C_ptr,
                                               offset_c,
                                               ld_c,
                                               stride_c,
-                                              batchD,
+                                              D_ptr,
                                               offset_d,
                                               ld_d,
                                               stride_d,
-                                              batch_count);
+                                              batches);
     }
 #endif
 
-    RocblasContractionProblem<Ti, To, Tc> problem{
-        handle,   trans_a, trans_b,  m,        n,           k,        alpha,    nullptr,
-        batchA,   ld_a,    stride_a, offset_a, nullptr,     batchB,   ld_b,     stride_b,
-        offset_b, beta,    nullptr,  batchC,   ld_c,        stride_c, offset_c, nullptr,
-        batchD,   ld_d,    stride_d, offset_d, batch_count, false,    flags};
+        RocblasContractionProblem<Ti, To, Tc> problem{
+            handle,   trans_a, trans_b,  m,        n,       k,        alpha,    nullptr,
+            A_ptr,    ld_a,    stride_a, offset_a, nullptr, B_ptr,    ld_b,     stride_b,
+            offset_b, beta,    nullptr,  C_ptr,    ld_c,    stride_c, offset_c, nullptr,
+            D_ptr,    ld_d,    stride_d, offset_d, batches, false,    flags};
 
-    return runContractionProblem(problem, algo, solution_index);
+        RETURN_IF_ROCBLAS_ERROR(runContractionProblem(problem, algo, solution_index));
+    }
+    return rocblas_status_success;
 }
 
 template <typename Ti, typename To, typename Tc>
@@ -122,6 +136,18 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle     handle,
                                            int32_t            solution_index = 0,
                                            rocblas_gemm_flags flags = rocblas_gemm_flags_none)
 {
+
+    size_t grid_z_limit = handle->getBatchGridDim(batch_count);
+
+    for(size_t b_base = 0; b_base < batch_count; b_base += grid_z_limit)
+    {
+        auto A_ptr = adjust_ptr_batch(A, b_base, stride_a);
+        auto B_ptr = adjust_ptr_batch(B, b_base, stride_b);
+        auto C_ptr = adjust_ptr_batch(C, b_base, stride_c);
+        auto D_ptr = adjust_ptr_batch(D, b_base, stride_d);
+
+        int32_t batches = int32_t(std::min(batch_count - b_base, grid_z_limit));
+
 #if 0
     // if tensile supports we can remove special case handling here
     if(k == 0 || (alpha && !*alpha))
@@ -131,52 +157,54 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle     handle,
                                               m,
                                               n,
                                               *beta,
-                                              C,
+                                              C_ptr,
                                               offset_c,
                                               ld_c,
                                               stride_c,
-                                              D,
+                                              D_ptr,
                                               offset_d,
                                               ld_d,
                                               stride_d,
-                                              batch_count);
+                                              batches);
     }
 #endif
 
-    // pre apply offsets for non-batched and strided
-    RocblasContractionProblem<Ti, To, Tc> problem{handle,
-                                                  trans_a,
-                                                  trans_b,
-                                                  m,
-                                                  n,
-                                                  k,
-                                                  alpha,
-                                                  A + offset_a,
-                                                  nullptr,
-                                                  ld_a,
-                                                  stride_a,
-                                                  0 /* offset_a */,
-                                                  B + offset_b,
-                                                  nullptr,
-                                                  ld_b,
-                                                  stride_b,
-                                                  0 /* offset_b */,
-                                                  beta,
-                                                  C + offset_c,
-                                                  nullptr,
-                                                  ld_c,
-                                                  stride_c,
-                                                  0 /* offset_c */,
-                                                  D + offset_d,
-                                                  nullptr,
-                                                  ld_d,
-                                                  stride_d,
-                                                  0 /* offset_d */,
-                                                  batch_count,
-                                                  true,
-                                                  flags};
+        // pre apply offsets for non-batched and strided
+        RocblasContractionProblem<Ti, To, Tc> problem{handle,
+                                                      trans_a,
+                                                      trans_b,
+                                                      m,
+                                                      n,
+                                                      k,
+                                                      alpha,
+                                                      A_ptr + offset_a,
+                                                      nullptr,
+                                                      ld_a,
+                                                      stride_a,
+                                                      0 /* offset_a */,
+                                                      B_ptr + offset_b,
+                                                      nullptr,
+                                                      ld_b,
+                                                      stride_b,
+                                                      0 /* offset_b */,
+                                                      beta,
+                                                      C_ptr + offset_c,
+                                                      nullptr,
+                                                      ld_c,
+                                                      stride_c,
+                                                      0 /* offset_c */,
+                                                      D_ptr + offset_d,
+                                                      nullptr,
+                                                      ld_d,
+                                                      stride_d,
+                                                      0 /* offset_d */,
+                                                      batches,
+                                                      true,
+                                                      flags};
 
-    return runContractionProblem(problem, algo, solution_index);
+        RETURN_IF_ROCBLAS_ERROR(runContractionProblem(problem, algo, solution_index));
+    }
+    return rocblas_status_success;
 }
 
 #endif // BUILD_WITH_TENSILE

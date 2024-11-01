@@ -15,7 +15,9 @@ rocblas_axpy_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_axpy_ex
+   :outline:
 .. doxygenfunction:: rocblas_axpy_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_axpy_strided_batched_ex
 
 axpy_ex, axpy_batched_ex, and axpy_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
@@ -24,7 +26,9 @@ rocblas_dot_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_dot_ex
+   :outline:
 .. doxygenfunction:: rocblas_dot_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_dot_strided_batched_ex
 
 dot_ex, dot_batched_ex, and dot_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
@@ -33,7 +37,9 @@ rocblas_dotc_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_dotc_ex
+   :outline:
 .. doxygenfunction:: rocblas_dotc_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_dotc_strided_batched_ex
 
 dotc_ex, dotc_batched_ex, and dotc_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
@@ -42,7 +48,9 @@ rocblas_nrm2_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_nrm2_ex
+   :outline:
 .. doxygenfunction:: rocblas_nrm2_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_nrm2_strided_batched_ex
 
 nrm2_ex, nrm2_batched_ex, and nrm2_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
@@ -51,7 +59,9 @@ rocblas_rot_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_rot_ex
+   :outline:
 .. doxygenfunction:: rocblas_rot_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_rot_strided_batched_ex
 
 rot_ex, rot_batched_ex, and rot_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
@@ -60,7 +70,9 @@ rocblas_scal_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_scal_ex
+   :outline:
 .. doxygenfunction:: rocblas_scal_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_scal_strided_batched_ex
 
 scal_ex, scal_batched_ex, and scal_strided_batched_ex functions support the _64 interface.  Refer to section :ref:`ILP64 API`.
@@ -87,7 +99,9 @@ rocblas_trsm_ex + batched, strided_batched
 ============================================
 
 .. doxygenfunction:: rocblas_trsm_ex
+   :outline:
 .. doxygenfunction:: rocblas_trsm_batched_ex
+   :outline:
 .. doxygenfunction:: rocblas_trsm_strided_batched_ex
 
 rocblas_Xgeam + batched, strided_batched
@@ -122,6 +136,11 @@ The geam_batched functions support the _64 interface. Refer to section :ref:`ILP
 .. doxygenfunction:: rocblas_zgeam_strided_batched
 
 The geam_strided_batched functions support the _64 interface. Refer to section :ref:`ILP64 API`.
+
+rocblas_geam_ex
+============================================
+
+.. doxygenfunction:: rocblas_geam_ex
 
 rocblas_Xdgmm + batched, strided_batched
 ============================================

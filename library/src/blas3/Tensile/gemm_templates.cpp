@@ -130,12 +130,11 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
                                     batch_count);
     }
 #else // BUILD_WITH_TENSILE
-    hipStream_t rocblas_stream = handle->get_stream();
 
     if(k == 0 || (alpha && *alpha == 0))
     {
         return rocblas_gemm_scale_launcher_64(
-            m, n, *beta, C, offset_c, ldc, stride_c, batch_count, rocblas_stream);
+            handle, m, n, *beta, C, offset_c, ldc, stride_c, batch_count);
     }
 
     rocblas_status status = rocblas_status_success;
@@ -145,6 +144,7 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
         int32_t nblock = int32_t(std::min(n - n_base, c_i64_grid_YZ_chunk));
 
         status = rocblas_gemm_source_solution_64<BATCHED>(
+            handle,
             trans_a,
             trans_b,
             m,
@@ -168,8 +168,7 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
             ldc,
             stride_c,
             offset_c + n_base * ldc,
-            batch_count,
-            rocblas_stream);
+            batch_count);
 
         if(status != rocblas_status_success)
             return status;

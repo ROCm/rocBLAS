@@ -24,6 +24,7 @@
 
 #include "../blas2/rocblas_trsv.hpp"
 #include "definitions.hpp"
+#include "device_macros.hpp"
 #ifdef BUILD_WITH_TENSILE
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #endif
@@ -140,57 +141,71 @@ static const T alpha_1 = T(1);
 template <typename T>
 static const T beta_1 = T(1);
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V>
+template <int DIM_X, int DIM_Y, typename T, typename U, typename V>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-copy_matrix_trsm(rocblas_int    rows,
-                 rocblas_int    cols,
-                 rocblas_int    elem_size,
-                 U              a,
-                 rocblas_int    lda,
-                 rocblas_stride stride_a,
-                 V              b,
-                 rocblas_int    ldb,
-                 rocblas_stride stride_b,
-                 rocblas_stride offset_a,
-                 rocblas_stride offset_b)
+rocblas_copy_matrix_trsm(rocblas_int    rows,
+                         rocblas_int    cols,
+                         rocblas_int    elem_size,
+                         U              a,
+                         rocblas_int    lda,
+                         rocblas_stride stride_a,
+                         V              b,
+                         rocblas_int    ldb,
+                         rocblas_stride stride_b,
+                         rocblas_stride offset_a,
+                         rocblas_stride offset_b,
+                         rocblas_int    batch_count)
 {
     size_t tx = blockIdx.x * DIM_X + threadIdx.x;
 
-    const T* xa = load_ptr_batch(a, blockIdx.z, offset_a, stride_a);
-    T*       xb = load_ptr_batch(b, blockIdx.z, offset_b, stride_b);
+    uint32_t batch = blockIdx.z;
 
-    //looping over ty
-    for(size_t ty = blockIdx.y * DIM_Y + threadIdx.y; ty < cols && tx < rows;
-        ty += DIM_Y * gridDim.y)
-        xb[tx + size_t(ldb) * ty] = xa[tx + size_t(lda) * ty];
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        const T* xa = load_ptr_batch(a, batch, offset_a, stride_a);
+        T*       xb = load_ptr_batch(b, batch, offset_b, stride_b);
+
+        //looping over ty
+        for(size_t ty = blockIdx.y * DIM_Y + threadIdx.y; ty < cols && tx < rows;
+            ty += DIM_Y * gridDim.y)
+            xb[tx + size_t(ldb) * ty] = xa[tx + size_t(lda) * ty];
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /* ===============copy helper============================================= */
 template <typename T, typename U, typename V>
-rocblas_status copy_block_unit(rocblas_handle handle,
-                               rocblas_int    m,
-                               rocblas_int    n,
-                               U              src,
-                               rocblas_int    src_ld,
-                               rocblas_stride src_stride,
-                               V              dst,
-                               rocblas_int    dst_ld,
-                               rocblas_stride dst_stride,
-                               rocblas_int    batch_count,
-                               rocblas_stride offset_src = 0,
-                               rocblas_stride offset_dst = 0)
+rocblas_status rocblas_copy_block_unit(rocblas_handle handle,
+                                       rocblas_int    m,
+                                       rocblas_int    n,
+                                       U              src,
+                                       rocblas_int    src_ld,
+                                       rocblas_stride src_stride,
+                                       V              dst,
+                                       rocblas_int    dst_ld,
+                                       rocblas_stride dst_stride,
+                                       rocblas_int    batch_count,
+                                       rocblas_stride offset_src = 0,
+                                       rocblas_stride offset_dst = 0)
 {
     static constexpr int COPY_DIM_X = 128;
     static constexpr int COPY_DIM_Y = 8;
+
+    int batches = handle->getBatchGridDim((int)batch_count);
 
     rocblas_int blocks_X = (m - 1) / COPY_DIM_X + 1; // parameters for device kernel
 
     //blocksY should be less than 2^16 (65536) to avoid overflow as grid y and z dimensions support only 16-bit values on some gfx
     rocblas_int blocks_Y = std::min(c_YZ_grid_launch_limit, (n - 1) / COPY_DIM_Y + 1);
-    dim3        grid(blocks_X, blocks_Y, batch_count);
+    dim3        grid(blocks_X, blocks_Y, batches);
     dim3        threads(COPY_DIM_X, COPY_DIM_Y);
 
-    ROCBLAS_LAUNCH_KERNEL((copy_matrix_trsm<COPY_DIM_X, COPY_DIM_Y, T>),
+    ROCBLAS_LAUNCH_KERNEL((rocblas_copy_matrix_trsm<COPY_DIM_X, COPY_DIM_Y, T>),
                           grid,
                           threads,
                           0,
@@ -205,29 +220,42 @@ rocblas_status copy_block_unit(rocblas_handle handle,
                           dst_ld,
                           dst_stride,
                           offset_src,
-                          offset_dst);
+                          offset_dst,
+                          batch_count);
 
     return rocblas_status_success;
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-set_matrix_trsm(int64_t        rows,
-                int64_t        cols,
-                rocblas_int    elem_size,
-                U              a,
-                int64_t        lda,
-                rocblas_stride stride_a,
-                T              val,
-                rocblas_stride offset_a)
+rocblas_set_matrix_trsm(int64_t        rows,
+                        int64_t        cols,
+                        rocblas_int    elem_size,
+                        U              a,
+                        int64_t        lda,
+                        rocblas_stride stride_a,
+                        T              val,
+                        rocblas_stride offset_a,
+                        int            batch_count)
 {
-    T* xa = load_ptr_batch(a, blockIdx.z, offset_a, stride_a);
+    size_t tx = blockIdx.x * DIM_X + threadIdx.x;
+    size_t ty = blockIdx.y * DIM_Y + threadIdx.y;
 
-    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
+    uint32_t batch = blockIdx.z;
 
-    if(tx < rows && ty < cols)
-        xa[tx + lda * ty] = T(0.0);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        T* xa = load_ptr_batch(a, batch, offset_a, stride_a);
+
+        if(tx < rows && ty < cols)
+            xa[tx + lda * ty] = T(0.0);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /* ===============set helper============================================= */
@@ -242,12 +270,16 @@ rocblas_status set_block_unit(rocblas_handle handle,
                               T              val,
                               rocblas_stride offset_src)
 {
-    rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
-    rocblas_int blocksY = (n - 1) / 8 + 1;
-    dim3        grid(blocksX, blocksY, batch_count);
-    dim3        threads(128, 8);
+    static constexpr int DIM_X = 128;
+    static constexpr int DIM_Y = 8;
 
-    ROCBLAS_LAUNCH_KERNEL((set_matrix_trsm<128, 8, T>),
+    int         batches = handle->getBatchGridDim((int)batch_count);
+    rocblas_int blocksX = (m - 1) / DIM_X + 1; // parameters for device kernel
+    rocblas_int blocksY = (n - 1) / DIM_Y + 1;
+    dim3        grid(blocksX, blocksY, batches);
+    dim3        threads(DIM_X, DIM_Y);
+
+    ROCBLAS_LAUNCH_KERNEL((rocblas_set_matrix_trsm<DIM_X, DIM_Y, T>),
                           grid,
                           threads,
                           0,
@@ -259,7 +291,8 @@ rocblas_status set_block_unit(rocblas_handle handle,
                           src_ld,
                           src_stride,
                           val,
-                          offset_src);
+                          offset_src,
+                          batch_count);
 
     return rocblas_status_success;
 }
@@ -1207,18 +1240,18 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
 
                 // copy a BLOCK*n piece we are solving at a time
                 if(!r || !tensile_supports_ldc_ne_ldd)
-                    copy_block_unit<T>(handle,
-                                       BLOCK,
-                                       width,
-                                       B,
-                                       ldb,
-                                       stride_B,
-                                       w_x_temp,
-                                       BLOCK,
-                                       stride_X,
-                                       batch_count,
-                                       j * BLOCK + w * B_chunk_size * ldb + offset_Bin,
-                                       0);
+                    rocblas_copy_block_unit<T>(handle,
+                                               BLOCK,
+                                               width,
+                                               B,
+                                               ldb,
+                                               stride_B,
+                                               w_x_temp,
+                                               BLOCK,
+                                               stride_X,
+                                               batch_count,
+                                               j * BLOCK + w * B_chunk_size * ldb + offset_Bin,
+                                               0);
 
                 if(r)
                 {
@@ -1333,18 +1366,19 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
 
                 // copy a m*BLOCK piece we are solving at a time
                 if(!r || !tensile_supports_ldc_ne_ldd)
-                    copy_block_unit<T>(handle,
-                                       width,
-                                       BLOCK,
-                                       B,
-                                       ldb,
-                                       stride_B,
-                                       w_x_temp,
-                                       width,
-                                       stride_X,
-                                       batch_count,
-                                       j * BLOCK * size_t(ldb) + w * B_chunk_size + offset_Bin,
-                                       0);
+                    rocblas_copy_block_unit<T>(handle,
+                                               width,
+                                               BLOCK,
+                                               B,
+                                               ldb,
+                                               stride_B,
+                                               w_x_temp,
+                                               width,
+                                               stride_X,
+                                               batch_count,
+                                               j * BLOCK * size_t(ldb) + w * B_chunk_size
+                                                   + offset_Bin,
+                                               0);
 
                 if(r)
                 {
@@ -1974,256 +2008,268 @@ rocblas_trsm_small_right_device(rocblas_fill      uplo,
                                 BTYPE             Ba,
                                 rocblas_stride    offset_B,
                                 int               ldb,
-                                rocblas_stride    stride_B)
+                                rocblas_stride    stride_B,
+                                int               batch_count)
 {
-    const int batchid = blockIdx.y;
-    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto      alpha   = load_scalar(alpha_dev_host);
+    auto alpha = load_scalar(alpha_dev_host);
 
-    bool      LOWER = uplo == rocblas_fill_lower;
-    bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
-    const int tx    = threadIdx.x;
-    const int bx    = blockIdx.x;
+    uint32_t batchid = blockIdx.z;
 
-    // max A column to read from
-    int maxColA = NB - 1 > n - 1 ? n - 1 : NB - 1;
-    // NB columns, unless last block, then do leftover
-    const int maxColB = (bx < gridDim.x - 1) ? NB : m - bx * NB;
-
-    // offset B into correct block row
-    B += size_t(bx) * NB;
-
-    __shared__ T sA[NB * NB];
-    __shared__ T sB[NB * NB];
-
-    T resB[4];
-
-    if(tx <= maxColA)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        // Load A into sA, handle conjugation if necessary
-        for(int i = 0; i <= maxColA; i++)
-            sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
+#endif
 
-        // set unit diagonal if needed
-        if(diag == rocblas_diagonal_unit)
-            sA[tx * NB + tx] = T(1.0);
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+
+        bool      LOWER = uplo == rocblas_fill_lower;
+        bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
+        const int tx    = threadIdx.x;
+        const int bx    = blockIdx.x;
+
+        // max A column to read from
+        int maxColA = NB - 1 > n - 1 ? n - 1 : NB - 1;
+        // NB columns, unless last block, then do leftover
+        const int maxColB = (bx < gridDim.x - 1) ? NB : m - bx * NB;
+
+        // offset B into correct block row
+        B += size_t(bx) * NB;
+
+        __shared__ T sA[NB * NB];
+        __shared__ T sB[NB * NB];
+
+        T resB[4];
+
+        if(tx <= maxColA)
+        {
+            // Load A into sA, handle conjugation if necessary
+            for(int i = 0; i <= maxColA; i++)
+                sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
+
+            // set unit diagonal if needed
+            if(diag == rocblas_diagonal_unit)
+                sA[tx * NB + tx] = T(1.0);
+        }
+
+        if(tx < maxColB)
+        {
+            // Load B into sB and multiply by alpha
+            for(int i = 0; i < n; i++)
+                sB[i * NB + tx] = alpha * B[i * size_t(ldb) + tx];
+        }
+        __syncthreads();
+
+        // Solve for B in shared memory
+        if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
+        {
+            int i;
+            for(i = 0; i + 3 <= maxColA; i += 4)
+            {
+                // Subtract previously solved parts
+                resB[0] = sB[(i + 0) * NB + tx];
+                resB[1] = sB[(i + 1) * NB + tx];
+                resB[2] = sB[(i + 2) * NB + tx];
+                resB[3] = sB[(i + 3) * NB + tx];
+
+                for(int j = 0; j < i; j++)
+                {
+                    T sB_reg = sB[j * NB + tx];
+                    resB[0] -= sB_reg * sA[(i + 0) * NB + j];
+                    resB[1] -= sB_reg * sA[(i + 1) * NB + j];
+                    resB[2] -= sB_reg * sA[(i + 2) * NB + j];
+                    resB[3] -= sB_reg * sA[(i + 3) * NB + j];
+                }
+
+                resB[0] /= sA[(i + 0) * NB + (i + 0)];
+                sB[(i + 0) * NB + tx] = resB[0];
+
+                resB[1] -= resB[0] * sA[(i + 1) * NB + (i + 0)];
+                resB[1] /= sA[(i + 1) * NB + (i + 1)];
+                sB[(i + 1) * NB + tx] = resB[1];
+
+                resB[2] -= resB[0] * sA[(i + 2) * NB + (i + 0)];
+                resB[2] -= resB[1] * sA[(i + 2) * NB + (i + 1)];
+                resB[2] /= sA[(i + 2) * NB + (i + 2)];
+                sB[(i + 2) * NB + tx] = resB[2];
+
+                resB[3] -= resB[0] * sA[(i + 3) * NB + (i + 0)];
+                resB[3] -= resB[1] * sA[(i + 3) * NB + (i + 1)];
+                resB[3] -= resB[2] * sA[(i + 3) * NB + (i + 2)];
+                resB[3] /= sA[(i + 3) * NB + (i + 3)];
+                sB[(i + 3) * NB + tx] = resB[3];
+            }
+
+            // tail end if not divisible by 4
+            for(; i <= maxColA; i++)
+            {
+                resB[0] = sB[i * NB + tx];
+                for(int j = 0; j < i; j++)
+                {
+                    resB[0] -= sB[j * NB + tx] * sA[i * NB + j];
+                }
+                sB[i * NB + tx] = resB[0] / sA[i * NB + i];
+            }
+        }
+        else if(transA == rocblas_operation_none && uplo == rocblas_fill_lower)
+        {
+            int i;
+            for(i = maxColA; i >= 3; i -= 4)
+            {
+                resB[0] = sB[(i - 0) * NB + tx];
+                resB[1] = sB[(i - 1) * NB + tx];
+                resB[2] = sB[(i - 2) * NB + tx];
+                resB[3] = sB[(i - 3) * NB + tx];
+
+                for(int j = maxColA; j > i; j--)
+                {
+                    T sB_reg = sB[j * NB + tx];
+                    resB[0] -= sB_reg * sA[(i - 0) * NB + j];
+                    resB[1] -= sB_reg * sA[(i - 1) * NB + j];
+                    resB[2] -= sB_reg * sA[(i - 2) * NB + j];
+                    resB[3] -= sB_reg * sA[(i - 3) * NB + j];
+                }
+
+                resB[0] /= sA[(i - 0) * NB + (i - 0)];
+                sB[(i - 0) * NB + tx] = resB[0];
+
+                resB[1] -= resB[0] * sA[(i - 1) * NB + (i - 0)];
+                resB[1] /= sA[(i - 1) * NB + (i - 1)];
+                sB[(i - 1) * NB + tx] = resB[1];
+
+                resB[2] -= resB[0] * sA[(i - 2) * NB + (i - 0)];
+                resB[2] -= resB[1] * sA[(i - 2) * NB + (i - 1)];
+                resB[2] /= sA[(i - 2) * NB + (i - 2)];
+                sB[(i - 2) * NB + tx] = resB[2];
+
+                resB[3] -= resB[0] * sA[(i - 3) * NB + (i - 0)];
+                resB[3] -= resB[1] * sA[(i - 3) * NB + (i - 1)];
+                resB[3] -= resB[2] * sA[(i - 3) * NB + (i - 2)];
+                resB[3] /= sA[(i - 3) * NB + (i - 3)];
+                sB[(i - 3) * NB + tx] = resB[3];
+            }
+
+            for(; i >= 0; i--)
+            {
+                resB[0] = sB[i * NB + tx];
+                for(int j = maxColA; j > i; j--)
+                {
+                    resB[0] -= sB[j * NB + tx] * sA[i * NB + j];
+                }
+                sB[i * NB + tx] = resB[0] / sA[i * NB + i];
+            }
+        }
+        else if(uplo == rocblas_fill_upper)
+        {
+            int i;
+            for(i = maxColA; i >= 3; i -= 4)
+            {
+                resB[0] = sB[(i - 0) * NB + tx];
+                resB[1] = sB[(i - 1) * NB + tx];
+                resB[2] = sB[(i - 2) * NB + tx];
+                resB[3] = sB[(i - 3) * NB + tx];
+
+                for(int j = maxColA; j > i; j--)
+                {
+                    rocblas_int col_off = j * NB;
+                    T           sB_reg  = sB[col_off + tx];
+                    resB[0] -= sB_reg * sA[col_off + (i - 0)];
+                    resB[1] -= sB_reg * sA[col_off + (i - 1)];
+                    resB[2] -= sB_reg * sA[col_off + (i - 2)];
+                    resB[3] -= sB_reg * sA[col_off + (i - 3)];
+                }
+
+                resB[0] /= sA[(i - 0) * NB + (i - 0)];
+                sB[(i - 0) * NB + tx] = resB[0];
+
+                resB[1] -= resB[0] * sA[(i - 0) * NB + (i - 1)];
+                resB[1] /= sA[(i - 1) * NB + (i - 1)];
+                sB[(i - 1) * NB + tx] = resB[1];
+
+                resB[2] -= resB[0] * sA[(i - 0) * NB + (i - 2)];
+                resB[2] -= resB[1] * sA[(i - 1) * NB + (i - 2)];
+                resB[2] /= sA[(i - 2) * NB + (i - 2)];
+                sB[(i - 2) * NB + tx] = resB[2];
+
+                resB[3] -= resB[0] * sA[(i - 0) * NB + (i - 3)];
+                resB[3] -= resB[1] * sA[(i - 1) * NB + (i - 3)];
+                resB[3] -= resB[2] * sA[(i - 2) * NB + (i - 3)];
+                resB[3] /= sA[(i - 3) * NB + (i - 3)];
+                sB[(i - 3) * NB + tx] = resB[3];
+            }
+
+            for(; i >= 0; i--)
+            {
+                resB[0] = sB[i * NB + tx];
+                for(int j = maxColA; j > i; j--)
+                {
+                    resB[0] -= sB[j * NB + tx] * sA[j * NB + i];
+                }
+                sB[i * NB + tx] = resB[0] / sA[i * NB + i];
+            }
+        }
+        else // lower (conjugate-)transpose
+        {
+            int i;
+            for(i = 0; i + 3 <= maxColA; i += 4)
+            {
+                // Subtract previously solved parts
+                resB[0] = sB[(i + 0) * NB + tx];
+                resB[1] = sB[(i + 1) * NB + tx];
+                resB[2] = sB[(i + 2) * NB + tx];
+                resB[3] = sB[(i + 3) * NB + tx];
+
+                for(int j = 0; j < i; j++)
+                {
+                    rocblas_int col_off = j * NB;
+                    T           sB_reg  = sB[col_off + tx];
+                    resB[0] -= sB_reg * sA[col_off + (i + 0)];
+                    resB[1] -= sB_reg * sA[col_off + (i + 1)];
+                    resB[2] -= sB_reg * sA[col_off + (i + 2)];
+                    resB[3] -= sB_reg * sA[col_off + (i + 3)];
+                }
+
+                resB[0] /= sA[(i + 0) * NB + (i + 0)];
+                sB[(i + 0) * NB + tx] = resB[0];
+
+                resB[1] -= resB[0] * sA[(i + 0) * NB + (i + 1)];
+                resB[1] /= sA[(i + 1) * NB + (i + 1)];
+                sB[(i + 1) * NB + tx] = resB[1];
+
+                resB[2] -= resB[0] * sA[(i + 0) * NB + (i + 2)];
+                resB[2] -= resB[1] * sA[(i + 1) * NB + (i + 2)];
+                resB[2] /= sA[(i + 2) * NB + (i + 2)];
+                sB[(i + 2) * NB + tx] = resB[2];
+
+                resB[3] -= resB[0] * sA[(i + 0) * NB + (i + 3)];
+                resB[3] -= resB[1] * sA[(i + 1) * NB + (i + 3)];
+                resB[3] -= resB[2] * sA[(i + 2) * NB + (i + 3)];
+                resB[3] /= sA[(i + 3) * NB + (i + 3)];
+                sB[(i + 3) * NB + tx] = resB[3];
+            }
+
+            // tail end if not divisible by 4
+            for(; i <= maxColA; i++)
+            {
+                resB[0] = sB[i * NB + tx];
+                for(int j = 0; j < i; j++)
+                {
+                    resB[0] -= sB[j * NB + tx] * sA[j * NB + i];
+                }
+                sB[i * NB + tx] = resB[0] / sA[i * NB + i];
+            }
+        }
+
+        // Save shared memory back into B
+        if(tx < maxColB)
+        {
+            for(int i = 0; i < n; i++)
+                B[i * size_t(ldb) + tx] = sB[i * NB + tx];
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
-
-    if(tx < maxColB)
-    {
-        // Load B into sB and multiply by alpha
-        for(int i = 0; i < n; i++)
-            sB[i * NB + tx] = alpha * B[i * size_t(ldb) + tx];
-    }
-    __syncthreads();
-
-    // Solve for B in shared memory
-    if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
-    {
-        int i;
-        for(i = 0; i + 3 <= maxColA; i += 4)
-        {
-            // Subtract previously solved parts
-            resB[0] = sB[(i + 0) * NB + tx];
-            resB[1] = sB[(i + 1) * NB + tx];
-            resB[2] = sB[(i + 2) * NB + tx];
-            resB[3] = sB[(i + 3) * NB + tx];
-
-            for(int j = 0; j < i; j++)
-            {
-                T sB_reg = sB[j * NB + tx];
-                resB[0] -= sB_reg * sA[(i + 0) * NB + j];
-                resB[1] -= sB_reg * sA[(i + 1) * NB + j];
-                resB[2] -= sB_reg * sA[(i + 2) * NB + j];
-                resB[3] -= sB_reg * sA[(i + 3) * NB + j];
-            }
-
-            resB[0] /= sA[(i + 0) * NB + (i + 0)];
-            sB[(i + 0) * NB + tx] = resB[0];
-
-            resB[1] -= resB[0] * sA[(i + 1) * NB + (i + 0)];
-            resB[1] /= sA[(i + 1) * NB + (i + 1)];
-            sB[(i + 1) * NB + tx] = resB[1];
-
-            resB[2] -= resB[0] * sA[(i + 2) * NB + (i + 0)];
-            resB[2] -= resB[1] * sA[(i + 2) * NB + (i + 1)];
-            resB[2] /= sA[(i + 2) * NB + (i + 2)];
-            sB[(i + 2) * NB + tx] = resB[2];
-
-            resB[3] -= resB[0] * sA[(i + 3) * NB + (i + 0)];
-            resB[3] -= resB[1] * sA[(i + 3) * NB + (i + 1)];
-            resB[3] -= resB[2] * sA[(i + 3) * NB + (i + 2)];
-            resB[3] /= sA[(i + 3) * NB + (i + 3)];
-            sB[(i + 3) * NB + tx] = resB[3];
-        }
-
-        // tail end if not divisible by 4
-        for(; i <= maxColA; i++)
-        {
-            resB[0] = sB[i * NB + tx];
-            for(int j = 0; j < i; j++)
-            {
-                resB[0] -= sB[j * NB + tx] * sA[i * NB + j];
-            }
-            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
-        }
-    }
-    else if(transA == rocblas_operation_none && uplo == rocblas_fill_lower)
-    {
-        int i;
-        for(i = maxColA; i >= 3; i -= 4)
-        {
-            resB[0] = sB[(i - 0) * NB + tx];
-            resB[1] = sB[(i - 1) * NB + tx];
-            resB[2] = sB[(i - 2) * NB + tx];
-            resB[3] = sB[(i - 3) * NB + tx];
-
-            for(int j = maxColA; j > i; j--)
-            {
-                T sB_reg = sB[j * NB + tx];
-                resB[0] -= sB_reg * sA[(i - 0) * NB + j];
-                resB[1] -= sB_reg * sA[(i - 1) * NB + j];
-                resB[2] -= sB_reg * sA[(i - 2) * NB + j];
-                resB[3] -= sB_reg * sA[(i - 3) * NB + j];
-            }
-
-            resB[0] /= sA[(i - 0) * NB + (i - 0)];
-            sB[(i - 0) * NB + tx] = resB[0];
-
-            resB[1] -= resB[0] * sA[(i - 1) * NB + (i - 0)];
-            resB[1] /= sA[(i - 1) * NB + (i - 1)];
-            sB[(i - 1) * NB + tx] = resB[1];
-
-            resB[2] -= resB[0] * sA[(i - 2) * NB + (i - 0)];
-            resB[2] -= resB[1] * sA[(i - 2) * NB + (i - 1)];
-            resB[2] /= sA[(i - 2) * NB + (i - 2)];
-            sB[(i - 2) * NB + tx] = resB[2];
-
-            resB[3] -= resB[0] * sA[(i - 3) * NB + (i - 0)];
-            resB[3] -= resB[1] * sA[(i - 3) * NB + (i - 1)];
-            resB[3] -= resB[2] * sA[(i - 3) * NB + (i - 2)];
-            resB[3] /= sA[(i - 3) * NB + (i - 3)];
-            sB[(i - 3) * NB + tx] = resB[3];
-        }
-
-        for(; i >= 0; i--)
-        {
-            resB[0] = sB[i * NB + tx];
-            for(int j = maxColA; j > i; j--)
-            {
-                resB[0] -= sB[j * NB + tx] * sA[i * NB + j];
-            }
-            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
-        }
-    }
-    else if(uplo == rocblas_fill_upper)
-    {
-        int i;
-        for(i = maxColA; i >= 3; i -= 4)
-        {
-            resB[0] = sB[(i - 0) * NB + tx];
-            resB[1] = sB[(i - 1) * NB + tx];
-            resB[2] = sB[(i - 2) * NB + tx];
-            resB[3] = sB[(i - 3) * NB + tx];
-
-            for(int j = maxColA; j > i; j--)
-            {
-                rocblas_int col_off = j * NB;
-                T           sB_reg  = sB[col_off + tx];
-                resB[0] -= sB_reg * sA[col_off + (i - 0)];
-                resB[1] -= sB_reg * sA[col_off + (i - 1)];
-                resB[2] -= sB_reg * sA[col_off + (i - 2)];
-                resB[3] -= sB_reg * sA[col_off + (i - 3)];
-            }
-
-            resB[0] /= sA[(i - 0) * NB + (i - 0)];
-            sB[(i - 0) * NB + tx] = resB[0];
-
-            resB[1] -= resB[0] * sA[(i - 0) * NB + (i - 1)];
-            resB[1] /= sA[(i - 1) * NB + (i - 1)];
-            sB[(i - 1) * NB + tx] = resB[1];
-
-            resB[2] -= resB[0] * sA[(i - 0) * NB + (i - 2)];
-            resB[2] -= resB[1] * sA[(i - 1) * NB + (i - 2)];
-            resB[2] /= sA[(i - 2) * NB + (i - 2)];
-            sB[(i - 2) * NB + tx] = resB[2];
-
-            resB[3] -= resB[0] * sA[(i - 0) * NB + (i - 3)];
-            resB[3] -= resB[1] * sA[(i - 1) * NB + (i - 3)];
-            resB[3] -= resB[2] * sA[(i - 2) * NB + (i - 3)];
-            resB[3] /= sA[(i - 3) * NB + (i - 3)];
-            sB[(i - 3) * NB + tx] = resB[3];
-        }
-
-        for(; i >= 0; i--)
-        {
-            resB[0] = sB[i * NB + tx];
-            for(int j = maxColA; j > i; j--)
-            {
-                resB[0] -= sB[j * NB + tx] * sA[j * NB + i];
-            }
-            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
-        }
-    }
-    else // lower (conjugate-)transpose
-    {
-        int i;
-        for(i = 0; i + 3 <= maxColA; i += 4)
-        {
-            // Subtract previously solved parts
-            resB[0] = sB[(i + 0) * NB + tx];
-            resB[1] = sB[(i + 1) * NB + tx];
-            resB[2] = sB[(i + 2) * NB + tx];
-            resB[3] = sB[(i + 3) * NB + tx];
-
-            for(int j = 0; j < i; j++)
-            {
-                rocblas_int col_off = j * NB;
-                T           sB_reg  = sB[col_off + tx];
-                resB[0] -= sB_reg * sA[col_off + (i + 0)];
-                resB[1] -= sB_reg * sA[col_off + (i + 1)];
-                resB[2] -= sB_reg * sA[col_off + (i + 2)];
-                resB[3] -= sB_reg * sA[col_off + (i + 3)];
-            }
-
-            resB[0] /= sA[(i + 0) * NB + (i + 0)];
-            sB[(i + 0) * NB + tx] = resB[0];
-
-            resB[1] -= resB[0] * sA[(i + 0) * NB + (i + 1)];
-            resB[1] /= sA[(i + 1) * NB + (i + 1)];
-            sB[(i + 1) * NB + tx] = resB[1];
-
-            resB[2] -= resB[0] * sA[(i + 0) * NB + (i + 2)];
-            resB[2] -= resB[1] * sA[(i + 1) * NB + (i + 2)];
-            resB[2] /= sA[(i + 2) * NB + (i + 2)];
-            sB[(i + 2) * NB + tx] = resB[2];
-
-            resB[3] -= resB[0] * sA[(i + 0) * NB + (i + 3)];
-            resB[3] -= resB[1] * sA[(i + 1) * NB + (i + 3)];
-            resB[3] -= resB[2] * sA[(i + 2) * NB + (i + 3)];
-            resB[3] /= sA[(i + 3) * NB + (i + 3)];
-            sB[(i + 3) * NB + tx] = resB[3];
-        }
-
-        // tail end if not divisible by 4
-        for(; i <= maxColA; i++)
-        {
-            resB[0] = sB[i * NB + tx];
-            for(int j = 0; j < i; j++)
-            {
-                resB[0] -= sB[j * NB + tx] * sA[j * NB + i];
-            }
-            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
-        }
-    }
-
-    // Save shared memory back into B
-    if(tx < maxColB)
-    {
-        for(int i = 0; i < n; i++)
-            B[i * size_t(ldb) + tx] = sB[i * NB + tx];
-    }
+#endif
 }
 
 /*
@@ -2246,107 +2292,119 @@ rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
                                    BTYPE             Ba,
                                    rocblas_stride    offset_B,
                                    int               ldb,
-                                   rocblas_stride    stride_B)
+                                   rocblas_stride    stride_B,
+                                   int               batch_count)
 {
-    const int batchid = blockIdx.y;
-    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto      alpha   = load_scalar(alpha_dev_host);
+    auto alpha = load_scalar(alpha_dev_host);
 
-    bool      LOWER = uplo == rocblas_fill_lower;
-    bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
-    const int tx    = threadIdx.x;
-    const int bx    = blockIdx.x;
+    uint32_t batchid = blockIdx.z;
 
-    // max A column to read from
-    int maxColA = NB - 1 > n - 1 ? n - 1 : NB - 1;
-    // NB columns, unless last block, then do leftover
-    const int maxColB = (bx < gridDim.x - 1) ? NB : m - bx * NB;
-
-    // offset B into correct block row
-    B += bx * size_t(NB);
-
-    __shared__ T sB[NB * NB];
-
-    if(tx < maxColB)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        // Load B into sB and multiply by alpha
-        for(int i = 0; i < n; i++)
-            sB[i * NB + tx] = alpha * B[i * size_t(ldb) + tx];
-    }
-    __syncthreads();
-    // Solve for B in shared memory
-    if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
-    {
-        // Note: I didn't find that using 4 registers (as in the above function) to be noticeably faster in this version
+#endif
 
-        for(int i = 0; i <= maxColA; i++)
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+
+        bool      LOWER = uplo == rocblas_fill_lower;
+        bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
+        const int tx    = threadIdx.x;
+        const int bx    = blockIdx.x;
+
+        // max A column to read from
+        int maxColA = NB - 1 > n - 1 ? n - 1 : NB - 1;
+        // NB columns, unless last block, then do leftover
+        const int maxColB = (bx < gridDim.x - 1) ? NB : m - bx * NB;
+
+        // offset B into correct block row
+        B += bx * size_t(NB);
+
+        __shared__ T sB[NB * NB];
+
+        if(tx < maxColB)
         {
-            // Subtract previously solved parts
-            T temp_reg_B = sB[i * NB + tx];
-            for(int j = 0; j < i; j++)
-            {
-                T valA = A[i * size_t(lda) + j];
-                temp_reg_B -= sB[j * NB + tx] * valA;
-            }
-            // Solve
-            sB[i * NB + tx] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[i * NB + tx] /= A[i * size_t(lda) + i];
+            // Load B into sB and multiply by alpha
+            for(int i = 0; i < n; i++)
+                sB[i * NB + tx] = alpha * B[i * size_t(ldb) + tx];
         }
-    }
-    else if(transA == rocblas_operation_none && uplo == rocblas_fill_lower)
-    {
-        for(int i = maxColA; i >= 0; i--)
+        __syncthreads();
+        // Solve for B in shared memory
+        if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
         {
-            T temp_reg_B = sB[i * NB + tx];
-            for(int j = maxColA; j > i; j--)
-            {
-                T valA = A[i * size_t(lda) + j];
-                temp_reg_B -= sB[j * NB + tx] * valA;
-            }
-            sB[i * NB + tx] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[i * NB + tx] /= A[i * size_t(lda) + i];
-        }
-    }
-    else if(uplo == rocblas_fill_upper)
-    {
-        for(int i = maxColA; i >= 0; i--)
-        {
-            T temp_reg_B = sB[i * NB + tx];
-            for(int j = maxColA; j > i; j--)
-            {
-                T valA = CONJ ? conj(A[j * size_t(lda) + i]) : A[j * size_t(lda) + i];
-                temp_reg_B -= sB[j * NB + tx] * valA;
-            }
-            sB[i * NB + tx] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[i * NB + tx] /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
-        }
-    }
-    else // lower (conjugate-)transpose
-    {
-        for(int i = 0; i <= maxColA; i++)
-        {
-            T temp_reg_B = sB[i * NB + tx];
-            for(int j = 0; j < i; j++)
-            {
-                T valA = CONJ ? conj(A[j * size_t(lda) + i]) : A[j * size_t(lda) + i];
-                temp_reg_B -= sB[j * NB + tx] * valA;
-            }
-            sB[i * NB + tx] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[i * NB + tx] /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
-        }
-    }
+            // Note: I didn't find that using 4 registers (as in the above function) to be noticeably faster in this version
 
-    // Save shared memory back into B
-    if(tx < maxColB)
-    {
-        for(int i = 0; i < n; i++)
-            B[i * size_t(ldb) + tx] = sB[i * NB + tx];
+            for(int i = 0; i <= maxColA; i++)
+            {
+                // Subtract previously solved parts
+                T temp_reg_B = sB[i * NB + tx];
+                for(int j = 0; j < i; j++)
+                {
+                    T valA = A[i * size_t(lda) + j];
+                    temp_reg_B -= sB[j * NB + tx] * valA;
+                }
+                // Solve
+                sB[i * NB + tx] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[i * NB + tx] /= A[i * size_t(lda) + i];
+            }
+        }
+        else if(transA == rocblas_operation_none && uplo == rocblas_fill_lower)
+        {
+            for(int i = maxColA; i >= 0; i--)
+            {
+                T temp_reg_B = sB[i * NB + tx];
+                for(int j = maxColA; j > i; j--)
+                {
+                    T valA = A[i * size_t(lda) + j];
+                    temp_reg_B -= sB[j * NB + tx] * valA;
+                }
+                sB[i * NB + tx] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[i * NB + tx] /= A[i * size_t(lda) + i];
+            }
+        }
+        else if(uplo == rocblas_fill_upper)
+        {
+            for(int i = maxColA; i >= 0; i--)
+            {
+                T temp_reg_B = sB[i * NB + tx];
+                for(int j = maxColA; j > i; j--)
+                {
+                    T valA = CONJ ? conj(A[j * size_t(lda) + i]) : A[j * size_t(lda) + i];
+                    temp_reg_B -= sB[j * NB + tx] * valA;
+                }
+                sB[i * NB + tx] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[i * NB + tx] /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+            }
+        }
+        else // lower (conjugate-)transpose
+        {
+            for(int i = 0; i <= maxColA; i++)
+            {
+                T temp_reg_B = sB[i * NB + tx];
+                for(int j = 0; j < i; j++)
+                {
+                    T valA = CONJ ? conj(A[j * size_t(lda) + i]) : A[j * size_t(lda) + i];
+                    temp_reg_B -= sB[j * NB + tx] * valA;
+                }
+                sB[i * NB + tx] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[i * NB + tx] /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+            }
+        }
+
+        // Save shared memory back into B
+        if(tx < maxColB)
+        {
+            for(int i = 0; i < n; i++)
+                B[i * size_t(ldb) + tx] = sB[i * NB + tx];
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 /* T = float, double, etc.
@@ -2377,186 +2435,198 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
                                BTYPE             Ba,
                                rocblas_stride    offset_B,
                                int               ldb,
-                               rocblas_stride    stride_B)
+                               rocblas_stride    stride_B,
+                               int               batch_count)
 {
-    bool      CONJ    = transA == rocblas_operation_conjugate_transpose;
-    const int batchid = blockIdx.y;
-    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto      alpha   = load_scalar(alpha_dev_host);
+    bool CONJ  = transA == rocblas_operation_conjugate_transpose;
+    auto alpha = load_scalar(alpha_dev_host);
 
-    const int tx = threadIdx.x;
-    const int bx = blockIdx.x;
+    uint32_t batchid = blockIdx.z;
 
-    // max A column to read from
-    int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
-    // NB columns, unless last block, then do leftover
-    const int maxColB = (bx < gridDim.x - 1) ? NB : n - bx * NB;
-
-    constexpr int num_step_sizes = 3;
-    constexpr int step_size_1    = STEP_SIZE;
-    constexpr int step_size_2    = STEP_SIZE < NB ? (4) : // special case for NB = 64
-                                    (NB - 4) > 0 ? (NB - 4)
-                                                    : 1;
-    constexpr int step_sizes[]   = {step_size_1, step_size_2, 1};
-
-    // offset B into correct block column
-    B += (tx + bx * NB) * size_t(ldb);
-
-    // shared A, registers for B
-    __shared__ T sA[NB * NB];
-    T            resB[step_size_1];
-
-    if(tx <= maxColA)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        for(int i = 0; i <= maxColA; i++)
+#endif
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+
+        const int tx = threadIdx.x;
+        const int bx = blockIdx.x;
+
+        // max A column to read from
+        int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
+        // NB columns, unless last block, then do leftover
+        const int maxColB = (bx < gridDim.x - 1) ? NB : n - bx * NB;
+
+        constexpr int num_step_sizes = 3;
+        constexpr int step_size_1    = STEP_SIZE;
+        constexpr int step_size_2    = STEP_SIZE < NB ? (4) : // special case for NB = 64
+                                        (NB - 4) > 0 ? (NB - 4)
+                                                        : 1;
+        constexpr int step_sizes[]   = {step_size_1, step_size_2, 1};
+
+        // offset B into correct block column
+        B += (tx + bx * NB) * size_t(ldb);
+
+        // shared A, registers for B
+        __shared__ T sA[NB * NB];
+        T            resB[step_size_1];
+
+        if(tx <= maxColA)
         {
-            // indexing will be transposed for lower-transpose and upper-non-transpose for better memory access
-            sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
-        }
-
-        // set unit diagonal if needed
-        if(diag == rocblas_diagonal_unit)
-            sA[tx * NB + tx] = T(1.0);
-        else
-            sA[tx * NB + tx]
-                = T(1.0) / sA[tx * NB + tx]; // invert diagonal here so just have to multiply later
-    }
-    __syncthreads();
-
-    if(tx >= maxColB)
-        return;
-
-    // Solve for B in shared memory
-    if(LOWER && transA == rocblas_operation_none)
-    {
-        int i = 0;
-        for(int idx = 0; idx < num_step_sizes; idx++)
-        {
-            const int step_size = step_sizes[idx];
-            for(; i + (step_size - 1) <= maxColA; i += step_size)
+            for(int i = 0; i <= maxColA; i++)
             {
-                // Subtract previously solved parts
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = alpha * B[i + j];
-
-                for(int j1 = 0; j1 < i; j1++)
-                {
-                    rocblas_int col_off = j1 * NB;
-                    T           sB_reg  = B[j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[col_off + i + j2];
-                }
-
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i + j2) * NB + (i + j1)];
-
-                    resB[j1] *= sA[(i + j1) * NB + (i + j1)];
-                    B[i + j1] = resB[j1];
-                }
+                // indexing will be transposed for lower-transpose and upper-non-transpose for better memory access
+                sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
             }
-            if(i > maxColA)
-                break;
+
+            // set unit diagonal if needed
+            if(diag == rocblas_diagonal_unit)
+                sA[tx * NB + tx] = T(1.0);
+            else
+                sA[tx * NB + tx]
+                    = T(1.0)
+                      / sA[tx * NB + tx]; // invert diagonal here so just have to multiply later
         }
-    }
-    else if(!LOWER && transA == rocblas_operation_none)
-    {
-        int i = maxColA;
-        for(int idx = 0; idx < num_step_sizes; idx++)
+        __syncthreads();
+
+        if(tx >= maxColB)
+            return;
+
+        // Solve for B in shared memory
+        if(LOWER && transA == rocblas_operation_none)
         {
-            const int step_size = step_sizes[idx];
-            for(; i >= (step_size - 1); i -= step_size)
+            int i = 0;
+            for(int idx = 0; idx < num_step_sizes; idx++)
             {
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = alpha * B[i - j];
-
-                for(int j1 = maxColA; j1 > i; j1--)
+                const int step_size = step_sizes[idx];
+                for(; i + (step_size - 1) <= maxColA; i += step_size)
                 {
-                    rocblas_int col_off = j1;
-                    T           sB_reg  = B[j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[(col_off * NB + (i - j2))];
-                }
+                    // Subtract previously solved parts
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = alpha * B[i + j];
 
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i - j1) + NB * (i - j2)];
+                    for(int j1 = 0; j1 < i; j1++)
+                    {
+                        rocblas_int col_off = j1 * NB;
+                        T           sB_reg  = B[j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[col_off + i + j2];
+                    }
 
-                    resB[j1] *= sA[(i - j1) + NB * (i - j1)];
-                    B[i - j1] = resB[j1];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i + j2) * NB + (i + j1)];
+
+                        resB[j1] *= sA[(i + j1) * NB + (i + j1)];
+                        B[i + j1] = resB[j1];
+                    }
                 }
+                if(i > maxColA)
+                    break;
             }
-            if(i < 0)
-                break;
         }
-    }
-    else if(LOWER)
-    {
-        int i = maxColA;
-        for(int idx = 0; idx < num_step_sizes; idx++)
+        else if(!LOWER && transA == rocblas_operation_none)
         {
-            const int step_size = step_sizes[idx];
-            for(; i >= (step_size - 1); i -= step_size)
+            int i = maxColA;
+            for(int idx = 0; idx < num_step_sizes; idx++)
             {
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = alpha * B[i - j];
-
-                for(int j1 = maxColA; j1 > i; j1--)
+                const int step_size = step_sizes[idx];
+                for(; i >= (step_size - 1); i -= step_size)
                 {
-                    rocblas_int col_off = j1;
-                    T           sB_reg  = B[j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[(i - j2) * NB + j1];
-                }
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = alpha * B[i - j];
 
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i - j2) + NB * (i - j1)];
+                    for(int j1 = maxColA; j1 > i; j1--)
+                    {
+                        rocblas_int col_off = j1;
+                        T           sB_reg  = B[j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[(col_off * NB + (i - j2))];
+                    }
 
-                    resB[j1] *= sA[(i - j1) + NB * (i - j1)];
-                    B[i - j1] = resB[j1];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i - j1) + NB * (i - j2)];
+
+                        resB[j1] *= sA[(i - j1) + NB * (i - j1)];
+                        B[i - j1] = resB[j1];
+                    }
                 }
+                if(i < 0)
+                    break;
             }
-            if(i < 0)
-                break;
         }
-    }
-    else if(!LOWER)
-    {
-        int i = 0;
-        for(int idx = 0; idx < num_step_sizes; idx++)
+        else if(LOWER)
         {
-            const int step_size = step_sizes[idx];
-            for(; i + (step_size - 1) <= maxColA; i += step_size)
+            int i = maxColA;
+            for(int idx = 0; idx < num_step_sizes; idx++)
             {
-                // Subtract previously solved parts
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = alpha * B[i + j];
-
-                for(int j1 = 0; j1 < i; j1++)
+                const int step_size = step_sizes[idx];
+                for(; i >= (step_size - 1); i -= step_size)
                 {
-                    T sB_reg = B[j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[(i + j2) * NB + j1];
-                }
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = alpha * B[i - j];
 
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i + j1) * NB + (i + j2)];
+                    for(int j1 = maxColA; j1 > i; j1--)
+                    {
+                        rocblas_int col_off = j1;
+                        T           sB_reg  = B[j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[(i - j2) * NB + j1];
+                    }
 
-                    resB[j1] *= sA[(i + j1) * NB + (i + j1)];
-                    B[i + j1] = resB[j1];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i - j2) + NB * (i - j1)];
+
+                        resB[j1] *= sA[(i - j1) + NB * (i - j1)];
+                        B[i - j1] = resB[j1];
+                    }
                 }
+                if(i < 0)
+                    break;
             }
-            if(i > maxColA)
-                break;
         }
+        else if(!LOWER)
+        {
+            int i = 0;
+            for(int idx = 0; idx < num_step_sizes; idx++)
+            {
+                const int step_size = step_sizes[idx];
+                for(; i + (step_size - 1) <= maxColA; i += step_size)
+                {
+                    // Subtract previously solved parts
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = alpha * B[i + j];
+
+                    for(int j1 = 0; j1 < i; j1++)
+                    {
+                        T sB_reg = B[j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[(i + j2) * NB + j1];
+                    }
+
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i + j1) * NB + (i + j2)];
+
+                        resB[j1] *= sA[(i + j1) * NB + (i + j1)];
+                        B[i + j1] = resB[j1];
+                    }
+                }
+                if(i > maxColA)
+                    break;
+            }
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 template <const int NB,
@@ -2580,198 +2650,210 @@ rocblas_trsm_small_left_device_sharedB(rocblas_fill      uplo,
                                        BTYPE             Ba,
                                        rocblas_stride    offset_B,
                                        int               ldb,
-                                       rocblas_stride    stride_B)
+                                       rocblas_stride    stride_B,
+                                       int               batch_count)
 {
-    bool      CONJ    = transA == rocblas_operation_conjugate_transpose;
-    const int batchid = blockIdx.y;
-    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto      alpha   = load_scalar(alpha_dev_host);
+    bool CONJ  = transA == rocblas_operation_conjugate_transpose;
+    auto alpha = load_scalar(alpha_dev_host);
 
-    const int tx = threadIdx.x;
-    const int bx = blockIdx.x;
+    uint32_t batchid = blockIdx.z;
 
-    // max A column to read from
-    int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
-    // NB columns, unless last block, then do leftover
-    const int maxColB = (bx < gridDim.x - 1) ? NB : n - bx * NB;
-
-    constexpr int num_step_sizes = 3;
-    constexpr int step_size_1    = STEP_SIZE;
-    constexpr int step_size_2    = STEP_SIZE < NB ? (4) : // special case for NB = 64
-                                    (NB - 4) > 0 ? (NB - 4)
-                                                    : 1;
-    constexpr int step_sizes[]   = {step_size_1, step_size_2, 1};
-
-    // offset B into correct block column
-    B += (bx * NB) * size_t(ldb);
-
-    // shared A, registers for B
-    __shared__ T sA[NB * NB];
-    __shared__ T sB[NB * NB];
-    T            resB[step_size_1];
-
-    if(tx <= maxColA)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        for(int i = 0; i <= maxColA; i++)
+#endif
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+
+        const int tx = threadIdx.x;
+        const int bx = blockIdx.x;
+
+        // max A column to read from
+        int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
+        // NB columns, unless last block, then do leftover
+        const int maxColB = (bx < gridDim.x - 1) ? NB : n - bx * NB;
+
+        constexpr int num_step_sizes = 3;
+        constexpr int step_size_1    = STEP_SIZE;
+        constexpr int step_size_2    = STEP_SIZE < NB ? (4) : // special case for NB = 64
+                                        (NB - 4) > 0 ? (NB - 4)
+                                                        : 1;
+        constexpr int step_sizes[]   = {step_size_1, step_size_2, 1};
+
+        // offset B into correct block column
+        B += (bx * NB) * size_t(ldb);
+
+        // shared A, registers for B
+        __shared__ T sA[NB * NB];
+        __shared__ T sB[NB * NB];
+        T            resB[step_size_1];
+
+        if(tx <= maxColA)
         {
-            // indexing will be transposed for lower-transpose and upper-non-transpose for better memory access
-            sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
-        }
-
-        // set unit diagonal if needed
-        if(diag == rocblas_diagonal_unit)
-            sA[tx * NB + tx] = T(1.0);
-        else
-            sA[tx * NB + tx]
-                = T(1.0) / sA[tx * NB + tx]; // invert diagonal here so just have to multiply later
-    }
-
-    // Load B into sB and multiply by alpha, transpose for better mem. access
-    if(tx < maxColB)
-        for(int i = 0; i <= maxColA; i++)
-            sB[tx + NB * i] = alpha * B[i + tx * size_t(ldb)];
-    __syncthreads();
-
-    // Solve for B in shared memory
-    if(LOWER && transA == rocblas_operation_none)
-    {
-        int i = 0;
-        for(int idx = 0; idx < num_step_sizes; idx++)
-        {
-            const int step_size = step_sizes[idx];
-            for(; i + (step_size - 1) <= maxColA; i += step_size)
+            for(int i = 0; i <= maxColA; i++)
             {
-                // Subtract previously solved parts
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = sB[tx + NB * (i + j)];
-
-                for(int j1 = 0; j1 < i; j1++)
-                {
-                    rocblas_int col_off = j1 * NB;
-                    T           sB_reg  = sB[tx + NB * j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[col_off + i + j2];
-                }
-
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i + j2) * NB + (i + j1)];
-
-                    resB[j1] *= sA[(i + j1) * NB + (i + j1)];
-                    sB[tx + NB * (i + j1)] = resB[j1];
-                }
+                // indexing will be transposed for lower-transpose and upper-non-transpose for better memory access
+                sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
             }
-            if(i > maxColA)
-                break;
+
+            // set unit diagonal if needed
+            if(diag == rocblas_diagonal_unit)
+                sA[tx * NB + tx] = T(1.0);
+            else
+                sA[tx * NB + tx]
+                    = T(1.0)
+                      / sA[tx * NB + tx]; // invert diagonal here so just have to multiply later
         }
-    }
-    else if(!LOWER && transA == rocblas_operation_none)
-    {
-        int i = maxColA;
-        for(int idx = 0; idx < num_step_sizes; idx++)
+
+        // Load B into sB and multiply by alpha, transpose for better mem. access
+        if(tx < maxColB)
+            for(int i = 0; i <= maxColA; i++)
+                sB[tx + NB * i] = alpha * B[i + tx * size_t(ldb)];
+        __syncthreads();
+
+        // Solve for B in shared memory
+        if(LOWER && transA == rocblas_operation_none)
         {
-            const int step_size = step_sizes[idx];
-            for(; i >= (step_size - 1); i -= step_size)
+            int i = 0;
+            for(int idx = 0; idx < num_step_sizes; idx++)
             {
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = sB[tx + NB * (i - j)];
-
-                for(int j1 = maxColA; j1 > i; j1--)
+                const int step_size = step_sizes[idx];
+                for(; i + (step_size - 1) <= maxColA; i += step_size)
                 {
-                    rocblas_int col_off = j1;
-                    T           sB_reg  = sB[tx + NB * j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[(col_off * NB + (i - j2))];
-                }
+                    // Subtract previously solved parts
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = sB[tx + NB * (i + j)];
 
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i - j1) + NB * (i - j2)];
+                    for(int j1 = 0; j1 < i; j1++)
+                    {
+                        rocblas_int col_off = j1 * NB;
+                        T           sB_reg  = sB[tx + NB * j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[col_off + i + j2];
+                    }
 
-                    resB[j1] *= sA[(i - j1) + NB * (i - j1)];
-                    sB[tx + NB * (i - j1)] = resB[j1];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i + j2) * NB + (i + j1)];
+
+                        resB[j1] *= sA[(i + j1) * NB + (i + j1)];
+                        sB[tx + NB * (i + j1)] = resB[j1];
+                    }
                 }
+                if(i > maxColA)
+                    break;
             }
-            if(i < 0)
-                break;
         }
-    }
-    else if(LOWER)
-    {
-        int i = maxColA;
-        for(int idx = 0; idx < num_step_sizes; idx++)
+        else if(!LOWER && transA == rocblas_operation_none)
         {
-            const int step_size = step_sizes[idx];
-            for(; i >= (step_size - 1); i -= step_size)
+            int i = maxColA;
+            for(int idx = 0; idx < num_step_sizes; idx++)
             {
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = sB[tx + NB * (i - j)];
-
-                for(int j1 = maxColA; j1 > i; j1--)
+                const int step_size = step_sizes[idx];
+                for(; i >= (step_size - 1); i -= step_size)
                 {
-                    rocblas_int col_off = j1;
-                    T           sB_reg  = sB[tx + NB * j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[(i - j2) * NB + j1];
-                }
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = sB[tx + NB * (i - j)];
 
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i - j2) + NB * (i - j1)];
+                    for(int j1 = maxColA; j1 > i; j1--)
+                    {
+                        rocblas_int col_off = j1;
+                        T           sB_reg  = sB[tx + NB * j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[(col_off * NB + (i - j2))];
+                    }
 
-                    resB[j1] *= sA[(i - j1) + NB * (i - j1)];
-                    sB[tx + NB * (i - j1)] = resB[j1];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i - j1) + NB * (i - j2)];
+
+                        resB[j1] *= sA[(i - j1) + NB * (i - j1)];
+                        sB[tx + NB * (i - j1)] = resB[j1];
+                    }
                 }
+                if(i < 0)
+                    break;
             }
-            if(i < 0)
-                break;
         }
-    }
-    else if(!LOWER)
-    {
-        int i = 0;
-        for(int idx = 0; idx < num_step_sizes; idx++)
+        else if(LOWER)
         {
-            const int step_size = step_sizes[idx];
-            for(; i + (step_size - 1) <= maxColA; i += step_size)
+            int i = maxColA;
+            for(int idx = 0; idx < num_step_sizes; idx++)
             {
-                // Subtract previously solved parts
-                for(int j = 0; j < step_size; j++)
-                    resB[j] = sB[tx + NB * (i + j)];
-
-                for(int j1 = 0; j1 < i; j1++)
+                const int step_size = step_sizes[idx];
+                for(; i >= (step_size - 1); i -= step_size)
                 {
-                    T sB_reg = sB[tx + NB * j1];
-                    for(int j2 = 0; j2 < step_size; j2++)
-                        resB[j2] -= sB_reg * sA[(i + j2) * NB + j1];
-                }
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = sB[tx + NB * (i - j)];
 
-                for(int j1 = 0; j1 < step_size; j1++)
-                {
-                    for(int j2 = 0; j2 < j1; j2++)
-                        resB[j1] -= resB[j2] * sA[(i + j1) * NB + (i + j2)];
+                    for(int j1 = maxColA; j1 > i; j1--)
+                    {
+                        rocblas_int col_off = j1;
+                        T           sB_reg  = sB[tx + NB * j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[(i - j2) * NB + j1];
+                    }
 
-                    resB[j1] *= sA[(i + j1) * NB + (i + j1)];
-                    sB[tx + NB * (i + j1)] = resB[j1];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i - j2) + NB * (i - j1)];
+
+                        resB[j1] *= sA[(i - j1) + NB * (i - j1)];
+                        sB[tx + NB * (i - j1)] = resB[j1];
+                    }
                 }
+                if(i < 0)
+                    break;
             }
-            if(i > maxColA)
-                break;
         }
-    }
+        else if(!LOWER)
+        {
+            int i = 0;
+            for(int idx = 0; idx < num_step_sizes; idx++)
+            {
+                const int step_size = step_sizes[idx];
+                for(; i + (step_size - 1) <= maxColA; i += step_size)
+                {
+                    // Subtract previously solved parts
+                    for(int j = 0; j < step_size; j++)
+                        resB[j] = sB[tx + NB * (i + j)];
 
-    __syncthreads();
+                    for(int j1 = 0; j1 < i; j1++)
+                    {
+                        T sB_reg = sB[tx + NB * j1];
+                        for(int j2 = 0; j2 < step_size; j2++)
+                            resB[j2] -= sB_reg * sA[(i + j2) * NB + j1];
+                    }
 
-    // Save shared memory back into B
-    if(tx < maxColB)
-    {
-        for(int i = 0; i <= maxColA; i++)
-            B[i + tx * size_t(ldb)] = sB[i * NB + tx];
+                    for(int j1 = 0; j1 < step_size; j1++)
+                    {
+                        for(int j2 = 0; j2 < j1; j2++)
+                            resB[j1] -= resB[j2] * sA[(i + j1) * NB + (i + j2)];
+
+                        resB[j1] *= sA[(i + j1) * NB + (i + j1)];
+                        sB[tx + NB * (i + j1)] = resB[j1];
+                    }
+                }
+                if(i > maxColA)
+                    break;
+            }
+        }
+
+        __syncthreads();
+
+        // Save shared memory back into B
+        if(tx < maxColB)
+        {
+            for(int i = 0; i <= maxColA; i++)
+                B[i + tx * size_t(ldb)] = sB[i * NB + tx];
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 /*
@@ -2794,106 +2876,120 @@ rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
                                   BTYPE             Ba,
                                   rocblas_stride    offset_B,
                                   int               ldb,
-                                  rocblas_stride    stride_B)
+                                  rocblas_stride    stride_B,
+                                  int               batch_count)
 {
-    const int batchid = blockIdx.y;
-    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto      alpha   = load_scalar(alpha_dev_host);
+    auto alpha = load_scalar(alpha_dev_host);
 
-    bool      LOWER = uplo == rocblas_fill_lower;
-    bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
-    const int tx    = threadIdx.x;
-    const int bx    = blockIdx.x;
+    uint32_t batchid = blockIdx.z;
 
-    // max A column to read from
-    int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
-    // NB columns, unless last block, then do leftover
-    const int maxColB = (bx < gridDim.x - 1) ? NB : n - bx * NB;
-
-    // offset B into correct block column
-    B += bx * NB * size_t(ldb);
-
-    // shared B
-    __shared__ T sB[NB * NB];
-    if(tx <= maxColA)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        // Load B into sB and multiply by alpha
-        for(int i = 0; i < maxColB; i++)
-            sB[i * NB + tx] = alpha * B[i * size_t(ldb) + tx];
-    }
-    __syncthreads();
+#endif
 
-    // Solve for B in shared memory
-    if(LOWER && transA == rocblas_operation_none)
-    {
-        // Note: I didn't find that using 4 registers (as in the above function) to be noticeably faster in this version
-        for(int i = 0; i <= maxColA; i++)
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+
+        bool      LOWER = uplo == rocblas_fill_lower;
+        bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
+        const int tx    = threadIdx.x;
+        const int bx    = blockIdx.x;
+
+        // max A column to read from
+        int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
+        // NB columns, unless last block, then do leftover
+        const int maxColB = (bx < gridDim.x - 1) ? NB : n - bx * NB;
+
+        // offset B into correct block column
+        B += bx * NB * size_t(ldb);
+
+        // shared B
+        __shared__ T sB[NB * NB];
+        if(tx <= maxColA)
         {
-            // Subtract previously solved parts
-            for(int j = 0; j < i; j++)
-            {
-                T valA = A[j * size_t(lda) + i];
-                sB[tx * NB + i] -= sB[tx * NB + j] * valA;
-            }
-            if(diag != rocblas_diagonal_unit)
-                sB[tx * NB + i] /= A[i * size_t(lda) + i];
+            // Load B into sB and multiply by alpha
+            for(int i = 0; i < maxColB; i++)
+                sB[i * NB + tx] = alpha * B[i * size_t(ldb) + tx];
         }
-    }
-    else if(!LOWER && transA == rocblas_operation_none)
-    {
-        for(int i = maxColA; i >= 0; i--)
-        {
-            T temp_reg_B = sB[tx * NB + i];
-            for(int j = maxColA; j > i; j--)
-            {
-                T valA = A[j * size_t(lda) + i];
-                temp_reg_B -= sB[tx * NB + j] * valA;
-            }
-            sB[tx * NB + i] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[tx * NB + i] /= A[i * size_t(lda) + i];
-        }
-    }
-    else if(LOWER)
-    {
-        for(int i = maxColA; i >= 0; i--)
-        {
-            T temp_reg_B = sB[tx * NB + i];
-            for(int j = maxColA; j > i; j--)
-            {
-                T valA = (CONJ) ? conj(A[i * size_t(lda) + j]) : A[i * size_t(lda) + j];
-                temp_reg_B -= sB[tx * NB + j] * valA;
-            }
-            sB[tx * NB + i] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[tx * NB + i] /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
-        }
-    }
-    else if(!LOWER)
-    {
-        for(int i = 0; i <= maxColA; i++)
-        {
-            T temp_reg_B = sB[tx * NB + i];
-            for(int j = 0; j < i; j++)
-            {
-                T valA = (CONJ) ? conj(A[i * size_t(lda) + j]) : A[i * size_t(lda) + j];
-                temp_reg_B -= sB[tx * NB + j] * valA;
-            }
-            sB[tx * NB + i] = temp_reg_B;
-            if(diag != rocblas_diagonal_unit)
-                sB[tx * NB + i] /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
-        }
-    }
+        __syncthreads();
 
-    __syncthreads();
+        // Solve for B in shared memory
+        if(LOWER && transA == rocblas_operation_none)
+        {
+            // Note: I didn't find that using 4 registers (as in the above function) to be noticeably faster in this version
+            for(int i = 0; i <= maxColA; i++)
+            {
+                // Subtract previously solved parts
+                for(int j = 0; j < i; j++)
+                {
+                    T valA = A[j * size_t(lda) + i];
+                    sB[tx * NB + i] -= sB[tx * NB + j] * valA;
+                }
+                if(diag != rocblas_diagonal_unit)
+                    sB[tx * NB + i] /= A[i * size_t(lda) + i];
+            }
+        }
+        else if(!LOWER && transA == rocblas_operation_none)
+        {
+            for(int i = maxColA; i >= 0; i--)
+            {
+                T temp_reg_B = sB[tx * NB + i];
+                for(int j = maxColA; j > i; j--)
+                {
+                    T valA = A[j * size_t(lda) + i];
+                    temp_reg_B -= sB[tx * NB + j] * valA;
+                }
+                sB[tx * NB + i] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[tx * NB + i] /= A[i * size_t(lda) + i];
+            }
+        }
+        else if(LOWER)
+        {
+            for(int i = maxColA; i >= 0; i--)
+            {
+                T temp_reg_B = sB[tx * NB + i];
+                for(int j = maxColA; j > i; j--)
+                {
+                    T valA = (CONJ) ? conj(A[i * size_t(lda) + j]) : A[i * size_t(lda) + j];
+                    temp_reg_B -= sB[tx * NB + j] * valA;
+                }
+                sB[tx * NB + i] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[tx * NB + i]
+                        /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+            }
+        }
+        else if(!LOWER)
+        {
+            for(int i = 0; i <= maxColA; i++)
+            {
+                T temp_reg_B = sB[tx * NB + i];
+                for(int j = 0; j < i; j++)
+                {
+                    T valA = (CONJ) ? conj(A[i * size_t(lda) + j]) : A[i * size_t(lda) + j];
+                    temp_reg_B -= sB[tx * NB + j] * valA;
+                }
+                sB[tx * NB + i] = temp_reg_B;
+                if(diag != rocblas_diagonal_unit)
+                    sB[tx * NB + i]
+                        /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+            }
+        }
 
-    // Save shared memory back into B
-    if(tx < m)
-    {
-        for(int i = 0; i < maxColB; i++)
-            B[i * size_t(ldb) + tx] = sB[i * NB + tx];
+        __syncthreads();
+
+        // Save shared memory back into B
+        if(tx < m)
+        {
+            for(int i = 0; i < maxColB; i++)
+                B[i * size_t(ldb) + tx] = sB[i * NB + tx];
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 /* T = float, double, etc.
@@ -2928,17 +3024,20 @@ rocblas_status rocblas_trsm_small(rocblas_handle    handle,
                                   rocblas_stride    stride_B,
                                   rocblas_int       batch_count)
 {
+    hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
+
     // threadIdx.x = NB >= m
-    dim3 threads(NB, 1, 1);
+    dim3 threads(NB);
 
     // blockIdx.x = divide B's columns into NB sized blocks
     // blockIdx.y = batch_count
-#define TRSM_SMALL_KERNEL_PARAM                                                                 \
-    grid, threads, 0, handle->get_stream(), uplo, transA, diag, m, n, alpha, dA, offset_A, lda, \
-        stride_A, dB, offset_B, ldb, stride_B
+#define TRSM_SMALL_KERNEL_PARAM                                                           \
+    grid, threads, 0, rocblas_stream, uplo, transA, diag, m, n, alpha, dA, offset_A, lda, \
+        stride_A, dB, offset_B, ldb, stride_B, batch_count
     if(side == rocblas_side_left)
     {
-        dim3 grid((n - 1) / NB + 1, batch_count);
+        dim3 grid((n - 1) / NB + 1, 1, batches);
         if(transA == rocblas_operation_none)
         {
             constexpr bool CONJ = false;
@@ -3046,7 +3145,7 @@ rocblas_status rocblas_trsm_small(rocblas_handle    handle,
     }
     else
     {
-        dim3 grid((m - 1) / NB + 1, batch_count);
+        dim3 grid((m - 1) / NB + 1, 1, batches);
         ROCBLAS_LAUNCH_KERNEL_GRID(grid,
                                    (rocblas_trsm_small_right_device<T, SCAL, ATYPE, BTYPE, NB>),
                                    TRSM_SMALL_KERNEL_PARAM);
@@ -3075,89 +3174,101 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_trsm_block_backward_substitution(rocblas_operat
                                                                   rocblas_stride    offset_B,
                                                                   int64_t           ldb,
                                                                   rocblas_stride    stride_B,
+                                                                  int               batch_count,
                                                                   const bool shared_mem_A = false)
 {
-    const bool CONJ    = transA == rocblas_operation_conjugate_transpose;
-    const int  batchid = blockIdx.z;
-    auto       A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto       B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto       alpha   = load_scalar(alpha_dev_host);
+    const bool CONJ  = transA == rocblas_operation_conjugate_transpose;
+    auto       alpha = load_scalar(alpha_dev_host);
 
-    int64_t       lda_norm  = TRANSA ? lda : 1;
-    int64_t       lda_trans = TRANSA ? 1 : lda;
-    const int64_t ldb_norm  = TRANSB ? ldb : 1;
-    const int64_t ldb_trans = TRANSB ? 1 : ldb;
+    uint32_t batchid = blockIdx.z;
 
-    const int     tx   = threadIdx.x;
-    const int     ty   = threadIdx.y;
-    const int64_t offY = blockIdx.y * blockDim.y + threadIdx.y;
-
-    // passing as extern shared memory to avoid templating NB size
-    // casting fails when going from double -> double complex and otherwise
-    extern __shared__ rocblas_double_complex smem[];
-    T*                                       sB = reinterpret_cast<T*>(smem);
-    T*                                       sA;
-    const T*                                 A_shared_or_global = A;
-
-    if(shared_mem_A)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        sA = reinterpret_cast<T*>(smem) + blockDim.y;
-        for(int rowOff = 0; rowOff < m; rowOff += blockDim.y)
-        {
-            int aRow = tx;
-            int aCol = ty + (rowOff);
-            if(aRow < m && aCol < m && aRow < aCol)
-                sA[aCol * blockDim.x + aRow] = A[aCol * lda_norm + aRow * lda_trans];
-            else if(aRow == aCol && aRow < m && !UNIT)
-                sA[aCol * blockDim.x + aRow] = 1.0 / A[aCol * lda_norm + aRow * lda_trans];
-        }
-        A_shared_or_global = sA;
-        lda_norm           = blockDim.x;
-        lda_trans          = 1;
-    }
+#endif
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
 
-    if(offY < n && tx < m)
-    {
-        T valB = alpha * B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)];
-        for(int64_t i = m - 1; i > 0; i--)
+        int64_t       lda_norm  = TRANSA ? lda : 1;
+        int64_t       lda_trans = TRANSA ? 1 : lda;
+        const int64_t ldb_norm  = TRANSB ? ldb : 1;
+        const int64_t ldb_trans = TRANSB ? 1 : ldb;
+
+        const int     tx   = threadIdx.x;
+        const int     ty   = threadIdx.y;
+        const int64_t offY = blockIdx.y * blockDim.y + threadIdx.y;
+
+        // passing as extern shared memory to avoid templating NB size
+        // casting fails when going from double -> double complex and otherwise
+        extern __shared__ rocblas_double_complex smem[];
+        T*                                       sB = reinterpret_cast<T*>(smem);
+        T*                                       sA;
+        const T*                                 A_shared_or_global = A;
+
+        if(shared_mem_A)
         {
-            // tx is row of B, ty is col of B
-            // tx is row of A, i is col of A
-            __syncthreads();
-            if(tx == i)
+            sA = reinterpret_cast<T*>(smem) + blockDim.y;
+            for(int rowOff = 0; rowOff < m; rowOff += blockDim.y)
             {
-                // solve cur row
-                if(!UNIT)
+                int aRow = tx;
+                int aCol = ty + (rowOff);
+                if(aRow < m && aCol < m && aRow < aCol)
+                    sA[aCol * blockDim.x + aRow] = A[aCol * lda_norm + aRow * lda_trans];
+                else if(aRow == aCol && aRow < m && !UNIT)
+                    sA[aCol * blockDim.x + aRow] = 1.0 / A[aCol * lda_norm + aRow * lda_trans];
+            }
+            A_shared_or_global = sA;
+            lda_norm           = blockDim.x;
+            lda_trans          = 1;
+        }
+
+        if(offY < n && tx < m)
+        {
+            T valB = alpha * B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)];
+            for(int64_t i = m - 1; i > 0; i--)
+            {
+                // tx is row of B, ty is col of B
+                // tx is row of A, i is col of A
+                __syncthreads();
+                if(tx == i)
                 {
-                    auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
-                    if(!shared_mem_A)
-                        valA = 1.0 / valA;
-                    valB *= valA;
+                    // solve cur row
+                    if(!UNIT)
+                    {
+                        auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
+                        if(!shared_mem_A)
+                            valA = 1.0 / valA;
+                        valB *= valA;
+                    }
+
+                    sB[ty] = valB;
                 }
 
-                sB[ty] = valB;
+                __syncthreads();
+
+                if(tx < i)
+                    valB -= (CONJ ? conj(
+                                 A_shared_or_global[i * size_t(lda_norm) + tx * size_t(lda_trans)])
+                                  : A_shared_or_global[i * size_t(lda_norm)
+                                                       + tx * size_t(lda_trans)])
+                            * sB[ty];
             }
 
-            __syncthreads();
+            if(!UNIT && tx == 0)
+            {
+                auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
+                if(!shared_mem_A)
+                    valA = 1.0 / valA;
+                valB *= valA;
+            }
 
-            if(tx < i)
-                valB -= (CONJ ? conj(
-                             A_shared_or_global[i * size_t(lda_norm) + tx * size_t(lda_trans)])
-                              : A_shared_or_global[i * size_t(lda_norm) + tx * size_t(lda_trans)])
-                        * sB[ty];
+            // store back to mem
+            B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)] = valB;
         }
 
-        if(!UNIT && tx == 0)
-        {
-            auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
-            if(!shared_mem_A)
-                valA = 1.0 / valA;
-            valB *= valA;
-        }
-
-        // store back to mem
-        B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)] = valB;
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 template <typename T,
@@ -3179,85 +3290,96 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_trsm_block_forward_substitution(rocblas_operati
                                                                  rocblas_stride    offset_B,
                                                                  int64_t           ldb,
                                                                  rocblas_stride    stride_B,
+                                                                 int               batch_count,
                                                                  const bool shared_mem_A = false)
 {
-    const bool    CONJ      = transA == rocblas_operation_conjugate_transpose;
+    const bool CONJ  = transA == rocblas_operation_conjugate_transpose;
+    auto       alpha = load_scalar(alpha_dev_host);
+
     int64_t       lda_norm  = TRANSA ? 1 : lda;
     int64_t       lda_trans = TRANSA ? lda : 1;
     const int64_t ldb_norm  = TRANSB ? 1 : ldb;
     const int64_t ldb_trans = TRANSB ? ldb : 1;
 
-    const int batchid = blockIdx.z;
-    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
-    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
-    auto      alpha   = load_scalar(alpha_dev_host);
+    uint32_t batchid = blockIdx.z;
 
-    const int     tx   = threadIdx.x;
-    const int     ty   = threadIdx.y;
-    const int64_t offY = blockIdx.y * blockDim.y + threadIdx.y;
-
-    extern __shared__ rocblas_double_complex smem[];
-    T*                                       sB = reinterpret_cast<T*>(smem);
-    T*                                       sA;
-    const T*                                 A_shared_or_global = A;
-
-    if(shared_mem_A)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batchid < batch_count; batchid += c_YZ_grid_launch_limit)
     {
-        sA = reinterpret_cast<T*>(smem) + blockDim.y;
-        for(int rowOff = 0; rowOff < m; rowOff += blockDim.y)
-        {
-            int aRow = tx;
-            int aCol = ty + (rowOff);
-            if(aRow < m && aCol < m && aRow > aCol)
-                sA[aCol * blockDim.x + aRow] = A[aCol * lda_norm + aRow * lda_trans];
-            else if(aRow == aCol && aRow < m && !UNIT)
-                sA[aCol * blockDim.x + aRow] = 1.0 / A[aCol * lda_norm + aRow * lda_trans];
-        }
-        A_shared_or_global = sA;
-        lda_norm           = blockDim.x;
-        lda_trans          = 1;
-    }
+#endif
+        auto A = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+        auto B = load_ptr_batch(Ba, batchid, offset_B, stride_B);
 
-    if(offY < n && tx < m)
-    {
-        T   valB  = alpha * B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)];
-        int sAoff = 1;
-        for(int64_t i = 0; i < m - 1; i++)
+        const int     tx   = threadIdx.x;
+        const int     ty   = threadIdx.y;
+        const int64_t offY = blockIdx.y * blockDim.y + threadIdx.y;
+
+        extern __shared__ rocblas_double_complex smem[];
+        T*                                       sB = reinterpret_cast<T*>(smem);
+        T*                                       sA;
+        const T*                                 A_shared_or_global = A;
+
+        if(shared_mem_A)
         {
-            // tx is row of B, ty is col of B
-            // tx is row of A, i is col of A
-            __syncthreads();
-            if(tx == i)
+            sA = reinterpret_cast<T*>(smem) + blockDim.y;
+            for(int rowOff = 0; rowOff < m; rowOff += blockDim.y)
             {
-                // solve cur row
-                if(!UNIT)
-                {
-                    auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
-                    if(!shared_mem_A)
-                        valA = 1.0 / valA;
-                    valB *= valA;
-                }
-                sB[ty] = valB;
+                int aRow = tx;
+                int aCol = ty + (rowOff);
+                if(aRow < m && aCol < m && aRow > aCol)
+                    sA[aCol * blockDim.x + aRow] = A[aCol * lda_norm + aRow * lda_trans];
+                else if(aRow == aCol && aRow < m && !UNIT)
+                    sA[aCol * blockDim.x + aRow] = 1.0 / A[aCol * lda_norm + aRow * lda_trans];
             }
-            __syncthreads();
-
-            if(tx > i)
-                valB -= (CONJ ? conj(A_shared_or_global[i * lda_norm + tx * lda_trans])
-                              : A_shared_or_global[i * lda_norm + tx * lda_trans])
-                        * sB[ty];
+            A_shared_or_global = sA;
+            lda_norm           = blockDim.x;
+            lda_trans          = 1;
         }
 
-        if(!UNIT && tx == m - 1)
+        if(offY < n && tx < m)
         {
-            auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
-            if(!shared_mem_A)
-                valA = 1.0 / valA;
-            valB *= valA;
+            T   valB  = alpha * B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)];
+            int sAoff = 1;
+            for(int64_t i = 0; i < m - 1; i++)
+            {
+                // tx is row of B, ty is col of B
+                // tx is row of A, i is col of A
+                __syncthreads();
+                if(tx == i)
+                {
+                    // solve cur row
+                    if(!UNIT)
+                    {
+                        auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
+                        if(!shared_mem_A)
+                            valA = 1.0 / valA;
+                        valB *= valA;
+                    }
+                    sB[ty] = valB;
+                }
+                __syncthreads();
+
+                if(tx > i)
+                    valB -= (CONJ ? conj(A_shared_or_global[i * lda_norm + tx * lda_trans])
+                                  : A_shared_or_global[i * lda_norm + tx * lda_trans])
+                            * sB[ty];
+            }
+
+            if(!UNIT && tx == m - 1)
+            {
+                auto valA = (A_shared_or_global[tx * lda_norm + tx * lda_trans]);
+                if(!shared_mem_A)
+                    valA = 1.0 / valA;
+                valB *= valA;
+            }
+
+            // store back to mem
+            B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)] = valB;
         }
 
-        // store back to mem
-        B[offY * size_t(ldb_norm) + tx * size_t(ldb_trans)] = valB;
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 template <typename T,
@@ -3296,9 +3418,11 @@ rocblas_status rocblas_trsm_small_substitution(rocblas_handle    handle,
 
     rocblas_int blocks = (k - 1) / (1024 / NBX) + 1;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     // kernel params for trsm substitution/solve portion
-    dim3 grid(1, blocks, batch_count);
-    dim3 threads(NBX, 1024 / NBX, 1);
+    dim3 grid(1, blocks, batches); // TODO use x grid
+    dim3 threads(NBX, 1024 / NBX);
 
     // for updating B with solved portions
     T       negative_one = -1;
@@ -3357,6 +3481,7 @@ rocblas_status rocblas_trsm_small_substitution(rocblas_handle    handle,
                                   offset_B + offB_sub,
                                   ldb,
                                   stride_B,
+                                  batch_count,
                                   sharedA_mem);
         }
         else
@@ -3391,6 +3516,7 @@ rocblas_status rocblas_trsm_small_substitution(rocblas_handle    handle,
                                   offset_B + offB_sub,
                                   ldb,
                                   stride_B,
+                                  batch_count,
                                   sharedA_mem);
         }
 
@@ -3450,8 +3576,8 @@ rocblas_status rocblas_trsm_small_substitution(rocblas_handle    handle,
     // solve last diagonal
     int64_t leftover = k2 - j;
     blocks           = (k - 1) / (1024 / leftover) + 1;
-    grid             = dim3(1, blocks, batch_count);
-    threads          = dim3(leftover, 1024 / leftover, 1);
+    grid             = dim3(1, blocks, batches);
+    threads          = dim3(leftover, 1024 / leftover);
     smem_size        = ((1024 / leftover) + (leftover * leftover)) * sizeof(T);
 
     int  max_mem     = handle->getMaxSharedMemPerBlock();
@@ -3484,6 +3610,7 @@ rocblas_status rocblas_trsm_small_substitution(rocblas_handle    handle,
             offset_B + offB_sub,
             ldb,
             stride_B,
+            batch_count,
             sharedA_mem);
     }
     else
@@ -3508,6 +3635,7 @@ rocblas_status rocblas_trsm_small_substitution(rocblas_handle    handle,
             offset_B + offB_sub,
             ldb,
             stride_B,
+            batch_count,
             sharedA_mem);
     }
 
@@ -3715,14 +3843,16 @@ rocblas_status rocblas_internal_trsm_launcher(rocblas_handle    handle,
                 {
                     // This function sets kernel parameters and launches the appropriate kernel (with less shared memory) for a double complex trsm problem.
 
+                    int batches = handle->getBatchGridDim((int)batch_count);
+
                     // threadIdx.x = NB >= m
-                    dim3 threads(64, 1, 1);
+                    dim3 threads(64);
 
                     // blockIdx.x = divide B's columns into NB sized blocks
                     // blockIdx.y = batch_count
                     if(side == rocblas_side_left)
                     {
-                        dim3 grid((n + 64 - 1) / 64, batch_count);
+                        dim3 grid((n + 64 - 1) / 64, 1, batches);
                         ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_small_64_left_device<T, T, U, V, 64>),
                                               grid,
                                               threads,
@@ -3741,11 +3871,12 @@ rocblas_status rocblas_internal_trsm_launcher(rocblas_handle    handle,
                                               B,
                                               offset_B,
                                               ldb,
-                                              stride_B);
+                                              stride_B,
+                                              batch_count);
                     }
                     else
                     {
-                        dim3 grid((m + 64 - 1) / 64, batch_count);
+                        dim3 grid((m + 64 - 1) / 64, 1, batches);
                         ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_small_64_right_device<T, T, U, V, 64>),
                                               grid,
                                               threads,
@@ -3764,7 +3895,8 @@ rocblas_status rocblas_internal_trsm_launcher(rocblas_handle    handle,
                                               B,
                                               offset_B,
                                               ldb,
-                                              stride_B);
+                                              stride_B,
+                                              batch_count);
                     }
                 }
                 else
@@ -3964,18 +4096,18 @@ rocblas_status rocblas_internal_trsm_launcher(rocblas_handle    handle,
                 if(status != rocblas_status_success)
                     return status;
 
-                copy_block_unit<T>(handle,
-                                   m,
-                                   n,
-                                   U(BATCHED ? w_x_temparr : w_x_temp),
-                                   m,
-                                   x_temp_els,
-                                   V(B),
-                                   ldb,
-                                   stride_B,
-                                   batch_count,
-                                   0,
-                                   offset_B);
+                rocblas_copy_block_unit<T>(handle,
+                                           m,
+                                           n,
+                                           U(BATCHED ? w_x_temparr : w_x_temp),
+                                           m,
+                                           x_temp_els,
+                                           V(B),
+                                           ldb,
+                                           stride_B,
+                                           batch_count,
+                                           0,
+                                           offset_B);
             }
 
             // If status is successful, return perf_status; else return status

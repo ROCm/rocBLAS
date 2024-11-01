@@ -192,6 +192,16 @@ Tests:
   side: [L, R]
   matrix_size: *huge_matrix_size_range
 
+- name: dgmm_large_batch
+  category: pre_checkin # TODO
+  arguments:
+    - {  M: 2, N: 2, lda: 2, ldb: 2, ldc: 2, incx: 1, batch_count: *c_grid_yz_require_passes }
+  side: [L, R]
+  function:
+    - dgmm_batched: *single_precision
+    - dgmm_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: dgmm_64
   category: stress
   arguments:

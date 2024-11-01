@@ -12,10 +12,6 @@ rocBLAS Level-3 functions perform matix-matrix operations. [Level3]_
 
 Level-3 functions support the ILP64 API.  For more information on these `_64` functions, refer to section :ref:`ILP64 API`.
 
-gfx12 Known Issues in rocBLAS
-=============================
-- On gfx12 batched and strided_batched functions with ``batch_count`` greater than 65536 require using the ILP64 API if returning ``rocblas_status_invalid_size``.
-
 rocblas_Xgemm + batched, strided_batched
 =========================================
 

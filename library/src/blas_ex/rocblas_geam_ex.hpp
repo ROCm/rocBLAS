@@ -81,11 +81,6 @@ rocblas_status rocblas_geam_ex_arg_check(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-    {
-        return rocblas_status_invalid_size;
-    }
-
     if(trans_a != rocblas_operation_none && trans_a != rocblas_operation_transpose)
         return rocblas_status_invalid_value;
     if(trans_b != rocblas_operation_none && trans_b != rocblas_operation_transpose)

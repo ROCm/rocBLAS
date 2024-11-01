@@ -106,6 +106,19 @@ Tests:
   alpha_beta: *alpha_beta_range
   api: [ C, FORTRAN ]
 
+- name: symm_large_batch
+  category: pre_checkin
+  function:
+    - symm_batched
+    - symm_strided_batched
+  precision: *single_precision
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size:
+    - {  M: 2, N: 2, lda: 2, ldb: 2, ldc : 2 , batch_count: *c_grid_yz_require_passes }
+  alpha: [ 2 ]
+  beta: [ 2 ]
+
 - name: symm_large
   category: nightly
   function: symm

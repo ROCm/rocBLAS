@@ -234,6 +234,18 @@ Tests:
   batch_count: [ 2 ]
   pointer_mode_host: false
 
+- name: syr2k_large_batch
+  category: stress
+  uplo: [ U, L ]
+  arguments:
+    - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  function:
+    - syr2k_batched: *single_precision
+    - syr2k_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: syr2k_64
   category: stress
   uplo: [ U, L ]

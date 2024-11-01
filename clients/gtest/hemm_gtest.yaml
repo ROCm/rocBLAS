@@ -164,7 +164,7 @@ Tests:
 - name: hemm_batched_size_t
   category: stress
   function: hemm_batched
-  precision: *single_precision
+  precision: *single_precision_complex
   uplo: [ U, L ]
   side: [ L, R ]
   matrix_size: *size_t_m_n_lda_ldb_ldc
@@ -254,23 +254,35 @@ Tests:
   iters: 5
   repeatability_check: true
 
+- name: hemm_large_batch
+  category: pre_checkin
+  function:
+    - hemm_batched
+    - hemm_strided_batched
+  precision: *single_precision_complex
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size:
+    - {  M: 2, N: 2, lda: 4, ldb: 2, ldc : 4 , batch_count: *c_grid_yz_require_passes }
+  alpha: [ 2 ]
+  beta: [ 2 ]
+
 - name: hemm_64_L
   category: stress
   api: [C_64]
   function:
     - hemm
     - hemm_strided_batched
-  precision: *single_precision
+  precision: *single_precision_complex
   uplo: [ U, L ]
   side: [ L ]
   matrix_size:
     - { M: 2, N: 2147483649, lda: 2147483649, ldb: 2 , ldc: 2 }
     - { M: 4096, N: 2, lda: 4096, ldb: 2147483649, ldc: 4096 }
-
   alpha: [ 2 ]
   beta: [ 2 ]
   os_flags: LINUX
-  gpu_arch: '9??'
+  #gpu_arch: '9??'
 
 - name: hemm_64_R
   category: stress
@@ -278,7 +290,7 @@ Tests:
   function:
     - hemm
     - hemm_strided_batched
-  precision: *single_precision
+  precision: *single_precision_complex
   arguments:
      - { M: 2147483649, N: 2, lda: 2147483649, ldb: 2147483649, ldc: 2147483649 } # N can't be 32-bit for side == R
   uplo: [ U, L ]
@@ -292,7 +304,7 @@ Tests:
 - name: hemm_batched_64
   category: stress
   function: hemm_batched
-  precision: *single_precision
+  precision: *single_precision_complex
   uplo: [ U, L ]
   side: [ L, R ]
   matrix_size:

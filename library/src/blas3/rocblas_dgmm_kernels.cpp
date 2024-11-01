@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_dgmm.hpp"
 
@@ -38,27 +39,38 @@ rocblas_dgmm_device(rocblas_int    m,
                     TPtr           Ca,
                     rocblas_stride offset_c,
                     int64_t        ldc,
-                    rocblas_stride stride_c)
+                    rocblas_stride stride_c,
+                    rocblas_int    batch_count)
 {
-    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int tx    = blockIdx.x * DIM_X + threadIdx.x;
+    uint32_t    batch = blockIdx.z;
 
-    //looping over ty
-    for(rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y; ty < n && tx < m;
-        ty += blockDim.y * gridDim.y)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
-        auto* X = load_ptr_batch(Xa, blockIdx.z, shift_x, stride_x);
-        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
+#endif
 
-        if constexpr(side_right)
+        //looping over ty
+        for(rocblas_int ty = blockIdx.y * DIM_Y + threadIdx.y; ty < n && tx < m;
+            ty += DIM_Y * gridDim.y)
         {
-            C[tx + ldc * ty] = A[tx + lda * ty] * X[ty * incx];
+            auto* A = load_ptr_batch(Aa, batch, offset_a, stride_a);
+            auto* X = load_ptr_batch(Xa, batch, shift_x, stride_x);
+            auto* C = load_ptr_batch(Ca, batch, offset_c, stride_c);
+
+            if constexpr(side_right)
+            {
+                C[tx + ldc * ty] = A[tx + lda * ty] * X[ty * incx];
+            }
+            else
+            {
+                C[tx + ldc * ty] = A[tx + lda * ty] * X[tx * incx];
+            }
         }
-        else
-        {
-            C[tx + ldc * ty] = A[tx + lda * ty] * X[tx * incx];
-        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 /*
@@ -96,68 +108,70 @@ rocblas_status rocblas_internal_dgmm_launcher(rocblas_handle handle,
 
 {
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
+    // in case of negative incx shift pointer to end of data for negative indexing
+    rocblas_int k       = side == rocblas_side_left ? m : n;
+    ptrdiff_t   shift_x = offset_x - ((incx < 0) ? ptrdiff_t(incx) * (k - 1) : 0);
+
+    // general case, any transA, transB, lda, incx, ldc
+    static constexpr int DGMM_DIM_X = 16;
+    static constexpr int DGMM_DIM_Y = 16;
+
+    rocblas_int blocksX = (m - 1) / DGMM_DIM_X + 1;
+    //blocksY should be <= 2^16 (65536) to avoid overflow as grid y and z block indices support only 16-bit values on some gfx
+    rocblas_int blocksY = std::min(c_YZ_grid_launch_limit, (n - 1) / DGMM_DIM_Y + 1);
+
+    dim3 dgmm_grid(blocksX, blocksY, batches);
+    dim3 dgmm_threads(DGMM_DIM_X, DGMM_DIM_Y);
+
+    if(rocblas_side_left == side)
     {
-        // in case of negative incx shift pointer to end of data for negative indexing
-        rocblas_int k       = side == rocblas_side_left ? m : n;
-        ptrdiff_t   shift_x = offset_x - ((incx < 0) ? ptrdiff_t(incx) * (k - 1) : 0);
-
-        // general case, any transA, transB, lda, incx, ldc
-        static constexpr int DGMM_DIM_X = 16;
-        static constexpr int DGMM_DIM_Y = 16;
-
-        rocblas_int blocksX = (m - 1) / DGMM_DIM_X + 1;
-        //blocksY should be less than 2^16 (65536) to avoid overflow as grid y and z dimensions support only 16-bit values on some gfx
-        rocblas_int blocksY = std::min((c_YZ_grid_launch_limit - 1), (n - 1) / DGMM_DIM_Y + 1);
-
-        dim3 dgmm_grid(blocksX, blocksY, batch_count);
-        dim3 dgmm_threads(DGMM_DIM_X, DGMM_DIM_Y);
-
-        if(rocblas_side_left == side)
-        {
-            ROCBLAS_LAUNCH_KERNEL((rocblas_dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, false>),
-                                  dgmm_grid,
-                                  dgmm_threads,
-                                  0,
-                                  rocblas_stream,
-                                  m,
-                                  n,
-                                  A,
-                                  offset_a,
-                                  lda,
-                                  stride_a,
-                                  X,
-                                  shift_x,
-                                  incx,
-                                  stride_x,
-                                  C,
-                                  offset_c,
-                                  ldc,
-                                  stride_c);
-        }
-        else
-        {
-            ROCBLAS_LAUNCH_KERNEL((rocblas_dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, true>),
-                                  dgmm_grid,
-                                  dgmm_threads,
-                                  0,
-                                  rocblas_stream,
-                                  m,
-                                  n,
-                                  A,
-                                  offset_a,
-                                  lda,
-                                  stride_a,
-                                  X,
-                                  shift_x,
-                                  incx,
-                                  stride_x,
-                                  C,
-                                  offset_c,
-                                  ldc,
-                                  stride_c);
-        }
+        ROCBLAS_LAUNCH_KERNEL((rocblas_dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, false>),
+                              dgmm_grid,
+                              dgmm_threads,
+                              0,
+                              rocblas_stream,
+                              m,
+                              n,
+                              A,
+                              offset_a,
+                              lda,
+                              stride_a,
+                              X,
+                              shift_x,
+                              incx,
+                              stride_x,
+                              C,
+                              offset_c,
+                              ldc,
+                              stride_c,
+                              batch_count);
     }
+    else
+    {
+        ROCBLAS_LAUNCH_KERNEL((rocblas_dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, true>),
+                              dgmm_grid,
+                              dgmm_threads,
+                              0,
+                              rocblas_stream,
+                              m,
+                              n,
+                              A,
+                              offset_a,
+                              lda,
+                              stride_a,
+                              X,
+                              shift_x,
+                              incx,
+                              stride_x,
+                              C,
+                              offset_c,
+                              ldc,
+                              stride_c,
+                              batch_count);
+    }
+
     return rocblas_status_success;
 }
 

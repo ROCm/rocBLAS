@@ -40,14 +40,6 @@ inline rocblas_status rocblas_geam_arg_check(rocblas_handle    handle,
                                              API_INT           ldc,
                                              API_INT           batch_count)
 {
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
-    }
-
     if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
        && transA != rocblas_operation_conjugate_transpose)
         return rocblas_status_invalid_value;

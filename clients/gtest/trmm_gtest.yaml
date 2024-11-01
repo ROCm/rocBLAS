@@ -769,6 +769,20 @@ Tests:
   pointer_mode_host: false
   outofplace: [ true, false ]
 
+- name: trmm_large_batch
+  category: stress
+  arguments:
+    - { M: 3, N: 3, lda: 3, ldb: 3, ldc: 3, batch_count: *c_grid_yz_require_passes }
+  side: [ L, R ]
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  diag: [ U ]
+  stride_scale: [ 1 ]
+  function:
+    - trmm_batched: *single_precision
+    - trmm_strided_batched: *single_precision
+  outofplace: [ true, false ]
+
 - name: trmm_batched_64
   category: stress
   arguments:
@@ -781,8 +795,8 @@ Tests:
   os_flags: [ LINUX ]
   stride_scale: [ 1 ]
   function:
-    trmm_batched: *single_precision
-    trmm_strided_batched: *single_precision
+    - trmm_batched: *single_precision
+    - trmm_strided_batched: *single_precision
   pointer_mode_host: false
 
 - name: trmm_graph_test

@@ -269,6 +269,18 @@ Tests:
   batch_count: [ 2 ]
   pointer_mode_host: false
 
+- name: syrkx_large_batch
+  category: pre_checkin
+  uplo: [ U, L ]
+  arguments:
+    - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: N}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  function:
+    - syrkx_batched: *single_precision
+    - syrkx_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: syrkx_64
   category: stress
   uplo: [ U, L ]

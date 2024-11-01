@@ -1268,6 +1268,22 @@ Tests:
   precision: *single_precision
   pointer_mode_host: false
 
+- name: trsm_large_batch
+  category: stress
+  arguments:
+    - { M: 3, N: 3, lda: 3, ldb: 3, batch_count: *c_grid_yz_require_passes }
+  side: [ L, R ]
+  uplo: [ L, U ]
+  transA: [ N ]
+  diag: [ U ]
+  stride_scale: [ 1 ]
+  function:
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
+    - trsm_batched_ex: *single_precision
+    - trsm_strided_batched_ex: *single_precision
+  pointer_mode_host: false
+
 - name: trsm_batched_64
   category: stress
   arguments:
@@ -1280,8 +1296,8 @@ Tests:
   os_flags: [ LINUX ]
   stride_scale: [ 1 ]
   function:
-    trsm_batched: *single_precision
-    trsm_strided_batched: *single_precision
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
   pointer_mode_host: false
 
 - name: trsm_graph_test
