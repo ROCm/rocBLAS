@@ -513,9 +513,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             {
                 if(arg.unit_check)
                 {
-                    if((rocblas_handle(handle)->getArchMajor() == 11
-                        || rocblas_handle(handle)->getArchMajor() == 12)
-                       && (sizeof(Ti) == 2))
+                    if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
                     {
                         const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
                         near_check_general<To, To_hpa>(
@@ -546,9 +544,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             {
                 if(arg.unit_check)
                 {
-                    if((rocblas_handle(handle)->getArchMajor() == 11
-                        || rocblas_handle(handle)->getArchMajor() == 12)
-                       && (sizeof(Ti) == 2))
+                    if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
                     {
                         const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
                         near_check_general<To, To_hpa>(
