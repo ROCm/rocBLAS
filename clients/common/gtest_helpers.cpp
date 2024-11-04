@@ -46,6 +46,11 @@ testing::AssertionResult status_match(rocblas_status expected, rocblas_status st
                                            << " instead of " << rocblas_status_to_string(expected);
 }
 
+void rocblas_client_set_gtest_filter(const char* filter_string)
+{
+    GTEST_FLAG_SET(filter, filter_string);
+}
+
 /*********************************************
  * Signal-handling for detecting test faults *
  *********************************************/
