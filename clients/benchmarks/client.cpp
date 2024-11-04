@@ -1395,6 +1395,8 @@ void fix_batch(int argc, char* argv[])
 int main(int argc, char* argv[])
 try
 {
+    rocblas_client_init();
+
     fix_batch(argc, argv);
     Arguments   arg;
     std::string function;
@@ -1898,6 +1900,8 @@ try
 
     int status = 0;
     // TODO: query for any failed tests
+
+    rocblas_client_shutdown();
 
     return status;
 }

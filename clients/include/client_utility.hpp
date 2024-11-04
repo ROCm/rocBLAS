@@ -88,6 +88,10 @@
 
 #define NOOP (void)0
 
+// general global initializations
+void rocblas_client_init();
+void rocblas_client_shutdown();
+
 /*!
  * Initialize rocBLAS for the requested number of  HIP devices
  * and report the time taken to complete the initialization.

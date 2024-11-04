@@ -284,6 +284,8 @@ static void rocblas_set_test_device()
  *****************/
 int main(int argc, char** argv)
 {
+    rocblas_client_init();
+
     std::string args = rocblas_capture_args(argc, argv);
 
     auto* no_signal_handling = getenv("ROCBLAS_TEST_NO_SIGACTION");
@@ -332,6 +334,8 @@ int main(int argc, char** argv)
     rocblas_print_args(args);
 
     //rocblas_shutdown();
+
+    rocblas_client_shutdown();
 
     return status;
 }
