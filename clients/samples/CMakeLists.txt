@@ -37,12 +37,13 @@ set( sample_list_c rocblas-example-c-dgeam )
 # C++ examples
 add_executable( rocblas-example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( rocblas-example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
+add_executable( rocblas-example-scal-multiple-strided-batch example_scal_multiple_strided_batch.cpp ${rocblas_samples_common} )
 add_executable( rocblas-example-solver example_solver_rocblas.cpp ${rocblas_samples_common} )
 add_executable( rocblas-example-hip-complex-her2 example_hip_complex_her2.cpp )
 add_executable( rocblas-example-gemv-graph-capture example_gemv_graph_capture.cpp )
 add_executable( rocblas-example-header-check example_header_check.cpp)
 
-set( sample_list_base rocblas-example-sscal rocblas-example-scal-template rocblas-example-solver rocblas-example-hip-complex-her2 rocblas-example-gemv-graph-capture rocblas-example-header-check)
+set( sample_list_base rocblas-example-sscal rocblas-example-scal-template rocblas-example-scal-multiple-strided-batch rocblas-example-solver rocblas-example-hip-complex-her2 rocblas-example-gemv-graph-capture rocblas-example-header-check)
 
 if ( BUILD_FORTRAN_CLIENTS )
   # Fortran examples

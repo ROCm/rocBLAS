@@ -34,18 +34,19 @@ class device_strided_batch_vector;
 //! @brief Implementation of a host strided batched vector.
 //!
 template <typename T>
-class host_strided_batch_vector
+class host_multiple_strided_batch_vector
 {
 public:
     //!
     //! @brief Disallow copying.
     //!
-    host_strided_batch_vector(const host_strided_batch_vector&) = delete;
+    host_multiple_strided_batch_vector(const host_multiple_strided_batch_vector&) = delete;
 
     //!
     //! @brief Disallow assigning.
     //!
-    host_strided_batch_vector& operator=(const host_strided_batch_vector&) = delete;
+    host_multiple_strided_batch_vector& operator=(const host_multiple_strided_batch_vector&)
+        = delete;
 
     //!
     //! @brief Constructor.
@@ -53,24 +54,29 @@ public:
     //! @param inc The increment.
     //! @param stride The stride.
     //! @param batch_count The batch count.
+    //! @param multiple_count The multiple count.
     //!
-    explicit host_strided_batch_vector(size_t         n,
-                                       int64_t        inc,
-                                       rocblas_stride stride,
-                                       int64_t        batch_count)
+    explicit host_multiple_strided_batch_vector(
+        size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count, int64_t multiple_count)
         : m_n(n)
         , m_inc(inc ? inc : 1)
         , m_stride(stride)
         , m_batch_count(batch_count)
-        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count))
+        , m_multiple_count(multiple_count)
+        , m_multiple_stride(calculate_multiple_stride(n, inc, stride, batch_count))
+        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count, multiple_count))
     {
-        m_data = (T*)host_malloc_throw(m_nmemb, sizeof(T));
+        bool valid_parameters = m_nmemb > 0;
+        if(valid_parameters)
+        {
+            m_data = (T*)host_malloc_throw(m_nmemb, sizeof(T));
+        }
     }
 
     //!
     //! @brief Destructor.
     //!
-    ~host_strided_batch_vector()
+    ~host_multiple_strided_batch_vector()
     {
         if(nullptr != m_data)
         {
@@ -120,11 +126,27 @@ public:
     }
 
     //!
+    //! @brief Returns the multiple count.
+    //!
+    int64_t multiple_count() const
+    {
+        return m_multiple_count;
+    }
+
+    //!
     //! @brief Returns the stride.
     //!
     rocblas_stride stride() const
     {
         return m_stride;
+    }
+
+    //!
+    //! @brief Returns the multiple stride.
+    //!
+    rocblas_stride multiple_stride() const
+    {
+        return m_multiple_stride;
     }
 
     //!
@@ -137,26 +159,22 @@ public:
 
     //!
     //! @brief Returns pointer.
-    //! @param batch_index The batch index.
-    //! @return A mutable pointer to the batch_index'th vector.
+    //! @param multiple_index The multiple index.
+    //! @return A mutable pointer to the multiple_index'th strided batched vector.
     //!
-    T* operator[](int64_t batch_index)
+    T* operator[](int64_t multiple_index)
     {
-
-        return (m_stride >= 0) ? m_data + m_stride * batch_index
-                               : m_data + (batch_index + 1 - m_batch_count) * m_stride;
+        return this->m_data + this->m_multiple_stride * multiple_index;
     }
 
     //!
     //! @brief Returns non-mutable pointer.
-    //! @param batch_index The batch index.
-    //! @return A non-mutable mutable pointer to the batch_index'th vector.
+    //! @param multiple_index The multiple index.
+    //! @return A non-mutable mutable pointer to the multiple_index'th strided batched vector.
     //!
-    const T* operator[](int64_t batch_index) const
+    const T* operator[](int64_t multiple_index) const
     {
-
-        return (m_stride >= 0) ? m_data + m_stride * batch_index
-                               : m_data + (batch_index + 1 - m_batch_count) * m_stride;
+        return this->m_data + this->m_multiple_stride * multiple_index;
     }
 
     //!
@@ -190,10 +208,11 @@ public:
     //! @param that That strided batched vector on host.
     //! @return true if successful, false otherwise.
     //!
-    bool copy_from(const host_strided_batch_vector& that)
+    bool copy_from(const host_multiple_strided_batch_vector& that)
     {
         if(that.n() == m_n && that.inc() == m_inc && that.stride() == m_stride
-           && that.batch_count() == m_batch_count)
+           && that.batch_count() == m_batch_count && that.multiple_stride() == m_multiple_stride
+           && that.multiple_count() == m_multiple_count)
         {
             memcpy(data(), that.data(), sizeof(T) * m_nmemb);
             return true;
@@ -209,7 +228,7 @@ public:
     //! @param that That strided batched vector on device.
     //! @return The hip error.
     //!
-    hipError_t transfer_from(const device_strided_batch_vector<T>& that)
+    hipError_t transfer_from(const device_multiple_strided_batch_vector<T>& that)
     {
         hipError_t hip_err;
 
@@ -236,40 +255,23 @@ private:
     int64_t        m_inc{};
     rocblas_stride m_stride{};
     int64_t        m_batch_count{};
+    int64_t        m_multiple_count{};
+    int64_t        m_multiple_stride{};
     size_t         m_nmemb{};
     T*             m_data{};
 
-    static size_t calculate_nmemb(size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count)
+    static int64_t
+        calculate_multiple_stride(size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count)
     {
-        // allocate even for zero n and batch_count
-        return 1 + ((n ? n : 1) - 1) * std::abs(inc ? inc : 1)
-               + size_t((batch_count > 0 ? batch_count : 1) - 1) * std::abs(stride);
+        return align_stride<T>((inc > 0 ? inc : -inc) * n
+                               + size_t((batch_count > 0 ? batch_count : 1) - 1)
+                                     * std::abs(stride));
+    }
+
+    static size_t calculate_nmemb(
+        size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count, int64_t multiple_count)
+    {
+        int64_t multiple_stride = calculate_multiple_stride(n, inc, stride, batch_count);
+        return multiple_stride * multiple_count;
     }
 };
-
-//!
-//! @brief Overload output operator.
-//! @param os The ostream.
-//! @param that That host strided batch vector.
-//!
-template <typename T>
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&           os,
-                                     const host_strided_batch_vector<T>& that)
-{
-    auto n           = that.n();
-    auto inc         = std::abs(that.inc());
-    auto batch_count = that.batch_count();
-
-    for(int64_t batch_index = 0; batch_index < batch_count; ++batch_index)
-    {
-        auto batch_data = that[batch_index];
-        os << "[" << batch_index << "] = { " << batch_data[0];
-        for(size_t i = 1; i < n; ++i)
-        {
-            os << ", " << batch_data[i * inc];
-        }
-        os << " }" << std::endl;
-    }
-
-    return os;
-}

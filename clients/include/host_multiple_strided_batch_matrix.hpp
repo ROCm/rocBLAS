@@ -242,24 +242,6 @@ public:
 
     //!
     //! @brief Transfer data from a multiple strided batched matrix on device.
-    //! @param that That strided batched matrix on device.
-    //! @return The hip error.
-    //!
-    hipError_t transfer_from(const device_strided_batch_matrix<T>& that)
-    {
-        hipError_t hip_err;
-
-        if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
-            return hip_err;
-
-        return hipMemcpy(this->m_data,
-                         that.data(),
-                         sizeof(T) * this->m_nmemb,
-                         that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost);
-    }
-
-    //!
-    //! @brief Transfer data from a multiple strided batched matrix on device.
     //! @param that That multiple strided batched matrix on device.
     //! @return The hip error.
     //!

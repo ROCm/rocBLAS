@@ -25,12 +25,6 @@
 #include "d_vector.hpp"
 
 //
-// Forward declaration of the host vector.
-//
-template <typename T>
-class host_vector;
-
-//
 // Local declaration of the host strided batch vector.
 //
 template <typename T>
@@ -40,18 +34,19 @@ class host_strided_batch_vector;
 //! @brief Implementation of a strided batched vector on device.
 //!
 template <typename T>
-class device_strided_batch_vector : public d_vector<T>
+class device_multiple_strided_batch_vector : public d_vector<T>
 {
 public:
     //!
     //! @brief Disallow copying.
     //!
-    device_strided_batch_vector(const device_strided_batch_vector&) = delete;
+    device_multiple_strided_batch_vector(const device_multiple_strided_batch_vector&) = delete;
 
     //!
     //! @brief Disallow assigning.
     //!
-    device_strided_batch_vector& operator=(const device_strided_batch_vector&) = delete;
+    device_multiple_strided_batch_vector& operator=(const device_multiple_strided_batch_vector&)
+        = delete;
 
     //!
     //! @brief Constructor.
@@ -59,15 +54,23 @@ public:
     //! @param inc The increment.
     //! @param stride The stride.
     //! @param batch_count The batch count.
+    //! @param multiple_count The multiple count.
     //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_strided_batch_vector(
-        size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count, bool HMM = false)
-        : d_vector<T>(calculate_nmemb(n, inc, stride, batch_count), HMM)
+    explicit device_multiple_strided_batch_vector(size_t         n,
+                                                  int64_t        inc,
+                                                  rocblas_stride stride,
+                                                  int64_t        batch_count,
+                                                  int64_t        multiple_count,
+                                                  bool           HMM = false)
+        : d_vector<T>(calculate_nmemb(n, inc, stride, batch_count, multiple_count), HMM)
         , m_n(n)
         , m_inc(inc ? inc : 1)
         , m_stride(stride)
         , m_batch_count(batch_count)
+        , m_multiple_count(multiple_count)
+        , m_multiple_stride(calculate_multiple_stride(n, inc, stride, batch_count))
+        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count, multiple_count))
     {
         m_data = this->device_vector_setup();
     }
@@ -75,7 +78,7 @@ public:
     //!
     //! @brief Destructor.
     //!
-    ~device_strided_batch_vector()
+    ~device_multiple_strided_batch_vector()
     {
         if(nullptr != m_data)
         {
@@ -133,25 +136,31 @@ public:
     }
 
     //!
-    //! @brief Returns pointer.
-    //! @param batch_index The batch index.
-    //! @return A mutable pointer to the batch_index'th vector.
+    //! @brief Returns the number of members.
     //!
-    T* operator[](int64_t batch_index)
+    size_t nmemb() const
     {
-        return (m_stride >= 0) ? m_data + batch_index * m_stride
-                               : m_data + (batch_index + 1 - m_batch_count) * m_stride;
+        return m_nmemb;
+    }
+
+    //!
+    //! @brief Returns pointer.
+    //! @param multiple_index The multiple index.
+    //! @return A mutable pointer to the multiple_index'th vector.
+    //!
+    T* operator[](int64_t multiple_index)
+    {
+        return m_data + multiple_index * m_multiple_stride;
     }
 
     //!
     //! @brief Returns non-mutable pointer.
-    //! @param batch_index The batch index.
-    //! @return A non-mutable mutable pointer to the batch_index'th vector.
+    //! @param multiple_index The multiple index.
+    //! @return A non-mutable mutable pointer to the multiple_index'th vector.
     //!
-    const T* operator[](int64_t batch_index) const
+    const T* operator[](int64_t multiple_index) const
     {
-        return (m_stride >= 0) ? m_data + batch_index * m_stride
-                               : m_data + (batch_index + 1 - m_batch_count) * m_stride;
+        return m_data + multiple_index * m_multiple_stride;
     }
 
     //!
@@ -181,8 +190,8 @@ public:
     }
 
     //!
-    //! @brief Transfer data from a strided batched vector on device.
-    //! @param that That strided batched vector on device.
+    //! @brief Transfer data from a strided batched vector on host.
+    //! @param that That strided batched vector on host.
     //! @return The hip error.
     //!
     hipError_t transfer_from(const host_strided_batch_vector<T>& that)
@@ -194,22 +203,34 @@ public:
     }
 
     //!
-    //! @brief Broadcast data from one vector on host to each batch_count vectors.
-    //! @param that That vector on host.
+    //! @brief Broadcast data from one strided_batch_vector on host to each batch_count strided_batch_vectors.
+    //! @param that That strided_batch_vector on host.
     //! @return The hip error.
     //!
-    hipError_t broadcast_one_vector_from(const host_vector<T>& that)
+    hipError_t broadcast_one_strided_batch_vector_from(const host_strided_batch_vector<T>& that)
     {
-        hipError_t status             = hipSuccess;
-        size_t     single_vector_size = 1 + ((m_n ? m_n : 1) - 1) * std::abs(m_inc ? m_inc : 1);
-        for(int64_t batch_index = 0; batch_index < m_batch_count; batch_index++)
+        if(that.nmemb() > this->m_multiple_stride)
         {
-            status = hipMemcpy(this->data() + (batch_index * m_stride),
+            rocblas_cout << "ERROR: size mismatch in broadcast_one_vector_from" << std::endl;
+            rocblas_cout << "that.nmemb, m_multiple_strided = " << that.nmemb() << ", "
+                         << m_multiple_stride << std::endl;
+            return hipErrorInvalidValue;
+        }
+        hipError_t status = hipSuccess;
+        for(int64_t multiple_index = 0; multiple_index < m_multiple_count; multiple_index++)
+        {
+
+            status = hipMemcpy(this->data() + (multiple_index * m_multiple_stride),
                                that.data(),
-                               sizeof(T) * single_vector_size,
+                               sizeof(T) * that.nmemb(),
                                this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice);
+
             if(status != hipSuccess)
+            {
+                rocblas_cout << "ERROR: status, multiple_index = " << status << ", "
+                             << multiple_index << std::endl;
                 break;
+            }
         }
         return status;
     }
@@ -231,12 +252,23 @@ private:
     int64_t        m_inc{};
     rocblas_stride m_stride{};
     int64_t        m_batch_count{};
+    int64_t        m_multiple_count{};
+    int64_t        m_multiple_stride{};
+    size_t         m_nmemb{};
     T*             m_data{};
 
-    static size_t calculate_nmemb(size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count)
+    static int64_t
+        calculate_multiple_stride(size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count)
     {
-        // allocate even for zero n and batch_count
-        return 1 + ((n ? n : 1) - 1) * std::abs(inc ? inc : 1)
-               + size_t((batch_count > 0 ? batch_count : 1) - 1) * std::abs(stride);
+        return align_stride<T>((inc > 0 ? inc : -inc) * n
+                               + size_t((batch_count > 0 ? batch_count : 1) - 1)
+                                     * std::abs(stride));
+    }
+
+    static size_t calculate_nmemb(
+        size_t n, int64_t inc, rocblas_stride stride, int64_t batch_count, int64_t multiple_count)
+    {
+        int64_t multiple_stride = calculate_multiple_stride(n, inc, stride, batch_count);
+        return multiple_stride * multiple_count;
     }
 };
