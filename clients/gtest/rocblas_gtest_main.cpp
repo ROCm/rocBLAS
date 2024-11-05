@@ -248,46 +248,14 @@ static void rocblas_print_usage_warning()
     rocblas_cout << "info: " << warning << "\n" << std::endl;
 }
 
-static std::string rocblas_capture_args(int argc, char** argv, std::string& filter_str)
+static std::string rocblas_capture_args(int argc, char** argv)
 {
-    bool yaml   = false;
-    bool filter = false;
-
     std::ostringstream cmdLine;
     cmdLine << "command line: ";
     for(int i = 0; i < argc; i++)
     {
         if(argv[i])
-        {
-            if(strstr(argv[i], "--yaml"))
-            {
-                yaml = true;
-            }
-            if(strstr(argv[i], "--gtest_filter="))
-            {
-                std::string argv_str(argv[i]);
-                filter_str = argv_str.substr(strlen("--gtest_filter="));
-                filter     = true;
-            }
-
             cmdLine << std::string(argv[i]) << " ";
-        }
-    }
-
-    // guard against full tests
-    if(!yaml)
-    {
-        if(filter_str.empty() || !strstr(filter_str.c_str(), "stress"))
-        {
-            if(!strstr(filter_str.c_str(), "-"))
-                filter_str += "-";
-            filter_str += ":*stress*";
-            rocblas_client_set_gtest_filter(filter_str.c_str());
-
-            std::string warning(
-                "automatically adding filter to remove stress tests. --gtest_filter=");
-            rocblas_cout << "info: " << warning << filter_str << "\n" << std::endl;
-        }
     }
     return cmdLine.str();
 }
@@ -318,8 +286,7 @@ int main(int argc, char** argv)
 {
     rocblas_client_init();
 
-    std::string filter_override;
-    std::string args = rocblas_capture_args(argc, argv, filter_override);
+    std::string args = rocblas_capture_args(argc, argv);
 
     auto* no_signal_handling = getenv("ROCBLAS_TEST_NO_SIGACTION");
     if(no_signal_handling)
@@ -350,8 +317,6 @@ int main(int argc, char** argv)
 
     // Initialize Google Tests
     testing::InitGoogleTest(&argc, argv);
-    if(!filter_override.empty())
-        rocblas_client_set_gtest_filter(filter_override.c_str());
 
     // Free up all temporary data generated during test creation
     test_cleanup::cleanup();

@@ -32,9 +32,6 @@
 // improve mismatched status reporting
 testing::AssertionResult status_match(rocblas_status expected, rocblas_status status);
 
-// force filter
-void rocblas_client_set_gtest_filter(const char* filter_string);
-
 // Function to catch signals and exceptions as failures
 void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm = false);
 
