@@ -46,6 +46,15 @@ testing::AssertionResult status_match(rocblas_status expected, rocblas_status st
                                            << " instead of " << rocblas_status_to_string(expected);
 }
 
+void rocblas_client_set_gtest_filter(const char* filter_string)
+{
+#ifdef GOOGLE_TEST
+    testing::GTEST_FLAG(filter) = filter_string;
+    // newer gtest form caused compile errors
+    // GTEST_FLAG_SET(filter, filter_string);
+#endif
+}
+
 /*********************************************
  * Signal-handling for detecting test faults *
  *********************************************/
@@ -141,6 +150,8 @@ static const unsigned test_timeout = [] {
 // Lambda wrapper which detects signals and exceptions in an invokable function
 void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm)
 {
+#ifdef GOOGLE_TEST
+
     // Save the current handler (to allow nested calls to this function)
     auto old_handler = t_handler;
 
@@ -205,4 +216,6 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
         (void)rocblas_internal_convert_hip_to_rocblas_status_and_log(
             hipGetLastError()); // clear last error
     }
+
+#endif
 }
