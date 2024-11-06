@@ -224,6 +224,17 @@ Tests:
   alpha: [ 2.0, 0.0 ]
   batch_count: [ 3 ]
 
+- name: ger_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { M: 1025, N:   1, lda: 1025, incx: 1, incy: 1, stride_a: 1025, batch_count: *c_grid_yz_require_passes } #generic float kernel
+    - { M:  128, N: 128, lda:  128, incx: 1, incy: 1, stride_a: 16384, batch_count: *c_grid_yz_require_passes} #double buffered loads
+  alpha: [ 2.0 ]
+  pointer_mode_host: false
+  function:
+    - ger_batched: *single_precision
+    - ger_strided_batched: *single_precision
+
 # ger_strided_batched
 - name: ger_strided_batched_fortran
   category: quick

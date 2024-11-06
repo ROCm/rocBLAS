@@ -163,7 +163,19 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ 3 ]
 
-# strided batched
+- name: hpr2_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, incx: 1, incx: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  alpha_beta: *alpha_range_small
+  pointer_mode_host: false
+  function:
+    - hpr2_batched: *single_precision_complex
+    - hpr2_strided_batched: *single_precision_complex
+  stride_scale: 1
+
+# hpr2_strided_batched
 - name: hpr2_strided_batched_fortran
   category: quick
   function: hpr2_strided_batched

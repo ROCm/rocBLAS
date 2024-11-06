@@ -22,6 +22,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "rocblas_trsv.hpp"
 
 // Copyright 2014-6, The Science and Technology Facilities Council (STFC)
@@ -492,261 +493,273 @@ rocblas_trsv_device(rocblas_int    n,
                     rocblas_stride offset_x,
                     int64_t        incx,
                     rocblas_stride stride_x,
-                    rocblas_int*   w_completed_sec)
+                    rocblas_int*   w_completed_sec,
+                    rocblas_int    batch_count)
 {
     // If we need to start at the bottom and work upwards (backwards substitution)
     constexpr bool backwards_sub = (!LOWER && !TRANS) || (LOWER && TRANS);
 
     // Load appropriate pointers
-    const rocblas_int batchid = blockIdx.y;
-    auto* __restrict__ A      = load_ptr_batch(dA, batchid, offset_A, stride_A);
-    auto* __restrict__ x      = load_ptr_batch(dx, batchid, offset_x, stride_x);
-    T alpha                   = load_scalar(alpha_device_host);
+    uint32_t batch = blockIdx.z;
 
-    // Storing the updated sum of x values, so we can have more than 1 thread working on each val
-    T __shared__ sum[DIM_X * DIM_Y];
-
-    // Shared memory for diagonal block of A for solve
-    T __shared__ sAdiag[DIM_X * DIM_X];
-
-    // Shared memory to access block portion of x
-    T __shared__ sx[DIM_X];
-
-    // Storing a single DIM_X * DIM_X block in registers.
-    // Each thread stores DIM_X / DIM_Y elements in the same row
-    T sAoff[DIM_X / DIM_Y];
-
-    const rocblas_int num_blocks = gridDim.x;
-    const ptrdiff_t   tid        = blockDim.x * threadIdx.y + threadIdx.x;
-    const rocblas_int tx         = threadIdx.x;
-    const rocblas_int ty         = threadIdx.y;
-
-    // Assign to register row in each thread
-    rocblas_int block_row = backwards_sub ? num_blocks - 1 - blockIdx.x : blockIdx.x;
-
-    // If problem is not divisible into DIM_X sized sections, the last block row
-    // will be smaller and must be handled differently
-    const rocblas_int remainder        = n % DIM_X;
-    const bool        row_is_remainder = ((n - 1) / DIM_X == block_row && remainder != 0);
-
-    // Store square block of A beside triangular part (if not first row)
-    const bool first_row = backwards_sub ? block_row == num_blocks - 1 : block_row == 0;
-    if(!first_row)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        const rocblas_int block_col = backwards_sub ? block_row + 1 : block_row - 1;
-        const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
-        const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
-        const size_t      A_idx     = (local_row) + (local_col)*lda;
+#endif
 
-        for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+        auto* __restrict__ A = load_ptr_batch(dA, batch, offset_A, stride_A);
+        auto* __restrict__ x = load_ptr_batch(dx, batch, offset_x, stride_x);
+        T alpha              = load_scalar(alpha_device_host);
+
+        // Storing the updated sum of x values, so we can have more than 1 thread working on each val
+        T __shared__ sum[DIM_X * DIM_Y];
+
+        // Shared memory for diagonal block of A for solve
+        T __shared__ sAdiag[DIM_X * DIM_X];
+
+        // Shared memory to access block portion of x
+        T __shared__ sx[DIM_X];
+
+        // Storing a single DIM_X * DIM_X block in registers.
+        // Each thread stores DIM_X / DIM_Y elements in the same row
+        T sAoff[DIM_X / DIM_Y];
+
+        const rocblas_int num_blocks = gridDim.x;
+        const ptrdiff_t   tid        = blockDim.x * threadIdx.y + threadIdx.x;
+        const rocblas_int tx         = threadIdx.x;
+        const rocblas_int ty         = threadIdx.y;
+
+        // Assign to register row in each thread
+        rocblas_int block_row = backwards_sub ? num_blocks - 1 - blockIdx.x : blockIdx.x;
+
+        // If problem is not divisible into DIM_X sized sections, the last block row
+        // will be smaller and must be handled differently
+        const rocblas_int remainder        = n % DIM_X;
+        const bool        row_is_remainder = ((n - 1) / DIM_X == block_row && remainder != 0);
+
+        // Store square block of A beside triangular part (if not first row)
+        const bool first_row = backwards_sub ? block_row == num_blocks - 1 : block_row == 0;
+        if(!first_row)
         {
-            const size_t i_idx = TRANS ? i : i * lda;
+            const rocblas_int block_col = backwards_sub ? block_row + 1 : block_row - 1;
+            const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
+            const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
+            const size_t      A_idx     = (local_row) + (local_col)*lda;
 
-            __syncthreads();
-            if(TRANS ? (local_row + i < n && local_col < n) : (local_row < n && local_col + i < n))
-                sAoff[i / DIM_Y] = A[A_idx + i_idx];
-            else
-                sAoff[i / DIM_Y] = 0.0;
+            for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+            {
+                const size_t i_idx = TRANS ? i : i * lda;
+
+                __syncthreads();
+                if(TRANS ? (local_row + i < n && local_col < n)
+                         : (local_row < n && local_col + i < n))
+                    sAoff[i / DIM_Y] = A[A_idx + i_idx];
+                else
+                    sAoff[i / DIM_Y] = 0.0;
+            }
         }
-    }
 
-    // Storing diagonal block of A into shared memory for subtitution solve
+        // Storing diagonal block of A into shared memory for subtitution solve
 #ifdef INV_AFTER
-    bool cache_transpose = (TRANS && LOWER && num_blocks - 1 - block_row < INV_AFTER)
-                           || (TRANS && !LOWER && block_row < INV_AFTER)
-                           || (TRANS && row_is_remainder);
+        bool cache_transpose = (TRANS && LOWER && num_blocks - 1 - block_row < INV_AFTER)
+                               || (TRANS && !LOWER && block_row < INV_AFTER)
+                               || (TRANS && row_is_remainder);
 #else
     bool cache_transpose = TRANS; // works for ALL without inversion method
 #endif
-    if(!row_is_remainder)
-    {
-        rocblas_int row = tx;
-        for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+        if(!row_is_remainder)
         {
-            const rocblas_int col    = ty + i;
-            const rocblas_int sA_idx = cache_transpose ? col + DIM_X * row : col * DIM_X + row;
-            const size_t A_idx = (block_row * DIM_X * lda + block_row * DIM_X) + col * lda + row;
-            const rocblas_int total_col = block_row * DIM_X + col;
-            const rocblas_int total_row = block_row * DIM_X + row;
+            rocblas_int row = tx;
+            for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+            {
+                const rocblas_int col    = ty + i;
+                const rocblas_int sA_idx = cache_transpose ? col + DIM_X * row : col * DIM_X + row;
+                const size_t      A_idx
+                    = (block_row * DIM_X * lda + block_row * DIM_X) + col * lda + row;
+                const rocblas_int total_col = block_row * DIM_X + col;
+                const rocblas_int total_row = block_row * DIM_X + row;
 
-            if((row > col && LOWER) || (col > row && !LOWER))
-            {
-                sAdiag[sA_idx] = CONJ ? -conj(A[A_idx]) : -A[A_idx];
-            }
-            else if(!UNIT && row == col)
-            {
-                // Dividing here so we can just multiply later.
-                sAdiag[sA_idx] = 1.0 / (CONJ ? conj(A[A_idx]) : A[A_idx]);
-            }
-            else if(col < DIM_X && row < DIM_X) // In off-triangular portion - set to 0
-            {
-                sAdiag[sA_idx] = 0.0;
+                if((row > col && LOWER) || (col > row && !LOWER))
+                {
+                    sAdiag[sA_idx] = CONJ ? -conj(A[A_idx]) : -A[A_idx];
+                }
+                else if(!UNIT && row == col)
+                {
+                    // Dividing here so we can just multiply later.
+                    sAdiag[sA_idx] = 1.0 / (CONJ ? conj(A[A_idx]) : A[A_idx]);
+                }
+                else if(col < DIM_X && row < DIM_X) // In off-triangular portion - set to 0
+                {
+                    sAdiag[sA_idx] = 0.0;
+                }
             }
         }
-    }
-    else // remainder of a block
-    {
-        rocblas_int row = tx;
-        for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+        else // remainder of a block
         {
-            const rocblas_int col    = ty + i;
-            const rocblas_int sA_idx = cache_transpose ? col + DIM_X * row : col * DIM_X + row;
-            const size_t A_idx = (block_row * DIM_X * lda + block_row * DIM_X) + col * lda + row;
-            const rocblas_int total_col = block_row * DIM_X + col;
-            const rocblas_int total_row = block_row * DIM_X + row;
-            if(((row > col && LOWER) || (col > row && !LOWER)) && row < remainder
-               && col < remainder)
+            rocblas_int row = tx;
+            for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
             {
-                sAdiag[sA_idx] = CONJ ? -conj(A[A_idx]) : -A[A_idx];
-            }
-            else if(!UNIT && row == col && row < remainder)
-            {
-                // Dividing here so we can just multiply later.
-                sAdiag[sA_idx] = 1.0 / (CONJ ? conj(A[A_idx]) : A[A_idx]);
-            }
-            else if(col < DIM_X
-                    && row < DIM_X) // In off-triangular portion or past end of remainder
-            {
-                sAdiag[sA_idx] = 0.0;
+                const rocblas_int col    = ty + i;
+                const rocblas_int sA_idx = cache_transpose ? col + DIM_X * row : col * DIM_X + row;
+                const size_t      A_idx
+                    = (block_row * DIM_X * lda + block_row * DIM_X) + col * lda + row;
+                const rocblas_int total_col = block_row * DIM_X + col;
+                const rocblas_int total_row = block_row * DIM_X + row;
+                if(((row > col && LOWER) || (col > row && !LOWER)) && row < remainder
+                   && col < remainder)
+                {
+                    sAdiag[sA_idx] = CONJ ? -conj(A[A_idx]) : -A[A_idx];
+                }
+                else if(!UNIT && row == col && row < remainder)
+                {
+                    // Dividing here so we can just multiply later.
+                    sAdiag[sA_idx] = 1.0 / (CONJ ? conj(A[A_idx]) : A[A_idx]);
+                }
+                else if(col < DIM_X
+                        && row < DIM_X) // In off-triangular portion or past end of remainder
+                {
+                    sAdiag[sA_idx] = 0.0;
+                }
             }
         }
-    }
-    __syncthreads();
-
-#ifdef INV_AFTER
-    if(((block_row >= INV_AFTER && !backwards_sub)
-        || (num_blocks - 1 - block_row >= INV_AFTER && backwards_sub))
-       && !row_is_remainder)
-    {
-        if(LOWER)
-            rocblas_trsv_invert<T, DIM_X, DIM_X, DIM_X, DIM_Y, UNIT, TRANS>(sAdiag, sum);
-        else
-            rocblas_trsv_invert_upper<T, DIM_X, DIM_X, DIM_X, DIM_Y, UNIT, TRANS>(sAdiag, sum);
-    }
-#endif
-    __syncthreads();
-
-    // Store relevant x value into register
-    T val = 0;
-    if(ty == 0)
-    {
-        if(!row_is_remainder || tx < remainder)
-        {
-            // multiply by alpha when reading from device memory x
-            val = -alpha * x[(block_row * DIM_X + tx) * incx];
-        }
-    }
-
-    // Once previously solved block is ready, apply this to other square blocks
-    rocblas_int       col_done = -1;
-    const rocblas_int iters    = backwards_sub ? num_blocks - 1 - block_row : block_row;
-    for(rocblas_int block_iter = 0; block_iter < iters; block_iter++)
-    {
-        // For backwards substitution, we start at the bottom and propogate upwards, else we go top-to-bottom
-        const rocblas_int block_col = backwards_sub ? (num_blocks - 1 - block_iter) : block_iter;
-
-        const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
-        const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
-        const size_t      A_idx     = local_col * lda + local_row;
-        const int64_t     x_idx     = (block_col * DIM_X) * incx;
-
-        if(tid == 0)
-        {
-            // Wait until the previous column is done. Use global memory to
-            // update when ready.
-            if(col_done < block_iter)
-            {
-                while(w_completed_sec[batchid] < block_iter)
-                    __threadfence();
-                col_done = w_completed_sec[batchid];
-            }
-        }
-
-        // Few intermittent failures without this. Needed to wait for updated x values, I guess?
-        __threadfence();
         __syncthreads();
 
-        // Store x val (of previous block) into shared memory
-        if(tid < DIM_X)
+#ifdef INV_AFTER
+        if(((block_row >= INV_AFTER && !backwards_sub)
+            || (num_blocks - 1 - block_row >= INV_AFTER && backwards_sub))
+           && !row_is_remainder)
         {
-            if(block_col * DIM_X + tid >= n)
-                sx[tid] = 0.0;
+            if(LOWER)
+                rocblas_trsv_invert<T, DIM_X, DIM_X, DIM_X, DIM_Y, UNIT, TRANS>(sAdiag, sum);
             else
-            {
-                // Don't multiply by alpha here as this is a solved value
-                sx[tid] = x[x_idx + tid * incx];
-            }
+                rocblas_trsv_invert_upper<T, DIM_X, DIM_X, DIM_X, DIM_Y, UNIT, TRANS>(sAdiag, sum);
         }
-
+#endif
         __syncthreads();
 
-        // Update val with result of previous block
-        for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+        // Store relevant x value into register
+        T val = 0;
+        if(ty == 0)
         {
-            // Use shared memory if previous col since we cached this earlier
-            const size_t i_idx = TRANS ? i : i * lda;
-            const bool   cached
-                = !first_row
-                  && (backwards_sub ? block_col == block_row + 1 : block_col == block_row - 1);
-
-            if(TRANS ? (local_row + i < n && local_col < n) : (local_row < n && local_col + i < n))
+            if(!row_is_remainder || tx < remainder)
             {
-                auto A_val = cached ? sAoff[i / DIM_Y] : A[A_idx + i_idx];
-                if(CONJ)
-                    A_val = conj(A_val);
-                val += A_val * sx[i + ty];
+                // multiply by alpha when reading from device memory x
+                val = -alpha * x[(block_row * DIM_X + tx) * incx];
             }
         }
-    }
 
-    // Add "solved" x values into shared memory to be summed further
-    sum[ty * DIM_X + tx] = val;
-    __syncthreads();
-
-    if(ty == 0)
-    {
-        // Sum DIM_Y elements into single val
-        for(rocblas_int i = 1; i < DIM_Y; i++)
+        // Once previously solved block is ready, apply this to other square blocks
+        rocblas_int       col_done = -1;
+        const rocblas_int iters    = backwards_sub ? num_blocks - 1 - block_row : block_row;
+        for(rocblas_int block_iter = 0; block_iter < iters; block_iter++)
         {
-            val += sum[i * DIM_X + tx];
+            // For backwards substitution, we start at the bottom and propogate upwards, else we go top-to-bottom
+            const rocblas_int block_col
+                = backwards_sub ? (num_blocks - 1 - block_iter) : block_iter;
+
+            const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
+            const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
+            const size_t      A_idx     = local_col * lda + local_row;
+            const int64_t     x_idx     = (block_col * DIM_X) * incx;
+
+            if(tid == 0)
+            {
+                // Wait until the previous column is done. Use global memory to
+                // update when ready.
+                if(col_done < block_iter)
+                {
+                    while(w_completed_sec[batch] < block_iter)
+                        __threadfence();
+                    col_done = w_completed_sec[batch];
+                }
+            }
+
+            // Few intermittent failures without this. Needed to wait for updated x values, I guess?
+            __threadfence();
+            __syncthreads();
+
+            // Store x val (of previous block) into shared memory
+            if(tid < DIM_X)
+            {
+                if(block_col * DIM_X + tid >= n)
+                    sx[tid] = 0.0;
+                else
+                {
+                    // Don't multiply by alpha here as this is a solved value
+                    sx[tid] = x[x_idx + tid * incx];
+                }
+            }
+
+            __syncthreads();
+
+            // Update val with result of previous block
+            for(rocblas_int i = 0; i < DIM_X; i += DIM_Y)
+            {
+                // Use shared memory if previous col since we cached this earlier
+                const size_t i_idx = TRANS ? i : i * lda;
+                const bool   cached
+                    = !first_row
+                      && (backwards_sub ? block_col == block_row + 1 : block_col == block_row - 1);
+
+                if(TRANS ? (local_row + i < n && local_col < n)
+                         : (local_row < n && local_col + i < n))
+                {
+                    auto A_val = cached ? sAoff[i / DIM_Y] : A[A_idx + i_idx];
+                    if(CONJ)
+                        A_val = conj(A_val);
+                    val += A_val * sx[i + ty];
+                }
+            }
         }
-        val = -val;
 
-        if(row_is_remainder && tx >= remainder)
-            val = 0.0; // zero out out-of-bounds
-    }
+        // Add "solved" x values into shared memory to be summed further
+        sum[ty * DIM_X + tx] = val;
+        __syncthreads();
 
-    // Solve the current block.
-    // It's important that we're very efficient here, as other blocks are
-    // likely just waiting for the result of this block.
+        if(ty == 0)
+        {
+            // Sum DIM_Y elements into single val
+            for(rocblas_int i = 1; i < DIM_Y; i++)
+            {
+                val += sum[i * DIM_X + tx];
+            }
+            val = -val;
+
+            if(row_is_remainder && tx >= remainder)
+                val = 0.0; // zero out out-of-bounds
+        }
+
+        // Solve the current block.
+        // It's important that we're very efficient here, as other blocks are
+        // likely just waiting for the result of this block.
 #ifdef INV_AFTER
-    if(((block_row >= INV_AFTER && !backwards_sub)
-        || (num_blocks - 1 - block_row >= INV_AFTER && backwards_sub))
-       && !row_is_remainder)
-    {
-        rocblas_trsv_block_solve_inverse<T, DIM_X, DIM_Y, backwards_sub>(sAdiag, sx, val, sum);
-
-        if(!row_is_remainder || tx < remainder)
+        if(((block_row >= INV_AFTER && !backwards_sub)
+            || (num_blocks - 1 - block_row >= INV_AFTER && backwards_sub))
+           && !row_is_remainder)
         {
-            if(ty == 0)
+            rocblas_trsv_block_solve_inverse<T, DIM_X, DIM_Y, backwards_sub>(sAdiag, sx, val, sum);
+
+            if(!row_is_remainder || tx < remainder)
             {
-                x[(block_row * DIM_X + tid) * incx] = val;
+                if(ty == 0)
+                {
+                    x[(block_row * DIM_X + tid) * incx] = val;
+                }
             }
         }
-    }
-    else // same as without inversion
-    {
-        // Solve the diagonal block
-        if(backwards_sub)
-            rocblas_trsv_block_solve_upper<DIM_X, UNIT>(sAdiag, DIM_X, val);
-        else
-            rocblas_trsv_block_solve_lower<DIM_X, UNIT>(sAdiag, DIM_X, val);
+        else // same as without inversion
+        {
+            // Solve the diagonal block
+            if(backwards_sub)
+                rocblas_trsv_block_solve_upper<DIM_X, UNIT>(sAdiag, DIM_X, val);
+            else
+                rocblas_trsv_block_solve_lower<DIM_X, UNIT>(sAdiag, DIM_X, val);
 
-        // Store solved value into x
-        if(!row_is_remainder || tx < remainder)
-            if(ty == 0)
-                x[(block_row * DIM_X + tid) * incx] = val;
-    }
+            // Store solved value into x
+            if(!row_is_remainder || tx < remainder)
+                if(ty == 0)
+                    x[(block_row * DIM_X + tid) * incx] = val;
+        }
 #else
     // Solve the diagonal block
     if(backwards_sub)
@@ -760,17 +773,21 @@ rocblas_trsv_device(rocblas_int    n,
             x[(block_row * DIM_X + tid) * incx] = val;
 #endif
 
-    // ensure solved x values are saved
-    __threadfence();
+        // ensure solved x values are saved
+        __threadfence();
 
-    // next column is ready
-    // don't need an atomic op here since there should only
-    // be one block for each batch here at once
-    __syncthreads(); // for windows instability
-    if(tid == 0)
-        w_completed_sec[batchid]++;
+        // next column is ready
+        // don't need an atomic op here since there should only
+        // be one block for each batch here at once
+        __syncthreads(); // for windows instability
+        if(tid == 0)
+            w_completed_sec[batch]++;
 
-    __threadfence();
+        __threadfence();
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <rocblas_int DIM_X, typename T, typename TConstPtr, typename TPtr>
@@ -800,10 +817,12 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
 
     offset_x = incx < 0 ? offset_x + incx * (1 - n) : offset_x;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     constexpr rocblas_int DIM_Y  = 16;
     rocblas_int           blocks = (n + DIM_X - 1) / DIM_X;
     dim3                  threads(DIM_X, DIM_Y, 1);
-    dim3                  grid(blocks, batch_count);
+    dim3                  grid(blocks, 1, batches);
 
     // Initialize global variables
     ROCBLAS_LAUNCH_KERNEL(
@@ -822,7 +841,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
 
 #define TRSV_TEMPLATE_PARAMS(alpha_)                                                              \
     grid, threads, 0, handle->get_stream(), n, dA, offset_A, lda, stride_A, alpha_, dx, offset_x, \
-        incx, stride_x, w_completed_sec
+        incx, stride_x, w_completed_sec, batch_count
 
     if(handle->pointer_mode == rocblas_pointer_mode_device && alpha_exists)
     {

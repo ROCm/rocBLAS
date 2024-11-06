@@ -200,6 +200,18 @@ Tests:
   batch_count: [ 1, 3 ]
   pointer_mode_device: false
 
+- name: spmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - spmv_batched: *single_precision
+    - spmv_strided_batched: *single_precision
+  stride_scale: 1
+
   # strided batched
 - name: spmv_strided_batched_bad
   category: quick

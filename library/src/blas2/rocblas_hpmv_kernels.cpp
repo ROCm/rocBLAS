@@ -22,6 +22,7 @@
 
 #include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "rocblas_hpmv.hpp"
 
 /**
@@ -123,7 +124,7 @@ template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPt
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_hpmv_kernel(bool           is_upper,
                     rocblas_int    n,
-                    TScal          alphaa,
+                    TScal          alpha_device_host,
                     TConstPtr      APa,
                     rocblas_stride shifta,
                     rocblas_stride strideA,
@@ -131,24 +132,35 @@ rocblas_hpmv_kernel(bool           is_upper,
                     rocblas_stride shiftx,
                     int64_t        incx,
                     rocblas_stride stridex,
-                    TScal          betaa,
+                    TScal          beta_device_host,
                     TPtr           ya,
                     rocblas_stride shifty,
                     int64_t        incy,
-                    rocblas_stride stridey)
+                    rocblas_stride stridey,
+                    rocblas_int    batch_count)
 {
-    auto alpha = load_scalar(alphaa);
-    auto beta  = load_scalar(betaa);
+    auto alpha = load_scalar(alpha_device_host);
+    auto beta  = load_scalar(beta_device_host);
 
     if(!alpha && beta == 1)
         return;
 
-    auto AP = cond_load_ptr_batch(alpha, APa, blockIdx.y, shifta, strideA);
-    auto x  = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+    uint32_t batch = blockIdx.z;
 
-    auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        auto AP = cond_load_ptr_batch(alpha, APa, batch, shifta, strideA);
+        auto x  = cond_load_ptr_batch(alpha, xa, batch, shiftx, stridex);
 
-    rocblas_hpmv_kernel_calc<DIM_X, DIM_Y>(is_upper, n, alpha, AP, x, incx, beta, y, incy);
+        auto y = load_ptr_batch(ya, batch, shifty, stridey);
+
+        rocblas_hpmv_kernel_calc<DIM_X, DIM_Y>(is_upper, n, alpha, AP, x, incx, beta, y, incy);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -183,11 +195,13 @@ rocblas_status rocblas_hpmv_launcher(rocblas_handle handle,
     offsetx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
     offsety = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int HPMV_DIM_X = 64;
     static constexpr int HPMV_DIM_Y = 16;
 
     rocblas_int blocks = (n - 1) / (HPMV_DIM_X) + 1;
-    dim3        hpmv_grid(blocks, batch_count);
+    dim3        hpmv_grid(blocks, 1, batches);
     dim3        hpmv_threads(HPMV_DIM_X, HPMV_DIM_Y);
 
     // Launch a modified gemv kernel for hpmv.
@@ -212,7 +226,8 @@ rocblas_status rocblas_hpmv_launcher(rocblas_handle handle,
                               y,
                               offsety,
                               incy,
-                              stridey);
+                              stridey,
+                              batch_count);
     }
     else
     {
@@ -238,7 +253,8 @@ rocblas_status rocblas_hpmv_launcher(rocblas_handle handle,
                               y,
                               offsety,
                               incy,
-                              stridey);
+                              stridey,
+                              batch_count);
     }
 
     return rocblas_status_success;

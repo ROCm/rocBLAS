@@ -186,6 +186,18 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ 3 ]
 
+- name: her_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N: 3, lda:  3, incx: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  alpha: [ 2.0 ]
+  uplo: [ U, L ]
+  pointer_mode_host: false
+  function:
+    - her_batched: *single_precision_complex
+    - her_strided_batched: *single_precision_complex
+  stride_scale: 1
+
 # her_strided_batched
 - name: her_batched_fortran
   category: quick

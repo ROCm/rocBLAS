@@ -22,6 +22,7 @@
 
 #include "../blas1/rocblas_copy.hpp"
 #include "../blas1/rocblas_reduction.hpp"
+#include "device_macros.hpp"
 #include "rocblas.h"
 #include "rocblas_trmv.hpp"
 #include <cstddef>
@@ -129,16 +130,29 @@ rocblas_trmvn_kernel(rocblas_int    n,
                      int64_t        incx,
                      rocblas_stride stride_x,
                      TWork          workspace,
-                     rocblas_stride stride_w)
+                     rocblas_stride stride_w,
+                     rocblas_int    batch_count)
 {
     static constexpr ptrdiff_t shiftw = 0;
-    rocblas_trmvn_kernel_calc<DIM_X, DIM_Y, LOWER, UNIT>(
-        n,
-        load_ptr_batch(A, blockIdx.y, shifta, stride_A),
-        lda,
-        load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
-        incx,
-        load_ptr_batch(workspace, blockIdx.y, shiftw, stride_w));
+
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        rocblas_trmvn_kernel_calc<DIM_X, DIM_Y, LOWER, UNIT>(
+            n,
+            load_ptr_batch(A, batch, shifta, stride_A),
+            lda,
+            load_ptr_batch(x, batch, shift_x, stride_x),
+            incx,
+            load_ptr_batch(workspace, batch, shiftw, stride_w));
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <rocblas_int NB,
@@ -159,16 +173,29 @@ rocblas_trmvt_kernel(rocblas_int    n,
                      int64_t        incx,
                      rocblas_stride stride_x,
                      TWork          workspace,
-                     rocblas_stride stride_w)
+                     rocblas_stride stride_w,
+                     rocblas_int    batch_count)
 {
     static constexpr ptrdiff_t shiftw = 0;
-    rocblas_trmvt_kernel_calc<NB, LOWER, CONJ, UNIT>(
-        n,
-        load_ptr_batch(A, blockIdx.y, shifta, stride_A),
-        lda,
-        load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
-        incx,
-        load_ptr_batch(workspace, blockIdx.y, shiftw, stride_w));
+
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        rocblas_trmvt_kernel_calc<NB, LOWER, CONJ, UNIT>(
+            n,
+            load_ptr_batch(A, batch, shifta, stride_A),
+            lda,
+            load_ptr_batch(x, batch, shift_x, stride_x),
+            incx,
+            load_ptr_batch(workspace, batch, shiftw, stride_w));
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <typename TConstPtr, typename TPtr, typename TWork>
@@ -201,19 +228,21 @@ rocblas_status rocblas_internal_trmv_launcher(rocblas_handle    handle,
 
     int64_t shift_x = incx < 0 ? offset_x + incx * (1 - n) : offset_x;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr rocblas_int NB          = ROCBLAS_TRMV_NB;
     constexpr int                TRMVN_DIM_X = 64;
     constexpr int                TRMVN_DIM_Y = 16;
 
-    dim3 trmvn_grid((n - 1) / TRMVN_DIM_X + 1, batch_count);
+    dim3 trmvn_grid((n - 1) / TRMVN_DIM_X + 1, 1, batches);
     dim3 trmvn_threads(TRMVN_DIM_X, TRMVN_DIM_Y);
 
-    dim3 trmvt_grid(n, batch_count);
+    dim3 trmvt_grid(n, 1, batches);
     dim3 trmvt_threads(NB);
 
 #define TRMV_TEMPLATE_PARAMS                                                                 \
     0, rocblas_stream, n, A, offset_A, lda, stride_A, x, shift_x, incx, stride_x, workspace, \
-        stride_w
+        stride_w, batch_count
 
     if(uplo == rocblas_fill_upper)
     {

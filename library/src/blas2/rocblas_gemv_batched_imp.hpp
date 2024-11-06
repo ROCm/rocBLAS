@@ -70,14 +70,6 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if constexpr(std::is_same_v<API_INT, int>)
-        {
-            if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-            {
-                return rocblas_status_invalid_size;
-            }
-        }
-
         size_t dev_bytes = ROCBLAS_API(rocblas_internal_gemv_kernel_workspace_size)<Tex>(
             transA, m, n, batch_count);
         if(handle->is_device_memory_size_query())

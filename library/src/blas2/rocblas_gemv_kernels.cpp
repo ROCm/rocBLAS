@@ -185,11 +185,14 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
     bool is_gfx90a  = handle->getArch() == 910 ? true : false;
     bool is_gfx942  = handle->getArch() == 942 ? true : false;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     if(transA == rocblas_operation_none)
     {
 #define gemvn_KARGS(alpha_, beta_)                                                             \
     gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
+        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey,       \
+        batch_count
 
         if(!i64_incs && is_gfx90a && m <= 32 && n <= 32 && batch_count >= 256)
         {
@@ -234,7 +237,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
             if(std::is_same_v<Tex, rocblas_double_complex>)
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
-            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_grid(blocks, 1, batches);
             dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -274,7 +277,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                 // The following rocblas_gemv_scal_kernel does the `y = y*beta` computation
                 static constexpr int NB               = 256;
                 const int            gemv_scal_blocks = (m - 1) / NB + 1;
-                dim3                 grid(gemv_scal_blocks, batch_count);
+                dim3                 grid(gemv_scal_blocks, 1, batches);
                 dim3                 threads(NB);
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
@@ -289,7 +292,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           y,
                                           shifty,
                                           incy,
-                                          stridey);
+                                          stridey,
+                                          batch_count);
                 }
                 else
                 {
@@ -305,12 +309,13 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                               y,
                                               shifty,
                                               incy,
-                                              stridey);
+                                              stridey,
+                                              batch_count);
                 }
 
 #define gemvn_double_buffered_KARGS(alpha_)                                                    \
     gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
+        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey, batch_count
 
                 // The following kernel does the `y += A * x` computation
                 static constexpr int thread_x            = rocblas_gemv_bx();
@@ -320,7 +325,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
 
                 const int block_x = m / thread_x;
                 dim3      gemvn_threads(thread_x, thread_y);
-                dim3      gemvn_grid(block_x, block_y, batch_count);
+                dim3      gemvn_grid(block_x, block_y, batches);
 
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
@@ -368,7 +373,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
             if(std::is_same_v<Tex, rocblas_double_complex>)
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
-            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_grid(blocks, 1, batches);
             dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -403,7 +408,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
             if(std::is_same_v<Tex, rocblas_double_complex>)
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
-            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_grid(blocks, 1, batches);
             dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -504,12 +509,12 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             static constexpr int NB     = rocblas_gemvt_sn_NB();
             static constexpr int WIN    = rocblas_gemvt_sn_WIN();
             int                  blocks = rocblas_gemvt_sn_kernel_block_count(m);
-            dim3                 gemvt_grid(blocks, batch_count);
+            dim3                 gemvt_grid(blocks, 1, batches);
             dim3                 gemvt_threads(NB);
 
 #define gemvt_sn_KARGS(alpha_)                                                                 \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, (Tex*)workspace
+        strideA, x, shiftx, incx, stridex, (Tex*)workspace, batch_count
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
@@ -521,7 +526,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           gemvt_sn_KARGS(alpha));
 
                 ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                      dim3(1, n, batch_count),
+                                      dim3(1, n, batches),
                                       gemvt_threads,
                                       0,
                                       rocblas_stream,
@@ -532,7 +537,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                       shifty,
                                       incy,
                                       stridey,
-                                      (Tex*)workspace);
+                                      (Tex*)workspace,
+                                      batch_count);
             }
             else
             {
@@ -547,7 +553,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           gemvt_sn_KARGS(*alpha));
 
                 ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                      dim3(1, n, batch_count),
+                                      dim3(1, n, batches),
                                       gemvt_threads,
                                       0,
                                       rocblas_stream,
@@ -558,7 +564,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                       shifty,
                                       incy,
                                       stridey,
-                                      workspace);
+                                      workspace,
+                                      batch_count);
             }
 
 #undef gemvt_sn_KARGS
@@ -577,7 +584,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                 // The following rocblas_gemv_scal_kernel does the `y = y*beta` computation
                 static constexpr int NB               = 256;
                 const int            gemv_scal_blocks = (n - 1) / NB + 1;
-                dim3                 grid(gemv_scal_blocks, batch_count);
+                dim3                 grid(gemv_scal_blocks, 1, batches);
                 dim3                 threads(NB);
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
@@ -592,7 +599,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           y,
                                           shifty,
                                           incy,
-                                          stridey);
+                                          stridey,
+                                          batch_count);
                 }
                 else
                 {
@@ -608,7 +616,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                               y,
                                               shifty,
                                               incy,
-                                              stridey);
+                                              stridey,
+                                              batch_count);
                 }
                 // The following kernel does the `y += A * x` computation
                 static constexpr int thread_x            = rocblas_gemv_bx();
@@ -618,11 +627,11 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
 
                 const int block_x = n / thread_x;
                 dim3      gemvt_threads(thread_x, thread_y);
-                dim3      gemvt_grid(block_x, block_y, batch_count);
+                dim3      gemvt_grid(block_x, block_y, batches);
 
 #define gemvt_double_buffered_KARGS(alpha_)                                                    \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
+        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey, batch_count
 
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
@@ -651,7 +660,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
 
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
+        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey,       \
+        batch_count
 
         //Using kernel code with warp reduction for gfx1030.
         else if(is_arch_10_or_11_or_12
@@ -662,7 +672,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         {
             //Number of threads per block
             static constexpr int NB = 256;
-            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_grid(n, 1, batches);
             dim3                 gemvt_threads(NB);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -694,7 +704,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         {
             //Number of threads per block
             static constexpr int NB = 256;
-            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_grid(n, 1, batches);
             dim3                 gemvt_threads(NB);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -716,7 +726,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         {
             //Number of threads per block
             static constexpr int NB = 1024;
-            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_grid(n, 1, batches);
             dim3                 gemvt_threads(NB);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -816,12 +826,12 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
             static constexpr int NB     = rocblas_gemvt_sn_NB();
             static constexpr int WIN    = rocblas_gemvt_sn_WIN();
             int                  blocks = rocblas_gemvt_sn_kernel_block_count(m);
-            dim3                 gemvt_grid(blocks, batch_count);
+            dim3                 gemvt_grid(blocks, 1, batches);
             dim3                 gemvt_threads(NB);
 
 #define gemvt_sn_KARGS(alpha_)                                                                 \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, (Tex*)workspace
+        strideA, x, shiftx, incx, stridex, (Tex*)workspace, batch_count
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
@@ -833,7 +843,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           gemvt_sn_KARGS(alpha));
 
                 ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                      dim3(1, n, batch_count),
+                                      dim3(1, n, batches),
                                       gemvt_threads,
                                       0,
                                       rocblas_stream,
@@ -844,7 +854,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                       shifty,
                                       incy,
                                       stridey,
-                                      (Tex*)workspace);
+                                      (Tex*)workspace,
+                                      batch_count);
             }
             else
             {
@@ -859,7 +870,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           gemvt_sn_KARGS(*alpha));
 
                 ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                      dim3(1, n, batch_count),
+                                      dim3(1, n, batches),
                                       gemvt_threads,
                                       0,
                                       rocblas_stream,
@@ -870,7 +881,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                       shifty,
                                       incy,
                                       stridey,
-                                      workspace);
+                                      workspace,
+                                      batch_count);
             }
 
 #undef gemvt_sn_KARGS
@@ -886,7 +898,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                 // The following rocblas_gemv_scal_kernel does the `y = y*beta` computation
                 static constexpr int NB               = 256;
                 const int            gemv_scal_blocks = (n - 1) / NB + 1;
-                dim3                 grid(gemv_scal_blocks, batch_count);
+                dim3                 grid(gemv_scal_blocks, 1, batches);
                 dim3                 threads(NB);
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
@@ -901,7 +913,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           y,
                                           shifty,
                                           incy,
-                                          stridey);
+                                          stridey,
+                                          batch_count);
                 }
                 else
                 {
@@ -917,7 +930,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                               y,
                                               shifty,
                                               incy,
-                                              stridey);
+                                              stridey,
+                                              batch_count);
                 }
                 // The following kernel does the `y += A * x` computation
                 static constexpr int thread_x            = rocblas_gemv_bx();
@@ -927,11 +941,11 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
 
                 const int block_x = n / thread_x;
                 dim3      gemvt_threads(thread_x, thread_y);
-                dim3      gemvt_grid(block_x, block_y, batch_count);
+                dim3      gemvt_grid(block_x, block_y, batches);
 
 #define gemvt_double_buffered_KARGS(alpha_)                                                    \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
+        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey, batch_count
 
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
@@ -960,13 +974,14 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
 
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
+        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey,       \
+        batch_count
         //Using kernel code with shared memory reduction for single precision and all other precision when m or n is less than 6000.
         else if(!i64_incs && (is_float || m < 6000 || n < 6000))
         {
             //Number of threads per block
             static constexpr int NB = 256;
-            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_grid(n, 1, batches);
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
@@ -986,7 +1001,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         {
             //Number of threads per block
             static constexpr int NB = 1024;
-            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_grid(n, 1, batches);
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {

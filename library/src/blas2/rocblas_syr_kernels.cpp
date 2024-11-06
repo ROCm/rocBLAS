@@ -19,6 +19,8 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+
+#include "device_macros.hpp"
 #include "rocblas_syr.hpp"
 
 template <bool UPPER, rocblas_int DIM_X, typename T, typename U, typename V, typename W>
@@ -33,38 +35,60 @@ rocblas_syr_kernel_inc1(rocblas_int    n,
                         W              Aa,
                         rocblas_stride shiftA,
                         int64_t        lda,
-                        rocblas_stride stride_A)
+                        rocblas_stride stride_A,
+                        rocblas_int    batch_count)
 {
-    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    if(!alpha)
-        return;
+    uint32_t batch = blockIdx.z;
 
-    const auto* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
-    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, stride_A);
-
-    size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
-    if(i >= area)
-        return;
-
-    size_t ri = !UPPER ? area - 1 - i : i;
-
-    // linearized triangle with diagonal to col, row
-    int         k  = (int)((sqrt(8 * ri + 1) - 1) / 2);
-    rocblas_int ty = k;
-    rocblas_int tx = ri - k * (k + 1) / 2;
-
-    if(!UPPER)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        int maxIdx = n - 1;
-        tx         = maxIdx - tx;
-        ty         = maxIdx - ty;
+#endif
+        auto alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        if(!alpha)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
+        return;
+#endif
+        }
+
+        const auto* __restrict__ x = load_ptr_batch(xa, batch, shiftx, stridex);
+        T* __restrict__ A          = load_ptr_batch(Aa, batch, shiftA, stride_A);
+
+        size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
+        if(i >= area)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
+        return;
+#endif
+        }
+
+        size_t ri = !UPPER ? area - 1 - i : i;
+
+        // linearized triangle with diagonal to col, row
+        int         k  = (int)((sqrt(8 * ri + 1) - 1) / 2);
+        rocblas_int ty = k;
+        rocblas_int tx = ri - k * (k + 1) / 2;
+
+        if(!UPPER)
+        {
+            int maxIdx = n - 1;
+            tx         = maxIdx - tx;
+            ty         = maxIdx - ty;
+        }
+
+        A[tx + lda * ty] += alpha * x[tx] * x[ty];
+
+        // original algorithm run over rectangular space
+        // if(uplo == rocblas_fill_lower ? tx < n && ty <= tx : ty < n && tx <= ty)
+        // A[tx + size_t(lda) * ty] += alpha * x[tx] * x[ty];
+#if DEVICE_GRID_YZ_16BIT
     }
-
-    A[tx + lda * ty] += alpha * x[tx] * x[ty];
-
-    // original algorithm run over rectangular space
-    // if(uplo == rocblas_fill_lower ? tx < n && ty <= tx : ty < n && tx <= ty)
-    // A[tx + size_t(lda) * ty] += alpha * x[tx] * x[ty];
+#endif
 }
 
 template <bool UPPER, rocblas_int DIM_X, typename T, typename U, typename V, typename W>
@@ -80,34 +104,57 @@ rocblas_syr_kernel(rocblas_int    n,
                    W              Aa,
                    rocblas_stride shiftA,
                    int64_t        lda,
-                   rocblas_stride stride_A)
+                   rocblas_stride stride_A,
+                   rocblas_int    batch_count)
 {
-    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    if(!alpha)
-        return;
+    uint32_t batch = blockIdx.z;
 
-    const auto* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
-    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, stride_A);
-
-    size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
-    if(i >= area)
-        return;
-
-    size_t ri = !UPPER ? area - 1 - i : i;
-
-    // linearized triangle with diagonal to col, row
-    int         k  = (int)((sqrt(8 * ri + 1) - 1) / 2);
-    rocblas_int ty = k;
-    rocblas_int tx = ri - k * (k + 1) / 2;
-
-    if(!UPPER)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        int maxIdx = n - 1;
-        tx         = maxIdx - tx;
-        ty         = maxIdx - ty;
-    }
+#endif
+        auto alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        if(!alpha)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
+        return;
+#endif
+        }
 
-    A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
+        const auto* __restrict__ x = load_ptr_batch(xa, batch, shiftx, stridex);
+        T* __restrict__ A          = load_ptr_batch(Aa, batch, shiftA, stride_A);
+
+        size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
+        if(i >= area)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
+        return;
+#endif
+        }
+
+        size_t ri = !UPPER ? area - 1 - i : i;
+
+        // linearized triangle with diagonal to col, row
+        int         k  = (int)((sqrt(8 * ri + 1) - 1) / 2);
+        rocblas_int ty = k;
+        rocblas_int tx = ri - k * (k + 1) / 2;
+
+        if(!UPPER)
+        {
+            int maxIdx = n - 1;
+            tx         = maxIdx - tx;
+            ty         = maxIdx - ty;
+        }
+
+        A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <typename T, typename U, typename V, typename W>
@@ -132,13 +179,15 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
 
     hipStream_t rocblas_stream = handle->get_stream();
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int SYR_DIM_X = 1024;
 
     size_t nitems = (size_t)n * (n + 1) / 2;
 
     rocblas_int blocksX = (nitems - 1) / (SYR_DIM_X) + 1;
 
-    dim3 syr_grid(blocksX, 1, batch_count);
+    dim3 syr_grid(blocksX, 1, batches);
     dim3 syr_threads(SYR_DIM_X);
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
@@ -164,7 +213,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<true, SYR_DIM_X, T>),
                                       syr_grid,
@@ -182,7 +232,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
         }
         else
         {
@@ -202,7 +253,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<false, SYR_DIM_X, T>),
                                       syr_grid,
@@ -220,7 +272,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
         }
     }
     else // host pointer mode
@@ -243,7 +296,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<true, SYR_DIM_X, T>),
                                       syr_grid,
@@ -261,7 +315,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
         }
         else
         {
@@ -281,7 +336,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
             else
                 ROCBLAS_LAUNCH_KERNEL((rocblas_syr_kernel<false, SYR_DIM_X, T>),
                                       syr_grid,
@@ -299,7 +355,8 @@ rocblas_status rocblas_internal_syr_launcher(rocblas_handle handle,
                                       A,
                                       offset_A,
                                       lda,
-                                      stride_A);
+                                      stride_A,
+                                      batch_count);
         }
     }
     return rocblas_status_success;

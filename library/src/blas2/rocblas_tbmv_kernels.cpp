@@ -264,18 +264,30 @@ rocblas_tbmvx_kernel(rocblas_operation transA,
                      V                 xa,
                      rocblas_stride    shiftx,
                      int64_t           incx,
-                     rocblas_stride    stridex)
+                     rocblas_stride    stridex,
+                     rocblas_int       batch_count)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const auto* A        = load_ptr_batch(Aa, blockIdx.y, shifta, strideA);
-    const auto* w_x_copy = load_ptr_batch(w_xa_copy, blockIdx.y, 0, n);
-    auto*       x        = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    uint32_t batch = blockIdx.z;
 
-    rocblas_tbmvx_kernel_calc<DIM_X, DIM_Y>(
-        transA, is_upper, is_unit_diag, n, k, A, lda, w_x_copy, x, incx);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        const auto* A        = load_ptr_batch(Aa, batch, shifta, strideA);
+        const auto* w_x_copy = load_ptr_batch(w_xa_copy, batch, 0, n);
+        auto*       x        = load_ptr_batch(xa, batch, shiftx, stridex);
+
+        rocblas_tbmvx_kernel_calc<DIM_X, DIM_Y>(
+            transA, is_upper, is_unit_diag, n, k, A, lda, w_x_copy, x, incx);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -333,11 +345,13 @@ rocblas_status rocblas_internal_tbmv_launcher(rocblas_handle    handle,
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     // (gemv) TBMVX_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
     static constexpr int TBMVX_DIM_X = 64;
     static constexpr int TBMVX_DIM_Y = 16;
     rocblas_int          blocks      = (n - 1) / (TBMVX_DIM_X) + 1;
-    dim3                 tbmvx_grid(blocks, batch_count);
+    dim3                 tbmvx_grid(blocks, 1, batches);
     dim3                 tbmvx_threads(TBMVX_DIM_X, TBMVX_DIM_Y);
 
     // Launch a modified gemv kernel. The logic is similar to gemv just with modified
@@ -360,7 +374,8 @@ rocblas_status rocblas_internal_tbmv_launcher(rocblas_handle    handle,
                           x,
                           shiftx,
                           incx,
-                          stridex);
+                          stridex,
+                          batch_count);
 
     return rocblas_status_success;
 }

@@ -220,6 +220,18 @@ Tests:
   batch_count: [ 3 ]
   pointer_mode_host: false
 
+- name: symv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   7, lda:    7, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #double buffered
+  uplo: [ U, L ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - symv_batched: *single_precision
+    - symv_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: symv_batched_medium_double_buffered
   category: pre_checkin
   function: symv_batched

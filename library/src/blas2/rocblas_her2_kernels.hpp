@@ -23,6 +23,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_her2.hpp"
 
@@ -76,7 +77,7 @@ ROCBLAS_KERNEL(DIM_X)
 rocblas_her2_kernel(bool           is_upper,
                     rocblas_int    n,
                     size_t         area,
-                    TScal          alphaa,
+                    TScal          alpha_device_host,
                     TConstPtr      xa,
                     rocblas_stride shift_x,
                     API_INT        incx,
@@ -88,17 +89,30 @@ rocblas_her2_kernel(bool           is_upper,
                     TPtr           Aa,
                     rocblas_stride shift_A,
                     API_INT        lda,
-                    rocblas_stride stride_A)
+                    rocblas_stride stride_A,
+                    rocblas_int    batch_count)
 {
-    auto alpha = load_scalar(alphaa);
+
+    auto alpha = load_scalar(alpha_device_host);
+
     if(!alpha)
         return;
 
-    auto*       A = load_ptr_batch(Aa, blockIdx.z, shift_A, stride_A);
-    const auto* x = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
-    const auto* y = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
+    uint32_t batch = blockIdx.z;
 
-    rocblas_her2_kernel_calc(is_upper, n, area, alpha, x, incx, y, incy, A, lda);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        auto*       A = load_ptr_batch(Aa, batch, shift_A, stride_A);
+        const auto* x = load_ptr_batch(xa, batch, shift_x, stride_x);
+        const auto* y = load_ptr_batch(ya, batch, shift_y, stride_y);
+
+        rocblas_her2_kernel_calc(is_upper, n, area, alpha, x, incx, y, incy, A, lda);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -134,13 +148,15 @@ rocblas_status rocblas_her2_launcher(rocblas_handle handle,
     int64_t shift_x = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
     int64_t shift_y = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int HER2_DIM_X = 512;
 
     size_t nitems = (size_t)n * (n + 1) / 2;
 
     rocblas_int blocksX = (nitems - 1) / (HER2_DIM_X) + 1;
 
-    dim3 her2_grid(blocksX, 1, batch_count);
+    dim3 her2_grid(blocksX, 1, batches);
     dim3 her2_threads(HER2_DIM_X);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -165,7 +181,8 @@ rocblas_status rocblas_her2_launcher(rocblas_handle handle,
                               A,
                               offset_A,
                               lda,
-                              stride_A);
+                              stride_A,
+                              batch_count);
     }
     else
         ROCBLAS_LAUNCH_KERNEL((rocblas_her2_kernel<API_INT, HER2_DIM_X>),
@@ -188,7 +205,8 @@ rocblas_status rocblas_her2_launcher(rocblas_handle handle,
                               A,
                               offset_A,
                               lda,
-                              stride_A);
+                              stride_A,
+                              batch_count);
 
     return rocblas_status_success;
 }

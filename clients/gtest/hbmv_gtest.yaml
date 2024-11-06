@@ -238,6 +238,18 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
+- name: hbmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N: 3, K: 3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  alpha_beta: *alpha_beta_range_small
+  uplo: [ U, L ]
+  pointer_mode_host: false
+  function:
+    - hbmv_batched: *single_precision_complex
+    - hbmv_strided_batched: *single_precision_complex
+  stride_scale: 1
+
 # hbmv_strided_batched
 - name: hbmv_strided_batched_NaN
   category: pre_checkin

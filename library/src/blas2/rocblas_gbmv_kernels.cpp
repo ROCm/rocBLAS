@@ -22,6 +22,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "rocblas_gbmv.hpp"
 
 // uses shuffle reductions
@@ -209,22 +210,40 @@ rocblas_gbmvn_kernel(bool           host_ptr_mode,
                      W              ya,
                      rocblas_stride shifty,
                      int64_t        incy,
-                     rocblas_stride stridey)
+                     rocblas_stride stridey,
+                     rocblas_int    batch_count)
 {
-    const auto alpha = host_ptr_mode ? alpha_device_host.value
-                                     : load_scalar(alpha_device_host.ptr, blockIdx.y, 0);
-    const auto beta
-        = host_ptr_mode ? beta_device_host.value : load_scalar(beta_device_host.ptr, blockIdx.y, 0);
+    uint32_t batch = blockIdx.z;
 
-    if(!alpha && beta == 1)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        const auto alpha = host_ptr_mode ? alpha_device_host.value
+                                         : load_scalar(alpha_device_host.ptr, batch, 0);
+        const auto beta
+            = host_ptr_mode ? beta_device_host.value : load_scalar(beta_device_host.ptr, batch, 0);
+
+        if(!alpha && beta == 1)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
         return;
+#endif
+        }
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+        const auto* A = cond_load_ptr_batch(alpha, Aa, batch, shifta, strideA);
+        const auto* x = cond_load_ptr_batch(alpha, xa, batch, shiftx, stridex);
 
-    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+        auto* y = load_ptr_batch(ya, batch, shifty, stridey);
 
-    rocblas_gbmvn_kernel_calc<WARP, DIM_Y>(m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
+        rocblas_gbmvn_kernel_calc<WARP, DIM_Y>(m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <int DIM_X, int DIM_Y, typename TStruct, typename V, typename W>
@@ -248,23 +267,39 @@ rocblas_gbmvt_kernel(bool              host_ptr_mode,
                      W                 ya,
                      rocblas_stride    shifty,
                      int64_t           incy,
-                     rocblas_stride    stridey)
+                     rocblas_stride    stridey,
+                     rocblas_int       batch_count)
 {
-    const auto alpha = host_ptr_mode ? alpha_device_host.value
-                                     : load_scalar(alpha_device_host.ptr, blockIdx.y, 0);
-    const auto beta
-        = host_ptr_mode ? beta_device_host.value : load_scalar(beta_device_host.ptr, blockIdx.y, 0);
+    uint32_t batch = blockIdx.z;
 
-    if(!alpha && beta == 1)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        const auto alpha = host_ptr_mode ? alpha_device_host.value
+                                         : load_scalar(alpha_device_host.ptr, batch, 0);
+        const auto beta
+            = host_ptr_mode ? beta_device_host.value : load_scalar(beta_device_host.ptr, batch, 0);
+
+        if(!alpha && beta == 1)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
         return;
+#endif
+        }
+        const auto* A = cond_load_ptr_batch(alpha, Aa, batch, shifta, strideA);
+        const auto* x = cond_load_ptr_batch(alpha, xa, batch, shiftx, stridex);
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+        auto* y = load_ptr_batch(ya, batch, shifty, stridey);
 
-    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+        rocblas_gbmvt_kernel_calc<DIM_X, DIM_Y>(
+            transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
 
-    rocblas_gbmvt_kernel_calc<DIM_X, DIM_Y>(
-        transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -323,9 +358,11 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
     bool is_arch_10_or_11_or_12
         = arch_major == 10 || arch_major == 11 || arch_major == 12 ? true : false;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
 #define GBMV_COMMON_ARGS                                                                 \
     m, n, kl, ku, alpha_device_host, A, offseta, lda, strideA, x, shiftx, incx, stridex, \
-        beta_device_host, y, shifty, incy, stridey
+        beta_device_host, y, shifty, incy, stridey, batch_count
 
     if(transA == rocblas_operation_none)
     {
@@ -334,7 +371,7 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
             static constexpr int WARP        = 32; // warp size as using warp reduce for bands
             static constexpr int GBMVN_DIM_Y = 32; // problem sub block
             rocblas_int          blocks      = (m - 1) / (GBMVN_DIM_Y) + 1;
-            dim3                 gbmvn_grid(blocks, batch_count);
+            dim3                 gbmvn_grid(blocks, 1, batches);
             dim3                 gbmvn_threads(WARP, GBMVN_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvn_kernel<WARP, GBMVN_DIM_Y>),
@@ -350,7 +387,7 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
             static constexpr int WARP        = 64;
             static constexpr int GBMVN_DIM_Y = 16;
             rocblas_int          blocks      = (m - 1) / (GBMVN_DIM_Y) + 1;
-            dim3                 gbmvn_grid(blocks, batch_count);
+            dim3                 gbmvn_grid(blocks, 1, batches);
             dim3                 gbmvn_threads(WARP, GBMVN_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvn_kernel<WARP, GBMVN_DIM_Y>),
@@ -369,7 +406,7 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
             static constexpr int WARP        = 32; // warp size as using warp reduce for bands
             static constexpr int GBMVT_DIM_Y = 32; // problem sub block
             rocblas_int          blocks      = (n - 1) / (GBMVT_DIM_Y) + 1;
-            dim3                 gbmvt_grid(blocks, batch_count);
+            dim3                 gbmvt_grid(blocks, 1, batches);
             dim3                 gbmvt_threads(WARP, GBMVT_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvt_kernel<WARP, GBMVT_DIM_Y>),
@@ -386,7 +423,7 @@ rocblas_status rocblas_internal_gbmv_launcher(rocblas_handle    handle,
             static constexpr int WARP        = 64;
             static constexpr int GBMVT_DIM_Y = 16;
             rocblas_int          blocks      = (n - 1) / (GBMVT_DIM_Y) + 1;
-            dim3                 gbmvt_grid(blocks, batch_count);
+            dim3                 gbmvt_grid(blocks, 1, batches);
             dim3                 gbmvt_threads(WARP, GBMVT_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_gbmvt_kernel<WARP, GBMVT_DIM_Y>),

@@ -215,6 +215,19 @@ Tests:
   incx_incy: *incx_range_small
   batch_count: [ 3 ]
 
+- name: tbmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N: 3, K: 3, lda: 3, incx: 1, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  transA: [ N, T, C ]
+  diag: [U, N]
+  pointer_mode_host: false
+  function:
+    - tbmv_batched: *single_precision
+    - tbmv_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: tbmv_strided_batched_large
   category: nightly
   function: tbmv_strided_batched

@@ -156,6 +156,18 @@ Tests:
   batch_count: [ 3 ]
   pointer_mode_device: false
 
+- name: hpr_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, incx: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  alpha_beta: *alpha_range_small
+  pointer_mode_host: false
+  function:
+    - hpr_batched: *single_precision_complex
+    - hpr_strided_batched: *single_precision_complex
+  stride_scale: 1
+
 # strided batched
 - name: hpr_strided_batched_fortran
   category: quick

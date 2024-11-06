@@ -202,6 +202,19 @@ Tests:
   incx: *incx_range_small
   batch_count: [ 3 ]
 
+- name: trmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, lda:    3, incx: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  transA: [N, T, C]
+  diag: [N, U]
+  pointer_mode_host: false
+  function:
+    - trmv_batched: *single_precision
+    - trmv_strided_batched: *single_precision
+  stride_scale: 1
+
 - name: trmv_strided_batched_bad_arg
   category: quick
   function: trmv_strided_batched_bad_arg

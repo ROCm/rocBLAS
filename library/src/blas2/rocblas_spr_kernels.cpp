@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
+#include "device_macros.hpp"
 #include "rocblas_spr.hpp"
 
 //TODO :-Add rocblas_check_numerics_sp_matrix_template for checking Matrix `A` which is a Symmetric Packed Matrix
@@ -82,16 +83,28 @@ rocblas_spr_kernel(bool           host_ptr_mode,
                    rocblas_stride stride_x,
                    TPtr           APa,
                    rocblas_stride shift_A,
-                   rocblas_stride stride_A)
+                   rocblas_stride stride_A,
+                   rocblas_int    batch_count)
 {
     auto alpha = host_ptr_mode ? alpha_device_host.value : load_scalar(alpha_device_host.ptr);
+
     if(!alpha)
         return;
 
-    auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_A, stride_A);
-    const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
+    uint32_t batch = blockIdx.z;
 
-    rocblas_spr_kernel_calc<DIM_X, DIM_Y, N_TX>(is_upper, n, alpha, x, incx, AP);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        auto*       AP = load_ptr_batch(APa, batch, shift_A, stride_A);
+        const auto* x  = load_ptr_batch(xa, batch, shift_x, stride_x);
+
+        rocblas_spr_kernel_calc<DIM_X, DIM_Y, N_TX>(is_upper, n, alpha, x, incx, AP);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -121,6 +134,8 @@ rocblas_status rocblas_internal_spr_launcher(rocblas_handle handle,
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int SPR_DIM_X = 64;
     static constexpr int SPR_DIM_Y = 16;
 
@@ -133,7 +148,7 @@ rocblas_status rocblas_internal_spr_launcher(rocblas_handle handle,
         rocblas_int          blocksX = (n - 1) / (SPR_DIM_X * N_TX) + 1;
         rocblas_int          blocksY = (n - 1) / SPR_DIM_Y + 1;
 
-        dim3 spr_grid(blocksX, blocksY, batch_count);
+        dim3 spr_grid(blocksX, blocksY, batches);
         dim3 spr_threads(SPR_DIM_X, SPR_DIM_Y);
         ROCBLAS_LAUNCH_KERNEL((rocblas_spr_kernel<SPR_DIM_X, SPR_DIM_Y, N_TX>),
                               spr_grid,
@@ -150,7 +165,8 @@ rocblas_status rocblas_internal_spr_launcher(rocblas_handle handle,
                               stride_x,
                               AP,
                               offset_A,
-                              stride_A);
+                              stride_A,
+                              batch_count);
     }
     else
     {
@@ -158,7 +174,7 @@ rocblas_status rocblas_internal_spr_launcher(rocblas_handle handle,
         rocblas_int          blocksX = (n - 1) / (SPR_DIM_X * N_TX) + 1;
         rocblas_int          blocksY = (n - 1) / SPR_DIM_Y + 1;
 
-        dim3 spr_grid(blocksX, blocksY, batch_count);
+        dim3 spr_grid(blocksX, blocksY, batches);
         dim3 spr_threads(SPR_DIM_X, SPR_DIM_Y);
         ROCBLAS_LAUNCH_KERNEL((rocblas_spr_kernel<SPR_DIM_X, SPR_DIM_Y, N_TX>),
                               spr_grid,
@@ -175,7 +191,8 @@ rocblas_status rocblas_internal_spr_launcher(rocblas_handle handle,
                               stride_x,
                               AP,
                               offset_A,
-                              stride_A);
+                              stride_A,
+                              batch_count);
     }
 
     return rocblas_status_success;

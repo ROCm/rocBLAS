@@ -519,6 +519,20 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
+- name: gemv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { M: 2048, N:   1, lda: 2048, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #skinny tuned block size gemvn_kernel
+    - { M:  128, N: 128, lda:  128, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #double buffered loads
+    - { M:    3, N:   3, lda:    3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  transA: [ N, T, C ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - gemv_batched: *single_precision
+    - gemv_strided_batched: *single_precision
+  stride_scale: 1
+
 # gemv_strided_batched
 - name: gemv_strided_batched_bad_arg
   category: quick

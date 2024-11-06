@@ -211,6 +211,20 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
 
+- name: gbmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { M: 3, N: 3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  KL: 1
+  KU: 1
+  transA: [ N, T ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - gbmv_batched: *single_precision
+    - gbmv_strided_batched: *single_precision
+  stride_scale: 1
+
 # gbmv_strided_batched
 - name: gbmv_strided_batched_NaN
   category: pre_checkin
