@@ -65,8 +65,7 @@ void rocblas_client_init()
     const int processor_count = std::thread::hardware_concurrency();
     if(processor_count > 0)
     {
-
-        const int omp_current_threads = omp_get_num_procs();
+        const int omp_current_threads = omp_get_max_threads();
         if(omp_current_threads >= processor_count)
         {
             int limiter           = processor_count > 4 ? processor_count - 2 : processor_count;
