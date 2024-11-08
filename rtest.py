@@ -300,7 +300,7 @@ def batch(script, xml):
 
                         raw_cmd = run.firstChild.data
                         var_cmd = raw_cmd.format_map(var_subs)
-                        if args.labels:
+                        if args.ci_labels:
                             var_cmd = label_modifiers(var_cmd, args.ci_labels.split(';'))
                         error = run_cmd(var_cmd, True, timeout)
                         if (error == 2):
