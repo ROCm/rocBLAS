@@ -63,6 +63,14 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle     handle,
                                            int32_t            solution_index = 0,
                                            rocblas_gemm_flags flags = rocblas_gemm_flags_none)
 {
+    if constexpr(!rocblas_is_complex<Ti>)
+    {
+        if(trans_a == rocblas_operation_conjugate_transpose)
+            trans_a = rocblas_operation_transpose;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            trans_b = rocblas_operation_transpose;
+    }
+
     size_t grid_z_limit = handle->getBatchGridDim(batch_count);
 
     for(size_t b_base = 0; b_base < batch_count; b_base += grid_z_limit)
@@ -136,6 +144,13 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle     handle,
                                            int32_t            solution_index = 0,
                                            rocblas_gemm_flags flags = rocblas_gemm_flags_none)
 {
+    if constexpr(!rocblas_is_complex<Ti>)
+    {
+        if(trans_a == rocblas_operation_conjugate_transpose)
+            trans_a = rocblas_operation_transpose;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            trans_b = rocblas_operation_transpose;
+    }
 
     size_t grid_z_limit = handle->getBatchGridDim(batch_count);
 
