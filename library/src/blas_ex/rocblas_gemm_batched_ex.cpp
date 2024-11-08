@@ -156,9 +156,9 @@ rocblas_status rocblas_gemm_batched_ex_get_solutions_by_type(rocblas_handle   ha
 #ifdef BUILD_WITH_TENSILE
     // Create dummy GEMM problem to take advantage of problem templating
     // Most parameters are ignored, just needs to be valid for all types
-    float          alpha = 0.0f;
-    float          beta  = 0.0f;
-    rocblas_stride stride{1};
+    rocblas_double_complex alpha{0, 0};
+    rocblas_double_complex beta{0, 0};
+    rocblas_stride         stride{1};
     return rocblas_gemm_ex_get_solutions_template<true>(handle,
                                                         rocblas_operation_none,
                                                         rocblas_operation_none,
