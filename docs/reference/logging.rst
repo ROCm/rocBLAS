@@ -67,3 +67,30 @@ If paths are not set, then the logging output is streamed to standard error.
 When profile logging is enabled, memory usage increases. If the
 program exits abnormally, then it is possible that profile logging will
 not be outputted before the program exits.
+
+
+rocTX support in rocBLAS
+========================
+
+The `rocTX <https://rocm.docs.amd.com/projects/roctracer/en/latest/reference/roctx-spec.html>`_ library contains application code instrumentation APIs to support high-level correlation of runtime API or activity events.
+When integrated with rocBLAS, rocTX enables users to capture detailed logs, like ``ROCBLAS_TRACE`` or ``ROCBLAS_BENCH``, and view them in profiling tools such as rocProf,
+offering better insights into runtime behavior and performance bottlenecks.
+
+The following steps describe how to enable logging:
+
+::
+
+  # To view trace logging
+
+    export ROCBLAS_LAYER=1
+    rocprof --hip-trace --roctx-trace ./rocblas-bench -f geam
+
+  # To view bench logging
+
+    export ROCBLAS_LAYER=2
+    rocprof --hip-trace --roctx-trace ./rocblas-bench -f geam
+
+These settings activate the corresponding logging layers in rocBLAS, allowing users to capture either trace-level information (for function calls) or bench-level information (for benchmarking purposes) during profiling.
+
+.. note::
+  rocTX support in rocBLAS is unavailable on Windows and is not supported in the static library version on Linux.
