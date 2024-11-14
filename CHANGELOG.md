@@ -3,7 +3,39 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
-## (Unreleased) rocBLAS 4.3.0
+## (Unreleased) rocBLAS 4.4.0
+
+### Added
+
+* rocTX support in rocBLAS (not available on Windows or in the static library version on Linux)
+* On gfx12, all functions now support full `rocblas_int` dynamic range for `batch_count`
+* `--ninja` build option
+* Support for GPU_TARGETS cmake variable
+
+### Changed
+
+* rocblas-test client removes the stress tests unless YAML-based testing or `gtest_filter` adds them
+* rocblas clients OpenMP default threading is reduced to be less than the logical core count
+* `gemm_ex` testing and timing reuses device memory
+* `gemm_ex` timing initializes matrices on device
+
+### Optimized
+
+* Significantly reduced workspace memory requirements for Level 1 ILP64: `iamax` and `iamin`
+* Reduced workspace memory requirements for Level 1 ILP64: `dot`, `asum`, `nrm2`
+
+### Resolved issues
+
+* gfx12: `ger`, `geam`, `geam_ex`, `dgmm`, `trmm`, `symm`, `hemm`, ILP64 `gemm`, and larger data support
+* Added a `gfortran` package dependency for Azure Linux OS
+* Outdated SLES OS package dependencies (`cxxtools` and `joblib`) in `install.sh -d`
+* Code object stripping for RPM packages
+
+### Upcoming changes
+
+* Deprecated the cmake variable `AMDGPU_TARGETS`. Use `GPU_TARGETS` instead.
+
+## rocBLAS 4.3.0 for ROCm 6.3
 
 ### Added
 
