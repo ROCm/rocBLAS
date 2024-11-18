@@ -274,16 +274,20 @@ static std::string rocblas_capture_args(int argc, char** argv, std::string& filt
         }
     }
 
-    // guard against full tests
+    // guard against non explicit full test set, stress will be removed by default
     if(!yaml)
     {
-        if(filter_str.empty() || !strstr(filter_str.c_str(), "stress"))
+        const char* known_bug_pos      = strstr(filter_str.c_str(), "*known_bug");
+        const char* filter_removal_pos = strstr(filter_str.c_str(), "-");
+        // detect if known_bugs is near beginning of filter and is in removal set
+        bool only_less_known_bugs = known_bug_pos && (known_bug_pos - filter_str.c_str() < 3)
+                                    && (filter_removal_pos && known_bug_pos > filter_removal_pos);
+        if(filter_str.empty() || only_less_known_bugs)
         {
-            if(!strstr(filter_str.c_str(), "-"))
+            if(!filter_removal_pos)
                 filter_str += "-";
             filter_str += ":*stress*";
             rocblas_client_set_gtest_filter(filter_str.c_str());
-
             std::string warning(
                 "automatically adding filter to remove stress tests. --gtest_filter=");
             rocblas_cout << "info: " << warning << filter_str << "\n" << std::endl;
