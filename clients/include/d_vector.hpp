@@ -22,9 +22,11 @@
 
 #pragma once
 
+#include "host_alloc.hpp"
 #include "rocblas.h"
 #include "rocblas_test.hpp"
 #include "singletons.hpp"
+
 #include <cinttypes>
 
 #define MEM_MAX_GUARD_PAD 8192
@@ -106,6 +108,16 @@ public:
     T* device_vector_setup()
     {
         T* d = nullptr;
+
+        if(use_HMM)
+        {
+            if(!host_mem_safe(m_bytes))
+            {
+                // exception same as host_alloc helper, could consider new exception
+                throw std::bad_alloc{};
+            }
+        }
+
         if(use_HMM ? hipMallocManaged(&d, m_bytes) : (hipMalloc)(&d, m_bytes) != hipSuccess)
         {
             rocblas_cerr << "Warning: hip can't allocate " << m_bytes << " bytes ("
@@ -131,6 +143,10 @@ public:
             }
         }
 #endif
+
+        if(use_HMM)
+            alloc_ptr_use(d, m_bytes); // count the same as host memory
+
         return d;
     }
 
@@ -172,6 +188,9 @@ public:
 
             // Free device memory
             CHECK_HIP_ERROR((hipFree)(d));
+
+            if(use_HMM)
+                free_ptr_use(d); // release count
         }
     }
 };
