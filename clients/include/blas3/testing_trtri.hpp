@@ -299,7 +299,7 @@ void testing_trtri(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
 
         // CBLAS doesn't have trtri implementation so using the LAPACK trtri
-        lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
+        ref_lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
 
         if(arg.timing)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;

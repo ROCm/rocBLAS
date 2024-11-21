@@ -307,7 +307,7 @@ inline void ref_rot(int64_t                      n,
                     const float*                 c,
                     const rocblas_float_complex* s)
 {
-    lapack_xrot(n, x, incx, y, incy, *c, *s);
+    ref_lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 template <>
@@ -319,7 +319,7 @@ inline void ref_rot(int64_t                n,
                     const float*           c,
                     const float*           s)
 {
-    lapack_xrot(n, x, incx, y, incy, *c, *s);
+    ref_lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 template <>
@@ -331,7 +331,7 @@ inline void ref_rot(int64_t                       n,
                     const double*                 c,
                     const rocblas_double_complex* s)
 {
-    lapack_xrot(n, x, incx, y, incy, *c, *s);
+    ref_lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 template <>
@@ -343,7 +343,7 @@ inline void ref_rot(int64_t                 n,
                     const double*           c,
                     const double*           s)
 {
-    lapack_xrot(n, x, incx, y, incy, *c, *s);
+    ref_lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 // for rot_ex
@@ -357,7 +357,7 @@ inline void ref_rot(int64_t                      n,
                     const rocblas_float_complex* s)
 {
     const float c_real = std::real(*c);
-    lapack_xrot(n, x, incx, y, incy, c_real, *s);
+    ref_lapack_xrot(n, x, incx, y, incy, c_real, *s);
 }
 
 template <>
@@ -370,7 +370,7 @@ inline void ref_rot(int64_t                       n,
                     const rocblas_double_complex* s)
 {
     const double c_real = std::real(*c);
-    lapack_xrot(n, x, incx, y, incy, c_real, *s);
+    ref_lapack_xrot(n, x, incx, y, incy, c_real, *s);
 }
 
 // rotg
@@ -393,7 +393,7 @@ template <>
 inline void
     ref_rotg(rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s)
 {
-    lapack_xrotg(*a, *b, *c, *s);
+    ref_lapack_xrotg(*a, *b, *c, *s);
 }
 
 template <>
@@ -402,7 +402,7 @@ inline void ref_rotg(rocblas_double_complex* a,
                      double*                 c,
                      rocblas_double_complex* s)
 {
-    lapack_xrotg(*a, *b, *c, *s);
+    ref_lapack_xrotg(*a, *b, *c, *s);
 }
 
 // rotm
@@ -1255,7 +1255,7 @@ inline void ref_symv(rocblas_fill           uplo,
                      rocblas_float_complex* y,
                      int64_t                incy)
 {
-    lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
+    ref_lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <>
@@ -1270,7 +1270,7 @@ inline void ref_symv(rocblas_fill            uplo,
                      rocblas_double_complex* y,
                      int64_t                 incy)
 {
-    lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
+    ref_lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <typename T>
@@ -1296,7 +1296,7 @@ inline void ref_spr(rocblas_fill           uplo,
                     int64_t                incx,
                     rocblas_float_complex* A)
 {
-    lapack_xspr(uplo, n, alpha, x, incx, A);
+    ref_lapack_xspr(uplo, n, alpha, x, incx, A);
 }
 
 template <>
@@ -1307,7 +1307,7 @@ inline void ref_spr(rocblas_fill            uplo,
                     int64_t                 incx,
                     rocblas_double_complex* A)
 {
-    lapack_xspr(uplo, n, alpha, x, incx, A);
+    ref_lapack_xspr(uplo, n, alpha, x, incx, A);
 }
 
 // spr2
@@ -1456,7 +1456,7 @@ inline void ref_syr(rocblas_fill           uplo,
                     rocblas_float_complex* A,
                     int64_t                lda)
 {
-    lapack_xsyr(uplo, n, alpha, xa, incx, A, lda);
+    ref_lapack_xsyr(uplo, n, alpha, xa, incx, A, lda);
 }
 
 template <>
@@ -1468,7 +1468,7 @@ inline void ref_syr(rocblas_fill            uplo,
                     rocblas_double_complex* A,
                     int64_t                 lda)
 {
-    lapack_xsyr(uplo, n, alpha, xa, incx, A, lda);
+    ref_lapack_xsyr(uplo, n, alpha, xa, incx, A, lda);
 }
 
 // syr2
@@ -1522,7 +1522,7 @@ inline void ref_syr2(rocblas_fill           uplo,
                      rocblas_float_complex* A,
                      int64_t                lda)
 {
-    lapack_xsyr2(uplo, n, alpha, x, incx, y, incy, A, lda);
+    ref_lapack_xsyr2(uplo, n, alpha, x, incx, y, incy, A, lda);
 }
 
 template <>
@@ -1536,7 +1536,7 @@ inline void ref_syr2(rocblas_fill            uplo,
                      rocblas_double_complex* A,
                      int64_t                 lda)
 {
-    lapack_xsyr2(uplo, n, alpha, x, incx, y, incy, A, lda);
+    ref_lapack_xsyr2(uplo, n, alpha, x, incx, y, incy, A, lda);
 }
 
 // hbmv

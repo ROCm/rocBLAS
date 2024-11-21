@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,7 @@
 
 /* LAPACK library functionality */
 template <typename T>
-void lapack_xcombssq(T* ssq, T* colssq)
+void ref_lapack_xcombssq(T* ssq, T* colssq)
 {
     if(ssq[0] >= colssq[0])
     {
@@ -98,9 +98,9 @@ void lapack_xcombssq(T* ssq, T* colssq)
     return;
 }
 
-/*! \brief  lapack_xlassq computes the scale and sumsq*/
+/*! \brief  ref_lapack_xlassq computes the scale and sumsq*/
 template <typename T>
-void lapack_xlassq(int64_t n, T* X, int64_t incx, double& scale, double& sumsq)
+void ref_lapack_xlassq(int64_t n, T* X, int64_t incx, double& scale, double& sumsq)
 {
     if(n > 0)
     {
@@ -140,10 +140,10 @@ void lapack_xlassq(int64_t n, T* X, int64_t incx, double& scale, double& sumsq)
     }
 }
 
-/*! \brief lapack_xlange-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.
+/*! \brief ref_lapack_xlange-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.
     Implementation supports use on vectors with negative lda being negative increment */
 template <typename T>
-double lapack_xlange(char norm_type, int64_t m, int64_t n, T* A, int64_t lda, double* work)
+double ref_lapack_xlange(char norm_type, int64_t m, int64_t n, T* A, int64_t lda, double* work)
 {
     double value = 0.0;
     double sum   = 0.0;
@@ -191,17 +191,17 @@ double lapack_xlange(char norm_type, int64_t m, int64_t n, T* A, int64_t lda, do
         {
             colssq[0] = 0.0;
             colssq[1] = 1.0;
-            lapack_xlassq(m, A + a_offset + j * lda, 1, colssq[0], colssq[1]);
-            lapack_xcombssq(ssq.data(), colssq.data());
+            ref_lapack_xlassq(m, A + a_offset + j * lda, 1, colssq[0], colssq[1]);
+            ref_lapack_xcombssq(ssq.data(), colssq.data());
         }
         value = ssq[0] * std::sqrt(ssq[1]);
     }
     return value;
 }
 
-/*! \brief lapack_xlansy-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.*/
+/*! \brief ref_lapack_xlansy-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.*/
 template <bool HERM, typename T>
-double lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, double* work)
+double ref_lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, double* work)
 {
     double value = 0.0;
     double sum   = 0.0;
@@ -268,8 +268,8 @@ double lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, do
             {
                 colssq[0] = 0.0;
                 colssq[1] = 1.0;
-                lapack_xlassq(j - 1, A + j * lda, 1, colssq[0], colssq[1]);
-                lapack_xcombssq(ssq.data(), colssq.data());
+                ref_lapack_xlassq(j - 1, A + j * lda, 1, colssq[0], colssq[1]);
+                ref_lapack_xcombssq(ssq.data(), colssq.data());
             }
         }
         else
@@ -278,8 +278,8 @@ double lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, do
             {
                 colssq[0] = 0.0;
                 colssq[1] = 1.0;
-                lapack_xlassq(n - j, A + ((j + 1) + j * lda), 1, colssq[0], colssq[1]);
-                lapack_xcombssq(ssq.data(), colssq.data());
+                ref_lapack_xlassq(n - j, A + ((j + 1) + j * lda), 1, colssq[0], colssq[1]);
+                ref_lapack_xcombssq(ssq.data(), colssq.data());
             }
         }
         ssq[1] = 2 * ssq[1];
@@ -308,8 +308,8 @@ double lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, do
         {
             colssq[0] = 0.0;
             colssq[1] = 1.0;
-            lapack_xlassq(n, A, lda + 1, colssq[0], colssq[1]);
-            lapack_xcombssq(ssq.data(), colssq.data());
+            ref_lapack_xlassq(n, A, lda + 1, colssq[0], colssq[1]);
+            ref_lapack_xcombssq(ssq.data(), colssq.data());
         }
         value = ssq[0] * std::sqrt(ssq[1]);
     }
@@ -317,7 +317,7 @@ double lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, do
 }
 
 template <typename T, typename U, typename V>
-void lapack_xrot(
+void ref_lapack_xrot(
     const int64_t n, T* cx, const int64_t incx, T* cy, const int64_t incy, const U c, const V s)
 {
     T stemp = T(0.0);
@@ -349,7 +349,7 @@ void lapack_xrot(
 }
 
 template <typename T, typename U>
-void lapack_xrotg(T& ca, T& cb, U& c, T& s)
+void ref_lapack_xrotg(T& ca, T& cb, U& c, T& s)
 {
     if(rocblas_abs(ca) != 0)
     {
@@ -372,7 +372,7 @@ void lapack_xrotg(T& ca, T& cb, U& c, T& s)
 
 // cblas_xsyr doesn't have complex support so implementation below for float/double complex
 template <typename T>
-void lapack_xsyr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* A, int64_t lda)
+void ref_lapack_xsyr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* A, int64_t lda)
 {
     if(n <= 0 || alpha == 0)
         return;
@@ -405,16 +405,16 @@ void lapack_xsyr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* 
 
 // cblas_xsymv doesn't have complex support so implementation below for float/double complex
 template <typename T>
-void lapack_xsymv(rocblas_fill uplo,
-                  int64_t      n,
-                  T            alpha,
-                  T*           A,
-                  int64_t      lda,
-                  T*           xa,
-                  int64_t      incx,
-                  T            beta,
-                  T*           ya,
-                  int64_t      incy)
+void ref_lapack_xsymv(rocblas_fill uplo,
+                      int64_t      n,
+                      T            alpha,
+                      T*           A,
+                      int64_t      lda,
+                      T*           xa,
+                      int64_t      incx,
+                      T            beta,
+                      T*           ya,
+                      int64_t      incy)
 {
     if(n <= 0)
         return;
@@ -468,7 +468,7 @@ void lapack_xsymv(rocblas_fill uplo,
 
 // cblas_xspr doesn't have complex support so implementation below for float/double complex
 template <typename T>
-void lapack_xspr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* A)
+void ref_lapack_xspr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* A)
 {
     if(n <= 0 || alpha == 0)
         return;
@@ -516,15 +516,15 @@ void lapack_xspr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* 
 
 // cblas_xsyr2 doesn't have complex support so implementation below for float/double complex
 template <typename T>
-inline void lapack_xsyr2(rocblas_fill uplo,
-                         int64_t      n,
-                         T            alpha,
-                         T*           xa,
-                         int64_t      incx,
-                         T*           ya,
-                         int64_t      incy,
-                         T*           A,
-                         int64_t      lda)
+inline void ref_lapack_xsyr2(rocblas_fill uplo,
+                             int64_t      n,
+                             T            alpha,
+                             T*           xa,
+                             int64_t      incx,
+                             T*           ya,
+                             int64_t      incy,
+                             T*           A,
+                             int64_t      lda)
 {
     if(n <= 0 || alpha == 0)
         return;
@@ -560,7 +560,7 @@ inline void lapack_xsyr2(rocblas_fill uplo,
 
 // cblas doesn't have trti2 implementation for now so using the lapack trti2 implementation below
 template <typename T>
-void lapack_xtrti2(char uplo, char diag, int64_t n, T* A, int64_t lda)
+void ref_lapack_xtrti2(char uplo, char diag, int64_t n, T* A, int64_t lda)
 {
     if(n < 0)
         return;
@@ -624,7 +624,7 @@ void lapack_xtrti2(char uplo, char diag, int64_t n, T* A, int64_t lda)
 
 // cblas doesn't have trtri implementation for now so using the lapack trtri implementation below
 template <typename T>
-void lapack_xtrtri(char uplo, char diag, int64_t n, T* A, int64_t lda)
+void ref_lapack_xtrtri(char uplo, char diag, int64_t n, T* A, int64_t lda)
 {
     if(n <= 0)
         return;
@@ -633,7 +633,7 @@ void lapack_xtrtri(char uplo, char diag, int64_t n, T* A, int64_t lda)
     int64_t JB = 0;
     if(NB <= 1 || NB >= n)
     {
-        lapack_xtrti2(uplo, diag, n, A, lda);
+        ref_lapack_xtrti2(uplo, diag, n, A, lda);
     }
     else
     {
@@ -667,7 +667,7 @@ void lapack_xtrtri(char uplo, char diag, int64_t n, T* A, int64_t lda)
                          lda,
                          A + j * lda,
                          lda);
-                lapack_xtrti2(uplo, diag, JB, A + (j + j * lda), lda);
+                ref_lapack_xtrti2(uplo, diag, JB, A + (j + j * lda), lda);
             }
         }
         else
@@ -701,7 +701,7 @@ void lapack_xtrtri(char uplo, char diag, int64_t n, T* A, int64_t lda)
                              A + ((j + JB) + j * lda),
                              lda);
                 }
-                lapack_xtrti2(uplo, diag, JB, A + (j + j * lda), lda);
+                ref_lapack_xtrti2(uplo, diag, JB, A + (j + j * lda), lda);
             }
         }
     }

@@ -408,7 +408,7 @@ void testing_trtri_batched(const Arguments& arg)
 
         // CBLAS doesn't have trtri implementation so using the LAPACK trtri
         for(size_t b = 0; b < batch_count; b++)
-            lapack_xtrtri<T>(char_uplo, char_diag, N, hB[b], lda);
+            ref_lapack_xtrtri<T>(char_uplo, char_diag, N, hB[b], lda);
 
         if(arg.timing)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;

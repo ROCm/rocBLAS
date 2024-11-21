@@ -87,9 +87,10 @@ double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, T* 
         }
     }
 
-    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU_double.data(), M, work.data());
+    double cpu_norm = ref_lapack_xlange(norm_type, M, N, hCPU_double.data(), M, work.data());
     m_axpy_64(size, &alpha, hCPU_double.data(), incx, hGPU_double.data(), incx);
-    double error = lapack_xlange(norm_type, M, N, hGPU_double.data(), M, work.data()) / cpu_norm;
+    double error
+        = ref_lapack_xlange(norm_type, M, N, hGPU_double.data(), M, work.data()) / cpu_norm;
     return error;
 }
 
@@ -123,9 +124,10 @@ double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, T* 
     int64_t             incx  = 1;
     double              alpha = -1.0;
 
-    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU_double.data(), M, work.data());
+    double cpu_norm = ref_lapack_xlange(norm_type, M, N, hCPU_double.data(), M, work.data());
     m_axpy_64(size, &alpha, hCPU_double.data(), incx, hGPU_double.data(), incx);
-    double error = lapack_xlange(norm_type, M, N, hGPU_double.data(), M, work.data()) / cpu_norm;
+    double error
+        = ref_lapack_xlange(norm_type, M, N, hGPU_double.data(), M, work.data()) / cpu_norm;
     return error;
 }
 
@@ -143,9 +145,9 @@ double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, T* 
     T                   alpha = -1.0;
     int64_t             size  = N * (int64_t)lda;
 
-    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU, lda, work.data());
+    double cpu_norm = ref_lapack_xlange(norm_type, M, N, hCPU, lda, work.data());
     m_axpy_64(size, &alpha, hCPU, incx, hGPU, incx);
-    double error = lapack_xlange(norm_type, M, N, hGPU, lda, work.data()) / cpu_norm;
+    double error = ref_lapack_xlange(norm_type, M, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
 }
@@ -347,10 +349,11 @@ double norm_check_symmetric(char norm_type, char uplo, int64_t N, int64_t lda, T
         }
     }
 
-    double cpu_norm = lapack_xlansy<HERM>(norm_type, uplo, N, hCPU_double.data(), lda, work.data());
+    double cpu_norm
+        = ref_lapack_xlansy<HERM>(norm_type, uplo, N, hCPU_double.data(), lda, work.data());
     m_axpy_64(size, &alpha, hCPU_double.data(), incx, hGPU_double.data(), incx);
-    double error
-        = lapack_xlansy<HERM>(norm_type, uplo, N, hGPU_double.data(), lda, work.data()) / cpu_norm;
+    double error = ref_lapack_xlansy<HERM>(norm_type, uplo, N, hGPU_double.data(), lda, work.data())
+                   / cpu_norm;
 
     return error;
 }
@@ -364,9 +367,9 @@ double norm_check_symmetric(char norm_type, char uplo, int64_t N, int64_t lda, T
     T                   alpha = -1.0;
     size_t              size  = (size_t)lda * N;
 
-    double cpu_norm = lapack_xlansy<HERM>(norm_type, uplo, N, hCPU, lda, work.data());
+    double cpu_norm = ref_lapack_xlansy<HERM>(norm_type, uplo, N, hCPU, lda, work.data());
     m_axpy_64(size, &alpha, hCPU, incx, hGPU, incx);
-    double error = lapack_xlansy<HERM>(norm_type, uplo, N, hGPU, lda, work.data()) / cpu_norm;
+    double error = ref_lapack_xlansy<HERM>(norm_type, uplo, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
 }

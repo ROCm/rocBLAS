@@ -370,7 +370,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
         for(size_t b = 0; b < batch_count; b++)
         {
             // CBLAS doesn't have trtri implementation so using the LAPACK trtri
-            lapack_xtrtri<T>(char_uplo, char_diag, N, hB[b], lda);
+            ref_lapack_xtrtri<T>(char_uplo, char_diag, N, hB[b], lda);
         }
 
         if(arg.timing)
