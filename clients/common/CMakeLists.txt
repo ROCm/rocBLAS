@@ -162,6 +162,11 @@ add_library(rocblas_clients_testing_common OBJECT ${rocblas_testing_common_sourc
 
 rocblas_client_library_settings( rocblas_clients_testing_common )
 
+if ( WARN_NOT_ILP64_PREFERRED )
+  target_compile_definitions( rocblas_clients_common PRIVATE ROCBLAS_REFERENCE_LIB_WARN )
+endif()
+target_compile_definitions( rocblas_clients_common PRIVATE ROCBLAS_REFERENCE_LIB=${BLAS_LIBRARY} )
+
 
 # target is not linked as OBJECT library but we want any interface flags from dependencies
 target_link_libraries( rocblas_clients_common roc::rocblas hip::host hip::device ${GTEST_BOTH_LIBRARIES} ${COMMON_LINK_LIBS} )

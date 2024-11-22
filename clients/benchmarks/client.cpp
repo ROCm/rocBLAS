@@ -1767,9 +1767,6 @@ try
         return 0;
 #endif
 
-    // Warn users if using older reference library
-    print_reference_lib_warning();
-
     // transfer local variable state
 
     arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;

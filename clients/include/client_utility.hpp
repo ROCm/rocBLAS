@@ -594,17 +594,4 @@ size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
                                    size_t arg_flush_memory_size,
                                    size_t cached_size);
 
-inline void print_reference_lib_warning()
-{
-    // prints a warning to cout if the recommended reference library isn't used
-#ifdef ROCBLAS_REFERENCE_LIB
-#define TOSTR2(s) #s
-#define TOSTR(s) TOSTR2(s)
-    rocblas_cout
-        << "Warning: Using reference library '" << TOSTR(ROCBLAS_REFERENCE_LIB)
-        << "' which may not support 64-bit input arguments. If running a test suite, please use "
-        << "--gtest_filter=-*stress* to avoid 64-bit test failures.\n";
-#undef TOSTR
-#undef TOSTR2
-#endif
-}
+void print_reference_lib_warning();

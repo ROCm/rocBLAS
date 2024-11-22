@@ -75,12 +75,24 @@ void rocblas_client_init()
             {
                 omp_set_num_threads(omp_limit_threads);
 
-                rocblas_cerr << "rocBLAS info: client (OPENMP) reduced omp_set_num_threads to "
+                rocblas_cout << "rocBLAS info: client (OPENMP) reduced omp_set_num_threads to "
                              << omp_limit_threads << std::endl;
             }
         }
     }
 #endif
+
+#ifndef WIN32
+    auto* ld_library_path_override = getenv("LD_LIBRARY_PATH");
+    if(ld_library_path_override)
+    {
+        rocblas_cout << "rocBLAS warning: LD_LIBRARY_PATH override may use incompatible rocblas "
+                     << std::endl;
+    }
+#endif
+
+    // Warn users if using older reference library
+    print_reference_lib_warning();
 }
 
 void rocblas_client_shutdown() {}
@@ -531,4 +543,24 @@ size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
         rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
     }
     return flush_batch_count;
+}
+
+void print_reference_lib_warning()
+{
+#define TOSTR2(s) #s
+#define TOSTR(s) TOSTR2(s)
+
+#ifdef ROCBLAS_REFERENCE_LIB
+    rocblas_cout << "rocBLAS info: Using reference library '" << TOSTR(ROCBLAS_REFERENCE_LIB) << "'"
+                 << std::endl;
+#endif
+    // prints a warning to cout if the recommended reference library isn't used
+#ifdef ROCBLAS_REFERENCE_LIB_WARN
+    rocblas_cout << "rocBLAS warning: Reference library may not support 64-bit input arguments. "
+                    "If running a test suite, please use "
+                 << "--gtest_filter=-*stress* to avoid 64-bit test failures.\n";
+#endif
+
+#undef TOSTR
+#undef TOSTR2
 }

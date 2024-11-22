@@ -94,11 +94,6 @@ if ( NOT BUILD_FORTRAN_CLIENTS )
   endif()
 endif()
 
-if ( WARN_NOT_ILP64_PREFERRED )
-  target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_REFERENCE_LIB=${BLAS_LIBRARY} )
-endif()
-
-
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging")
 if( BUILD_WITH_TENSILE )
   set_target_properties( rocblas-gemm-tune PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging")

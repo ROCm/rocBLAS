@@ -341,9 +341,6 @@ int main(int argc, char** argv)
     // Print rocBLAS and Tensile commit hashes
     rocblas_print_commit_hashes();
 
-    // Warn users if using older reference library
-    print_reference_lib_warning();
-
     // Set test device
     rocblas_set_test_device();
 
