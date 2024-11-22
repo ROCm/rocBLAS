@@ -110,8 +110,11 @@ def runTestCommand (platform, project, gfilter)
 
             // Enable check numerics only for checkNumericsTestCommand
             checkNumericsTestCommand = """
-                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*repeatability_check*:*get_solutions*
+                                    ${gtestCommonEnv} ${checkNumericsEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --yaml \$ROCBLAS_SMOKE
+
                                  """
+                                 // previously were running most psdb tests for check numerics without the not applicable sets
+                                 // was --gtest_filter=*blas1/pre_checkin*:*blas2/pre_checkin*:*blas3/pre_checkin*:*blas3_tensile/pre_checkin*:*blas_ex/pre_checkin*:-*known_bug*:*repeatability_check*:*get_solutions*
     }
     else
     {
@@ -126,6 +129,7 @@ def runTestCommand (platform, project, gfilter)
                     pushd ${project.paths.project_build_prefix}
                     mv build build_BAK
                     ROCBLAS_TEST=/opt/rocm/bin/rocblas-test
+                    ROCBLAS_SMOKE=/opt/rocm/bin/rocblas_smoke.yaml
                     ${rocBLASTestCommand}
                     if (( \$? != 0 )); then
                         exit 1
@@ -148,6 +152,7 @@ def runTestCommand (platform, project, gfilter)
         runTests = """
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
                     ROCBLAS_TEST=./rocblas-test
+                    ROCBLAS_SMOKE=./rocblas_smoke.yaml
                     ${rocBLASTestCommand}
                     if (( \$? != 0 )); then
                         exit 1
