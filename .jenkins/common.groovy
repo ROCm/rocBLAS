@@ -2,7 +2,7 @@
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
 
-def runCompileCommand(platform, project, jobName, boolean sameOrg=false)
+def runCompileCommand(platform, project, jobName, settings, boolean sameOrg=false)
 {
     project.paths.construct_build_prefix()
 
@@ -34,8 +34,14 @@ def runCompileCommand(platform, project, jobName, boolean sameOrg=false)
         // in PR if we are targeting develop branch build ONLY what CI pipeline will test, unless bug label
         if (env.CHANGE_TARGET == "develop" && !pullRequest.labels.contains("bug"))
         {
+            if (settings.addressSanitizer)
+                {       
+                     dynamicOptions = dynamicOptions + ' -a \$gfx_arch:xnack+'
+                }
+                else {
             // requires at command execution time ${auxiliary.gfxTargetParser()} to set gfx_var variable
             dynamicOptions = dynamicOptions + ' -a \$gfx_arch'
+                }
         }
 
         if (env.CHANGE_TARGET == "develop" && pullRequest.labels.contains("ci:static-libraries"))
@@ -63,9 +69,10 @@ def runCompileCommand(platform, project, jobName, boolean sameOrg=false)
     platform.runCommand(this, command)
 }
 
-def runTestCommand (platform, project, gfilter)
+def runTestCommand (platform, project, settings)
 {
     String sudo = auxiliary.sudo(platform.jenkinsLabel)
+
     String installPackage = ""
     if (platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('sles'))
     {
@@ -93,7 +100,7 @@ def runTestCommand (platform, project, gfilter)
     }
 
     def hmmTestCommand= ''
-    if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
+    if (platform.jenkinsLabel.contains('gfx90a') && settings.gfilter.contains('nightly'))
     {
         hmmTestCommand = """
                             ${gtestCommonEnv} HSA_XNACK=1 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
@@ -119,7 +126,7 @@ def runTestCommand (platform, project, gfilter)
     else
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${settings.gfilter}-*known_bug*
                                  """
     }
 
@@ -168,11 +175,33 @@ def runTestCommand (platform, project, gfilter)
                    """
     }
 
+    def LD_PATH = ''
+    def asanArgs = ''
+    if (settings.addressSanitizer)
+    {
+        LD_PATH = """
+                    export ASAN_LIB_PATH=\$(/opt/rocm/llvm/bin/clang -print-file-name=libclang_rt.asan-x86_64.so)
+                    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:\$(dirname "\${ASAN_LIB_PATH}")
+                  """
+        asanArgs = """
+        export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/rocm/llvm/lib/clang/18/lib/linux
+        export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/rocm/lib/asan
+        export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/opt/rocm/libexec/rocm_smi
+        export ASAN_SYMBOLIZER_PATH=/opt/rocm/llvm/bin/llvm-symbolizer
+        export PATH=/opt/rocm/llvm/bin/:\$PATH
+        export PATH=/opt/rocm/:\$PATH
+        export HSA_XNACK=1
+        export ASAN_OPTIONS=detect_leaks=0
+        """   
+    }
+
     def command = """#!/usr/bin/env bash
                     set -x
                     pushd ${project.paths.project_build_prefix}/build/release/package
                     ${installPackage}
                     popd
+                    ${LD_PATH}
+                    ${asanArgs}
                     ${runTests}
                   """
 

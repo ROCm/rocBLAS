@@ -34,21 +34,21 @@ def runCI =
 
     boolean formatCheck = false
 
+    def settings = [gfilter: "*stress*:*HMM*:"]
+
     def compileCommand =
     {
         platform, project->
 
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/common.groovy"
-        commonGroovy.runCompileCommand(platform, project, jobName)
+        commonGroovy.commonGroovy.runCompileCommand(platform, project, jobName, settings)
     }
 
     def testCommand =
     {
         platform, project->
 
-        def gfilter = "*stress*:*HMM*:"
-
-        commonGroovy.runTestCommand(platform, project, gfilter)
+        commonGroovy.runTestCommand(platform, project, settings)
     }
 
     def packageCommand =

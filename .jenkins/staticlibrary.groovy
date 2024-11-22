@@ -26,19 +26,19 @@ def runCI =
 
     boolean formatCheck = false
 
+    def settings = [gfilter: "*quick*:*pre_checkin*"]
+
     def compileCommand =
     {
         platform, project->
 
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/common.groovy"
-        commonGroovy.runCompileCommand(platform, project, jobName)
+        commonGroovy.commonGroovy.runCompileCommand(platform, project, jobName, settings)
     }
 
     def testCommand =
     {
         platform, project->
-
-        def gfilter = "*quick*:*pre_checkin*"
 
         def testFilter = ""
 
@@ -67,11 +67,11 @@ def runCI =
 
         if (testFilter.length() > 0)
         {
-            // The below command chops the final character ':' in testFilter and transfers the string to gfilter.
-            gfilter = testFilter.substring(0, testFilter.length() - 1);
+            // The below command chops the final character ':' in testFilter and transfers the string to settings.gfilter.
+            settings.gfilter = testFilter.substring(0, testFilter.length() - 1);
         }
 
-        commonGroovy.runTestCommand(platform, project, gfilter)
+        commonGroovy.runTestCommand(platform, project, settings)
     }
 
     def packageCommand =
