@@ -1736,36 +1736,11 @@ try
         return 0;
     }
 
-    if(vm.find("version") != vm.end())
+    print_rocblas_version_string(); // version and commit hash
+    if(vm.find("version") != vm.end() || vm.find("rocblas_tensile_commit_hash") != vm.end())
     {
-        size_t size;
-        rocblas_get_version_string_size(&size);
-        std::string blas_version(size - 1, '\0');
-        rocblas_get_version_string(blas_version.data(), size);
-        rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
-
-    const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
-
-#if BUILD_WITH_TENSILE
-    rocblas_cout << std::endl
-                 << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl
-                 << std::endl;
-
-    if(vm.find("rocblas_tensile_commit_hash") != vm.end())
-        return 0;
-#else
-    rocblas_cout << std::endl
-                 << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl
-                 << std::endl;
-    if(vm.find("rocblas_tensile_commit_hash") != vm.end())
-        return 0;
-#endif
 
     // transfer local variable state
 

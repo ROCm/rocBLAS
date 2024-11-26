@@ -92,6 +92,9 @@
 void rocblas_client_init();
 void rocblas_client_shutdown();
 
+void print_rocblas_version_string();
+void print_rocblas_client_commit_hashes();
+
 /*!
  * Initialize rocBLAS for the requested number of  HIP devices
  * and report the time taken to complete the initialization.

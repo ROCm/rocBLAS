@@ -25009,6 +25009,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string_size(size_t* len);
 
+/*! \brief   Loads char* buf with the rocblas library commit hash. size_t len
+    is the maximum length of char* buf.
+    \details
+
+    @param[in, out]
+    buf             pointer to buffer for version string
+
+    @param[in]
+    len             length of buf
+
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_get_commit_hash_string(char* buf, size_t len);
+
+/*! \brief   Queries the minimum buffer size for a successful call to
+    \ref rocblas_get_commit_hash_string
+    \details
+
+    @param[out]
+    len             pointer to size_t for storing the length
+
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_get_commit_hash_string_size(size_t* len);
+
 /*
  * ===========================================================================
  *    device memory allocation

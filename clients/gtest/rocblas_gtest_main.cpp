@@ -205,41 +205,6 @@ static void rocblas_set_listener()
     listeners.Append(listener);
 }
 
-static std::string rocblas_version_string()
-{
-    size_t size;
-    rocblas_get_version_string_size(&size);
-    std::string str(size - 1, '\0');
-    rocblas_get_version_string(str.data(), size);
-    return str;
-}
-
-// Print Version
-static void rocblas_print_version()
-{
-    static std::string blas_version = rocblas_version_string();
-
-    rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
-}
-
-// Print rocBLAS and Tensile commit hashes
-static void rocblas_print_commit_hashes()
-{
-    const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
-
-#if BUILD_WITH_TENSILE
-    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl
-                 << std::endl;
-#else
-    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl
-                 << std::endl;
-#endif
-}
-
 static void rocblas_print_usage_warning()
 {
     std::string warning(
@@ -336,10 +301,7 @@ int main(int argc, char** argv)
         rocblas_test_sigaction();
     }
 
-    rocblas_print_version();
-
-    // Print rocBLAS and Tensile commit hashes
-    rocblas_print_commit_hashes();
+    print_rocblas_version_string();
 
     // Set test device
     rocblas_set_test_device();
@@ -364,7 +326,7 @@ int main(int argc, char** argv)
     int status = RUN_ALL_TESTS();
 
     // Failures printed at end for reporting so repeat version info
-    rocblas_print_version();
+    print_rocblas_version_string();
 
     // end test results with command line
     rocblas_print_args(args);

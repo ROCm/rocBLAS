@@ -31,14 +31,10 @@
 #include "gtest_helpers.hpp"
 #include <chrono>
 #include <cstdlib>
-#include <cstring>
 #include <new>
 #include <stdexcept>
 #include <stdlib.h>
 #include <thread>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #ifdef WIN32
 #define strcasecmp(A, B) _stricmp(A, B)
@@ -56,6 +52,10 @@ namespace fs = std::experimental::filesystem;
 // Not WIN32
 #else
 #include <fcntl.h>
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
 #endif
 
 void rocblas_client_init()
@@ -96,6 +96,71 @@ void rocblas_client_init()
 }
 
 void rocblas_client_shutdown() {}
+
+void get_version_string(std::string& str)
+{
+    size_t size;
+    rocblas_get_version_string_size(&size);
+    str.resize(size - 1, '\0');
+    rocblas_get_version_string((char*)str.data(), size);
+}
+
+void print_rocblas_version_string()
+{
+    std::string rocblas_version;
+    get_version_string(rocblas_version);
+
+    rocblas_cout << "rocBLAS version: " << rocblas_version << std::endl;
+
+    print_rocblas_client_commit_hashes();
+}
+
+void print_reference_lib_warning()
+{
+#define TOSTR2(s) #s
+#define TOSTR(s) TOSTR2(s)
+
+#ifdef ROCBLAS_REFERENCE_LIB
+    rocblas_cout << "rocBLAS info: Using reference library '" << TOSTR(ROCBLAS_REFERENCE_LIB) << "'"
+                 << std::endl;
+#endif
+    // prints a warning to cout if the recommended reference library isn't used
+#ifdef ROCBLAS_REFERENCE_LIB_WARN
+    rocblas_cout << "rocBLAS warning: Reference library may not support 64-bit input arguments. "
+                    "If running a test suite, please use "
+                 << "--gtest_filter=-*stress* to avoid 64-bit test failures.\n";
+#endif
+
+#undef TOSTR
+#undef TOSTR2
+}
+
+// Print rocBLAS and Tensile commit hashes
+void print_rocblas_client_commit_hashes()
+{
+    static const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
+
+    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl;
+#if BUILD_WITH_TENSILE
+    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1]
+                 << std::endl
+#else
+    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl;
+#endif
+
+                        size_t size;
+    rocblas_get_commit_hash_string_size(&size);
+
+    std::string hash(size - 1, '\0');
+    rocblas_get_commit_hash_string((char*)hash.data(), size);
+
+    if(strcmp(rocblas_tensile_commit_hash[0], hash.data()))
+    {
+        rocblas_cout
+            << "rocBLAS warning: client rocblas commit differs from library rocblas commit: "
+            << hash << std::endl;
+    }
+}
 
 /* ============================================================================================ */
 // Return path of this executable
@@ -543,24 +608,4 @@ size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
         rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
     }
     return flush_batch_count;
-}
-
-void print_reference_lib_warning()
-{
-#define TOSTR2(s) #s
-#define TOSTR(s) TOSTR2(s)
-
-#ifdef ROCBLAS_REFERENCE_LIB
-    rocblas_cout << "rocBLAS info: Using reference library '" << TOSTR(ROCBLAS_REFERENCE_LIB) << "'"
-                 << std::endl;
-#endif
-    // prints a warning to cout if the recommended reference library isn't used
-#ifdef ROCBLAS_REFERENCE_LIB_WARN
-    rocblas_cout << "rocBLAS warning: Reference library may not support 64-bit input arguments. "
-                    "If running a test suite, please use "
-                 << "--gtest_filter=-*stress* to avoid 64-bit test failures.\n";
-#endif
-
-#undef TOSTR
-#undef TOSTR2
 }
