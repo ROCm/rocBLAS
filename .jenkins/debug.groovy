@@ -14,13 +14,16 @@ def runCI =
 {
     nodeDetails, jobName->
 
+    def settings = [formatCheck: false,
+                    addressSanitizer: false,
+                    gfilter: "*quick*:*pre_checkin*"]
+
     def prj = new rocProject('rocBLAS', 'Debug')
 
     // customize for project
     prj.paths.build_command = './install.sh -c -g'
 
     def noHipblasLT = env.BRANCH_NAME ==~ /PR-\d+/ && pullRequest.labels.contains("noHipblasLT")
-
     if (!noHipblasLT)
     {
         prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
@@ -32,14 +35,12 @@ def runCI =
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
     prj.timeout.compile = 480
 
-    boolean formatCheck = false
-
     def compileCommand =
     {
         platform, project->
 
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/common.groovy"
-        commonGroovy.commonGroovy.runCompileCommand(platform, project, jobName, settings)
+        commonGroovy.runCompileCommand(platform, project, jobName, settings)
     }
 
     def packageCommand =
@@ -49,7 +50,7 @@ def runCI =
         commonGroovy.runPackageCommand(platform, project, debug=true)
     }
 
-    buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, null, packageCommand)
+    buildProject(prj, settings.formatCheck, nodes.dockerArray, compileCommand, null, packageCommand)
 
 }
 

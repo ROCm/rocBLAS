@@ -13,11 +13,15 @@ def runCI =
 {
     nodeDetails, jobName->
 
+    def settings = [formatCheck: false,
+                    addressSanitizer: true,
+                    gfilter: "*quick*:*pre_checkin*"]
+
     def prj = new rocProject('rocBLAS', 'address-sanitizer')
     // customize for project
     prj.paths.build_command = './install.sh -c --address-sanitizer'
-    def noHipblasLT = env.BRANCH_NAME ==~ /PR-\d+/ && pullRequest.labels.contains("noHipblasLT")
 
+    def noHipblasLT = env.BRANCH_NAME ==~ /PR-\d+/ && pullRequest.labels.contains("noHipblasLT")
     if (!noHipblasLT)
     {
         prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
@@ -29,11 +33,6 @@ def runCI =
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
-
-    boolean formatCheck = false
-
-    def settings = [addressSanitizer: true,
-                   gfilter: "*quick*:*pre_checkin*"]
 
     def compileCommand =
     {
@@ -78,6 +77,7 @@ def runCI =
             // The below command chops the final character ':' in testFilter and transfers the string to settings.gfilter.
             settings.gfilter = testFilter.substring(0, testFilter.length() - 1);
         }
+
         commonGroovy.runTestCommand(platform, project, settings)
     }
 
@@ -88,7 +88,7 @@ def runCI =
         commonGroovy.runPackageCommand(platform, project)
     }
 
-    buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
+    buildProject(prj, settings.formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
 
 }
 

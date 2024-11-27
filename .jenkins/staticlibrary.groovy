@@ -13,6 +13,10 @@ def runCI =
 {
     nodeDetails, jobName->
 
+    def settings = [formatCheck: false,
+                    addressSanitizer: false,
+                    gfilter: "*quick*:*pre_checkin*"]
+
     def prj = new rocProject('rocBLAS', 'StaticLibrary')
 
     // customize for project
@@ -24,16 +28,12 @@ def runCI =
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
 
-    boolean formatCheck = false
-
-    def settings = [gfilter: "*quick*:*pre_checkin*"]
-
     def compileCommand =
     {
         platform, project->
 
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/common.groovy"
-        commonGroovy.commonGroovy.runCompileCommand(platform, project, jobName, settings)
+        commonGroovy.runCompileCommand(platform, project, jobName, settings)
     }
 
     def testCommand =
@@ -81,7 +81,7 @@ def runCI =
         commonGroovy.runPackageCommand(platform, project)
     }
 
-    buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
+    buildProject(prj, settings.formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
 }
 
 ci: {
