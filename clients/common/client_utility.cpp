@@ -142,13 +142,12 @@ void print_rocblas_client_commit_hashes()
 
     rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl;
 #if BUILD_WITH_TENSILE
-    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1]
-                 << std::endl
+    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl;
 #else
     rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl;
 #endif
 
-                        size_t size;
+    size_t size;
     rocblas_get_commit_hash_string_size(&size);
 
     std::string hash(size - 1, '\0');
