@@ -23,6 +23,8 @@ rocBLAS documentation is available at
 
 * Significantly reduced workspace memory requirements for Level 1 ILP64: `iamax` and `iamin`
 * Reduced workspace memory requirements for Level 1 ILP64: `dot`, `asum`, `nrm2`
+* Improved the performance of Level 2 gemv for the problem sizes (`TransA == N && m > 2*n`) and (`TransA == T`)
+* Improved the performance of Level 3 syrk and herk for the problem size (`k > 500 && n < 4000`)
 
 ### Resolved issues
 
