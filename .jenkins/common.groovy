@@ -35,7 +35,7 @@ def runCompileCommand(platform, project, jobName, settings, boolean sameOrg=fals
         if (env.CHANGE_TARGET == "develop" && !pullRequest.labels.contains("bug"))
         {
             if (settings.addressSanitizer)
-                {       
+                {
                      dynamicOptions = dynamicOptions + ' -a \$gfx_arch:xnack+'
                 }
                 else {
@@ -112,7 +112,7 @@ def runTestCommand (platform, project, settings)
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${settings.gfilter}-*known_bug*
                                  """
 
             // Enable check numerics only for checkNumericsTestCommand
@@ -192,7 +192,7 @@ def runTestCommand (platform, project, settings)
         export PATH=/opt/rocm/:\$PATH
         export HSA_XNACK=1
         export ASAN_OPTIONS=detect_leaks=0
-        """   
+        """
     }
 
     def command = """#!/usr/bin/env bash
