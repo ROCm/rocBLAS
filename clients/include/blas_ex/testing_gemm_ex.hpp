@@ -670,6 +670,20 @@ void testing_gemm_ex(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        // if solution index is given check it is valid before benchmarking
+        if(algo == rocblas_gemm_algo_solution_index && solution_index != 0)
+        {
+            uint32_t test_flags = flags | rocblas_gemm_flags_check_solution_index;
+            // clang-format off
+            DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                                   dA[0], arg.a_type, lda,
+                                                   dB[0], arg.b_type, ldb, &h_beta_Tc,
+                                                   dC[0], arg.c_type, ldc,
+                                                   dD[0],     d_type, ldd,
+                                                   arg.compute_type, algo, solution_index, test_flags));
+            // clang-format on
+        }
+
         for(int i = 0; i < number_cold_calls; i++)
         {
             // clang-format off
