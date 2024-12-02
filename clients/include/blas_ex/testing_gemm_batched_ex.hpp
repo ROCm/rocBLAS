@@ -591,7 +591,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
         {
             // clang-format off
             DAPI_DISPATCH(rocblas_gemm_batched_ex_fn, (
-				    handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                    handle, transA, transB, M, N, K, &h_alpha_Tc,
                                     dA.ptr_on_device(), arg.a_type, lda,
                                     dB.ptr_on_device(), arg.b_type, ldb, &h_beta_Tc,
                                     dC.ptr_on_device(), arg.c_type, ldc,

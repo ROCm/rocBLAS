@@ -619,7 +619,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         {
             // clang-format off
             DAPI_DISPATCH(rocblas_gemm_strided_batched_ex_fn, (
-				    handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                    handle, transA, transB, M, N, K, &h_alpha_Tc,
                                     dA[0], arg.a_type, lda, stride_a,
                                     dB[0], arg.b_type, ldb, stride_b, &h_beta_Tc,
                                     dC[0], arg.c_type, ldc, stride_c,
