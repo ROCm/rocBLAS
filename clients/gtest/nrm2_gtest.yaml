@@ -95,6 +95,18 @@ Definitions:
 
 Tests:
 
+# for bad_arg no arguments should be used by test code
+  - name: blas1_bad_arg
+    category: quick
+    api: [ C, FORTRAN, FORTRAN_64 ]
+    function:
+      - nrm2_bad_arg:  *single_double_precisions_complex_real
+      - nrm2_batched_bad_arg:  *single_double_precisions_complex_real
+      - nrm2_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - nrm2_ex_bad_arg: *nrm2_ex_precisions
+      - nrm2_batched_ex_bad_arg: *nrm2_ex_precisions
+      - nrm2_strided_batched_ex_bad_arg: *nrm2_ex_precisions
+
   - name: nrm2_64
     category: nightly
     N: [ 64 ]
@@ -266,5 +278,38 @@ Tests:
     pointer_mode_device: false
     function:
       - nrm2_strided_batched_ex: *nrm2_ex_precisions_double
+
+  - name: blas1_nan_check
+    category: pre_checkin
+    arguments: *blas1_nan_common_args
+    function:
+      - nrm2:  *single_double_precisions_complex_real
+      - nrm2_batched:  *single_double_precisions_complex_real
+      - nrm2_strided_batched:  *single_double_precisions_complex_real
+      - nrm2_ex: *nrm2_ex_precisions
+      - nrm2_batched_ex: *nrm2_ex_precisions
+      - nrm2_strided_batched_ex: *nrm2_ex_precisions
+
+  - name: blas1_graph_check
+    category: pre_checkin
+    arguments: *blas1_graph_test_common_args
+    function:
+      - nrm2:  *single_double_precisions_complex_real
+      - nrm2_batched:  *single_double_precisions_complex_real
+      - nrm2_strided_batched:  *single_double_precisions_complex_real
+      - nrm2_ex:  *nrm2_ex_precisions
+      - nrm2_batched_ex:  *nrm2_ex_precisions
+      - nrm2_strided_batched_ex:  *nrm2_ex_precisions
+
+  - name: blas1_repeatability_check
+    category: stress
+    arguments: *blas1_repeatability_common_args
+    function:
+       - nrm2:  *single_double_precisions_complex_real
+       - nrm2_batched:  *single_double_precisions_complex_real
+       - nrm2_strided_batched:  *single_double_precisions_complex_real
+       - nrm2_ex:  *nrm2_ex_precisions
+       - nrm2_batched_ex:  *nrm2_ex_precisions
+       - nrm2_strided_batched_ex:  *nrm2_ex_precisions
 
 ...

@@ -95,8 +95,23 @@ Definitions:
 
 Tests:
 
-
-# All functions with alpha and incx but no incy
+# for bad_arg no arguments should be used by test code
+  - name: blas1_bad_arg
+    category: quick
+    api: [ C, FORTRAN, FORTRAN_64 ]
+    function:
+      - scal_bad_arg:  *single_double_precisions_complex_real
+      - scal_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_ex_bad_arg: *scal_ex_single_double_complex_real_alpha_complex_out
+      - scal_batched_bad_arg:  *single_double_precisions_complex_real
+      - scal_batched_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_batched_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_batched_ex_bad_arg: *scal_ex_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched_bad_arg:  *single_double_precisions_complex_real
+      - scal_strided_batched_bad_arg:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched_ex_bad_arg: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_strided_batched_ex_bad_arg: *scal_ex_single_double_complex_real_alpha_complex_out
 
 # 64
 
@@ -110,10 +125,7 @@ Tests:
     api: [ C_64, FORTRAN_64 ]
     function:
       - scal:  *single_precision
-      - scal:  *single_precision
       - scal_batched:  *single_precision
-      - scal_batched:  *single_precision
-      - scal_strided_batched:  *single_precision
       - scal_strided_batched:  *single_precision
 
   # quick tests will fallback to original kernels at launcher level
@@ -346,5 +358,50 @@ Tests:
       - scal_strided_batched:  *single_double_precisions_complex_real
       - scal_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_strided_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
+
+  - name: blas1_nan_check
+    category: pre_checkin
+    arguments: *blas1_nan_common_args
+    function:
+      - scal:  *single_double_precisions_complex_real
+      - scal:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_ex: *scal_ex_single_double_complex_real_alpha_complex_out
+      - scal_batched:  *single_double_precisions_complex_real
+      - scal_batched:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched:  *single_double_precisions_complex_real
+      - scal_strided_batched:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
+
+  - name: blas1_graph_check
+    category: pre_checkin
+    arguments: *blas1_graph_test_common_args
+    function:
+      - scal:  *single_double_precisions_complex_real
+      - scal:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_batched:  *single_double_precisions_complex_real
+      - scal_batched:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched:  *single_double_precisions_complex_real
+      - scal_strided_batched:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_ex: *single_double_precisions_complex_real
+      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+
+  - name: blas1_repeatability_check
+    category: stress
+    arguments: *blas1_repeatability_common_args
+    function:
+       - scal:  *single_double_precisions_complex_real
+       - scal:  *scal_single_double_complex_real_alpha_complex_out
+       - scal_batched:  *single_double_precisions_complex_real
+       - scal_batched:  *scal_single_double_complex_real_alpha_complex_out
+       - scal_strided_batched:  *single_double_precisions_complex_real
+       - scal_strided_batched:  *scal_single_double_complex_real_alpha_complex_out
+       - scal_ex: *single_double_precisions_complex_real
+       - scal_batched_ex: *single_double_precisions_complex_real
+       - scal_strided_batched_ex: *single_double_precisions_complex_real
 
 ...

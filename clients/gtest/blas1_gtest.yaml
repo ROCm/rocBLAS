@@ -8,5 +8,3 @@ include: nrm2_gtest.yaml
 include: rot_gtest.yaml
 include: scal_gtest.yaml
 include: swap_gtest.yaml
-
-include: blas1_common_gtest.yaml

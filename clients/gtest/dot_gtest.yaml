@@ -95,6 +95,24 @@ Definitions:
 
 Tests:
 
+# for bad_arg no arguments should be used by test code
+  - name: blas1_bad_arg
+    category: quick
+    api: [ C, FORTRAN, FORTRAN_64 ]
+    function:
+      - dot_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_bad_arg:  *single_double_precisions_complex
+      - dotc_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
+
   - name: dot_64
     category: nightly
     N: [ 64 ]
@@ -439,5 +457,56 @@ Tests:
       - dotc_strided_batched:  *single_double_precisions_complex
       - dot_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+
+  - name: blas1_nan_check
+    category: pre_checkin
+    arguments: *blas1_nan_common_args
+    function:
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
+      - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
+
+  - name: blas1_graph_check
+    category: pre_checkin
+    arguments: *blas1_graph_test_common_args
+    function:
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
+      - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *dot_ex_precisions
+      - dot_batched_ex: *dot_ex_precisions
+      - dot_strided_batched_ex: *dot_ex_precisions
+      - dotc_ex: *dot_ex_precisions
+      - dotc_batched_ex: *dot_ex_precisions
+      - dotc_strided_batched_ex: *dot_ex_precisions
+
+  - name: blas1_repeatability_check
+    category: stress
+    arguments: *blas1_repeatability_common_args
+    function:
+       - dot:   *half_bfloat_single_double_complex_real_precisions
+       - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+       - dotc:  *single_double_precisions_complex
+       - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
+       - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+       - dot_ex: *half_bfloat_single_double_complex_real_precisions
+       - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
+       - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+       - dotc_ex: *half_bfloat_single_double_complex_real_precisions
+       - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
+       - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
 
 ...

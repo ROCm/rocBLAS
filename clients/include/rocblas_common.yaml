@@ -488,6 +488,42 @@ nrm2_ex precisions double: &nrm2_ex_precisions_double
   - *double_precision_complex_real_in_real_compute
 
 Definitions:
+
+# blas1 common test args
+  - &blas1_nan_common_args
+    N: [ 5 ]
+    batch_count: [ 3 ]
+    incx: [ 1, 2 ]
+    incy: [ 2, 1 ]
+    alpha: .NaN
+    stride_scale: [ 1 ]
+
+  - &blas1_graph_test_common_args
+    N: [ 20000 ]
+    batch_count: [ 3 ]
+    incx: [ 1 ]
+    incy: [ 1 ]
+    alpha: [ 1 ]
+    stride_scale: [ 1 ]
+    graph_test: true
+
+  - &blas1_repeatability_incx_incy
+    - { incx: 1, incy: 1 }
+    - { incx: -3, incy: -3 }
+
+  - &blas1_repeatability_common_args
+    N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
+    incx_incy: *blas1_repeatability_incx_incy
+    batch_count: [2]
+    stride_scale: [ 1 ]
+    alpha:  0.5
+    beta:  0.5
+    initialization: hpl
+    iters: 5
+    pointer_mode_host: false
+    repeatability_check: true
+    atomics_mode: 0
+
   # scan extension applied by Arguments class
   - &c_scan_value
     - [-999]

@@ -95,6 +95,15 @@ Definitions:
 
 Tests:
 
+# for bad_arg no arguments should be used by test code
+  - name: blas1_bad_arg
+    category: quick
+    api: [ C, FORTRAN, FORTRAN_64 ]
+    function:
+      - copy_bad_arg:  *single_double_precisions_complex_real
+      - copy_batched_bad_arg:  *single_double_precisions_complex_real
+      - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
+
   - name: blas1_size_t
     category: stress
     matrix_size: *size_t_xy_range
@@ -250,5 +259,25 @@ Tests:
     stride_scale: [ 1 ]
     function:
       - copy_strided_batched:  *single_double_precisions_complex_real
+
+  - name: blas1_nan_check
+    category: pre_checkin
+    arguments: *blas1_nan_common_args
+    function:
+      - copy:  *single_double_precisions_complex_real
+      - copy_batched:  *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
+
+  - name: blas1_graph_check
+    category: pre_checkin
+    arguments: *blas1_graph_test_common_args
+    function:
+      - copy:  *single_double_precisions_complex_real
+      - copy_batched:  *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
+
+# not applicable
+# - name: blas1_repeatability_check
+
 
 ...

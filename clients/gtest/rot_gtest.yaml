@@ -97,6 +97,27 @@ Tests:
 
 # All functions with no parameters to scan over
 
+# for bad_arg no arguments should be used by test code
+  - name: blas1_bad_arg
+    category: quick
+    api: [ C, FORTRAN, FORTRAN_64 ]
+    function:
+      - rotg_bad_arg:  *rotg_precisions
+      - rotm_bad_arg:  *single_double_precisions
+      - rotmg_bad_arg: *single_double_precisions
+      - rotg_batched_bad_arg:  *rotg_precisions
+      - rotm_batched_bad_arg:  *single_double_precisions
+      - rotmg_batched_bad_arg: *single_double_precisions
+      - rotg_strided_batched_bad_arg:  *rotg_precisions
+      - rotm_strided_batched_bad_arg:  *single_double_precisions
+      - rotmg_strided_batched_bad_arg: *single_double_precisions
+      - rot_bad_arg:  *rot_precisions
+      - rot_ex_bad_arg:  *rot_ex_precisions
+      - rot_batched_bad_arg:  *rot_precisions
+      - rot_batched_ex_bad_arg:  *rot_ex_precisions
+      - rot_strided_batched_bad_arg:  *rot_precisions
+      - rot_strided_batched_ex_bad_arg:  *rot_ex_precisions
+
   - name: blas1
     category: quick
     api: [ C, FORTRAN ]
@@ -397,5 +418,61 @@ Tests:
       - rotg:  *double_precision
       - rotg_batched:  *single_precision
       - rotg_strided_batched:  *single_precision
+
+  - name: blas1_nan_check
+    category: pre_checkin
+    arguments: *blas1_nan_common_args
+    function:
+      #TODO: - Tests bypass the unit_check_general in ROTG,ROTMG,ROTM when NaN is input for alpha as this is not expected
+      - rot:   *rot_precisions
+      - rot_ex: *rot_ex_precisions
+      - rotm:  *single_double_precisions
+      - rotmg: *single_double_precisions
+      - rot_batched:   *rot_precisions
+      - rot_batched_ex: *rot_ex_precisions
+      - rotm_batched:  *single_double_precisions
+      - rotmg_batched: *single_double_precisions
+      - rot_strided_batched:   *rot_precisions
+      - rot_strided_batched_ex: *rot_ex_precisions
+      - rotm_strided_batched:  *single_double_precisions
+      - rotmg_strided_batched: *single_double_precisions
+
+  - name: blas1_graph_check
+    category: pre_checkin
+    arguments: *blas1_graph_test_common_args
+    function:
+      - rot:   *rot_precisions
+      - rot_ex: *rot_ex_precisions
+      - rotg:  *rotg_precisions
+      - rotm:  *single_double_precisions
+      - rotmg: *single_double_precisions
+      - rot_batched:   *rot_precisions
+      - rot_batched_ex: *rot_ex_precisions
+      - rotg_batched:  *rotg_precisions
+      - rotm_batched:  *single_double_precisions
+      - rotmg_batched: *single_double_precisions
+      - rot_strided_batched:   *rot_precisions
+      - rotg_strided_batched:  *rotg_precisions
+      - rotm_strided_batched:  *single_double_precisions
+      - rotmg_strided_batched: *single_double_precisions
+
+  - name: blas1_repeatability_check
+    category: stress
+    arguments: *blas1_repeatability_common_args
+    function:
+       - rot:   *rot_precisions
+       - rot_ex: *rot_ex_precisions
+       - rotg:  *rotg_precisions
+       - rotm:  *single_double_precisions
+       - rotmg: *single_double_precisions
+       - rot_batched:   *rot_precisions
+       - rot_batched_ex: *rot_ex_precisions
+       - rotg_batched:  *rotg_precisions
+       - rotm_batched:  *single_double_precisions
+       - rotmg_batched: *single_double_precisions
+       - rot_strided_batched:   *rot_precisions
+       - rotg_strided_batched:  *rotg_precisions
+       - rotm_strided_batched:  *single_double_precisions
+       - rotmg_strided_batched: *single_double_precisions
 
 ...
