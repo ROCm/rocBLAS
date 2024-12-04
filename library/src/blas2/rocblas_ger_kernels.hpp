@@ -119,6 +119,71 @@ rocblas_ger_kernel(rocblas_int    m,
 #endif
 }
 
+//optimized kernel for SGER for gfx942
+template <rocblas_int DIM_X, typename T, typename V, typename U, typename W>
+ROCBLAS_KERNEL(DIM_X)
+rocblas_sger_gfx942_kernel(rocblas_int    m,
+                           rocblas_int    n,
+                           V              alpha_device_host,
+                           rocblas_stride stride_alpha,
+                           const U        xa,
+                           rocblas_stride shiftx,
+                           int64_t        incx,
+                           rocblas_stride stridex,
+                           const U        ya,
+                           rocblas_stride shifty,
+                           int64_t        incy,
+                           rocblas_stride stridey,
+                           W              Aa,
+                           rocblas_stride shifta,
+                           int64_t        lda,
+                           rocblas_stride strideA)
+{
+// gfx942 kernels
+#if defined(__gfx942__)
+
+    rocblas_int tx  = (blockIdx.x * DIM_X + threadIdx.x) * 2;
+    rocblas_int col = blockIdx.y;
+
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
+
+    if(!alpha)
+        return;
+
+    const T* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
+    const T* __restrict__ y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
+
+    T* __restrict__ A = load_ptr_batch(Aa, blockIdx.z, shifta, strideA);
+
+    const T reg_y = y[col * incy] * alpha;
+
+    // Load two consecutive elements of vector x and matrix A
+    const T x_1 = (tx < m) ? x[tx * incx] : 0;
+    const T x_2 = ((tx + 1) < m) ? x[(tx + 1) * incx] : 0;
+
+    T res_A_1 = (tx < m) ? A[tx + col * lda] : 0;
+    T res_A_2 = ((tx + 1) < m) ? A[(tx + 1) + col * lda] : 0;
+
+    //scalar-vector-vector product and add the result to the last element of  'A'.
+    if((m & 1) != 0 && (tx + 1) == m)
+    {
+        res_A_1 += reg_y * x_1;
+
+        A[tx + col * lda] = res_A_1;
+    }
+
+    //scalar-vector-vector product and add the result to the matrix 'A'.
+    if((tx + 1) < m)
+    {
+        res_A_1 += reg_y * x_1;
+        res_A_2 += reg_y * x_2;
+
+        A[tx + col * lda]       = res_A_1;
+        A[(tx + 1) + col * lda] = res_A_2;
+    }
+#endif
+}
+
 //optimized kernel for SGER
 template <rocblas_int DIM_X, typename T, typename V, typename U, typename W>
 ROCBLAS_KERNEL(DIM_X)
@@ -344,10 +409,15 @@ rocblas_status rocblas_internal_ger_launcher(rocblas_handle handle,
     int batches = handle->getBatchGridDim((int)batch_count);
 
     bool is_gfx90a = handle->getArch() == 910 ? true : false;
+    bool is_gfx942 = handle->getArch() == 942 ? true : false;
 
 #define ger_KARGS(alpha_)                                                                  \
     ger_grid, ger_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, x, shiftx, incx, \
         stridex, y, shifty, incy, stridey, A, offsetA, lda, strideA, batch_count
+
+#define ger_gfx942_KARGS(alpha_)                                                           \
+    ger_grid, ger_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, x, shiftx, incx, \
+        stridex, y, shifty, incy, stridey, A, offsetA, lda, strideA
 
     //optimized double buffered loads kernel for float, double and float_complex precisions in gfx90a
     if(is_gfx90a && (m > 2000) && (m == n)
@@ -393,17 +463,38 @@ rocblas_status rocblas_internal_ger_launcher(rocblas_handle handle,
     }
     else if(is_float && m > 1024)
     {
-        static constexpr int DIM_X = 1024;
-        dim3                 ger_grid(n, 1, batches);
-        dim3                 ger_threads(DIM_X);
-
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(is_gfx942)
         {
-            ROCBLAS_LAUNCH_KERNEL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(alpha));
+            static constexpr int DIM_X   = 256;
+            rocblas_int          blocksX = (m - 1) / (DIM_X * 2) + 1;
+            dim3                 ger_grid(blocksX, n, batch_count);
+            dim3                 ger_threads(DIM_X);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                ROCBLAS_LAUNCH_KERNEL((rocblas_sger_gfx942_kernel<DIM_X, T>),
+                                      ger_gfx942_KARGS(alpha));
+            }
+            else
+            {
+                ROCBLAS_LAUNCH_KERNEL((rocblas_sger_gfx942_kernel<DIM_X, T>),
+                                      ger_gfx942_KARGS(*alpha));
+            }
         }
         else
         {
-            ROCBLAS_LAUNCH_KERNEL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
+            static constexpr int DIM_X = 1024;
+            dim3                 ger_grid(n, 1, batches);
+            dim3                 ger_threads(DIM_X);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                ROCBLAS_LAUNCH_KERNEL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(alpha));
+            }
+            else
+            {
+                ROCBLAS_LAUNCH_KERNEL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
+            }
         }
     }
     else

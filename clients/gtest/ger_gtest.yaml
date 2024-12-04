@@ -37,8 +37,8 @@ Definitions:
 
   - &large_matrix_size_range
     - { M: 1025, N: 4011, lda: 1025, stride_a:   4111275 }
-    - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
-    - { M: 4300000, N: 2, lda: 4300000, stride_a: 9000000 }
+    - { M: 7001, N: 2000, lda: 7000, stride_a:   14000000 }
+    - { M: 4300001, N: 2, lda: 4300000, stride_a: 9000000 }
     - { M: 2, N: 4300000, lda: 2, stride_a: 9000000 }
 
   - &double_buffered_size_range
