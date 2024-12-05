@@ -208,11 +208,12 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
     // Restore the previous handler
     t_handler = old_handler;
 
+    const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info();
+
     if(hipPeekAtLastError() != hipSuccess)
     {
         rocblas_cerr << "hipGetLastError at end of test: "
-                     << ::testing::UnitTest::GetInstance()->current_test_info()->name()
-                     << std::endl;
+                     << (test_info ? test_info->name() : "Unknown") << std::endl;
         (void)rocblas_internal_convert_hip_to_rocblas_status_and_log(
             hipGetLastError()); // clear last error
     }

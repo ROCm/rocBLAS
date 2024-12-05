@@ -386,7 +386,13 @@ rocblas_status runContractionProblemHipBlasLT(
             return init;
         }
 
-        auto  gsu_malloc  = prob.handle->gsu_malloc_by_size(workspace_size);
+        auto gsu_malloc = prob.handle->gsu_malloc_by_size(workspace_size);
+
+        if(!gsu_malloc)
+        {
+            return rocblas_status_memory_error;
+        }
+
         void* d_workspace = prob.handle->gsu_workspace;
 
         if(gemm.initialize(heuristicResult.algo, d_workspace, false) != HIPBLAS_STATUS_SUCCESS)
@@ -417,7 +423,12 @@ rocblas_status runContractionProblemHipBlasLT(
             return init;
         }
 
-        auto  gsu_malloc  = prob.handle->gsu_malloc_by_size(workspace_size);
+        auto gsu_malloc = prob.handle->gsu_malloc_by_size(workspace_size);
+
+        if(!gsu_malloc)
+        {
+            return rocblas_status_memory_error;
+        }
         void* d_workspace = prob.handle->gsu_workspace;
 
         if(gemm.initialize(heuristicResult.algo, d_workspace, false) != HIPBLAS_STATUS_SUCCESS)

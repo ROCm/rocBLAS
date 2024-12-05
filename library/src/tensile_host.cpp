@@ -1216,6 +1216,11 @@ rocblas_status
                 size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob, *hardware);
                 auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
 
+                if(!gsu_malloc)
+                {
+                    return rocblas_status_memory_error;
+                }
+
                 if(solution->canSolve(tensile_prob, *hardware))
                 {
                     if(!(prob.flags & rocblas_gemm_flags_check_solution_index))

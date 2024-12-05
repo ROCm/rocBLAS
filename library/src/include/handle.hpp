@@ -751,7 +751,7 @@ private:
 
     // Allocate workspace for GSU based on the needs.
     // clang-format off
-    class [[nodiscard]] _gsu_malloc_by_size final : _device_malloc
+    class [[nodiscard]] _gsu_malloc_by_size final : public _device_malloc
     {
     public:
         explicit _gsu_malloc_by_size(rocblas_handle handle, size_t requested_Workspace_Size)
