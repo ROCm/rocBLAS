@@ -256,7 +256,7 @@ namespace
                                                                          0,
                                                                          0);
             status = (status != rocblas_status_success) ? status : perf_status;
-            if(status != rocblas_status_success)
+            if(status != rocblas_status_success && status != rocblas_status_perf_degraded)
                 return status;
         }
 
