@@ -70,7 +70,7 @@ Tests:
     pointer_mode_host: false
     function:
       - asum: *single_precision
-    gpu_arch: '90a'
+    gpu_arch: ['90a','942']
     os_flags: LINUX
 
 

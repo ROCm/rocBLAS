@@ -62,7 +62,7 @@ Tests:
   diag: [ N ]
   matrix_size: *size_t_index
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942']
 
 # Regular tpsv
 - name: tpsv_bad_arg

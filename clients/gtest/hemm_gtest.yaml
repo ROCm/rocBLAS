@@ -38,6 +38,9 @@ Definitions:
     - { alpha:  1.5, alphai:  1.5, beta:  2.0, betai: 0.0 }
     - { alpha: -2.0, alphai:  1.0, beta: -1.0, betai: 0.5 }
 
+  - &alpha_beta
+    - { alpha:  0.5, alphai:  0.5, beta:  -0.5, betai: 0.5 }
+
 Tests:
 - name: hemm_bad
   category: quick
@@ -99,7 +102,7 @@ Tests:
   pointer_mode_host: false
   alpha: [ 2 ]
   beta: [ 2 ]
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942']
   os_flags: LINUX
 
 - name: hemm_grid_y_16
@@ -172,7 +175,7 @@ Tests:
   alpha: [ 2 ]
   beta: [ 2 ]
   batch_count: [ 1 ]
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942']
   os_flags: LINUX
 
 # strided batched
@@ -187,6 +190,7 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
+  stride_scale: [1]
 
 - name: hemm_strided_batched_NaN
   category: pre_checkin
@@ -198,6 +202,7 @@ Tests:
   alpha: [ 0.5, .NaN ]  # NaN is converted to 0.0 in test code
   beta: [ 1.0, .NaN ]
   batch_count: [ 3 ]
+  stride_scale: [1]
 
 - name: hemm_strided_batched_medium
   category: pre_checkin
@@ -208,6 +213,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
+  stride_scale: [1]
   api: [ C, FORTRAN ]
 
 - name: hemm_strided_batched_large
@@ -220,6 +226,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
+  stride_scale: [1]
 
 - name: hemm_graph_test
   category: pre_checkin
@@ -232,7 +239,9 @@ Tests:
   side: [ L, R ]
   matrix_size:
     -  { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
+  alpha_beta: *alpha_beta
   batch_count: [ 2 ]
+  stride_scale: [1]
   graph_test: true
 
 - name: hemm_repeatability_check
@@ -246,8 +255,9 @@ Tests:
   side: [ L, R ]
   matrix_size:
     -  { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
+  alpha_beta: *alpha_beta
   batch_count: [ 2 ]
-  stride_scale : 1
+  stride_scale: [1]
   pointer_mode_host: false
   initialization : hpl
   atomics_mode: 0
@@ -264,6 +274,7 @@ Tests:
   side: [ L, R ]
   matrix_size:
     - {  M: 2, N: 2, lda: 4, ldb: 2, ldc : 4 , batch_count: *c_grid_yz_require_passes }
+  stride_scale: [1]
   alpha: [ 2 ]
   beta: [ 2 ]
 
@@ -272,7 +283,8 @@ Tests:
   api: [C_64]
   function:
     - hemm
-    - hemm_strided_batched
+    # same code path
+    #  - hemm_strided_batched
   precision: *single_precision_complex
   uplo: [ U, L ]
   side: [ L ]
@@ -281,35 +293,39 @@ Tests:
     - { M: 4096, N: 2, lda: 4096, ldb: 2147483649, ldc: 4096 }
   alpha: [ 2 ]
   beta: [ 2 ]
-  os_flags: LINUX
-  #gpu_arch: '9??'
-
-- name: hemm_64_R
-  category: stress
-  api: [C_64]
-  function:
-    - hemm
-    - hemm_strided_batched
-  precision: *single_precision_complex
-  arguments:
-     - { M: 2147483649, N: 2, lda: 2147483649, ldb: 2147483649, ldc: 2147483649 } # N can't be 32-bit for side == R
-  uplo: [ U, L ]
-  side: [ R ]
-  alpha: [ 2 ]
-  beta: [ 2 ]
   stride_scale: [1]
   os_flags: LINUX
-  gpu_arch: '9??'
+  gpu_arch: ['90a','942']
+
+# TODO: 32GB/matrix x 3 exceeds current default test limits so remove for now
+# - name: hemm_64_R
+#   category: stress
+#   api: [C_64]
+#   function:
+#     - hemm
+#     - hemm_strided_batched
+#   precision: *single_precision_complex
+#   arguments:
+#      - { M: 2147483649, N: 2, lda: 2147483649, ldb: 2147483649, ldc: 2147483649 } # N can't be 32-bit for side == R
+#   uplo: [ U, L ]
+#   side: [ R ]
+#   alpha: [ 2 ]
+#   beta: [ 2 ]
+#   stride_scale: [1]
+#   os_flags: LINUX
+#   gpu_arch: ['90a','942']
 
 - name: hemm_batched_64
   category: stress
-  function: hemm_batched
+  function:
+    - hemm_batched
+    - hemm_strided_batched
   precision: *single_precision_complex
   uplo: [ U, L ]
   side: [ L, R ]
   matrix_size:
     - {  M: 2, N: 2, lda: 4, ldb: 2, ldc : 4 , batch_count: *c_grid_yz_require_passes }
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta
   api : [ C_64 ]
   os_flags: LINUX
-  gpu_arch: '9??'
+  gpu_arch: ['90a','942']

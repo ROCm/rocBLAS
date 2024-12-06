@@ -3864,7 +3864,7 @@ Tests:
   transB: [ N, T ]
   alpha: 2
   beta: 4
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942']
   os_flags: LINUX
 
 - name: gemm_64_API

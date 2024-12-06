@@ -38,6 +38,9 @@ Definitions:
     - { alpha:  1.5, alphai:  1.5, beta:  2.0, betai: 0.0 }
     - { alpha: -2.0, alphai:  1.0, beta: -1.0, betai: 0.5 }
 
+  - &alpha_beta
+    - { alpha:  0.5, alphai:  0.5, beta:  -0.5, betai: 0.5 }
+
 Tests:
 - name: symm_bad
   category: quick
@@ -139,7 +142,7 @@ Tests:
   pointer_mode_host: false
   alpha: [ 2 ]
   beta: [ 2 ]
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942']
   os_flags: LINUX
 
 - name: symm_64_L
@@ -153,18 +156,19 @@ Tests:
     - { M: 4096, N: 2, lda: 4096, ldb: 2147483649 , ldc: 4096} # test ldb > 32-bit. M can't be > 32-bit for side == L
   uplo: [ U, L ]
   side: [ L ]
-  alpha: [ 2 ]
+  alpha: [ 0.5 ]
   beta: [ 2 ]
   stride_scale: [1]
   os_flags: LINUX
-  gpu_arch: '9??'
+  gpu_arch: ['90a','942']
 
 - name: symm_64_R
   category: stress
   api: [C_64]
   function:
     - symm : *single_precision
-    - symm_strided_batched: *single_precision
+    # same code path
+    # - symm_strided_batched: *single_precision
   arguments:
      - { M: 2147483649, N: 2, lda: 2147483649, ldb: 2147483649 , ldc: 2147483649 } # N can't be 32-bit for side == R
   uplo: [ U, L ]
@@ -173,20 +177,22 @@ Tests:
   beta: [ 2 ]
   stride_scale: [1]
   os_flags: LINUX
-  gpu_arch: '9??'
+  gpu_arch: ['90a','942']
 
 - name: symm_batched_64
   category: stress
-  function: symm_batched
+  function:
+    - symm_batched
+    - symm_strided_batched
   precision: *single_precision
   uplo: [ U, L ]
   side: [ L, R]
   matrix_size:
-    - { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 , batch_count: *c_grid_yz_require_passes}
-  alpha_beta: *alpha_beta_range
+    - { M:    30, N:  60,  lda:  64,  ldb:  32,  ldc: 32 , batch_count: *c_grid_yz_require_passes}
+  alpha_beta: *alpha_beta
   api : [ C_64 ]
   os_flags: LINUX
-  gpu_arch: '9??'
+  gpu_arch: ['90a','942']
 
 
 # batched
@@ -246,7 +252,7 @@ Tests:
   alpha: [ 2 ]
   beta: [ 2 ]
   batch_count: [ 1 ]
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942']
   os_flags: LINUX
 
 # strided batched
@@ -307,7 +313,7 @@ Tests:
   matrix_size:
     - { M:   199, N:  290,  lda:  290,  ldb: 290,  ldc: 200 }
   batch_count: [ 2 ]
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta
   graph_test: true
 
 
@@ -328,6 +334,6 @@ Tests:
   initialization: hpl
   atomics_mode: 0
   iters: 5
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta
   repeatability_check: true
 ...

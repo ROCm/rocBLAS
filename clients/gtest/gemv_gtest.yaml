@@ -188,8 +188,8 @@ Definitions:
     - { M: 10496, N: 10496, lda: 10496, incx: 1, incy: 204620 }
     - { M: 10496, N: 10496, lda: 10496, incx: 1, incy: 204620 }
 
-  # Transpose: gfx10/11 warp-reduction
-  - &size_t_gfx10_wr
+  # Transpose: gfx10/11/12 warp-reduction
+  - &size_t_gfx10_11_12_wr
     - { M: 3, N: 3, lda: *c_pos_x2_overflow_int32, incx: 1, incy: 1 }
     - { M: 3, N: 3, lda: 3, incx: *c_pos_x2_overflow_int32, incy: 1 }
     - { M: 3, N: 3, lda: 3, incx: *c_neg_x2_overflow_int32, incy: 1 }
@@ -387,17 +387,16 @@ Tests:
   os_flags: LINUX
   gpu_arch: ['908']
 
-# No CI running this currently. Initially tested locally.
-- name: gemv_size_t_transpose_10
+- name: gemv_size_t_transpose_10_11_12
   category: stress
   function: gemv
   precision: *single_precision
   transA: [ T, C ]
-  matrix_size: *size_t_gfx10_wr
+  matrix_size: *size_t_gfx10_11_12_wr
   alpha_beta: *alpha_beta_range_size_t
   pointer_mode_host: false
   os_flags: LINUX
-  gpu_arch: ['11**', '10**']
+  gpu_arch: ['10??', '11??', '12??']
 
 # gemv_batched
 - name: gemv_batched_bad_arg

@@ -667,8 +667,8 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         else if(is_arch_10_or_11_or_12
                 && (is_double || is_complex_float
                     || (is_float
-                        && (m < sgemvt_gfx_arch_10_11_threshold
-                            || n < sgemvt_gfx_arch_10_11_threshold))))
+                        && (m < sgemvt_gfx_arch_10_11_12_threshold
+                            || n < sgemvt_gfx_arch_10_11_12_threshold))))
         {
             //Number of threads per block
             static constexpr int NB = 256;
