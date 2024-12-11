@@ -92,7 +92,6 @@ void testing_scal_strided_batched(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stridex, batch_count));
     DEVICE_MEMCHECK(device_vector<U>, d_alpha, (1));
 
     // Initialize the host vector.
@@ -100,14 +99,17 @@ void testing_scal_strided_batched(const Arguments& arg)
 
     hx_gold.copy_from(hx);
 
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(dx.transfer_from(hx));
-
     double gpu_time_used, cpu_time_used;
     double rocblas_error_host   = 0.0;
     double rocblas_error_device = 0.0;
     if(arg.unit_check || arg.norm_check)
     {
+        // Allocate device memory
+        DEVICE_MEMCHECK(device_strided_batch_vector<T>, dx, (N, incx, stridex, batch_count));
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+
         if(arg.pointer_mode_host)
         {
             // GPU BLAS, rocblas_pointer_mode_host
@@ -216,29 +218,39 @@ void testing_scal_strided_batched(const Arguments& arg)
 
     if(arg.timing)
     {
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        size_t x_cached_size     = N * batch_count * sizeof(T);
+        size_t flush_batch_count = calculate_flush_batch_count(
+            arg.flush_batch_count, arg.flush_memory_size, x_cached_size);
+
+        DEVICE_MEMCHECK(device_multiple_strided_batch_vector<T>,
+                        dx_mult,
+                        (N, incx, stridex, batch_count, flush_batch_count));
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dx_mult.broadcast_one_strided_batch_vector_from(hx));
+
         int number_cold_calls = arg.cold_iters;
         int total_calls       = number_cold_calls + arg.iters;
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
 
-        for(int iter = 0; iter < total_calls; iter++)
-        {
-            if(iter == number_cold_calls)
-                gpu_time_used = get_time_us_sync(stream);
-
+        auto lambda_to_benchmark = [&](int flush_index) {
             DAPI_DISPATCH(rocblas_scal_strided_batched_fn,
-                          (handle, N, &h_alpha, dx, incx, stridex, batch_count));
-        }
+                          (handle, N, &h_alpha, dx_mult[flush_index], incx, stridex, batch_count));
+        };
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        Benchmark<decltype(lambda_to_benchmark)> benchmark_scal_strided_batched(
+            lambda_to_benchmark, stream, arg, flush_batch_count);
+
+        benchmark_scal_strided_batched.run_timer();
 
         ArgumentModel<e_N, e_alpha, e_incx, e_stride_x, e_batch_count>{}.log_args<T>(
             rocblas_cout,
             arg,
-            gpu_time_used,
+            benchmark_scal_strided_batched.get_hot_time(),
             scal_gflop_count<T, U>(N),
             scal_gbyte_count<T>(N),
             cpu_time_used,
