@@ -3947,7 +3947,7 @@ Tests:
   os_flags: LINUX
 
 - name: gemm_repeatability_check
-  category: pre_checkin
+  category: stress
   function:
     - gemm: *half_single_double_precisions
   matrix_size:
