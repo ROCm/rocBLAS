@@ -89,7 +89,7 @@ def runTestCommand (platform, project, settings)
     String gtestArgs = ""
     String xnackVar = ""
 
-    String gtestCommonEnv = "ROCBLAS_CLIENT_RAM_GB_LIMIT=95"
+    String gtestCommonEnv = "ROCBLAS_CLIENT_RAM_GB_LIMIT=90" // was 95 and still killed
     String checkNumericsEnv = "ROCBLAS_CHECK_NUMERICS=6" // report status 4 & log 2 on fail
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
