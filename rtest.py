@@ -179,6 +179,7 @@ def gfilter_subset(filter, groups) -> str:
     return new_filter
 
 def label_modifiers(cmd, labels) -> str:
+    original_cmd = cmd
     processed = ["TestTensileOnly", "TestLevel3Only", "TestLevel2Only", "TestLevel1Only"]
     overlap = [v for v in processed if v in labels]
     if len(overlap):
@@ -189,14 +190,14 @@ def label_modifiers(cmd, labels) -> str:
 
     filter = ""
     if "TestTensileOnly" in overlap:
-        filter += gfilter_subset( cmd, ["blas3_tensile", "blas2_tensile"] )
+        filter += gfilter_subset( original_cmd, ["blas3_tensile", "blas2_tensile"] )
     if "TestLevel3Only" in overlap:
-        filter += gfilter_subset( cmd, ["blas3"] )
+        filter += gfilter_subset( original_cmd, ["blas3"] )
     if "TestLevel2Only" in overlap:
-        filter += gfilter_subset( cmd, ["blas2"] )
+        filter += gfilter_subset( original_cmd, ["blas2"] )
     if "TestLevel1Only" in overlap:
-        filter += gfilter_subset( cmd, ["blas1"] )
-    return cmd + f"'{filter}'"
+        filter += gfilter_subset( original_cmd, ["blas1"] )
+    return cmd + f'"{filter}"'
 
 def run_cmd(cmd, test = False, time_limit = 0):
     global args
