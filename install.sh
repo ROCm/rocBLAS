@@ -126,7 +126,7 @@ install_packages( )
                                       "gcc-c++" )
   local library_dependencies_rhel_8=( "epel-release"
                                       "make" "rpm-build"
-                                      "python36" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
+                                      "python36" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_rhel_9=( "epel-release" "openssl-devel"
                                       "make" "rpm-build"
