@@ -52,6 +52,7 @@ namespace fs = std::experimental::filesystem;
 // Not WIN32
 #else
 #include <fcntl.h>
+#include <unistd.h>
 #endif
 
 #ifdef _OPENMP
@@ -159,6 +160,16 @@ void print_rocblas_client_commit_hashes()
             << "rocBLAS warning: client rocblas commit differs from library rocblas commit: "
             << hash << std::endl;
     }
+}
+
+bool rocblas_file_exists(const char* path)
+{
+#ifdef WIN32
+    fs::path file_path(path);
+    return fs::exists(file_path);
+#else
+    return (access(path, F_OK) != -1);
+#endif
 }
 
 /* ============================================================================================ */

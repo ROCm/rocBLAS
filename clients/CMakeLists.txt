@@ -211,18 +211,6 @@ add_custom_command( OUTPUT "${ROCBLAS_TEMPLATE}"
                     DEPENDS include/rocblas_template.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-set( ROCBLAS_SMOKE "${PROJECT_BINARY_DIR}/staging/rocblas_smoke.yaml")
-add_custom_command( OUTPUT "${ROCBLAS_SMOKE}"
-                    COMMAND ${CMAKE_COMMAND} -E copy include/rocblas_smoke.yaml "${ROCBLAS_SMOKE}"
-                    DEPENDS include/rocblas_smoke.yaml
-                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
-
-set( ROCBLAS_EXTRAS "${PROJECT_BINARY_DIR}/staging/rocblas_extras.yaml")
-add_custom_command( OUTPUT "${ROCBLAS_EXTRAS}"
-                    COMMAND ${CMAKE_COMMAND} -E copy include/rocblas_extras.yaml "${ROCBLAS_EXTRAS}"
-                    DEPENDS include/rocblas_extras.yaml
-                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
-
 set( ROCBLAS_GENERAL_YAML "${PROJECT_BINARY_DIR}/staging/rocblas_general.yaml")
 add_custom_command( OUTPUT "${ROCBLAS_GENERAL_YAML}"
                     COMMAND ${CMAKE_COMMAND} -E copy include/rocblas_general.yaml "${ROCBLAS_GENERAL_YAML}"
@@ -241,13 +229,14 @@ add_custom_command( OUTPUT "${ROCBLAS_CLIENTS_README}"
                     DEPENDS rocblas_clients_readme.txt
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_SMOKE}" "${ROCBLAS_EXTRAS}" "${ROCBLAS_GENERAL_YAML}" "${ROCBLAS_GENTEST}" "${ROCBLAS_CLIENTS_README}" )
+add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_GENERAL_YAML}" "${ROCBLAS_GENTEST}" "${ROCBLAS_CLIENTS_README}" )
 
 rocm_install(
-  FILES ${ROCBLAS_COMMON} ${ROCBLAS_TEMPLATE} ${ROCBLAS_SMOKE} ${ROCBLAS_EXTRAS} ${ROCBLAS_GENERAL_YAML}
+  FILES ${ROCBLAS_COMMON} ${ROCBLAS_TEMPLATE} ${ROCBLAS_GENERAL_YAML}
   DESTINATION "${CMAKE_INSTALL_BINDIR}"
   COMPONENT clients-common
 )
+
 rocm_install(
   PROGRAMS ${ROCBLAS_GENTEST}
   DESTINATION "${CMAKE_INSTALL_BINDIR}"

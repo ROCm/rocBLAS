@@ -178,6 +178,10 @@ double get_time_us_sync(hipStream_t stream);
 double get_time_us_no_sync();
 
 /* ============================================================================================ */
+// Return if full path file exists
+bool rocblas_file_exists(const char* path);
+
+/* ============================================================================================ */
 // Return path of this executable
 std::string rocblas_exepath();
 

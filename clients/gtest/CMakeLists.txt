@@ -169,7 +169,49 @@ add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-test-data DEPENDS "${ROCBLAS_TEST_DATA}" )
 
-add_dependencies( rocblas-test rocblas-test-data rocblas-common )
+set( ROCBLAS_SMOKE "${PROJECT_BINARY_DIR}/staging/rocblas_smoke.yaml")
+add_custom_command( OUTPUT "${ROCBLAS_SMOKE}"
+                    COMMAND ${CMAKE_COMMAND} -E copy ../include/rocblas_smoke.yaml "${ROCBLAS_SMOKE}"
+                    DEPENDS ../include/rocblas_smoke.yaml
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+set( ROCBLAS_EXTRAS "${PROJECT_BINARY_DIR}/staging/rocblas_extras.yaml")
+add_custom_command( OUTPUT "${ROCBLAS_EXTRAS}"
+                    COMMAND ${CMAKE_COMMAND} -E copy ../include/rocblas_extras.yaml "${ROCBLAS_EXTRAS}"
+                    DEPENDS ../include/rocblas_extras.yaml
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+set( ROCBLAS_CLIENTS_RTEST "${PROJECT_BINARY_DIR}/staging/rocblas_rtest.py")
+add_custom_command( OUTPUT "${ROCBLAS_CLIENTS_RTEST}"
+                    COMMAND ${CMAKE_COMMAND} -E copy ../../rtest.py "${ROCBLAS_CLIENTS_RTEST}"
+                    DEPENDS ../../rtest.py
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+set( ROCBLAS_CLIENTS_RTEST_XML "${PROJECT_BINARY_DIR}/staging/rocblas_rtest.xml")
+add_custom_command( OUTPUT "${ROCBLAS_CLIENTS_RTEST_XML}"
+                    COMMAND ${CMAKE_COMMAND} -E copy ../../rtest.xml "${ROCBLAS_CLIENTS_RTEST_XML}"
+                    DEPENDS ../../rtest.xml
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+add_custom_target( rocblas-test-files DEPENDS "${ROCBLAS_SMOKE}" "${ROCBLAS_EXTRAS}" "${ROCBLAS_CLIENTS_RTEST}" "${ROCBLAS_CLIENTS_RTEST_XML}" )
+
+add_dependencies( rocblas-test rocblas-test-data rocblas-test-files rocblas-common )
 
 rocm_install(TARGETS rocblas-test COMPONENT tests)
-rocm_install(FILES ${ROCBLAS_TEST_DATA} DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT tests)
+
+rocm_install(
+  PROGRAMS ${ROCBLAS_CLIENTS_RTEST}
+  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  COMPONENT tests
+)
+
+rocm_install(
+  FILES ${ROCBLAS_SMOKE} ${ROCBLAS_EXTRAS} ${ROCBLAS_CLIENTS_RTEST_XML}
+  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  COMPONENT tests
+)
+
+rocm_install(FILES ${ROCBLAS_TEST_DATA}
+  DESTINATION "${CMAKE_INSTALL_BINDIR}"
+  COMPONENT tests
+)

@@ -40,7 +40,7 @@ timeout = False
 test_proc = None
 stop = 0
 
-test_script = [ 'cd %IDIR%', '%XML%' ]
+test_script = [ '%XML%' ] # [ 'cd %IDIR%', '%XML%' ]
 
 def parse_args():
     """Parse command-line arguments"""
@@ -199,7 +199,7 @@ def label_modifiers(cmd, labels) -> str:
         filter += gfilter_subset( original_cmd, ["blas1"] )
     return cmd + f'"{filter}"'
 
-def run_cmd(cmd, test = False, time_limit = 0):
+def run_cmd(cmd, test = False, time_limit = 0, path = "" ):
     global args
     global test_proc, timer_thread
     global stop
@@ -215,7 +215,8 @@ def run_cmd(cmd, test = False, time_limit = 0):
             status = proc.returncode
         else:
             sub_env = os.environ.copy()
-            sub_env["PATH"] = os.getcwd() + os.pathsep + sub_env["PATH"]
+            if len(path):
+                sub_env["PATH"] = path + os.pathsep + sub_env["PATH"]
             error = False
             timeout = False
             test_proc = subprocess.Popen(cmdline, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, env=sub_env)
@@ -251,13 +252,27 @@ def run_cmd(cmd, test = False, time_limit = 0):
         status = 3
     return status
 
+def test_xml():
+    # Get the full path of the currently executing script look for installed name first
+    exe_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    installed_file = os.path.join( exe_path, 'rocblas_rtest.xml')
+    if (os.path.exists(installed_file)):
+        xmlPath = installed_file
+    else:
+        cwd = os.curdir
+        xmlPath = os.path.join( cwd, 'rtest.xml')
+    return xmlPath
+
 def batch(script, xml):
     global OS_info
     global args
     #
     cwd = pathlib.os.curdir
     rtest_cwd_path = os.path.abspath( os.path.join( cwd, 'rtest.xml') )
-    if os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
+    rtest_path = test_xml()
+    if 'rocblas_rtest.xml' in rtest_path:
+        test_dir = os.path.dirname( rtest_path )
+    elif os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
         # if in a staging directory then test locally
         test_dir = cwd
     else:
@@ -282,6 +297,7 @@ def batch(script, xml):
                 name = var.getAttribute('name')
                 val = var.getAttribute('value')
                 var_subs[name] = val
+            var_subs['EXE_DIR'] = test_dir + os.path.sep
             for test in xml.getElementsByTagName('test'):
                 sets = test.getAttribute('sets')
                 runset = sets.split(',')
@@ -305,7 +321,7 @@ def batch(script, xml):
                         var_cmd = raw_cmd.format_map(var_subs)
                         if args.ci_labels:
                             var_cmd = label_modifiers(var_cmd, args.ci_labels.split(';'))
-                        error = run_cmd(var_cmd, True, timeout)
+                        error = run_cmd(var_cmd, True, timeout, test_dir)
                         if (error == 2):
                             print( f'***\n*** Timed out when running: {name}\n***')
         else:
@@ -324,6 +340,7 @@ def batch(script, xml):
         os.chdir( cwd )
     return 0
 
+
 def run_tests():
     global test_script
     global xmlDoc
@@ -331,7 +348,7 @@ def run_tests():
     # install
     cwd = os.curdir
 
-    xmlPath = os.path.join( cwd, 'rtest.xml')
+    xmlPath = test_xml()
     xmlDoc = minidom.parse( xmlPath )
 
     scripts = []
