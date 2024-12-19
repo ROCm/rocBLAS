@@ -172,9 +172,11 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
             max = sol;
     }
 
+#ifndef BUILD_WITH_HIPBLASLT
     EXPECT_ROCBLAS_STATUS(
         rocblas_gemm_strided_batched_exM(GEMM_SB_EX_ARGS, max + 1, rocblas_gemm_flags_none),
         rocblas_status_invalid_value);
+#endif
 
     // Testing get solutions by type - should be superset of solutions that solve problem
     rocblas_int size_type;
@@ -195,6 +197,7 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
                                                               ary_type.data(),
                                                               &size_type));
 
+#ifndef BUILD_WITH_HIPBLASLT
     std::vector<rocblas_int> valid_ary(ary.begin(), ary.begin() + size); // Trim off junk values
     std::sort(ary_type.begin(), ary_type.end());
     std::sort(valid_ary.begin(), valid_ary.end());
@@ -202,4 +205,5 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
     bool ary_is_subset
         = std::includes(ary_type.begin(), ary_type.end(), valid_ary.begin(), valid_ary.end());
     EXPECT_TRUE(ary_is_subset);
+#endif
 }

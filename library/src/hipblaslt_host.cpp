@@ -283,6 +283,7 @@ namespace
     auto hipBlasLTInit(hipblaslt_ext::GemmInstance&      gemm,
                        rocblas_gemm_algo                 algo,
                        int32_t                           solution_index,
+                       bool                              solution_query,
                        const rocblas_handle              probHandle,
                        size_t&                           workspace_size,
                        hipblasLtMatmulHeuristicResult_t& heuristicResult,
@@ -294,73 +295,114 @@ namespace
         auto                          max_workspace_size = probHandle->get_available_workspace();
         gemmPref.setMaxWorkspaceBytes(max_workspace_size - extra_malloc);
 
-        const int                                     request_solutions = 1;
         std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults;
+
+        bool query_failure = false;
 
         if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
         {
-            std::vector<int> solution_index_vec(1, solution_index - 1);
+            std::vector<int> solution_index_vec(1,
+                                                solution_index - 1); // -1 maps to hipblasLt indices
             if(hipblaslt_ext::getAlgosFromIndex(handle, solution_index_vec, heuristicResults)
                != HIPBLAS_STATUS_SUCCESS)
             {
-                rocblas_internal_ostream msg;
-                print_once(msg << "hipBLASLt error: Cannot find specified solution index!");
-                return rocblas_status_invalid_value;
+                if(!solution_query)
+                {
+                    rocblas_internal_ostream msg;
+                    print_once(msg << "hipBLASLt error: Cannot find specified solution index!");
+                    return rocblas_status_invalid_value;
+                }
+                else
+                    query_failure = true;
             }
 
             if(heuristicResults.empty())
             {
-                rocblas_internal_ostream msg;
-                print_once(msg << "rocBLAS error: No hipBLASLt solution found");
-                return rocblas_status_invalid_value;
+                if(!solution_query)
+                {
+                    rocblas_internal_ostream msg;
+                    print_once(msg << "rocBLAS error: No hipBLASLt solution found");
+                    return rocblas_status_invalid_value;
+                }
+                else
+                    query_failure = true;
             }
         }
         else
         {
+            const int request_solutions = 1;
             if(gemm.algoGetHeuristic(request_solutions, gemmPref, heuristicResults)
                != HIPBLAS_STATUS_SUCCESS)
             {
-                rocblas_internal_ostream msg;
-                print_once(msg << "hipBLASLt error: Heuristic Fetch Failed!");
-                return rocblas_status_internal_error;
+                if(!solution_query)
+                {
+                    rocblas_internal_ostream msg;
+                    print_once(msg << "hipBLASLt error: Heuristic Fetch Failed!");
+                    return rocblas_status_internal_error;
+                }
+                else
+                    query_failure = true;
             }
 
             if(heuristicResults.empty())
             {
-                rocblas_internal_ostream msg;
-                print_once(msg << "rocBLAS error: No hipBLASLt solution found");
-                return rocblas_status_not_implemented;
+                if(!solution_query)
+                {
+                    rocblas_internal_ostream msg;
+                    print_once(msg << "rocBLAS error: No hipBLASLt solution found");
+                    return rocblas_status_not_implemented;
+                }
+                else
+                    query_failure = true;
             }
         }
 
-        heuristicResult = heuristicResults[0];
-        workspace_size  = 0;
-
-        if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
+        if(!query_failure)
         {
-            if(gemm.isAlgoSupported(heuristicResult.algo, workspace_size) != HIPBLAS_STATUS_SUCCESS)
+            heuristicResult = heuristicResults[0];
+
+            if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
             {
-                rocblas_internal_ostream msg;
-                print_once(msg << "hipBLASLt error: algo not supported.");
-                return rocblas_status_invalid_value;
+                workspace_size = 0;
+                if(gemm.isAlgoSupported(heuristicResult.algo, workspace_size)
+                   != HIPBLAS_STATUS_SUCCESS)
+                {
+                    if(!solution_query)
+                    {
+                        rocblas_internal_ostream msg;
+                        print_once(msg << "hipBLASLt error: algo not supported.");
+                        return rocblas_status_invalid_value;
+                    }
+                    else
+                        query_failure = true;
+                }
+            }
+            else
+            {
+                workspace_size = heuristicResult.workspaceSize;
+            }
+
+            workspace_size += extra_malloc;
+
+            if(workspace_size > max_workspace_size)
+            {
+                if(!solution_query)
+                {
+                    rocblas_internal_ostream msg;
+                    print_once(msg << "hipblaslt: algo not supported: insufficient workspace.");
+                    return rocblas_status_invalid_value;
+                }
+                else
+                    query_failure = true;
             }
         }
-        else
-        {
-            workspace_size = heuristicResult.workspaceSize;
-        }
 
-        workspace_size += extra_malloc;
-
-        if(workspace_size > max_workspace_size)
-        {
-            rocblas_internal_ostream msg;
-            print_once(msg << "hipblaslt: algo not supported: insufficient workspace.");
+        if(query_failure)
             return rocblas_status_invalid_value;
-        }
-        return rocblas_status_success;
+        else
+            return rocblas_status_success;
     }
-}
+} // namespace
 
 /******************************************************************************
  * runContractionProblemHipBlasLT calls Hipblaslt to run a contraction problem described *
@@ -372,6 +414,9 @@ rocblas_status runContractionProblemHipBlasLT(
     rocblas_gemm_algo                                            algo,
     int32_t                                                      solution_index)
 {
+    bool solution_query = algo == rocblas_gemm_algo_solution_index
+                          && prob.flags & rocblas_gemm_flags_check_solution_index;
+
     if(prob.batch_A == 0)
     {
         auto gemm = ConstructHipBlasLTGemm(prob);
@@ -379,9 +424,18 @@ rocblas_status runContractionProblemHipBlasLT(
         size_t                           workspace_size = 0;
         hipblasLtMatmulHeuristicResult_t heuristicResult;
 
-        auto init = hipBlasLTInit(
-            gemm, algo, solution_index, prob.handle, workspace_size, heuristicResult);
-        if(rocblas_status_success != init)
+        auto init = hipBlasLTInit(gemm,
+                                  algo,
+                                  solution_index,
+                                  solution_query,
+                                  prob.handle,
+                                  workspace_size,
+                                  heuristicResult);
+        if(solution_query)
+        {
+            return init; // early return either success or invalid value
+        }
+        else if(rocblas_status_success != init)
         {
             return init;
         }
@@ -416,9 +470,19 @@ rocblas_status runContractionProblemHipBlasLT(
         size_t                           workspace_size = 0;
         hipblasLtMatmulHeuristicResult_t heuristicResult;
 
-        auto init = hipBlasLTInit(
-            gemm, algo, solution_index, prob.handle, workspace_size, heuristicResult, userArgsSize);
-        if(rocblas_status_success != init)
+        auto init = hipBlasLTInit(gemm,
+                                  algo,
+                                  solution_index,
+                                  solution_query,
+                                  prob.handle,
+                                  workspace_size,
+                                  heuristicResult,
+                                  userArgsSize);
+        if(solution_query)
+        {
+            return init; // early return either success or invalid value
+        }
+        else if(rocblas_status_success != init)
         {
             return init;
         }
