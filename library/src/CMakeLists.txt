@@ -684,9 +684,6 @@ rocblas_library_settings( rocblas )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
 
-if(BUILD_WITH_HIPBLASLT)
-  find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
-endif()
 
 if( BUILD_WITH_TENSILE )
 

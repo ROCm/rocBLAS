@@ -177,6 +177,14 @@ if( WIN32 OR NOT BUILD_WITH_TENSILE OR NOT BUILD_SHARED_LIBS )
   set( BUILD_WITH_HIPBLASLT OFF )
 endif()
 
+if( NOT SKIP_LIBRARY )
+  if(BUILD_WITH_HIPBLASLT)
+    # don't wait until after Tensile to find hipblaslt if enabled
+    find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
+    message(STATUS "FOUND hipBLASLt, INCLUDE_DIR: ${HIPBLASLT_INCLUDE_DIR}")
+  endif()
+endif()
+
 function(list_replace list old new)
   foreach( i ${${list}} )
     if( i STREQUAL ${old} )
