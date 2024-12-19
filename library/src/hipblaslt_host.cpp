@@ -497,6 +497,22 @@ rocblas_status
         return rocblas_status_invalid_pointer;
     }
 
+    bool           is_conjugate = ((hipblasOperation_t)prob.trans_a == HIPBLAS_OP_C
+                         || (hipblasOperation_t)prob.trans_b == HIPBLAS_OP_C);
+    constexpr bool is_complex   = rocblas_is_complex<TiA> || rocblas_is_complex<Tc>;
+
+    if(is_complex || is_conjugate)
+    {
+        // TODO: revisit with any hipblaslt support changes, or with query of hipblaslt for support
+
+        if(list_array == nullptr)
+        {
+            *list_size = 0;
+        }
+
+        return rocblas_status_success;
+    }
+
     hipblasLtHandle_t& handle = *(prob.handle->getHipblasLtHandle());
 
     if(option == MATCHES_TYPE)
