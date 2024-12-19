@@ -56,7 +56,7 @@ function( rocblas_client_library_settings lib_target_ )
   )
 
   target_compile_definitions( ${lib_target_} PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
-  target_compile_definitions( ${lib_target_} PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST )
+  target_compile_definitions( ${lib_target_} PRIVATE ${TENSILE_DEFINES} ${HIPBLASLT_DEFINES} GOOGLE_TEST )
   # GOOGLE_TEST left off for reuse of this function by by gemm tuner
   if ( NOT BUILD_FORTRAN_CLIENTS )
     target_compile_definitions( ${lib_target_} PRIVATE CLIENTS_NO_FORTRAN )
