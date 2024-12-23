@@ -49,6 +49,8 @@ def parse_args():
     """)
     parser.add_argument(      '--ci_labels', type=str, required=False, default="",
                     help='Semi-colon seperated list of labels that may modify test runs (optional, e.g. "gfx12;TestLevel1Only")')
+    parser.add_argument(      '--ci_gfx', type=str, required=False, default="",
+                    help='Semi-colon seperated list of gfx targets expected on test runs (optional, e.g. "gfx1030;gfx1201")')
     parser.add_argument('-e', '--emulation', type=str, required=False,
                         help='Emulation test set to run from rtest.xml (e.g. smoke, regression, extended')
     parser.add_argument('-t', '--test', required=False,
