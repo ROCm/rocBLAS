@@ -329,11 +329,13 @@ def fatal(msg, code=1):
 def deps_cmd():
     if os.name == "nt":
         exe = f"python3 rdeps.py"
-        all_args = ""
+        stripped_args = ""
     else:
-        exe = f"./install.sh --rmake_invoked -d"
+        exe = f"./install.sh --rmake_invoked -d "
         all_args = ' '.join(sys.argv[1:])
-    return exe, all_args
+        stripped_args = all_args.split('--ci_labels')[0] # last args in CI
+        stripped_args = stripped_args.split('-a ')[0]
+    return exe, stripped_args
 
 
 def config_cmd():
@@ -552,11 +554,14 @@ def arg_into_list(arg) -> list:
 
 def label_modifiers(labels):
     global args
-    processed = ["noTensile"]
+    processed = ["noTensile", "dependencies"]
     overlap = [v for v in processed if v in labels]
     if len(overlap):
         if "noTensile" in overlap:
             args.build_tensile = False
+        # TODO: Deferred
+        # if "dependencies" in overlap and os.name != "nt":
+        #     args.dependencies = True
 
 def gfx_modifiers(ci_gfx_list):
     global args

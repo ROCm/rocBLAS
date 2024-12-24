@@ -9,6 +9,7 @@ def runCompileCommand(platform, project, jobName, settings, boolean sameOrg=fals
     String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ':'
     String dynamicBuildCommand = project.paths.build_command
     String dynamicOptions = ""
+    String labelOptions = ""
 
     def getDependenciesCommand = ""
     if (project.installLibraryDependenciesFromCI)
@@ -31,6 +32,12 @@ def runCompileCommand(platform, project, jobName, settings, boolean sameOrg=fals
             dynamicBuildCommand = dynamicBuildCommand + ' --no_hipblaslt'
         }
 
+        if (env.CHANGE_TARGET == "develop" && pullRequest.labels.contains("dependencies"))
+        {
+            // test PR as static pipeline may be infrequent
+            dynamicBuildCommand = dynamicBuildCommand + ' -d'
+        }
+
         // in PR if we are targeting develop branch build ONLY what CI pipeline will test, unless bug label
         if (env.CHANGE_TARGET == "develop" && !pullRequest.labels.contains("bug"))
         {
@@ -38,9 +45,10 @@ def runCompileCommand(platform, project, jobName, settings, boolean sameOrg=fals
                 {
                      dynamicOptions = dynamicOptions + ' -a \$gfx_arch:xnack+'
                 }
-                else {
-            // requires at command execution time ${auxiliary.gfxTargetParser()} to set gfx_var variable
-            dynamicOptions = dynamicOptions + ' -a \$gfx_arch'
+                else
+                {
+                    // requires at command execution time ${auxiliary.gfxTargetParser()} to set gfx_var variable
+                    dynamicOptions = dynamicOptions + ' -a \$gfx_arch'
                 }
         }
 
@@ -48,6 +56,12 @@ def runCompileCommand(platform, project, jobName, settings, boolean sameOrg=fals
         {
             // test PR as static pipeline may be infrequent
             dynamicOptions = dynamicOptions + ' --static'
+        }
+
+        if (env.CHANGE_TARGET == "develop" && pullRequest.labels.size() > 0)
+        {
+            labelOptions = pullRequest.labels.join(';')
+            dynamicOptions = dynamicOptions + """ --ci_labels \"${labelOptions}\" """
         }
     }
     // these 908 nodes have too few CPU cores to build full fat library (temporary workaround)
