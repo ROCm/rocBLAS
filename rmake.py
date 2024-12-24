@@ -60,10 +60,10 @@ def parse_args():
 
     general_opts.add_argument(      '--ci_labels', type=str, required=False, default="",
                         help='Semi-colon seperated list of labels that may modify build (optional, e.g. "gfx12;noTensile")')
-    
+
     general_opts.add_argument(      '--ci_gfx', type=str, required=False, default="",
                         help='Semi-colon seperated list of gfx targets expected on test runs (optional, e.g. "gfx1030;gfx1201")')
-    
+
     general_opts.add_argument(      '--cleanup', required=False, default=False, action='store_true',
                         help='Remove intermediary build files after build to reduce disk usage. (Linux only handled by install.sh)')
 
@@ -557,7 +557,7 @@ def label_modifiers(labels):
     if len(overlap):
         if "noTensile" in overlap:
             args.build_tensile = False
-    
+
 def gfx_modifiers(ci_gfx_list):
     global args
     if len(ci_gfx_list):
@@ -577,8 +577,10 @@ def main():
     os_detect()
     args = parse_args()
 
-    label_modifiers( arg_into_list(args.ci_labels) )
-    gfx_modifiers( arg_into_list(args.ci_gfx) )
+    if args.ci_labels != "":
+        label_modifiers( arg_into_list(args.ci_labels) )
+    if args.ci_gfx != "":
+        gfx_modifiers( arg_into_list(args.ci_gfx) )
 
     if args.jobs == 0:
         args.jobs = jobs_heuristic()
