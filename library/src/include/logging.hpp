@@ -494,11 +494,9 @@ public:
     template <typename... Ts>
     void log_bench(rocblas_handle handle, Ts&&... xs)
     {
-        if(handle->atomics_mode == rocblas_atomics_not_allowed)
-            log_arguments(
-                *handle->log_bench_os, " ", std::forward<Ts>(xs)..., "--atomics_not_allowed");
-        else
-            log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
+        const char* atomics_str
+            = handle->atomics_mode == rocblas_atomics_not_allowed ? "--atomics_not_allowed" : "";
+        log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)..., atomics_str);
     }
 
     // if profile logging is turned on with
