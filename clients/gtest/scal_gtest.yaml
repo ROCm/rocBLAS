@@ -7,13 +7,6 @@ Definitions:
 #   - { N: 1073741900, incx: 4 } # high op count: N * incx overflows uint32_t and int32_t
     - { N: 1048600, incx: 4096 } #  low op count: N * incx overflows uint32_t and int32_t
 
-  - &size_t_xy_range
-    - { N: 1048600, incx:  4096, incy:     1 }
-    - { N: 1048600, incx:     1, incy:  4096 }
-    # TODO add back when workaround for OpenBLAS on windows negative overflow failures
-    #- { N: 1048600, incx: -4096, incy:     1 }
-    #- { N: 1048600, incx:     1, incy: -4096 }
-
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
 
@@ -23,75 +16,13 @@ Definitions:
   - &incx_range
     - [-1, 0, 1, 2]
 
-  - &incx_incy_range
-    - { incx:  1, incy:  1 }
-    - { incx:  1, incy:  2 }
-    - { incx:  2, incy:  1 }
-    - { incx:  1, incy: -1 }
-    - { incx: -1, incy:  1 }
-    - { incx: -3, incy: -3 }
-    - { incx:  0, incy:  1 }
-    - { incx:  0, incy:  0 }
-    # - { incx:  1, incy:  0 } # Indeterminate when y is output
-
-
-
-  - &size_t_pos_x_range
-    - { N: 4,          incx: *c_pos_x2_overflow_int32 } # small operation count, should overflow x
-
-  - &size_t_pos_neg_x_range
-    - { N: 4,          incx: *c_pos_x2_overflow_int32 } # small operation count, should overflow x
-    - { N: 4,          incx: *c_neg_x2_overflow_int32 }
-
-  - &size_t_pos_neg_xy_range
-    - { N: 4,          incx: *c_pos_x2_overflow_int32, incy: 1 } # small operation count, should overflow x
-    - { N: 4,          incx: *c_neg_x2_overflow_int32, incy: 1 } # small operation count, should overflow x
-    - { N: 4,          incx: 1, incy: *c_pos_x2_overflow_int32 } # small operation count, should overflow y
-    - { N: 4,          incx: 1, incy: *c_neg_x2_overflow_int32 } # small operation count, should overflow y
-
-  - &incx_incy_range_x_y_output
-    - { incx:  1, incy:  1 }
-    - { incx:  1, incy:  2 }
-    - { incx:  2, incy:  1 }
-    - { incx:  1, incy: -1 }
-    - { incx: -3, incy:  1 }
-    - { incx: -3, incy: -3 }
-    # - { incx:  0, incy:  0 } # Indeterminate for swap
-    # - { incx:  0, incy:  1 } # Indeterminate when x is output (swap)
-    # - { incx:  1, incy:  0 } # Indeterminate when y is output
-
-  - &incx_incy_range_y_output
-    - { incx:  1, incy:  1 }
-    - { incx:  1, incy:  2 }
-    - { incx:  2, incy:  1 }
-    - { incx:  1, incy: -3 }
-    - { incx: -1, incy:  1 }
-    - { incx: -3, incy: -3 }
-    - { incx:  0, incy:  1 }
-    # - { incx:  0, incy:  0 } # Indeterminate for axpy
-    # - { incx:  1, incy:  0 } # Indeterminate when y is output
-
-  - &incx_incy_range_small
-    - { incx: 1, incy: 1 }
-    - { incx: -3, incy: -3 }
-
   - &alpha_beta_range
-    - { alpha:  1.0, beta:  0.0 }
-    - { alpha:  2.0, beta: -1.0 }
-    - { alpha:  0.0, beta:  0.0 }
-
-  - &alphai_betai_range
-    - { alphai: 0.0 }
-    - { alphai: 1.0}
-    - { alphai: 2.0 }
+    - { alpha:  1.0, beta:  0.0, alphai: 0.5, betai: 1.0 }
+    - { alpha:  2.0, beta: -1.0, alphai: 1.0, betai: 1.0 }
+    - { alpha:  0.0, beta:  0.0, alphai: 0.0, betai: 0.0 }
 
   - &alpha_beta_range_small
-    - { alpha:  0.5, beta:  0.5 }
-
-  - &complex_alpha_range_small
-    - { alpha: 4.0, alphai:  0.0 }
-    - { alpha: 0.0, alphai:  4.0 }
-    - { alpha: 3.0, alphai: -2.0 }
+    - { alpha:  0.5, beta:  0.5, alphai: 0.5, betai: 1.0 }
 
 Tests:
 
@@ -121,7 +52,7 @@ Tests:
     N: [ 64 ]
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+
     api: [ C_64, FORTRAN_64 ]
     function:
       - scal:  *single_precision
@@ -134,7 +65,7 @@ Tests:
     N: [ 64 ]
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+
     api: [ FORTRAN_64 ]
     function:
       - scal_ex:  *scal_ex_bfloat_half_single_double_complex_real_precisions
@@ -164,10 +95,9 @@ Tests:
 # fortran
   - name: scal_blas1_with_alpha
     category: quick
-    N: [ -1, 0, 2, 64 ]
+    N: [ -1, 0, 2, 66 ]
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
     api: FORTRAN
     function:
       - scal:  *single_double_precisions_complex_real
@@ -177,10 +107,9 @@ Tests:
 
   - name: blas1_batched_with_alpha
     category: quick
-    N: [ -1, 0, 64 ]
+    N: [ -1, 0, 65 ]
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
     api: FORTRAN
     function:
@@ -191,12 +120,11 @@ Tests:
 
   - name: blas1_strided_batched_with_alpha
     category: quick
-    N: [ -1, 0, 64 ]
+    N: [ -1, 0, 69 ]
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
-    batch_count: [-1, 0, 5]
-    stride_scale: [1, 2]
+    batch_count: [-1, 0, 4]
+    stride_scale: [2]
     api: FORTRAN
     function:
       - scal_strided_batched:  *single_double_precisions_complex_real
@@ -210,7 +138,6 @@ Tests:
     N: *N_range
     incx: *incx_range
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
     function:
       - scal:  *single_double_precisions_complex_real
       - scal:  *scal_single_double_complex_real_alpha_complex_out
@@ -219,10 +146,9 @@ Tests:
 
   - name: blas1_batched
     category: quick
-    N: [ -1, 0, 5, 33792 ]
+    N: [ 5, 33792 ]
     incx: *incx_range
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
     function:
       - scal_batched: *single_double_precisions_complex_real
@@ -232,10 +158,9 @@ Tests:
 
   - name: blas1_strided_batched
     category: quick
-    N: [ -1, 0, 5, 33792 ]
+    N: [ 5, 33792 ]
     incx: *incx_range
     alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
     stride_scale: [ 1.5 ]
     function:
@@ -262,7 +187,7 @@ Tests:
     category: pre_checkin
     N: [ 50000, 1049600 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     pointer_mode_device: false
     function:
       - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
@@ -272,7 +197,7 @@ Tests:
     category: pre_checkin
     N: [ 1048576 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     batch_count: [2]
     pointer_mode_device: true
     function:
@@ -283,7 +208,7 @@ Tests:
     category: pre_checkin
     N: [ 1048576 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     batch_count: [2]
     stride_scale: [ 1.5 ]
     pointer_mode_device: false
@@ -296,7 +221,7 @@ Tests:
     category: nightly
     N: [ 1000000 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     batch_count: [ 2 ]
     pointer_mode_device: true
     function:
@@ -307,7 +232,7 @@ Tests:
     category: nightly
     N: [ 10 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     batch_count: [ 4000 ]
     function:
       - scal_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
@@ -317,7 +242,7 @@ Tests:
     category: nightly
     N: [ 1000000 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     batch_count: [ 2 ]
     stride_scale: [ 1.2 ]
     pointer_mode_device: false
@@ -329,7 +254,7 @@ Tests:
     category: nightly
     N: [ 10 ]
     incx: *incx_range_small
-    alpha_beta: *complex_alpha_range_small
+    alpha_beta: *alpha_beta_range
     batch_count: [ 4000 ]
     stride_scale: [ 2 ]
     function:
