@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ namespace
             handle, alpha, beta, alpha_h, beta_h, k, compute_type));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        Logger logger;
+        rocblas_internal_logger logger;
 
         if(!handle->is_device_memory_size_query())
         {
@@ -98,7 +98,8 @@ namespace
                 {
                     rocblas_internal_ostream alphass, betass;
 
-                    if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
+                    if(rocblas_internal_log_trace_alpha_beta_ex(
+                           compute_type, alpha, beta, alphass, betass)
                        == rocblas_status_success)
                     {
                         logger.log_trace(handle,
@@ -134,7 +135,8 @@ namespace
                 {
                     std::string alphas, betas;
 
-                    if(log_bench_alpha_beta_ex(compute_type, alpha, beta, alphas, betas)
+                    if(rocblas_internal_log_bench_alpha_beta_ex(
+                           compute_type, alpha, beta, alphas, betas)
                        == rocblas_status_success)
                     {
                         logger.log_bench(handle,
@@ -205,13 +207,13 @@ namespace
                                        "K",
                                        k,
                                        "alpha",
-                                       value_category(alpha, compute_type),
+                                       rocblas_internal_value_category(alpha, compute_type),
                                        "lda",
                                        lda,
                                        "ldb",
                                        ldb,
                                        "beta",
-                                       value_category(beta, compute_type),
+                                       rocblas_internal_value_category(beta, compute_type),
                                        "ldc",
                                        ldc,
                                        "ldd",

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ try
     if(!handle)
         return rocblas_status_invalid_handle;
     *mode = handle->pointer_mode;
-    Logger logger;
+    rocblas_internal_logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_get_pointer_mode", *mode);
     return rocblas_status_success;
@@ -72,7 +72,7 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-    Logger logger;
+    rocblas_internal_logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
     {
         logger.log_trace(handle, "rocblas_set_pointer_mode", mode);
@@ -96,7 +96,7 @@ try
     if(!handle)
         return rocblas_status_invalid_handle;
     *mode = handle->atomics_mode;
-    Logger logger;
+    rocblas_internal_logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_get_atomics_mode", *mode);
     return rocblas_status_success;
@@ -115,7 +115,7 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-    Logger logger;
+    rocblas_internal_logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_set_atomics_mode", mode);
     handle->atomics_mode = mode;
@@ -135,7 +135,7 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-    Logger logger;
+    rocblas_internal_logger logger;
     *mode = handle->math_mode;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_get_math_mode", *mode);
@@ -156,7 +156,7 @@ try
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    Logger logger;
+    rocblas_internal_logger logger;
 
     bool supported = true;
     switch(mode)
@@ -203,7 +203,7 @@ try
 
     // allocate on heap
     *handle = new _rocblas_handle;
-    Logger logger;
+    rocblas_internal_logger logger;
     if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(*handle, "rocblas_create_handle");
 
@@ -223,7 +223,7 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-    Logger logger;
+    rocblas_internal_logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_destroy_handle");
     // call destructor
@@ -247,7 +247,7 @@ try
     // If handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-    Logger logger;
+    rocblas_internal_logger logger;
     // Log rocblas_set_stream
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_set_stream", stream);
@@ -297,7 +297,7 @@ try
         return rocblas_status_invalid_handle;
     if(!stream_id)
         return rocblas_status_invalid_pointer;
-    Logger logger;
+    rocblas_internal_logger logger;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         logger.log_trace(handle, "rocblas_get_stream", *stream_id);
     *stream_id = handle->get_stream();

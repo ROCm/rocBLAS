@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        Logger logger;
+        rocblas_internal_logger logger;
 
         if(!handle->is_device_memory_size_query())
         {

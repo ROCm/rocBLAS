@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@
  * Profile kernel arguments
  ************************************************************************************/
 template <typename TUP>
-class argument_profile
+class rocblas_internal_argument_profile
 {
     // Output stream
     mutable rocblas_internal_ostream os;
@@ -92,7 +92,7 @@ public:
 
     // Constructor
     // We must duplicate the rocblas_internal_ostream to avoid dependence on static destruction order
-    explicit argument_profile(rocblas_internal_ostream& os)
+    explicit rocblas_internal_argument_profile(rocblas_internal_ostream& os)
         : os(os.dup())
     {
     }
@@ -119,7 +119,7 @@ public:
     }
 
     // Cleanup handler which dumps profile at destruction
-    ~argument_profile()
+    ~rocblas_internal_argument_profile()
     try
     {
         dump();
@@ -135,74 +135,70 @@ public:
  *************************************************/
 
 template <typename T>
-std::string log_trace_scalar_value(rocblas_handle handle, const T* value);
+std::string rocblas_internal_log_trace_scalar_value(rocblas_handle handle, const T* value);
 
-#define LOG_TRACE_SCALAR_VALUE(handle, value) log_trace_scalar_value(handle, value)
+#define LOG_TRACE_SCALAR_VALUE(handle, value) rocblas_internal_log_trace_scalar_value(handle, value)
 
 /*************************************************
  * Bench log scalar values pointed to by pointer *
  *************************************************/
 
 template <typename T>
-std::string log_bench_scalar_value(rocblas_handle handle, const char* name, const T* value);
+std::string rocblas_internal_log_bench_scalar_value(rocblas_handle handle,
+                                                    const char*    name,
+                                                    const T*       value);
 
-#define LOG_BENCH_SCALAR_VALUE(handle, name) log_bench_scalar_value(handle, #name, name)
-
-/******************************************************
- * Bench log precision for mixed precision scal calls *
- ******************************************************/
-std::string log_bench_scal_precisions(rocblas_datatype a_type,
-                                      rocblas_datatype x_type,
-                                      rocblas_datatype ex_type);
+#define LOG_BENCH_SCALAR_VALUE(handle, name) \
+    rocblas_internal_log_bench_scalar_value(handle, #name, name)
 
 /*********************************************************************
  * Bench log precision for mixed precision scal_ex and nrm2_ex calls *
  *********************************************************************/
-std::string log_bench_ex_precisions(rocblas_datatype a_type,
-                                    rocblas_datatype x_type,
-                                    rocblas_datatype ex_type);
+std::string rocblas_internal_log_bench_ex_precisions(rocblas_datatype a_type,
+                                                     rocblas_datatype x_type,
+                                                     rocblas_datatype ex_type);
 
 /******************************************************************
  * Log alpha and beta with dynamic compute_type in *_ex functions *
  ******************************************************************/
-rocblas_status log_trace_alpha_beta_ex(rocblas_datatype          compute_type,
-                                       const void*               alpha,
-                                       const void*               beta,
-                                       rocblas_internal_ostream& alphass,
-                                       rocblas_internal_ostream& betass);
+rocblas_status rocblas_internal_log_trace_alpha_beta_ex(rocblas_datatype          compute_type,
+                                                        const void*               alpha,
+                                                        const void*               beta,
+                                                        rocblas_internal_ostream& alphass,
+                                                        rocblas_internal_ostream& betass);
 
-rocblas_status log_trace_alpha_beta_ex(rocblas_computetype       compute_type,
-                                       const void*               alpha,
-                                       const void*               beta,
-                                       rocblas_internal_ostream& alphass,
-                                       rocblas_internal_ostream& betass);
+rocblas_status rocblas_internal_log_trace_alpha_beta_ex(rocblas_computetype       compute_type,
+                                                        const void*               alpha,
+                                                        const void*               beta,
+                                                        rocblas_internal_ostream& alphass,
+                                                        rocblas_internal_ostream& betass);
 
-rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
-                                       const void*      alpha,
-                                       const void*      beta,
-                                       std::string&     alphas,
-                                       std::string&     betas);
+rocblas_status rocblas_internal_log_bench_alpha_beta_ex(rocblas_datatype compute_type,
+                                                        const void*      alpha,
+                                                        const void*      beta,
+                                                        std::string&     alphas,
+                                                        std::string&     betas);
 
-rocblas_status log_bench_alpha_beta_ex(rocblas_computetype compute_type,
-                                       const void*         alpha,
-                                       const void*         beta,
-                                       std::string&        alphas,
-                                       std::string&        betas);
-
-template <typename T>
-double value_category(const T* beta, rocblas_datatype compute_type);
+rocblas_status rocblas_internal_log_bench_alpha_beta_ex(rocblas_computetype compute_type,
+                                                        const void*         alpha,
+                                                        const void*         beta,
+                                                        std::string&        alphas,
+                                                        std::string&        betas);
 
 template <typename T>
-double value_category(const T* beta, rocblas_computetype compute_type);
+double rocblas_internal_value_category(const T* beta, rocblas_datatype compute_type);
+
+template <typename T>
+double rocblas_internal_value_category(const T* beta, rocblas_computetype compute_type);
 
 /******************************************************************
  * ROCBLAS LOGGER *
  ******************************************************************/
 
-class Logger
+class rocblas_internal_logger
 {
 public:
-    Logger() = default;
+    rocblas_internal_logger() = default;
 
     void log_endline(rocblas_internal_ostream& os);
     void log_cleanup();
@@ -241,7 +237,7 @@ public:
 
     // if profile logging is turned on with
     // (handle->layer_mode & rocblas_layer_mode_log_profile) != 0
-    // log_profile will call argument_profile to profile actual arguments,
+    // log_profile will call rocblas_internal_argument_profile to profile actual arguments,
     // keeping count of the number of times each set of arguments is used
     template <typename... Ts>
     void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
@@ -254,16 +250,16 @@ public:
                                    std::forward<Ts>(xs)...);
 
         // Set up profile
-        static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
+        static rocblas_internal_argument_profile<decltype(tup)> profile(*handle->log_profile_os);
 
         // Add at_quick_exit handler in case the program exits early
-        static int aqe = at_quick_exit([] { profile.~argument_profile(); });
+        static int aqe = at_quick_exit([] { profile.~rocblas_internal_argument_profile(); });
 
         // Profile the tuple
         profile(std::move(tup));
     }
 
-    ~Logger()
+    ~rocblas_internal_logger()
     {
         if(m_active)
         {

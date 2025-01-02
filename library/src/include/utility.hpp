@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -864,7 +864,7 @@ catch(...)
 // precision value to express the category of beta. This function is to
 // convert complex or other types to a double representing the category.
 template <typename T>
-constexpr double value_category(const T& beta)
+constexpr double rocblas_internal_value_category(const T& beta)
 {
     return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : beta == T(-1) ? -1.0 : 2.0;
 }

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,11 +64,11 @@ namespace
             }
         }
 
-        auto   x_type_str      = rocblas_datatype_string(x_type);
-        auto   result_type_str = rocblas_datatype_string(result_type);
-        auto   ex_type_str     = rocblas_datatype_string(execution_type);
-        auto   layer_mode      = handle->layer_mode;
-        Logger logger;
+        auto                    x_type_str      = rocblas_datatype_string(x_type);
+        auto                    result_type_str = rocblas_datatype_string(result_type);
+        auto                    ex_type_str     = rocblas_datatype_string(execution_type);
+        auto                    layer_mode      = handle->layer_mode;
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
         {
             logger.log_trace(handle,
@@ -85,17 +85,18 @@ namespace
 
         if(layer_mode & rocblas_layer_mode_log_bench)
         {
-            logger.log_bench(handle,
-                             ROCBLAS_API_BENCH " -f nrm2_strided_batched_ex",
-                             "-n",
-                             n,
-                             "--incx",
-                             incx,
-                             "--stride_x",
-                             stride_x,
-                             "--batch_count",
-                             batch_count,
-                             log_bench_ex_precisions(x_type, result_type, execution_type));
+            logger.log_bench(
+                handle,
+                ROCBLAS_API_BENCH " -f nrm2_strided_batched_ex",
+                "-n",
+                n,
+                "--incx",
+                incx,
+                "--stride_x",
+                stride_x,
+                "--batch_count",
+                batch_count,
+                rocblas_internal_log_bench_ex_precisions(x_type, result_type, execution_type));
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
