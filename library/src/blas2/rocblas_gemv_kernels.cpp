@@ -194,7 +194,9 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey,       \
         batch_count
 
-        if(!i64_incs && is_gfx90a && m <= 32 && n <= 32 && batch_count >= 256)
+        if(!i64_incs && m <= 32 && n <= 32
+           && ((is_gfx90a && batch_count >= gemv_sm_mn_gfx90a_batch_min_threshold)
+               || (is_gfx942 && batch_count >= gemv_sm_mn_gfx942_batch_min_threshold)))
         {
 #define gemvn_sm_mn_batched_KARGS(alpha_, beta_)                                                 \
     gemvn_sm_mn_batched_grid, gemvn_sm_mn_batched_threads, 0, rocblas_stream, m, n, alpha_,      \
@@ -264,7 +266,7 @@ rocblas_status rocblas_internal_gemv_launcher(rocblas_handle    handle,
                                           gemvn_KARGS(*alpha, *beta));
             }
         }
-        //optimized gemvn kernel with double buffered loads for gfx90a.
+        //optimized gemvn kernel with double buffered loads for gfx90a or gfx942
         else if(!i64_incs && is_atomics_allowed && (is_float || is_double) && (m == n)
                 && (m % rocblas_gemv_bx() == 0)
                 && (is_gfx90a
