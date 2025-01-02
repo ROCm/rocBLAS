@@ -327,6 +327,7 @@ set( rocblas_blas2_source
 
 set( rocblas_auxiliary_source
   handle.cpp
+  logging.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
   rocblas_ostream.cpp
