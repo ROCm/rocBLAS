@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -230,9 +230,6 @@ void testing_scal_strided_batched(const Arguments& arg)
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(dx_mult.broadcast_one_strided_batch_vector_from(hx));
-
-        int number_cold_calls = arg.cold_iters;
-        int total_calls       = number_cold_calls + arg.iters;
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
