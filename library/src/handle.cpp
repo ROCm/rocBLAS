@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -863,7 +863,7 @@ void _rocblas_handle::init_logging()
         layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
 
         // open log_trace file
-        if(layer_mode & rocblas_layer_mode_log_trace)
+        if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_internal))
             log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
 
         // open log_bench file

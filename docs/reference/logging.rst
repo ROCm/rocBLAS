@@ -24,11 +24,15 @@ User can set four environment variables to control logging:
 
 *  If ``ROCBLAS_LAYER`` is not set, then there is no logging.
 
-*  If ``(ROCBLAS_LAYER & 1) != 0``, then there is trace logging.
+*  If ``(ROCBLAS_LAYER & 1) != 0``, enables trace logging.
 
-*  If ``(ROCBLAS_LAYER & 2) != 0``, then there is bench logging.
+*  If ``(ROCBLAS_LAYER & 2) != 0``, enables bench logging.
 
-*  If ``(ROCBLAS_LAYER & 4) != 0``, then there is profile logging.
+*  If ``(ROCBLAS_LAYER & 4) != 0``, enables profile logging.
+
+*  If ``(ROCBLAS_LAYER & 8) != 0``, enables internal API logging, e.g. GEMM backend.
+
+See the ``rocblas_layer_mode`` enumeration for these values as constants.
 
 Trace logging outputs a line each time a rocBLAS function is called. The
 line contains the function name and the values of arguments.
@@ -47,6 +51,10 @@ or ``2``. The number of categories, and the values representing them,
 may change over time, depending on how many categories are needed to
 adequately represent all the values that can affect the performance
 of the function.
+
+Internal API logging outputs information like the GEMM backend used for a particular GEMM call.
+Not all internal APIs are logged.  Logging output goes to the same stream as trace logging, see below
+for details on how to control it.
 
 The default stream for logging output is standard error. Three
 environment variables can set the full path name for a log file:

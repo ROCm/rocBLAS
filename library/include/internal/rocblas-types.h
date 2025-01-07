@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -268,6 +268,8 @@ typedef enum rocblas_layer_mode_
     rocblas_layer_mode_log_bench = 0x2,
     /*! \brief Outputs a YAML description of each rocBLAS function called, along with its arguments and number of times it was called. */
     rocblas_layer_mode_log_profile = 0x4,
+    /*! \brief Outputs to the same stream as trace logging with limited internal API details like GEMM backend used */
+    rocblas_layer_mode_log_internal = 0x8,
 } rocblas_layer_mode;
 
 /*! \brief Indicates if layer is active with bitmask*/

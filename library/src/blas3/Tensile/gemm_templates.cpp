@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
+#include "logging.hpp"
 
 /*
  * ===========================================================================
@@ -130,6 +131,28 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
                                     batch_count);
     }
 #else // BUILD_WITH_TENSILE
+
+    bool backend_logging = handle->layer_mode & rocblas_layer_mode_log_internal;
+    if(backend_logging)
+    {
+        rocblas_internal_logger logger;
+        logger.log_trace(handle,
+                         c_rocblas_internal,
+                         "rocblas_gemm_source_backend",
+                         trans_a,
+                         trans_b,
+                         m,
+                         n,
+                         k,
+                         LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                         A,
+                         lda,
+                         B,
+                         ldb,
+                         LOG_TRACE_SCALAR_VALUE(handle, beta),
+                         C,
+                         ldc);
+    }
 
     if(k == 0 || (alpha && *alpha == 0))
     {

@@ -33,7 +33,9 @@
 #include "hipblaslt_host.hpp"
 #endif
 
+#include "logging.hpp"
 #include "tensile_host.hpp"
+
 //#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
 #include <Tensile/EmbeddedLibrary.hpp>
@@ -1123,6 +1125,9 @@ rocblas_status
                           rocblas_gemm_algo                                            algo,
                           int32_t solution_index)
 {
+    rocblas_status status            = rocblas_status_internal_error;
+    bool           hipblaslt_backend = false;
+
 #ifdef BUILD_WITH_HIPBLASLT
     if(useHipBLASLt(prob))
     {
@@ -1134,7 +1139,9 @@ rocblas_status
             if(hipblasltResult == rocblas_status_success
                || (algo == rocblas_gemm_algo_solution_index && solution_index > 0))
             {
-                return hipblasltResult;
+
+                status            = hipblasltResult;
+                hipblaslt_backend = true;
             }
         }
         catch(...)
@@ -1148,116 +1155,146 @@ rocblas_status
     }
 #endif
 
-    rocblas_status                                status = rocblas_status_internal_error;
-    std::shared_ptr<Tensile::ContractionSolution> solution;
-
-    try
+    if(!hipblaslt_backend)
     {
-        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        std::shared_ptr<hipDeviceProp_t>                                             deviceProp;
-        std::shared_ptr<Tensile::Hardware>                                           hardware;
+        std::shared_ptr<Tensile::ContractionSolution> solution;
 
-        auto& adapter = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
-
-        hardware = Tensile::hip::GetDevice(*deviceProp);
-
-        auto  tensile_prob  = ConstructTensileProblem(prob);
-        auto  handle        = prob.handle;
-        auto* fitness_query = handle->get_solution_fitness_query();
-
-        if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
+        try
         {
-            solution = library->getSolutionByIndex(solution_index - 1);
-            // load solution if not already loaded
+            std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
+            std::shared_ptr<hipDeviceProp_t>                                             deviceProp;
+            std::shared_ptr<Tensile::Hardware>                                           hardware;
+
+            auto& adapter
+                = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
+
+            hardware = Tensile::hip::GetDevice(*deviceProp);
+
+            auto  tensile_prob  = ConstructTensileProblem(prob);
+            auto  handle        = prob.handle;
+            auto* fitness_query = handle->get_solution_fitness_query();
+
+            if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
+            {
+                solution = library->getSolutionByIndex(solution_index - 1);
+                // load solution if not already loaded
+                if(!solution)
+                {
+                    library->findAllSolutions(tensile_prob, *hardware);
+                    solution = library->getSolutionByIndex(solution_index - 1);
+                }
+            }
+            else
+            {
+                solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
+            }
+
+            if(!solution && fallbackTensileProblem(tensile_prob))
+                solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
+
             if(!solution)
             {
-                library->findAllSolutions(tensile_prob, *hardware);
-                solution = library->getSolutionByIndex(solution_index - 1);
-            }
-        }
-        else
-        {
-            solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
-        }
-
-        if(!solution && fallbackTensileProblem(tensile_prob))
-            solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
-
-        if(!solution)
-        {
-            if(solution_index > 0)
-            {
-                status = rocblas_status_invalid_value;
-            }
-            else
-            {
-                rocblas_internal_ostream msg;
-                print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
-                status = rocblas_status_not_implemented;
-            }
-        }
-        else
-        {
-            if(fitness_query)
-            {
-                status = rocblas_status_success;
-            }
-            else if(handle->is_device_memory_size_query())
-            {
-                status = handle->set_optimal_device_memory_size(
-                    ((solution->requiredWorkspaceSize(tensile_prob, *hardware)
-                      + HPA_GSU_WORKSPACE_SIZE_GRANULARITY - 1)
-                     / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
-                    * HPA_GSU_WORKSPACE_SIZE_GRANULARITY);
-            }
-            else
-            {
-                // check if the solution requires workspace for GSU and allocate it.
-                size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob, *hardware);
-                auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
-
-                if(!gsu_malloc)
-                {
-                    return rocblas_status_memory_error;
-                }
-
-                if(solution->canSolve(tensile_prob, *hardware))
-                {
-                    if(!(prob.flags & rocblas_gemm_flags_check_solution_index))
-                    {
-                        hipError_t hip_status = adapter.launchKernels(
-                            solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
-                            handle->get_stream(),
-                            handle->startEvent,
-                            handle->stopEvent);
-                        if(hip_status != hipSuccess)
-                            status = rocblas_internal_convert_hip_to_rocblas_status(hip_status);
-                        else
-                            status = rocblas_status_success;
-                    }
-                    else
-                    {
-                        status = rocblas_status_success;
-                    }
-                }
-                else
+                if(solution_index > 0)
                 {
                     status = rocblas_status_invalid_value;
                 }
+                else
+                {
+                    rocblas_internal_ostream msg;
+                    print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
+                    status = rocblas_status_not_implemented;
+                }
+            }
+            else
+            {
+                if(fitness_query)
+                {
+                    status = rocblas_status_success;
+                }
+                else if(handle->is_device_memory_size_query())
+                {
+                    status = handle->set_optimal_device_memory_size(
+                        ((solution->requiredWorkspaceSize(tensile_prob, *hardware)
+                          + HPA_GSU_WORKSPACE_SIZE_GRANULARITY - 1)
+                         / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
+                        * HPA_GSU_WORKSPACE_SIZE_GRANULARITY);
+                }
+                else
+                {
+                    // check if the solution requires workspace for GSU and allocate it.
+                    size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob, *hardware);
+                    auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
+
+                    if(!gsu_malloc)
+                    {
+                        return rocblas_status_memory_error;
+                    }
+
+                    if(solution->canSolve(tensile_prob, *hardware))
+                    {
+                        if(!(prob.flags & rocblas_gemm_flags_check_solution_index))
+                        {
+                            hipError_t hip_status = adapter.launchKernels(
+                                solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
+                                handle->get_stream(),
+                                handle->startEvent,
+                                handle->stopEvent);
+                            if(hip_status != hipSuccess)
+                                status = rocblas_internal_convert_hip_to_rocblas_status(hip_status);
+                            else
+                                status = rocblas_status_success;
+                        }
+                        else
+                        {
+                            status = rocblas_status_success;
+                        }
+                    }
+                    else
+                    {
+                        status = rocblas_status_invalid_value;
+                    }
+                }
             }
         }
+        catch(const std::exception& e)
+        {
+            rocblas_internal_ostream msg;
+            print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
+                           << "Tensile solution found, but exception thrown for " << prob
+                           << e.what());
+        }
+        catch(...)
+        {
+            rocblas_internal_ostream msg;
+            print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
+                           << "Tensile solution found, but unknown exception thrown for " << prob);
+        }
     }
-    catch(const std::exception& e)
+
+    bool backend_logging = prob.handle->layer_mode & rocblas_layer_mode_log_internal;
+    if(backend_logging)
     {
-        rocblas_internal_ostream msg;
-        print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
-                       << "Tensile solution found, but exception thrown for " << prob << e.what());
-    }
-    catch(...)
-    {
-        rocblas_internal_ostream msg;
-        print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
-                       << "Tensile solution found, but unknown exception thrown for " << prob);
+        const char* backend
+            = hipblaslt_backend ? "rocblas_gemm_hipblaslt_backend" : "rocblas_gemm_tensile_backend";
+        rocblas_internal_logger logger;
+        logger.log_trace(prob.handle,
+                         c_rocblas_internal,
+                         backend,
+                         prob.trans_a,
+                         prob.trans_b,
+                         prob.m,
+                         prob.n,
+                         prob.k,
+                         LOG_TRACE_SCALAR_VALUE(prob.handle, prob.alpha),
+                         prob.A,
+                         prob.col_stride_a,
+                         prob.B,
+                         prob.col_stride_b,
+                         LOG_TRACE_SCALAR_VALUE(prob.handle, prob.beta),
+                         prob.C,
+                         prob.col_stride_c,
+                         prob.D,
+                         prob.col_stride_d);
     }
 
     return status;

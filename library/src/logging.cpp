@@ -124,20 +124,13 @@ template std::string rocblas_internal_log_trace_scalar_value(rocblas_handle     
 
 const char* c_rocblas_internal = "rocblas_internal";
 
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
-void rocblas_internal_log_range(const std::string& name)
-{
-    roctxRangePush(name.c_str());
-    m_active = true;
-}
-#endif
-
 void rocblas_internal_logger::log_endline(rocblas_internal_ostream& os)
 {
 #if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
     if(!m_active)
     {
-        rocblas_internal_log_range(os.str());
+        const std::string& name = os.str();
+        roctxRangePush(name.c_str());
         m_active = true;
     }
 #endif

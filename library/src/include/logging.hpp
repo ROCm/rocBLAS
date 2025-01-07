@@ -191,6 +191,8 @@ double rocblas_internal_value_category(const T* beta, rocblas_datatype compute_t
 template <typename T>
 double rocblas_internal_value_category(const T* beta, rocblas_computetype compute_type);
 
+extern const char* c_rocblas_internal;
+
 /******************************************************************
  * ROCBLAS LOGGER *
  ******************************************************************/
