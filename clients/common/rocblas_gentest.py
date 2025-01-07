@@ -129,7 +129,7 @@ Expand rocBLAS YAML test data file into binary Arguments records
 def read_yaml_file(file):
     """Read the YAML file, processing include: lines as an extension"""
     file_dir = os.path.dirname(file.name) or os.getcwd()
-    file_path = os.path.join( file_dir, file.name )
+    file_path = os.path.join( file_dir, os.path.basename(file.name) )
     if not os.path.exists(file_path):
         file_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         file_path = os.path.join( file_dir, file.name )
