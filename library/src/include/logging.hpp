@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@
 #include <unordered_map>
 #include <utility>
 
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
 #include <roctracer/roctx.h>
 #endif
 
@@ -453,7 +453,7 @@ class Logger
 public:
     Logger() = default;
 
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
     void log_range(const std::string& name)
     {
         if(!m_active)
@@ -472,7 +472,7 @@ public:
         // ((os << sep << std::forward<Ts>(xs)), ...);
         (void)(int[]){(os << sep << std::forward<Ts>(xs), 0)...};
 
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
         log_range(os.str());
 #endif
         os << std::endl;
@@ -527,7 +527,7 @@ public:
 
     ~Logger()
     {
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
         if(m_active)
         {
             roctxRangePop();
