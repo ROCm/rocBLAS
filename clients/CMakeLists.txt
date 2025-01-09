@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -143,7 +143,18 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
         set( BLAS_LIBRARY /usr/local/lib/libblis.a )
         set( BLIS_INCLUDE_DIR /usr/local/include/blis )
       else()
-        message( WARNING "Could not find libblis" )
+        find_package(PkgConfig)
+        if(NOT PKG_CONFIG_FOUND)
+          message( WARNING "Could not find libblis and pkgconfig is not available" )
+        else()
+          pkg_search_module(PKGBLAS cblas)
+          if(PKGBLAS_FOUND)
+            set( BLAS_LIBRARY ${PKGBLAS_LIBRARIES} )
+            set( BLAS_INCLUDE_DIR ${PKGBLAS_INCLUDE_DIRS} )
+          else()
+            message( WARNING "Could not find libblis and pkgconfig can not find any other implementation of cblas" )
+          endif()
+        endif()
       endif()
     else()
       set( BLAS_LIBRARY "blas" )
