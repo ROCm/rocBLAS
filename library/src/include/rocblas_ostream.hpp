@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -519,16 +519,16 @@ public:
     }
 
     // Transfer rocblas_internal_ostream to std::ostream
-    friend std::ostream& operator<<(std::ostream& os, const rocblas_internal_ostream& str)
+    friend std::ostream& operator<<(std::ostream& os, const rocblas_internal_ostream& rbi_ostream)
     {
-        return os << str.str();
+        return os << rbi_ostream.str();
     }
 
     // Transfer rocblas_internal_ostream to rocblas_internal_ostream
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&       os,
-                                                const rocblas_internal_ostream& str)
+                                                const rocblas_internal_ostream& rbi_ostream)
     {
-        return os << str.str();
+        return os << rbi_ostream.str();
     }
 
     // IO Manipulators

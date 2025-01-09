@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -184,11 +184,11 @@ void rocblas_internal_ostream::flush()
     if(m_worker_ptr)
     {
         // The contents of the string buffer
-        auto str = m_os.str();
+        auto str_contents = m_os.str();
 
         // Empty string buffers kill the worker thread, so they are not flushed here
-        if(str.size())
-            m_worker_ptr->send(std::move(str));
+        if(str_contents.size())
+            m_worker_ptr->send(std::move(str_contents));
 
         // Clear the string buffer
         clear();

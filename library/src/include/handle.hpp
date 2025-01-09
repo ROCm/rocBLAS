@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -272,8 +272,8 @@ public:
 
     bool isDefaultHipBLASLtArch()
     {
-        int arch = getArch();
-        if(arch == 1200 || arch == 1201)
+        int gfx_arch = getArch();
+        if(gfx_arch == 1200 || gfx_arch == 1201)
         {
             return true;
         }

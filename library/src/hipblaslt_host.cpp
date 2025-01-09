@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -289,8 +289,6 @@ namespace
                        hipblasLtMatmulHeuristicResult_t& heuristicResult,
                        size_t                            extra_malloc = 0)
     {
-        hipblasLtHandle_t& handle = *(probHandle->getHipblasLtHandle());
-
         hipblaslt_ext::GemmPreference gemmPref;
         auto                          max_workspace_size = probHandle->get_available_workspace();
         gemmPref.setMaxWorkspaceBytes(max_workspace_size - extra_malloc);
@@ -301,7 +299,8 @@ namespace
 
         if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
         {
-            std::vector<int> solution_index_vec(1,
+            hipblasLtHandle_t& handle = *(probHandle->getHipblasLtHandle());
+            std::vector<int>   solution_index_vec(1,
                                                 solution_index - 1); // -1 maps to hipblasLt indices
             if(hipblaslt_ext::getAlgosFromIndex(handle, solution_index_vec, heuristicResults)
                != HIPBLAS_STATUS_SUCCESS)
