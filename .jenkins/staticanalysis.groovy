@@ -30,8 +30,38 @@ def runCI =
 ci: {
     String urlJobName = auxiliary.getTopJobName(env.BUILD_URL)
 
-    properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * 6')])]))
-    stage(urlJobName) {
-        runCI([ubuntu20:['any']], urlJobName)
+    def propertyList = ["compute-rocm-dkms-no-npi":[pipelineTriggers([cron('0 1 * * 6')])],
+                        "compute-rocm-dkms-no-npi-hipclang":[pipelineTriggers([cron('0 1 * * 6')])],
+                        "rocm-docker":[]]
+    propertyList = auxiliary.appendPropertyList(propertyList)
+
+    def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
+                       "compute-rocm-dkms-no-npi-hipclang":([ubuntu18:['gfx900'],centos7:['gfx906'],centos8:['gfx906'],sles15sp1:['gfx908']]),
+                       "rocm-docker":([ubuntu18:['gfx900']])]
+    jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
+
+    propertyList.each
+    {
+        jobName, property->
+        if (urlJobName == jobName)
+            properties(auxiliary.addCommonProperties(property))
+    }
+
+    jobNameList.each
+    {
+        jobName, nodeDetails->
+        if (urlJobName == jobName)
+            stage(jobName) {
+                runCI(nodeDetails, jobName)
+            }
+    }
+
+    // For url job names that are not listed by the jobNameList i.e. compute-rocm-dkms-no-npi-1901
+    if(!jobNameList.keySet().contains(urlJobName))
+    {
+        properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * 6')])]))
+        stage(urlJobName) {
+            runCI([ubuntu18:['gfx900', 'gfx906']], urlJobName)
+        }
     }
 }
