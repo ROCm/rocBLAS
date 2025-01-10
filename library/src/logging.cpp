@@ -1,6 +1,6 @@
 #include <limits>
 
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
 #include <roctracer/roctx.h>
 #endif
 
@@ -126,7 +126,7 @@ const char* c_rocblas_internal = "rocblas_internal";
 
 void rocblas_internal_logger::log_endline(rocblas_internal_ostream& os)
 {
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
     if(!m_active)
     {
         const std::string& name = os.str();
@@ -139,7 +139,7 @@ void rocblas_internal_logger::log_endline(rocblas_internal_ostream& os)
 
 void rocblas_internal_logger::log_cleanup()
 {
-#if defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
     roctxRangePop();
 #endif
 }
