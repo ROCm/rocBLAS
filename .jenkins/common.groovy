@@ -111,6 +111,10 @@ def runTestCommand (platform, project, settings)
         {
             gtestCommonEnv += " GTEST_LISTENER=PASS_LINE_IN_LOG"
         }
+        if (platform.jenkinsLabel.contains('gfx942') && pullRequest.labels.contains("envUseHipblasLT"))
+        {
+            gtestCommonEnv += " ROCBLAS_USE_HIPBLASLT=1"
+        }
     }
 
     def hmmTestCommand= ''
