@@ -143,7 +143,8 @@ void testing_scal_strided_batched(const Arguments& arg)
 
                 // multi-GPU support
                 int device_id, device_count;
-                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                CHECK_HIP_ERROR(limit_device_count(device_count, (int)arg.devices));
+
                 for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
                     CHECK_HIP_ERROR(hipGetDevice(&device_id));

@@ -277,5 +277,6 @@ Tests:
   initialization: hpl
   pointer_mode_host: false
   atomics_mode: 0
+  devices: 4
   repeatability_check: true
 ...

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -618,4 +618,13 @@ size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
         rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
     }
     return flush_batch_count;
+}
+
+//Function to limit the number of devices to be used in a mult-gpu setup
+hipError_t limit_device_count(int& device_count, int max_limit)
+{
+    hipError_t hipStatus = hipGetDeviceCount(&device_count);
+    if(hipStatus == hipSuccess)
+        device_count = std::min(device_count, max_limit);
+    return hipStatus;
 }

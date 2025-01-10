@@ -305,5 +305,6 @@ Tests:
   atomics_mode: 0
   iters: 5
   initialization: hpl
+  devices: 4
   repeatability_check: true
 ...

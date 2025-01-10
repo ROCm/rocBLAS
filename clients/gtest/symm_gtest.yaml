@@ -335,5 +335,6 @@ Tests:
   atomics_mode: 0
   iters: 5
   alpha_beta: *alpha_beta
+  devices: 4
   repeatability_check: true
 ...
