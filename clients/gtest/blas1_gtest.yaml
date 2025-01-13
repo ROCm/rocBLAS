@@ -1300,8 +1300,6 @@ Tests:
 
 # pre_checkin
 
-# pre_checkin
-
   - name: blas1_dot_reduce_kernel
     category: pre_checkin
     N: [ 10100103 ]
