@@ -338,5 +338,6 @@ Tests:
   initialization: hpl
   pointer_mode_host: false
   iters: 5
+  devices: 4
   repeatability_check: true
 ...

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -170,7 +170,8 @@ void testing_trmv_strided_batched(const Arguments& arg)
                 host_strided_batch_vector<T>, hres_copy, (N, incx, stride_x, batch_count));
             // multi-GPU support
             int device_id, device_count;
-            CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+            CHECK_HIP_ERROR(limit_device_count(device_count, (int)arg.devices));
+
             for(int dev_id = 0; dev_id < device_count; dev_id++)
             {
                 CHECK_HIP_ERROR(hipGetDevice(&device_id));

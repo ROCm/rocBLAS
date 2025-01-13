@@ -335,5 +335,6 @@ Tests:
   pointer_mode_host: false
   atomics_mode: 0
   alpha_beta: *alpha_beta_range
+  devices: 4
   repeatability_check: true
 ...

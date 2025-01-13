@@ -258,5 +258,6 @@ Tests:
   initialization: hpl
   iters: 5
   alpha_beta: *alpha_beta_range
+  devices: 4
   repeatability_check: true
 ...
