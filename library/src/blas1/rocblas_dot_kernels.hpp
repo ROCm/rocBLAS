@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -268,7 +268,7 @@ rocblas_dot_kernel_reduce(int n_sums, V* __restrict__ in, T* __restrict__ out)
     size_t offset = size_t(blockIdx.x) * n_sums;
     in += offset;
 
-    int inc = NB * gridDim.x * WIN;
+    int inc = NB * WIN;
 
     int i         = threadIdx.x * WIN;
     int remainder = n_sums % WIN;
