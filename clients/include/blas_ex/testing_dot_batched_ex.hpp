@@ -194,8 +194,7 @@ void testing_dot_batched_ex(const Arguments& arg)
     HOST_MEMCHECK(host_batch_vector<Tx>, hx, (N, incx, batch_count));
     HOST_MEMCHECK(host_batch_vector<Ty>, hy, (N, incy, batch_count));
     HOST_MEMCHECK(host_vector<Tr>, cpu_result, (batch_count));
-    HOST_MEMCHECK(host_vector<Tr>, rocblas_result_host, (batch_count));
-    HOST_MEMCHECK(host_vector<Tr>, rocblas_result_device, (batch_count));
+    HOST_MEMCHECK(host_vector<Tr>, rocblas_result, (batch_count));
 
     // Allocate device memory
     DEVICE_MEMCHECK(device_batch_vector<Tx>, dx, (N, incx, batch_count));
@@ -232,7 +231,7 @@ void testing_dot_batched_ex(const Arguments& arg)
                         y_type,
                         incy,
                         batch_count,
-                        rocblas_result_host,
+                        rocblas_result,
                         result_type,
                         execution_type));
         }
@@ -260,7 +259,7 @@ void testing_dot_batched_ex(const Arguments& arg)
             {
                 HOST_MEMCHECK(host_vector<Tr>, rocblas_result_device_copy, (batch_count));
 
-                CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
+                CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result_device));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -307,13 +306,8 @@ void testing_dot_batched_ex(const Arguments& arg)
                                     execution_type));
                         CHECK_HIP_ERROR(
                             rocblas_result_device_copy.transfer_from(d_rocblas_result_device_copy));
-                        unit_check_general<Tr>(1,
-                                               1,
-                                               1,
-                                               1,
-                                               rocblas_result_device,
-                                               rocblas_result_device_copy,
-                                               batch_count);
+                        unit_check_general<Tr>(
+                            1, 1, 1, 1, rocblas_result, rocblas_result_device_copy, batch_count);
                     }
                 }
                 return;
@@ -322,72 +316,52 @@ void testing_dot_batched_ex(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int b = 0; b < batch_count; ++b)
+        for(int64_t b = 0; b < batch_count; ++b)
         {
             (CONJ ? ref_dotc<Tx, Tr>
                   : ref_dot<Tx, Tr>)(N, hx[b], incx, hy_ptr[b], incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // For large N, rocblas_half tends to diverge proportional to N
-        // Tolerance is slightly greater than 1 / 1024.0
-        bool near_check = arg.initialization == rocblas_initialization::hpl
-                          || (std::is_same_v<Tex, rocblas_half> && N > 10000);
+        auto compare_to_gold = [&] {
+            bool near_check = arg.initialization == rocblas_initialization::hpl
+                              || (sizeof(Tr) == 2 && N > 10000);
 
-        if(arg.pointer_mode_host)
-        {
             if(arg.unit_check)
             {
                 if(near_check)
                 {
-                    const double tol = N * sum_error_tolerance<Tex>;
-                    near_check_general<Tr>(
-                        1, 1, 1, 1, cpu_result, rocblas_result_host, batch_count, tol);
+                    for(int64_t b = 0; b < batch_count; ++b)
+                    {
+                        double abs_error = dot_near_tolerance<Tex, Tx, Tr>(
+                            rocblas_handle(handle)->getArchMajor(), N, cpu_result[b]);
+                        near_check_general<Tr>(
+                            1, 1, 1, 1, cpu_result + b, rocblas_result + b, 1, abs_error);
+                    }
                 }
                 else
                 {
-                    unit_check_general<Tr>(
-                        1, 1, 1, 1, cpu_result, rocblas_result_host, batch_count);
+                    unit_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result, batch_count);
                 }
             }
 
+            double error = 0.0;
             if(arg.norm_check)
             {
-                for(int b = 0; b < batch_count; ++b)
-                {
-                    rocblas_error_host
-                        += rocblas_abs((cpu_result[b] - rocblas_result_host[b]) / cpu_result[b]);
-                }
+                error = rocblas_abs((cpu_result[0] - rocblas_result[0]) / cpu_result[0]);
             }
+            return error;
+        };
+
+        if(arg.pointer_mode_host)
+        {
+            rocblas_error_host = compare_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
-
-            if(arg.unit_check)
-            {
-                if(near_check)
-                {
-                    const double tol = N * sum_error_tolerance<Tex>;
-                    near_check_general<Tr>(
-                        1, 1, 1, 1, cpu_result, rocblas_result_device, batch_count, tol);
-                }
-                else
-                {
-                    unit_check_general<Tr>(
-                        1, 1, 1, 1, cpu_result, rocblas_result_device, batch_count);
-                }
-            }
-
-            if(arg.norm_check)
-            {
-                for(int b = 0; b < batch_count; ++b)
-                {
-                    rocblas_error_device
-                        += rocblas_abs((cpu_result[b] - rocblas_result_device[b]) / cpu_result[b]);
-                }
-            }
+            CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result_device));
+            rocblas_error_device = compare_to_gold();
         }
     }
 

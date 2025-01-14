@@ -171,8 +171,7 @@ void testing_dot_ex(const Arguments& arg)
     HOST_MEMCHECK(host_vector<Tx>, hx, (N, incx));
     HOST_MEMCHECK(host_vector<Ty>, hy, (N, incy));
     HOST_MEMCHECK(host_vector<Tr>, cpu_result, (1, 1));
-    HOST_MEMCHECK(host_vector<Tr>, rocblas_result_host, (1, 1));
-    HOST_MEMCHECK(host_vector<Tr>, rocblas_result_device, (1, 1));
+    HOST_MEMCHECK(host_vector<Tr>, rocblas_result, (1, 1));
 
     // Allocate device memory
     DEVICE_MEMCHECK(device_vector<Tx>, dx, (N, incx));
@@ -209,7 +208,7 @@ void testing_dot_ex(const Arguments& arg)
                         dy_ptr,
                         y_type,
                         incy,
-                        rocblas_result_host,
+                        rocblas_result,
                         result_type,
                         execution_type));
         }
@@ -235,7 +234,7 @@ void testing_dot_ex(const Arguments& arg)
             {
                 HOST_MEMCHECK(host_vector<Tr>, rocblas_result_device_copy, (1, 1));
 
-                CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
+                CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result_device));
 
                 // multi-GPU support
                 int device_id, device_count;
@@ -280,8 +279,7 @@ void testing_dot_ex(const Arguments& arg)
                                     execution_type));
                         CHECK_HIP_ERROR(
                             rocblas_result_device_copy.transfer_from(d_rocblas_result_device_copy));
-                        unit_check_general<Tr>(
-                            1, 1, 1, rocblas_result_device, rocblas_result_device_copy);
+                        unit_check_general<Tr>(1, 1, 1, rocblas_result, rocblas_result_device_copy);
                     }
                 }
                 return;
@@ -293,55 +291,41 @@ void testing_dot_ex(const Arguments& arg)
         (CONJ ? ref_dotc<Tx, Tr> : ref_dot<Tx, Tr>)(N, hx, incx, hy_ptr, incy, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // For large N, rocblas_half tends to diverge proportional to N
-        // Tolerance is slightly greater than 1 / 1024.0
-        bool near_check = arg.initialization == rocblas_initialization::hpl
-                          || (std::is_same_v<Tex, rocblas_half> && N > 10000);
+        auto compare_to_gold = [&] {
+            bool near_check = arg.initialization == rocblas_initialization::hpl
+                              || (sizeof(Tr) == 2 && N > 10000);
 
-        if(arg.pointer_mode_host)
-        {
             if(arg.unit_check)
             {
                 if(near_check)
                 {
-                    const double tol = N * sum_error_tolerance<Tex>;
-                    near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_host, tol);
+                    double tol = dot_near_tolerance<Tex, Tx, Tr>(
+                        rocblas_handle(handle)->getArchMajor(), N, cpu_result[0]);
+                    near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result, tol);
                 }
                 else
                 {
-                    unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_host);
+                    unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result);
                 }
             }
 
+            double error = 0.0;
             if(arg.norm_check)
             {
-                rocblas_error_host
-                    = double(rocblas_abs((cpu_result[0] - rocblas_result_host[0]) / cpu_result[0]));
+                error = double(rocblas_abs((cpu_result[0] - rocblas_result[0]) / cpu_result[0]));
             }
+            return error;
+        };
+
+        if(arg.pointer_mode_host)
+        {
+            rocblas_error_host = compare_to_gold();
         }
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(rocblas_result_device.transfer_from(d_rocblas_result_device));
-
-            if(arg.unit_check)
-            {
-                if(near_check)
-                {
-                    const double tol = N * sum_error_tolerance<Tex>;
-                    near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_device, tol);
-                }
-                else
-                {
-                    unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_device);
-                }
-            }
-
-            if(arg.norm_check)
-            {
-                rocblas_error_device = double(
-                    rocblas_abs((cpu_result[0] - rocblas_result_device[0]) / cpu_result[0]));
-            }
+            CHECK_HIP_ERROR(rocblas_result.transfer_from(d_rocblas_result_device));
+            rocblas_error_device = compare_to_gold();
         }
     }
 
