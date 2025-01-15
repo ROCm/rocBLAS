@@ -262,6 +262,7 @@ Tests:
   initialization : hpl
   atomics_mode: 0
   iters: 5
+  devices: 4
   repeatability_check: true
 
 - name: hemm_large_batch

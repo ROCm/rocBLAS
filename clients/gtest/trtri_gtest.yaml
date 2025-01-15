@@ -176,5 +176,6 @@ Tests:
   pointer_mode_host: false
   iters: 5
   initialization: hpl
+  devices: 4
   repeatability_check: true
 ...

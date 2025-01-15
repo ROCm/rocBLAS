@@ -333,5 +333,6 @@ Tests:
   pointer_mode_host: false
   atomics_mode: 0
   iters: 5
+  devices: 4
   repeatability_check: true
 ...

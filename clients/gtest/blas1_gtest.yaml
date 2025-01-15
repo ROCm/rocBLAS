@@ -1860,6 +1860,7 @@ Tests:
     incx_incy: *incx_incy_range_small
     initialization: hpl
     iters: 5
+    devices: 4
     pointer_mode_host: false
     repeatability_check: true
     atomics_mode: 0

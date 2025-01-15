@@ -7,4 +7,5 @@ Tests:
   category: pre_checkin
   function: multiheaded
   precision: *single_precision
+  devices: 4
 ...

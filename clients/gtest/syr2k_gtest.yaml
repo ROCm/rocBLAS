@@ -299,5 +299,6 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
   stride_scale: 1
+  devices: 4
   repeatability_check: true
 ...
