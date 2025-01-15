@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -461,7 +461,7 @@ def config_cmd():
         else:
             fatal("Could not detect GPU as requested. Not continuing.")
     # not just for tensile
-    cmake_options.append(f'-DGPU_TARGETS=\"{args.gpu_architecture}\"')
+    cmake_options.append(f'-DGPU_TARGETS=\"all\"') # {args.gpu_architecture}\"')
 
     if not args.build_tensile:
         cmake_options.append(f"-DBUILD_WITH_TENSILE=OFF")
