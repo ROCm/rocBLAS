@@ -85,7 +85,8 @@ if (NOT BUILD_ADDRESS_SANITIZER)
   set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
   set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
   set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
-  set( TARGET_LIST_ROCM_6.5 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
+  #set( TARGET_LIST_ROCM_6.5 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
+  set( TARGET_LIST_ROCM_6.5 "gfx908:xnack-;gfx90a;gfx942;gfx9-generic;gfx10-1-generic;gfx10-3-generic;gfx11-generic;gfx12-generic")
 else()
   set( TARGET_LIST_ROCM_5.6 "gfx908:xnack+;gfx90a:xnack+")
   set( TARGET_LIST_ROCM_5.7 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
@@ -130,9 +131,11 @@ set_property(CACHE GPU_TARGETS PROPERTY STRINGS
 # Detect if target ID syntax if supported for default all GPU_TARGETS list
 # Sets the GPU_TARGETS with backward compatibility
 if (GPU_TARGETS STREQUAL "all")
-  rocm_check_target_ids(target_list TARGETS "${SUPPORTED_TARGETS}")
+  #rocm_check_target_ids(target_list TARGETS "${SUPPORTED_TARGETS}")
+  set(target_list "${SUPPORTED_TARGETS}")
 else()
-  rocm_check_target_ids(target_list TARGETS "${GPU_TARGETS}")
+  #rocm_check_target_ids(target_list TARGETS "${GPU_TARGETS}")
+  set(target_list "${GPU_TARGETS}")
 endif()
 
 # if 'target_list' is empty, then compile does not support the gpu arch passed as an argument.

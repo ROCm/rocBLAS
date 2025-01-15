@@ -73,9 +73,11 @@ function( rocblas_library_settings lib_target_ )
   set_target_properties( ${lib_target_} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${lib_target_} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
+  set( flags  "-mcode-object-version=6" )
   if(BUILD_OFFLOAD_COMPRESS AND CXX_COMPILER_SUPPORTS_OFFLOAD_COMPRESS)
-    set_target_properties( ${lib_target_} PROPERTIES COMPILE_FLAGS "--offload-compress" )
+    #set( flags "${flags} --offload-compress" )
   endif()
+  set_target_properties( ${lib_target_} PROPERTIES COMPILE_FLAGS "${flags}" )
 
   target_link_libraries( ${lib_target_} INTERFACE hip::host )
   if (WIN32)
