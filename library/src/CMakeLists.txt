@@ -688,6 +688,10 @@ if(BUILD_WITH_HIPBLASLT)
   find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
 endif()
 
+if( NOT BUILD_SHARED_LIBS )
+  target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
+endif()
+
 if( BUILD_WITH_TENSILE )
 
   if( BUILD_SHARED_LIBS )
@@ -705,7 +709,6 @@ if( BUILD_WITH_TENSILE )
   endif()
 
   if( NOT BUILD_SHARED_LIBS )
-    target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 
     # bypassing cmake dependencies chain for static link as it won't allow target from different directory
 
