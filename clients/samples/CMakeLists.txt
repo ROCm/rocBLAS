@@ -83,6 +83,10 @@ endforeach( )
 foreach( exe ${sample_list_all} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas Threads::Threads )
 
+  if( NOT BUILD_SHARED_LIBS )
+    target_compile_definitions(${exe} PRIVATE ROCBLAS_STATIC_LIB)
+  endif()
+  
   if( NOT ${exe} STREQUAL "rocblas-example-header-check" )
     set_target_properties( ${exe} PROPERTIES
     CXX_STANDARD 14

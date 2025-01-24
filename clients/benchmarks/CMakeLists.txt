@@ -86,8 +86,18 @@ if( BUILD_WITH_TENSILE )
 endif()
 
 target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} GOOGLE_TEST ${BLIS_DEFINES} )
+
+if(NOT BUILD_SHARED_LIBS)
+   target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_STATIC_LIB)
+endif()
+
 if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas-gemm-tune PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} )
+
+  if(NOT BUILD_SHARED_LIBS)
+     target_compile_definitions( rocblas-gemm-tune PRIVATE ROCBLAS_STATIC_LIB)
+  endif()
+
 endif()
 
 if ( NOT BUILD_FORTRAN_CLIENTS )
