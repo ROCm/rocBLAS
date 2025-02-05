@@ -179,6 +179,16 @@ _rocblas_handle::_rocblas_handle()
                                                              : rocblas_atomics_not_allowed;
     }
 
+    // The following allocation & free of device memory using hipMallocAsync/hipFreeAsync will allocate memory from
+    // the OS and release it to default memory pool. Further allocation of memory using hipMallocAsync
+    // will be from the memory pool and it will be faster.
+    THROW_IF_HIP_ERROR(
+        (hipMallocAsync)(&device_memory, DEFAULT_DEVICE_MEMORY_SIZE_EXTENDED, stream));
+
+    THROW_IF_HIP_ERROR((hipFreeAsync)(device_memory, stream));
+
+    device_memory = nullptr;
+
     // Initialize logging
     init_logging();
 
@@ -272,7 +282,6 @@ _rocblas_handle::~_rocblas_handle()
             rocblas_abort();
         }
     }
-    // rocblas_cout<<"RK end of dtor" << std::endl;
 
 #ifdef BUILD_WITH_HIPBLASLT
     if(hipblasLtHandle.unique())
@@ -447,12 +456,8 @@ catch(...)
  ******************************************************************************/
 extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 {
-#if ROCBLAS_REALLOC_ON_DEMAND
     return handle
            && handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed;
-#else
-    return false;
-#endif
 }
 
 /* \brief

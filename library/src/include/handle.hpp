@@ -47,12 +47,6 @@ typedef void* hipblasLtHandle_t;
 // forcing early cleanup
 extern "C" ROCBLAS_EXPORT void rocblas_shutdown();
 
-// Whether rocBLAS can reallocate device memory on demand, at the cost of only
-// allowing one allocation at a time, and at the cost of potential synchronization.
-// If this is 0, then stack-like allocation is allowed, but reallocation on demand
-// does not occur.
-#define ROCBLAS_REALLOC_ON_DEMAND 1
-
 // Round up size to the nearest MIN_CHUNK_SIZE
 constexpr size_t roundup_device_memory_size(size_t size)
 {
@@ -488,8 +482,9 @@ private:
     size_t                          device_memory_in_use       = 0;
     bool                            device_memory_size_query   = false;
     bool                            alpha_beta_memcpy_complete = false;
-    rocblas_device_memory_ownership device_memory_owner;
-    size_t                          device_memory_query_size;
+    rocblas_device_memory_ownership device_memory_owner
+        = rocblas_device_memory_ownership::rocblas_managed;
+    size_t device_memory_query_size;
 
     bool stream_order_alloc = false;
 
@@ -498,11 +493,6 @@ private:
 
     // rocblas by default take the system default stream 0 users cannot create
     hipStream_t stream = 0;
-
-#if ROCBLAS_REALLOC_ON_DEMAND
-    // Helper for device memory allocator
-    bool ROCBLAS_EXPORT device_allocator(size_t size);
-#endif
 
     // Device ID is created at handle creation time and remains in effect for the life of the handle.
     const int device;
@@ -548,7 +538,9 @@ private:
             {
                 if(!size)
                     return decltype(pointers)(sizeof...(sizes));
+
                 hipError_t hipStatus = hipMallocAsync(&dev_mem, size, stream_in_use);
+
                 if(hipStatus != hipSuccess)
                 {
                     success = false;
@@ -607,7 +599,7 @@ private:
                 for(auto i= 0 ; i < count ; i++)
                     pointers.push_back(status ? dev_mem : nullptr);
             }
-             else if (handle->device_memory_owner == rocblas_device_memory_ownership::user_owned) // user owned
+             else if (handle->device_memory_owner == rocblas_device_memory_ownership::user_owned)
             {
 
                 success = size <= handle->device_memory_size - handle->device_memory_in_use;
@@ -692,6 +684,8 @@ private:
                         rocblas_abort();
                     }
                 }
+
+
                 handle->gsu_workspace_size = 0;
                 handle->gsu_workspace      = nullptr;
             }
