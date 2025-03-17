@@ -215,7 +215,18 @@ namespace
         std::vector<hipblaslt_ext::GemmEpilogue> epilogues(prob.batch_count);
         std::vector<hipblaslt_ext::GemmInputs>   inputs(prob.batch_count);
 
-        for(int batch = 0; batch < prob.batch_count; batch++)
+        int batch_count = prob.batch_count;
+
+        std::vector<TiA const*> batchA(batch_count);
+        std::vector<TiB const*> batchB(batch_count);
+        std::vector<To*>        batchC(batch_count);
+        std::vector<To*>        batchD(batch_count);
+        hipMemcpy(batchA, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batchB, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batchC, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batchD, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+
+        for(int batch = 0; batch < batch_count; batch++)
         {
             Ms[batch]           = prob.m;
             Ns[batch]           = prob.n;
@@ -229,10 +240,10 @@ namespace
             stridecs[batch]     = prob.batch_stride_c;
             strideds[batch]     = prob.batch_stride_d;
             batch_counts[batch] = 1;
-            inputs[batch].a     = (void*)(prob.batch_A[batch] + prob.buffer_offset_a);
-            inputs[batch].b     = (void*)(prob.batch_B[batch] + prob.buffer_offset_b);
-            inputs[batch].c     = (void*)(prob.batch_C[batch] + prob.buffer_offset_c);
-            inputs[batch].d     = (void*)(prob.batch_D[batch] + prob.buffer_offset_d);
+            inputs[batch].a     = (void*)(batch_A[batch] + prob.buffer_offset_a);
+            inputs[batch].b     = (void*)(batch_B[batch] + prob.buffer_offset_b);
+            inputs[batch].c     = (void*)(batch_C[batch] + prob.buffer_offset_c);
+            inputs[batch].d     = (void*)(batch_D[batch] + prob.buffer_offset_d);
             inputs[batch].alpha = (void*)prob.alpha;
             inputs[batch].beta  = (void*)prob.beta;
         }
@@ -484,10 +495,21 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
         auto h_alpha = *(prob.alpha);
         auto h_beta  = *(prob.beta);
 
+        int batch_count = prob.batch_count;
+
+        std::vector<TiA const*> batchA(batch_count);
+        std::vector<TiB const*> batchB(batch_count);
+        std::vector<To*>        batchC(batch_count);
+        std::vector<To*>        batchD(batch_count);
+        hipMemcpy(batchA, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batchB, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batchC, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batchD, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
         gemm.getDefaultValueForDeviceUserArguments(userArgs);
-        for(int batch = 0; batch < prob.batch_count; batch++)
+        for(int batch = 0; batch < batch_count; batch++)
         {
             userArgs[batch].m        = prob.m;
             userArgs[batch].n        = prob.n;
@@ -501,10 +523,10 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
             userArgs[batch].strideC2 = prob.batch_stride_c;
             userArgs[batch].strideD2 = prob.batch_stride_d;
             userArgs[batch].batch    = 1;
-            userArgs[batch].a        = (void*)(prob.batch_A[batch] + prob.buffer_offset_a);
-            userArgs[batch].b        = (void*)(prob.batch_B[batch] + prob.buffer_offset_b);
-            userArgs[batch].c        = (void*)(prob.batch_C[batch] + prob.buffer_offset_c);
-            userArgs[batch].d        = (void*)(prob.batch_D[batch] + prob.buffer_offset_d);
+            userArgs[batch].a        = (void*)(batch_A[batch] + prob.buffer_offset_a);
+            userArgs[batch].b        = (void*)(batch_B[batch] + prob.buffer_offset_b);
+            userArgs[batch].c        = (void*)(batch_C[batch] + prob.buffer_offset_c);
+            userArgs[batch].d        = (void*)(batch_D[batch] + prob.buffer_offset_d);
 
             userArgs[batch].alpha[0] = convertScalarForHipblasLT(h_alpha);
             userArgs[batch].beta[0]  = convertScalarForHipblasLT(h_beta);

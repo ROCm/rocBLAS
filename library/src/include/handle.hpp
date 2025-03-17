@@ -301,23 +301,25 @@ public:
      ******************************************************************************/
     auto useHipBLASLt(bool prob_specific_useHipBLASLt = true)
     {
+        bool status = false;
 
 #ifdef BUILD_WITH_HIPBLASLT
         if(hipblasltEnvVar < 0)
         {
             if(isDefaultHipBLASLtArch())
             {
-                return prob_specific_useHipBLASLt;
+                status = prob_specific_useHipBLASLt;
             }
             else
             {
-                return false;
+                status = false;
             }
         }
-        return hipblasltEnvVar == 1;
-#else
-        return false;
+        else
+            status = hipblasltEnvVar == 1;
 #endif
+
+        return status;
     }
 
     inline int getDefaultDeviceMemorySize()
