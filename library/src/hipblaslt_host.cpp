@@ -217,14 +217,14 @@ namespace
 
         int batch_count = prob.batch_count;
 
-        std::vector<TiA const*> batchA(batch_count);
-        std::vector<TiB const*> batchB(batch_count);
-        std::vector<To*>        batchC(batch_count);
-        std::vector<To*>        batchD(batch_count);
-        hipMemcpy(batchA, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batchB, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batchC, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batchD, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        std::vector<TiA const*> batch_A(batch_count);
+        std::vector<TiB const*> batch_B(batch_count);
+        std::vector<To*>        batch_C(batch_count);
+        std::vector<To*>        batch_D(batch_count);
+        hipMemcpy(batch_A, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batch_B, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batch_C, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batch_D, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
 
         for(int batch = 0; batch < batch_count; batch++)
         {
@@ -497,14 +497,14 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
 
         int batch_count = prob.batch_count;
 
-        std::vector<TiA const*> batchA(batch_count);
-        std::vector<TiB const*> batchB(batch_count);
-        std::vector<To*>        batchC(batch_count);
-        std::vector<To*>        batchD(batch_count);
-        hipMemcpy(batchA, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batchB, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batchC, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batchD, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        std::vector<TiA const*> batch_A(batch_count);
+        std::vector<TiB const*> batch_B(batch_count);
+        std::vector<To*>        batch_C(batch_count);
+        std::vector<To*>        batch_D(batch_count);
+        hipMemcpy(batch_A, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batch_B, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batch_C, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(batch_D, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
 
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
