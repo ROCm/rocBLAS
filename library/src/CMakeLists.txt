@@ -691,7 +691,8 @@ endif()
 if( NOT BUILD_SHARED_LIBS )
   target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 endif()
-
+target_compile_options(rocblas PRIVATE -fgpu-rdc)
+target_link_libraries(rocblas PRIVATE -fgpu-rdc -Xoffload-linker --lto-partitions=16)
 if( BUILD_WITH_TENSILE )
 
   if( BUILD_SHARED_LIBS )
