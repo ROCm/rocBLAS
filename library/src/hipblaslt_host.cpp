@@ -217,14 +217,14 @@ namespace
 
         int batch_count = prob.batch_count;
 
-        std::vector<TiA const*> batch_A(batch_count);
-        std::vector<TiB const*> batch_B(batch_count);
-        std::vector<To*>        batch_C(batch_count);
-        std::vector<To*>        batch_D(batch_count);
-        hipMemcpy(batch_A, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batch_B, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batch_C, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batch_D, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        std::vector<TiA const*> A(batch_count);
+        std::vector<TiB const*> B(batch_count);
+        std::vector<To*>        C(batch_count);
+        std::vector<To*>        D(batch_count);
+        hipMemcpy((void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy((void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy((void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy((void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
 
         for(int batch = 0; batch < batch_count; batch++)
         {
@@ -240,10 +240,10 @@ namespace
             stridecs[batch]     = prob.batch_stride_c;
             strideds[batch]     = prob.batch_stride_d;
             batch_counts[batch] = 1;
-            inputs[batch].a     = (void*)(batch_A[batch] + prob.buffer_offset_a);
-            inputs[batch].b     = (void*)(batch_B[batch] + prob.buffer_offset_b);
-            inputs[batch].c     = (void*)(batch_C[batch] + prob.buffer_offset_c);
-            inputs[batch].d     = (void*)(batch_D[batch] + prob.buffer_offset_d);
+            inputs[batch].a     = (void*)(A[batch] + prob.buffer_offset_a);
+            inputs[batch].b     = (void*)(B[batch] + prob.buffer_offset_b);
+            inputs[batch].c     = (void*)(C[batch] + prob.buffer_offset_c);
+            inputs[batch].d     = (void*)(D[batch] + prob.buffer_offset_d);
             inputs[batch].alpha = (void*)prob.alpha;
             inputs[batch].beta  = (void*)prob.beta;
         }
@@ -497,14 +497,14 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
 
         int batch_count = prob.batch_count;
 
-        std::vector<TiA const*> batch_A(batch_count);
-        std::vector<TiB const*> batch_B(batch_count);
-        std::vector<To*>        batch_C(batch_count);
-        std::vector<To*>        batch_D(batch_count);
-        hipMemcpy(batch_A, prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batch_B, prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batch_C, prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(batch_D, prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        std::vector<TiA const*> A(batch_count);
+        std::vector<TiB const*> B(batch_count);
+        std::vector<To*>        C(batch_count);
+        std::vector<To*>        D(batch_count);
+        hipMemcpy((void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy((void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy((void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy((void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
 
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
@@ -523,10 +523,10 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
             userArgs[batch].strideC2 = prob.batch_stride_c;
             userArgs[batch].strideD2 = prob.batch_stride_d;
             userArgs[batch].batch    = 1;
-            userArgs[batch].a        = (void*)(batch_A[batch] + prob.buffer_offset_a);
-            userArgs[batch].b        = (void*)(batch_B[batch] + prob.buffer_offset_b);
-            userArgs[batch].c        = (void*)(batch_C[batch] + prob.buffer_offset_c);
-            userArgs[batch].d        = (void*)(batch_D[batch] + prob.buffer_offset_d);
+            userArgs[batch].a        = (void*)(A[batch] + prob.buffer_offset_a);
+            userArgs[batch].b        = (void*)(B[batch] + prob.buffer_offset_b);
+            userArgs[batch].c        = (void*)(C[batch] + prob.buffer_offset_c);
+            userArgs[batch].d        = (void*)(D[batch] + prob.buffer_offset_d);
 
             userArgs[batch].alpha[0] = convertScalarForHipblasLT(h_alpha);
             userArgs[batch].beta[0]  = convertScalarForHipblasLT(h_beta);
