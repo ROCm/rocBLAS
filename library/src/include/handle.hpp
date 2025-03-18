@@ -299,7 +299,7 @@ public:
      *   input determines whether ot not to use the hipBLASLt backend.
      * - Otherwise, the hipBLASLt backend is not used.
      ******************************************************************************/
-    auto useHipBLASLt(bool prob_specific_useHipBLASLt = true)
+    bool tryHipBLASLt(bool not_batched)
     {
         bool status = false;
 
@@ -308,11 +308,37 @@ public:
         {
             if(isDefaultHipBLASLtArch())
             {
-                status = prob_specific_useHipBLASLt;
+                if(not_batched)
+                {
+                    status = true;
+                }
+                else
+                {
+                    return !is_stream_in_capture_mode();
+                }
             }
             else
             {
                 status = false;
+            }
+        }
+        else
+            status = hipblasltEnvVar == 1;
+#endif
+
+        return status;
+    }
+
+    bool isHipBLASLtEnabled()
+    {
+        bool status = false;
+
+#ifdef BUILD_WITH_HIPBLASLT
+        if(hipblasltEnvVar < 0)
+        {
+            if(isDefaultHipBLASLtArch())
+            {
+                status = true;
             }
         }
         else

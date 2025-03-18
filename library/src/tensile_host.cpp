@@ -1073,7 +1073,8 @@ bool useHipBLASLt(const RocblasContractionProblem<Ti, To, Tc>& prob)
 {
 #ifdef BUILD_WITH_HIPBLASLT
     // based on environment variables or defaults
-    return prob.handle->useHipBLASLt();
+    bool non_batched = prob.batch_A == nullptr;
+    return prob.handle->tryHipBLASLt(non_batched);
 #else
     return false;
 #endif
