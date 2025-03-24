@@ -221,10 +221,14 @@ namespace
         std::vector<TiB const*> B(batch_count);
         std::vector<To*>        C(batch_count);
         std::vector<To*>        D(batch_count);
-        hipMemcpy((void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy((void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy((void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy((void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        THROW_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
+        THROW_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
+        THROW_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
+        THROW_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
 
         for(int batch = 0; batch < batch_count; batch++)
         {
@@ -501,10 +505,14 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
         std::vector<TiB const*> B(batch_count);
         std::vector<To*>        C(batch_count);
         std::vector<To*>        D(batch_count);
-        hipMemcpy((void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy((void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy((void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy((void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost);
+        RETURN_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(
+            (void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
 
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
