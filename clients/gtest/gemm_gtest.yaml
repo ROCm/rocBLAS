@@ -2377,6 +2377,12 @@ Definitions:
     - { M:   191, N:   193, K:   194, lda:   195, ldb:   196, ldc:   198, ldd:   191 }
     - { M:   500, N:   501, K:   502, lda:   503, ldb:   604, ldc:   550, ldd:   500 }
 
+  - &gemm_ex_gemv_size_range
+    - { scan: [ 1024..4096..1024 ], M: *c_scan_value, N: 1, K: 2048, lda: 8192, ldb: 4096, ldc: *c_scan_value, ldd: *c_scan_value } # non-transpose B
+    - { scan: [ 1024..4096..1024 ], M: *c_scan_value, N: 1, K: 2048, lda: 8192, ldb: 2, ldc: *c_scan_value, ldd: *c_scan_value } # transpose B
+    - { scan: [ 1024..4096..1024 ], M: 1, N: *c_scan_value, K: 2048, lda: 2, ldb: 8192, ldc: 2, ldd: 2 }
+    - { scan: [ 1024..4096..1024 ], M: 1, N: *c_scan_value, K: 2048, lda: 4096, ldb: 8192, ldc: 4096, ldd: 4096 }
+
   - &ldd_transA_transB_range
     - { transA: N, transB: N }
     - { transA: N, transB: T }
@@ -2420,6 +2426,7 @@ Tests:
   transA: N
   transB: N
   api: [ C, FORTRAN ]
+  gpu_arch: '942'
 
 # Tests confirm no NaN propagation when alpha = 0, 2 and beta = 0. Value .NaN is converted into zero
 - {name: alpha_beta_zero_NaN, category: pre_checkin, precision: *single_precision,
@@ -2475,6 +2482,14 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range_small
   api: INTERNAL
+
+- name: gemm_ex_gemv
+  category: pre_checkin
+  function:
+    - gemm_ex: *nonint8_real_precisions
+  matrix_size: *gemm_ex_gemv_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
 
 - name: gemm_small
   category: quick
@@ -3524,7 +3539,7 @@ Tests:
   res_check: 0
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: F8HS_family
   category: quick
@@ -3543,7 +3558,7 @@ Tests:
   res_check: 0
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: F8F8S_family
   category: quick
@@ -3563,7 +3578,7 @@ Tests:
   norm_check: 0
   # flags: [0 , stochastic_rounding] TODO
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage1_unit
   category: quick
@@ -3583,7 +3598,7 @@ Tests:
   res_check: 0
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
   api: [ C, FORTRAN ]
 
 - name: stage1_small
@@ -3600,7 +3615,7 @@ Tests:
   res_check: 0
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage1_unit_SR
   category: quick
@@ -3620,7 +3635,7 @@ Tests:
   norm_check: 0
   flags: [stochastic_rounding]
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage1_small_SR
   category: quick
@@ -3637,7 +3652,7 @@ Tests:
   norm_check: 0
   flags: [stochastic_rounding]
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage1_res
   category: quick
@@ -3656,7 +3671,7 @@ Tests:
   res_check: 1
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage1_res_SR
   category: quick
@@ -3676,7 +3691,7 @@ Tests:
   norm_check: 0
   flags: [stochastic_rounding]
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage2_unit
   category: quick
@@ -3695,7 +3710,7 @@ Tests:
   res_check: 0
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
   api: [ C, FORTRAN ]
 
 - name: stage2_small
@@ -3712,7 +3727,7 @@ Tests:
   res_check: 0
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: stage2_res
   category: quick
@@ -3731,7 +3746,7 @@ Tests:
   res_check: 1
   norm_check: 0
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: gemm_f8_resnet50_NN
   category: nightly
@@ -3763,7 +3778,7 @@ Tests:
   norm_check: 0
   res_check: 1
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: gemm_f8_resnet50_NT
   category: nightly
@@ -3795,7 +3810,7 @@ Tests:
   norm_check: 0
   res_check: 1
   initialization: rand_int_zero_one
-  gpu_arch: '94?'
+  gpu_arch: '942'
 
 - name: gemm_zerok
   category: quick
@@ -3986,6 +4001,16 @@ Tests:
   alpha_beta: *alpha_beta_range
   matrix_size: *medium_matrix_size_range
   use_hipblaslt: 1
+  os_flags: LINUX
+
+- name: non_hipblaslt_f16
+  category: pre_checkin
+  function: gemm_ex
+  precision: *hpa_half_precision
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+  matrix_size: *medium_matrix_size_range
+  use_hipblaslt: 0
   os_flags: LINUX
 
 

@@ -31,7 +31,7 @@
 #include <hipblaslt/hipblaslt.h>
 #endif
 
-#if BUILD_WITH_TENSILE
+#ifdef BUILD_WITH_TENSILE
 #else
 // see TensileHost.cpp for normal rocblas_initialize definition
 // it isn't compiled if not BUILD_WITH_TENSILE so defining here
@@ -106,17 +106,13 @@ static Processor getActiveArch(int deviceId)
     {
         return Processor::gfx90a;
     }
-    else if(deviceString.find("gfx940") != std::string::npos)
-    {
-        return Processor::gfx940;
-    }
-    else if(deviceString.find("gfx941") != std::string::npos)
-    {
-        return Processor::gfx941;
-    }
     else if(deviceString.find("gfx942") != std::string::npos)
     {
         return Processor::gfx942;
+    }
+    else if(deviceString.find("gfx950") != std::string::npos)
+    {
+        return Processor::gfx950;
     }
     else if(deviceString.find("gfx1010") != std::string::npos)
     {
@@ -170,6 +166,9 @@ _rocblas_handle::_rocblas_handle()
 {
     archMajor      = arch / 100; // this may need to switch to string handling in the future
     archMajorMinor = arch / 10;
+          
+    THROW_IF_HIP_ERROR(hipDeviceGetAttribute(
+        &mWarpSize, hipDeviceAttribute_t(hipDeviceAttributeWarpSize), device));
 
     //ROCBLAS_DEFAULT_ATOMICS_MODE
     const char* atomics_mode_env = read_env("ROCBLAS_DEFAULT_ATOMICS_MODE");

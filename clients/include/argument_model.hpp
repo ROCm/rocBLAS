@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,11 @@ bool ArgumentModel_get_log_datatype();
 
 void ArgumentModel_log_frequencies(rocblas_internal_ostream& name_line,
                                    rocblas_internal_ostream& val_line);
+
+void ArgumentModel_log_efficiency(rocblas_internal_ostream& name_line,
+                                  rocblas_internal_ostream& val_line,
+                                  const Arguments&          arg,
+                                  double                    rocblas_gflops);
 
 // ArgumentModel template has a variadic list of argument enums
 template <rocblas_argument... Args>
@@ -88,6 +93,12 @@ public:
         name_line << ",hot_iters";
         val_line << ", " << arg.iters;
 
+        if(arg.solution_index || arg.algo != 0)
+        {
+            name_line << ",solution_index";
+            val_line << ", " << arg.solution_index;
+        }
+
         // append performance fields
         if(gflops != ArgumentLogging::NA_value)
         {
@@ -95,6 +106,7 @@ public:
 
             name_line << ",rocblas-Gflops";
             val_line << ", " << rocblas_gflops;
+            ArgumentModel_log_efficiency(name_line, val_line, arg, rocblas_gflops);
         }
 
         if(gbytes != ArgumentLogging::NA_value)

@@ -789,6 +789,25 @@ struct rocblas_const_batched_t_impl<T, true>
 template <typename T, bool BATCHED>
 using rocblas_const_batched_t = typename rocblas_const_batched_t_impl<T, BATCHED>::type;
 
+// Batched datatype
+template <typename T, bool BATCHED, typename = void>
+struct rocblas_type_from_ptr_t_impl
+{
+    // T should be either a const T* or a T* here
+    using type = typename std::remove_const<std::remove_pointer_t<T>>::type;
+};
+
+template <typename T>
+struct rocblas_type_from_ptr_t_impl<T, true>
+{
+    // T should be either a const T* const* or a T* const* here
+    using T_tmp = typename std::remove_const<std::remove_pointer_t<T>>::type;
+    using type  = typename rocblas_type_from_ptr_t_impl<T_tmp, false>::type;
+};
+
+template <typename T, bool BATCHED>
+using rocblas_type_from_ptr_t = typename rocblas_type_from_ptr_t_impl<T, BATCHED>::type;
+
 // Get array2 types from base type
 template <typename T, typename = void>
 struct rocblas_array2_t_impl
@@ -874,7 +893,7 @@ constexpr double rocblas_internal_value_category(const T& beta)
 bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
 
 // Internal use, whether Device supports xDL math op
-// We assume true if the value is between 940 to 1000
+// We assume true if the value is between 942 to 1000
 ROCBLAS_INTERNAL_EXPORT bool rocblas_internal_tensile_supports_xdl_math_op(rocblas_math_mode mode);
 
 // for internal use during testing, fetch arch name

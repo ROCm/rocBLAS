@@ -87,7 +87,10 @@ rocblas_dot_kernel_inc1(rocblas_int n,
             sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
         }
 
-        sum = rocblas_dot_block_reduce<NB>(sum);
+        if(warpSize == WARP_32)
+            sum = rocblas_dot_block_reduce<WARP_32, NB>(sum);
+        else
+            sum = rocblas_dot_block_reduce<WARP_64, NB>(sum);
 
         rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
 
@@ -154,7 +157,10 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
             }
         }
 
-        sum = rocblas_dot_block_reduce<NB>(sum);
+        if(warpSize == WARP_32)
+            sum = rocblas_dot_block_reduce<WARP_32, NB>(sum);
+        else
+            sum = rocblas_dot_block_reduce<WARP_64, NB>(sum);
 
         rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
 
@@ -205,7 +211,10 @@ rocblas_dot_kernel(rocblas_int n,
             sum += V(y[i * int64_t(incy)])
                    * V(CONJ ? conj(x[i * int64_t(incx)]) : x[i * int64_t(incx)]);
         }
-        sum = rocblas_dot_block_reduce<NB>(sum);
+        if(warpSize == WARP_32)
+            sum = rocblas_dot_block_reduce<WARP_32, NB>(sum);
+        else
+            sum = rocblas_dot_block_reduce<WARP_64, NB>(sum);
 
         rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
 
@@ -253,7 +262,10 @@ rocblas_dot_kernel_gfx942_float_double(rocblas_int n,
     for(; i < (4 * NB * gridDim.x) && i < n; i += NB * gridDim.x)
         sum += V(y[i * int64_t(incy)]) * V(x[i * int64_t(incx)]);
 
-    sum = rocblas_dot_block_reduce<NB>(sum);
+    if(warpSize == WARP_32)
+        sum = rocblas_dot_block_reduce<WARP_32, NB>(sum);
+    else
+        sum = rocblas_dot_block_reduce<WARP_64, NB>(sum);
 
     rocblas_dot_save_sum<false>(sum, blockIdx.z, workspace, out);
 #endif
@@ -296,7 +308,10 @@ rocblas_dot_kernel_magsq(rocblas_int n,
             int64_t idx = i * int64_t(incx);
             sum += V(x[idx]) * V(CONJ ? conj(x[idx]) : x[idx]);
         }
-        sum = rocblas_dot_block_reduce<NB>(sum);
+        if(warpSize == WARP_32)
+            sum = rocblas_dot_block_reduce<WARP_32, NB>(sum);
+        else
+            sum = rocblas_dot_block_reduce<WARP_64, NB>(sum);
 
         rocblas_dot_save_sum<ONE_BLOCK>(sum, batch, workspace, out);
 
@@ -305,37 +320,8 @@ rocblas_dot_kernel_magsq(rocblas_int n,
 #endif
 }
 
-template <int NB, int WIN, typename V, typename T = V>
-ROCBLAS_KERNEL(NB)
-rocblas_dot_kernel_reduce(int n_sums, V* __restrict__ in, T* __restrict__ out)
-{
-    V sum = 0;
-
-    size_t offset = size_t(blockIdx.x) * n_sums;
-    in += offset;
-
-    int inc = NB * WIN;
-
-    int i         = threadIdx.x * WIN;
-    int remainder = n_sums % WIN;
-    int end       = n_sums - remainder;
-    for(; i < end; i += inc) // cover all sums as 1 block
-    {
-        for(int j = 0; j < WIN; j++)
-            sum += in[i + j];
-    }
-    if(threadIdx.x < remainder)
-    {
-        sum += in[n_sums - 1 - threadIdx.x];
-    }
-
-    sum = rocblas_dot_block_reduce<NB>(sum);
-    if(threadIdx.x == 0)
-        out[blockIdx.x] = T(sum);
-}
-
-template <typename API_INT, int NB_X, int NB_Y, bool CONJ, typename V, typename T, typename U>
-ROCBLAS_KERNEL(NB_X* NB_Y)
+template <typename API_INT, int WARP, int NB_Y, bool CONJ, typename V, typename T, typename U>
+ROCBLAS_KERNEL(WARP* NB_Y)
 rocblas_dot_batched_4_kernel(rocblas_int n,
                              const U __restrict__ xa,
                              rocblas_stride shiftx,
@@ -359,7 +345,7 @@ rocblas_dot_batched_4_kernel(rocblas_int n,
 
     V reg_x = V(0), reg_y = V(0), sum = V(0);
 
-    for(int tid = threadIdx.x; tid < n; tid += NB_X)
+    for(int tid = threadIdx.x; tid < n; tid += WARP)
     {
         reg_x = V(CONJ ? conj(x[tid * int64_t(incx)]) : x[tid * int64_t(incx)]);
         reg_y = V(y[tid * int64_t(incy)]);
@@ -367,7 +353,7 @@ rocblas_dot_batched_4_kernel(rocblas_int n,
     }
     __syncthreads();
 
-    sum = rocblas_wavefront_reduce<NB_X>(sum); // sum over wavefront
+    sum = rocblas_wavefront_reduce<WARP>(sum); // sum over wavefront
 
     if(threadIdx.x == 0)
         out[batch] = T(sum);
@@ -422,9 +408,7 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
 
     //Identifying the architecture to have an appropriate optimization
     int  arch_major = handle->getArchMajor();
-    bool is_arch_10_or_11_or_12
-        = arch_major == 10 || arch_major == 11 || arch_major == 12 ? true : false;
-    bool is_gfx942 = handle->getArch() == 942 ? true : false;
+    bool is_gfx942  = handle->getArch() == 942 ? true : false;
 
     static constexpr int WIN = rocblas_dot_WIN<T>();
 
@@ -448,15 +432,12 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
             output        = (T*)(workspace + offset);
         }
 
-        if(is_arch_10_or_11_or_12)
+        if(handle->getWarpSize() == WARP_32)
         {
-            static constexpr int NB_X
-                = 32; // warpSize for (gfx10xx/gfx11xx/gfx12xx) is 32 and the rest is 64
-
             // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
-            dim3 threads(NB_X, NB_Y);
+            dim3 threads(WARP_32, NB_Y);
 
-            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, NB_X, NB_Y, CONJ, V>),
+            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, WARP_32, NB_Y, CONJ, V>),
                                   grid,
                                   threads,
                                   0,
@@ -475,13 +456,10 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         }
         else
         {
-            static constexpr int NB_X
-                = 64; // warpSize for (gfx10xx/gfx11xx/gfx12xx) is 32 and the rest is 64
-
             // threadIdx.x all work on same batch index, threadIdx.y used for batch idx selection
-            dim3 threads(NB_X, NB_Y);
+            dim3 threads(WARP_64, NB_Y);
 
-            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, NB_X, NB_Y, CONJ, V>),
+            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_batched_4_kernel<API_INT, WARP_64, NB_Y, CONJ, V>),
                                   grid,
                                   threads,
                                   0,
@@ -637,14 +615,15 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
                               workspace,
                               output);
 
-        ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_reduce<DOT_NB, DOT_NELEM>),
-                              dim3(batch_count),
-                              threads,
-                              0,
-                              handle->get_stream(),
-                              blocks,
-                              workspace,
-                              output);
+        ROCBLAS_LAUNCH_KERNEL(
+            (rocblas_reduction_kernel_part2<DOT_NB, DOT_NELEM, rocblas_finalize_identity>),
+            dim3(batch_count),
+            threads,
+            0,
+            handle->get_stream(),
+            blocks,
+            workspace,
+            output);
 
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
@@ -733,14 +712,15 @@ rocblas_status rocblas_internal_dot_launcher(rocblas_handle __restrict__ handle,
         }
 
         if(blocks > 1) // if single block first kernel did all work
-            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_reduce<NB, WIN>),
-                                  dim3(batch_count),
-                                  threads,
-                                  0,
-                                  handle->get_stream(),
-                                  blocks,
-                                  workspace,
-                                  output);
+            ROCBLAS_LAUNCH_KERNEL(
+                (rocblas_reduction_kernel_part2<NB, WIN, rocblas_finalize_identity>),
+                dim3(batch_count),
+                threads,
+                0,
+                handle->get_stream(),
+                blocks,
+                workspace,
+                output);
 
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
