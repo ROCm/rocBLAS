@@ -1138,15 +1138,15 @@ rocblas_status
             else
             {
                 rocblas_internal_ostream msg;
-                print_if_verbose(
-                    msg << "rocBLAS warning: hipBlasLT failed, falling back to tensile. ");
+                print_if_verbose(msg
+                                 << "rocBLAS warning: hipBlasLT failed, falling back to tensile. ");
             }
         }
         catch(...)
         {
             rocblas_internal_ostream msg;
             print_if_verbose(msg << "rocBLAS warning: hipBlasLT exception encountered, falling "
-                "back to tensile. ");
+                                    "back to tensile. ");
         }
     }
 #endif
