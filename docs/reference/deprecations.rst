@@ -14,7 +14,7 @@ Removed in rocBLAS 5.0
 =========================
 
 rocblas_gemm_ex3, gemm_batched_ex3 and gemm_strided_batched_ex3 removed
-'''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 ``rocblas_gemm_ex3``, ``gemm_batched_ex3``, and ``gemm_strided_batched_ex3`` API functions were removed in 5.0.
 
