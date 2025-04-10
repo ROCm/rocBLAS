@@ -938,7 +938,6 @@ Tests:
     - { M:  63,  N:  512 }
   pointer_mode_host: false
   batch_count: 1
-  stride_scale: [ 1 ]
 
 - name: gemm_ex_large_batch
   category: stress
@@ -953,7 +952,6 @@ Tests:
   transB: [ N, T ]
   alpha: 1
   beta: 1
-  stride_scale: [ 1 ]
 
 - name: gemm_strided_batched_graph_test
   category: pre_checkin
@@ -967,7 +965,6 @@ Tests:
   transB: N
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
-  stride_scale: [ 1 ]
   graph_test: true
 
 - name: gemm_strided_batched_ILP64
@@ -984,7 +981,6 @@ Tests:
   batch_count: *c_grid_yz_require_passes
   alpha: 1
   beta: 1
-  stride_scale: [ 1 ]
   api: [ C_64 ]
   os_flags: LINUX
 
@@ -1000,7 +996,6 @@ Tests:
   transB: [ T ]
   alpha: 1
   beta: 1
-  stride_scale: [ 1 ]
   api: [ C_64 ]
   os_flags: LINUX
 
