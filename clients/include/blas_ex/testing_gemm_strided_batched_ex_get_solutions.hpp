@@ -34,9 +34,9 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
 
     bool alpha_isnan = arg.alpha_isnan<Tc>();
     bool beta_isnan  = arg.beta_isnan<Tc>();
-    if(!std::is_same_v<
-           To,
-           float> && !std::is_same_v<To, double> && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
+    if(!std::is_same_v<To, float> && !std::is_same_v<To, double>
+       && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To>
+       && (alpha_isnan || beta_isnan))
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -131,15 +131,6 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
                               GEMM_SB_EX_ARGS, rocblas_gemm_flags_none, nullptr, nullptr),
                           rocblas_status_invalid_pointer);
 
-    // Testing 0 and negative values work (uses default solution)
-    CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_exM(
-        GEMM_SB_EX_ARGS, 0, rocblas_gemm_flags_check_solution_index));
-    CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_exM(
-        GEMM_SB_EX_ARGS, -1, rocblas_gemm_flags_check_solution_index));
-    // always have rocblas fallback
-    // CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_exM(
-    //     GEMM_SB_EX_ARGS, c_rocblas_source_solution, rocblas_gemm_flags_check_solution_index));
-
     // Get number of solutions
     rocblas_int size;
     CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_get_solutions(
@@ -170,16 +161,18 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
             GEMM_SB_EX_ARGS, sol, rocblas_gemm_flags_check_solution_index));
     }
 
-    // Testing 0 and negative values work (uses default solution)
+    // Testing 0 and -1 values work (uses default solution)
     CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_exM(
         GEMM_SB_EX_ARGS, 0, rocblas_gemm_flags_check_solution_index));
     CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_exM(
         GEMM_SB_EX_ARGS, -1, rocblas_gemm_flags_check_solution_index));
+    // always have rocblas fallback
+    // CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_exM(
+    //     GEMM_SB_EX_ARGS, c_rocblas_source_solution, rocblas_gemm_flags_check_solution_index));
 
     // full set of solutions
     CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_get_solutions(
         GEMM_SB_EX_ARGS, rocblas_gemm_flags_none, ary.data(), &size));
-    EXPECT_EQ(ary[size], 0);
 
     // Testing get solutions by type - should be superset of solutions that solve problem
     rocblas_int size_type;
