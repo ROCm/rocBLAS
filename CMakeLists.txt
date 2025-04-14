@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "4.5.0" )
+set ( VERSION_STRING "5.0.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -110,14 +110,16 @@ list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /
 # setting target list based on ROCm version
 if (NOT BUILD_ADDRESS_SANITIZER)
   set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-  set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-  set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+  set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+  set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
   set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
+  set( TARGET_LIST_ROCM_6.5 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
 else()
   set( TARGET_LIST_ROCM_5.6 "gfx908:xnack+;gfx90a:xnack+")
   set( TARGET_LIST_ROCM_5.7 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
   set( TARGET_LIST_ROCM_6.0 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
   set( TARGET_LIST_ROCM_6.3 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
+  set( TARGET_LIST_ROCM_6.5 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+;gfx950:xnack+")
 endif()
 
 if(ROCM_PLATFORM_VERSION)
@@ -127,13 +129,15 @@ if(ROCM_PLATFORM_VERSION)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_5.7}")
   elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.3.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.0}")
-  else()
+  elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.5.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
+  else()
+    set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.5}")
   endif()
   message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} default supported gfx list")
 else()
   message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} is not set, using latest supported gfx list")
-  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
+  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.5}")
 endif()
 
 if( AMDGPU_TARGETS AND NOT GPU_TARGETS )
@@ -171,7 +175,7 @@ set( AMDGPU_TARGETS "${GPU_TARGETS}" CACHE STRING "List of GPUs (gfx targets) to
 
 option( BUILD_WITH_HIPBLASLT "Build with HipBLASLt" ON )
 set( hipblaslt_path "/opt/rocm" CACHE PATH "Use local HipBLASLt directory" )
-set( HIPBLASLT_VERSION 0.10 CACHE STRING "The version of HipBLASLt to be used" )
+set( HIPBLASLT_VERSION 0.13 CACHE STRING "The version of HipBLASLt to be used" )
 
 if( WIN32 OR NOT BUILD_WITH_TENSILE OR NOT BUILD_SHARED_LIBS )
   set( BUILD_WITH_HIPBLASLT OFF )
@@ -203,7 +207,7 @@ if(NOT SKIP_LIBRARY)
 
     list_replace( Tensile_ARCHITECTURE "gfx90a" "gfx90a:xnack+\;gfx90a:xnack-")
 
-    set( TENSILE_VERSION 4.43.0 CACHE STRING "The version of Tensile to be used")
+    set( TENSILE_VERSION 4.44.0 CACHE STRING "The version of Tensile to be used")
 
     if(BUILD_WITH_PIP)
       if (WIN32)
@@ -397,19 +401,18 @@ rocm_create_package(
 if(BUILD_CODE_COVERAGE)
   #
   # > make coverage_cleanup (clean coverage related files.)
-  # > make coverage GTEST_FILTER=<>
-  # will run:
-  #  > make coverage_analysis GTEST_FILTER=<> (analyze tests)
-  #  > make coverage_output (generate html documentation)
   #
+  # > make coverage
+  # will run:
+  #  > make coverage_analysis (analyze tests)
+  #  > make coverage_output (generate html documentation)
   #
 
   #
-  # Run coverage analysis
+  # Run coverage analysis (rtest.xml sets specify coverage runs)
   #
   add_custom_target(coverage_analysis
-    COMMAND echo Coverage GTEST_FILTER=\${GTEST_FILTER}
-    COMMAND ./clients/staging/rocblas-test --gtest_filter=\"\${GTEST_FILTER}\"
+    COMMAND ${python} ./clients/staging/rocblas_rtest.py -t code_coverage
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 

@@ -53,12 +53,6 @@ namespace
     constexpr auto hipblaslt_datatype<int32_t> = HIP_R_32I;
 
     template <>
-    constexpr auto hipblaslt_datatype<rocblas_f8> = HIP_R_8F_E4M3_FNUZ;
-
-    template <>
-    constexpr auto hipblaslt_datatype<rocblas_bf8> = HIP_R_8F_E5M2_FNUZ;
-
-    template <>
     constexpr auto hipblaslt_datatype<rocblas_half> = HIP_R_16F;
 
     template <>
@@ -115,41 +109,31 @@ namespace
     /**************************************************************************
     * We normally print error messages only once, to avoid excessive logging *
     **************************************************************************/
-    void print_once(const rocblas_internal_ostream& msg)
+    void print_if_verbose(const rocblas_internal_ostream& msg)
     {
         if(rocblas_suppress_tensile_error_messages())
             return;
         static constexpr char varname[] = "ROCBLAS_VERBOSE_HIPBLASLT_ERROR";
         static const char*    verbose   = getenv(varname);
-        if(!verbose)
+        if(verbose)
         {
-            static auto& once = rocblas_cerr
-                                << msg
-                                << "\nThis message will be only be displayed once, unless the "
-                                << varname << " environment variable is set." << std::endl;
+            rocblas_cerr << std::endl << msg << std::endl;
         }
-        else
-            rocblas_cerr << msg << std::endl;
     }
 
     /****************************************************************
      * Construct a HipBlasLT GEMM from a RocblasContractionProblem *
      ****************************************************************/
-    template <typename TiA,
-              typename To,
-              typename Tc,
-              typename TiB = TiA,
-              typename TcA = TiA,
-              typename TcB = TiA>
-    auto ConstructHipBlasLTGemm(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob)
+    template <typename Ti, typename To, typename Tc>
+    auto ConstructHipBlasLTGemm(const RocblasContractionProblem<Ti, To, Tc>& prob)
     {
         hipblasLtHandle_t& handle = *(prob.handle->getHipblasLtHandle());
 
         hipblaslt_ext::Gemm gemm(handle,
                                  (hipblasOperation_t)prob.trans_a,
                                  (hipblasOperation_t)prob.trans_b,
-                                 hipblaslt_datatype<TiA>,
-                                 hipblaslt_datatype<TiB>,
+                                 hipblaslt_datatype<Ti>,
+                                 hipblaslt_datatype<Ti>,
                                  hipblaslt_datatype<To>,
                                  hipblaslt_datatype<To>,
                                  hipblaslt_compute_type<Tc>);
@@ -157,8 +141,8 @@ namespace
         hipblaslt_ext::GemmProblemType problemType;
         problemType.op_a         = (hipblasOperation_t)prob.trans_a;
         problemType.op_b         = (hipblasOperation_t)prob.trans_b;
-        problemType.type_a       = hipblaslt_datatype<TiA>;
-        problemType.type_b       = hipblaslt_datatype<TiB>;
+        problemType.type_a       = hipblaslt_datatype<Ti>;
+        problemType.type_b       = hipblaslt_datatype<Ti>;
         problemType.type_c       = hipblaslt_datatype<To>;
         problemType.type_d       = hipblaslt_datatype<To>;
         problemType.type_compute = hipblaslt_compute_type<Tc>;
@@ -193,22 +177,16 @@ namespace
     /****************************************************************
      * Construct a HipBlasLT Groupped GEMM from a RocblasContractionProblem *
      ****************************************************************/
-    template <typename TiA,
-              typename To,
-              typename Tc,
-              typename TiB = TiA,
-              typename TcA = TiA,
-              typename TcB = TiA>
-    auto ConstructHipBlasLTGroupedGemm(
-        const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob)
+    template <typename Ti, typename To, typename Tc>
+    auto ConstructHipBlasLTGroupedGemm(const RocblasContractionProblem<Ti, To, Tc>& prob)
     {
         hipblasLtHandle_t& handle = *(prob.handle->getHipblasLtHandle());
 
         hipblaslt_ext::GroupedGemm gemm(handle,
                                         (hipblasOperation_t)prob.trans_a,
                                         (hipblasOperation_t)prob.trans_b,
-                                        hipblaslt_datatype<TiA>,
-                                        hipblaslt_datatype<TiB>,
+                                        hipblaslt_datatype<Ti>,
+                                        hipblaslt_datatype<Ti>,
                                         hipblaslt_datatype<To>,
                                         hipblaslt_datatype<To>,
                                         hipblaslt_compute_type<Tc>);
@@ -216,8 +194,8 @@ namespace
         hipblaslt_ext::GemmProblemType problemType;
         problemType.op_a         = (hipblasOperation_t)prob.trans_a;
         problemType.op_b         = (hipblasOperation_t)prob.trans_b;
-        problemType.type_a       = hipblaslt_datatype<TiA>;
-        problemType.type_b       = hipblaslt_datatype<TiB>;
+        problemType.type_a       = hipblaslt_datatype<Ti>;
+        problemType.type_b       = hipblaslt_datatype<Ti>;
         problemType.type_c       = hipblaslt_datatype<To>;
         problemType.type_d       = hipblaslt_datatype<To>;
         problemType.type_compute = hipblaslt_compute_type<Tc>;
@@ -300,15 +278,16 @@ namespace
         if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
         {
             hipblasLtHandle_t& handle = *(probHandle->getHipblasLtHandle());
-            std::vector<int>   solution_index_vec(1,
-                                                solution_index - 1); // -1 maps to hipblasLt indices
+            // indx - 1 maps to zero based hipblasLt indices
+            std::vector<int> solution_index_vec(1, solution_index - 1);
             if(hipblaslt_ext::getAlgosFromIndex(handle, solution_index_vec, heuristicResults)
                != HIPBLAS_STATUS_SUCCESS)
             {
                 if(!solution_query)
                 {
                     rocblas_internal_ostream msg;
-                    print_once(msg << "hipBLASLt error: Cannot find specified solution index!");
+                    print_if_verbose(
+                        msg << "rocBLAS warning: hipBLASLt cannot find specified solution index!");
                     return rocblas_status_invalid_value;
                 }
                 else
@@ -320,7 +299,7 @@ namespace
                 if(!solution_query)
                 {
                     rocblas_internal_ostream msg;
-                    print_once(msg << "rocBLAS error: No hipBLASLt solution found");
+                    print_if_verbose(msg << "rocBLAS warning: No hipBLASLt solution found");
                     return rocblas_status_invalid_value;
                 }
                 else
@@ -336,7 +315,7 @@ namespace
                 if(!solution_query)
                 {
                     rocblas_internal_ostream msg;
-                    print_once(msg << "hipBLASLt error: Heuristic Fetch Failed!");
+                    print_if_verbose(msg << "rocBLAS error: hipBLASLt heuristic fetch failed!");
                     return rocblas_status_internal_error;
                 }
                 else
@@ -348,7 +327,7 @@ namespace
                 if(!solution_query)
                 {
                     rocblas_internal_ostream msg;
-                    print_once(msg << "rocBLAS error: No hipBLASLt solution found");
+                    print_if_verbose(msg << "rocBLAS warning: No hipBLASLt solution found");
                     return rocblas_status_not_implemented;
                 }
                 else
@@ -369,7 +348,7 @@ namespace
                     if(!solution_query)
                     {
                         rocblas_internal_ostream msg;
-                        print_once(msg << "hipBLASLt error: algo not supported.");
+                        print_if_verbose(msg << "rocBLAS warning: hipBLASLt algo not supported.");
                         return rocblas_status_invalid_value;
                     }
                     else
@@ -388,7 +367,8 @@ namespace
                 if(!solution_query)
                 {
                     rocblas_internal_ostream msg;
-                    print_once(msg << "hipblaslt: algo not supported: insufficient workspace.");
+                    print_if_verbose(msg << "rocBLAS warning: hipBLASLt algo not supported: "
+                                            "insufficient workspace.");
                     return rocblas_status_invalid_value;
                 }
                 else
@@ -401,17 +381,17 @@ namespace
         else
             return rocblas_status_success;
     }
+
 } // namespace
 
 /******************************************************************************
  * runContractionProblemHipBlasLT calls Hipblaslt to run a contraction problem described *
  * by RocblasContractionProblem                                               *
  ******************************************************************************/
-template <typename TiA, typename To, typename Tc, typename TiB, typename TcA, typename TcB>
-rocblas_status runContractionProblemHipBlasLT(
-    const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob,
-    rocblas_gemm_algo                                            algo,
-    int32_t                                                      solution_index)
+template <typename Ti, typename To, typename Tc>
+rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                                              rocblas_gemm_algo                            algo,
+                                              int32_t solution_index)
 {
     bool solution_query = algo == rocblas_gemm_algo_solution_index
                           && prob.flags & rocblas_gemm_flags_check_solution_index;
@@ -451,13 +431,13 @@ rocblas_status runContractionProblemHipBlasLT(
         if(gemm.initialize(heuristicResult.algo, d_workspace, false) != HIPBLAS_STATUS_SUCCESS)
         {
             rocblas_internal_ostream msg;
-            print_once(msg << "hipBLASLt error: hipBLASLt Initialization Failed!");
+            print_if_verbose(msg << "rocBLAS error: hipBLASLt initialization failed!");
             return rocblas_status_internal_error;
         }
         if(gemm.run(prob.handle->get_stream()) != HIPBLAS_STATUS_SUCCESS)
         {
             rocblas_internal_ostream msg;
-            print_once(msg << "hipBLASLt error: hipBLASLt Execution Failed!");
+            print_if_verbose(msg << "rocBLAS warning: hipBLASLt execution failed!");
             return rocblas_status_internal_error;
         }
     }
@@ -497,7 +477,7 @@ rocblas_status runContractionProblemHipBlasLT(
         if(gemm.initialize(heuristicResult.algo, d_workspace, false) != HIPBLAS_STATUS_SUCCESS)
         {
             rocblas_internal_ostream msg;
-            print_once(msg << "hipBLASLt error: hipBLASLt Initialization Failed!");
+            print_if_verbose(msg << "rocBLAS error: hipBLASLt initialization failed!");
             return rocblas_status_internal_error;
         }
 
@@ -540,31 +520,23 @@ rocblas_status runContractionProblemHipBlasLT(
         if(gemm.run(d_userArgs, prob.handle->get_stream()) != HIPBLAS_STATUS_SUCCESS)
         {
             rocblas_internal_ostream msg;
-            print_once(msg << "hipBLASLt error: hipBLASLt Execution Failed!");
+            print_if_verbose(msg << "rocBLAS warning: hipBLASLt execution failed!");
             return rocblas_status_internal_error;
         }
     }
     return rocblas_status_success;
 }
 
-template <typename TiA, typename To, typename Tc, typename TiB, typename TcA, typename TcB>
-rocblas_status
-    getAllSolutionsHipBlasLT(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob,
-                             rocblas_tensile_get_solution_option                          option,
-                             rocblas_int* list_array,
-                             rocblas_int* list_size)
+template <typename Ti, typename To, typename Tc>
+rocblas_status getAllSolutionsHipBlasLT(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                                        rocblas_tensile_get_solution_option          option,
+                                        rocblas_int*                                 list_array,
+                                        rocblas_int*                                 list_size)
 {
 
-    if(list_size == nullptr)
-    {
-        return rocblas_status_invalid_pointer;
-    }
-
-    hipblasLtHandle_t& handle     = *(prob.handle->getHipblasLtHandle());
-    rocblas_int        added_sols = 0;
-
-    constexpr bool is_complex = rocblas_is_complex<TiA> || rocblas_is_complex<Tc>;
+    constexpr bool is_complex = rocblas_is_complex<Ti> || rocblas_is_complex<Tc>;
     rocblas_status status     = rocblas_status_success;
+    int            added_sols = 0;
 
     if(is_complex)
     {
@@ -574,116 +546,146 @@ rocblas_status
             *list_size = 0;
         }
     }
-    else if(option == MATCHES_TYPE)
+    else
     {
-        std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults;
-        std::vector<hipblasOperation_t> ops = {HIPBLAS_OP_N, HIPBLAS_OP_T, HIPBLAS_OP_C};
+        hipblasLtHandle_t& handle = *(prob.handle->getHipblasLtHandle());
 
-        for(auto op1 : ops)
+        auto map_hipblaslt_to_rocblas_index = [](auto h) {
+            // -1 getIndexFromAlgo if index is less than zero
+            rocblas_int idx = hipblaslt_ext::getIndexFromAlgo(h.algo);
+            if(idx < 0)
+                return c_rocblas_bad_solution_index; // flag with bad index
+            return idx + 1; // convert to one based index
+        };
+
+        if(option == MATCHES_TYPE)
         {
-            for(auto op2 : ops)
+            std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults;
+            std::vector<hipblasOperation_t> ops = {HIPBLAS_OP_N, HIPBLAS_OP_T, HIPBLAS_OP_C};
+
+            for(auto op1 : ops)
             {
-                std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults_temp;
-                auto fetch = hipblaslt_ext::getAllAlgos(handle,
-                                                        hipblaslt_ext::GemmType::HIPBLASLT_GEMM,
-                                                        op1,
-                                                        op2,
-                                                        hipblaslt_datatype<TiA>,
-                                                        hipblaslt_datatype<TiB>,
-                                                        hipblaslt_datatype<To>,
-                                                        hipblaslt_datatype<To>,
-                                                        hipblaslt_compute_type<Tc>,
-                                                        heuristicResults_temp);
-
-                heuristicResults.insert(heuristicResults.end(),
-                                        heuristicResults_temp.begin(),
-                                        heuristicResults_temp.end());
-            }
-        }
-
-        // Convert to indexes and remove duplicates.
-        std::vector<rocblas_int> heuristicIndexes(heuristicResults.size());
-        std::transform(heuristicResults.begin(),
-                       heuristicResults.end(),
-                       heuristicIndexes.begin(),
-                       [](auto x) { return hipblaslt_ext::getIndexFromAlgo(x.algo) + 1; });
-        std::sort(heuristicIndexes.begin(), heuristicIndexes.end());
-        auto itr = std::unique(heuristicIndexes.begin(), heuristicIndexes.end());
-        heuristicIndexes.resize(std::distance(heuristicIndexes.begin(), itr));
-
-        if(list_array == nullptr)
-        {
-            *list_size = heuristicIndexes.size();
-        }
-        else
-        {
-            auto it = heuristicIndexes.begin();
-            while(added_sols < *list_size && it != heuristicIndexes.end())
-            {
-                list_array[added_sols] = *it;
-                ++added_sols;
-                ++it;
-            }
-        }
-
-        return rocblas_status_success;
-    }
-    else if(option == CAN_SOLVE)
-    {
-        std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults;
-        auto                                          fetch = hipblaslt_ext::getAllAlgos(handle,
-                                                hipblaslt_ext::GemmType::HIPBLASLT_GEMM,
-                                                (hipblasOperation_t)prob.trans_a,
-                                                (hipblasOperation_t)prob.trans_b,
-                                                hipblaslt_datatype<TiA>,
-                                                hipblaslt_datatype<TiB>,
-                                                hipblaslt_datatype<To>,
-                                                hipblaslt_datatype<To>,
-                                                hipblaslt_compute_type<Tc>,
-                                                heuristicResults);
-
-        std::shared_ptr<hipblaslt_ext::GemmInstance> gemm;
-
-        if(prob.batch_A == 0)
-        {
-            gemm = std::make_shared<hipblaslt_ext::GemmInstance>(ConstructHipBlasLTGemm(prob));
-        }
-        else
-        {
-            gemm = std::make_shared<hipblaslt_ext::GemmInstance>(
-                ConstructHipBlasLTGroupedGemm(prob));
-        }
-
-        size_t retSize   = heuristicResults.size();
-        size_t iter_size = list_array == nullptr ? retSize : *list_size;
-
-        auto   it = heuristicResults.begin();
-        size_t tmpWorkspaceSize;
-        while(added_sols < iter_size && it != heuristicResults.end())
-        {
-            if(gemm->isAlgoSupported(it->algo, tmpWorkspaceSize) == HIPBLAS_STATUS_SUCCESS)
-            {
-                if(list_array != nullptr)
+                for(auto op2 : ops)
                 {
-                    list_array[added_sols] = hipblaslt_ext::getIndexFromAlgo(it->algo) + 1;
-                    ++added_sols;
+                    std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults_temp;
+                    auto fetch = hipblaslt_ext::getAllAlgos(handle,
+                                                            hipblaslt_ext::GemmType::HIPBLASLT_GEMM,
+                                                            op1,
+                                                            op2,
+                                                            hipblaslt_datatype<Ti>,
+                                                            hipblaslt_datatype<Ti>,
+                                                            hipblaslt_datatype<To>,
+                                                            hipblaslt_datatype<To>,
+                                                            hipblaslt_compute_type<Tc>,
+                                                            heuristicResults_temp);
+
+                    heuristicResults.insert(heuristicResults.end(),
+                                            heuristicResults_temp.begin(),
+                                            heuristicResults_temp.end());
                 }
+            }
+
+            // Convert to indexes and remove duplicates.
+            std::vector<rocblas_int> heuristicIndexes(heuristicResults.size());
+            std::transform(heuristicResults.begin(),
+                           heuristicResults.end(),
+                           heuristicIndexes.begin(),
+                           map_hipblaslt_to_rocblas_index);
+            std::sort(heuristicIndexes.begin(), heuristicIndexes.end());
+            auto itr = std::unique(heuristicIndexes.begin(), heuristicIndexes.end());
+            heuristicIndexes.resize(std::distance(heuristicIndexes.begin(), itr));
+            if(!heuristicIndexes.empty() && heuristicIndexes.back() == c_rocblas_bad_solution_index)
+            {
+                heuristicIndexes.pop_back();
+            }
+
+            if(list_array == nullptr)
+            {
+                *list_size = heuristicIndexes.size();
             }
             else
             {
-                --retSize;
+                auto it = heuristicIndexes.begin();
+                while(added_sols < *list_size && it != heuristicIndexes.end())
+                {
+                    list_array[added_sols++] = *it;
+                    ++it;
+                }
+                int i = added_sols;
+                while(i < *list_size)
+                {
+                    list_array[i++] = c_rocblas_default_solution;
+                }
             }
-            ++it;
         }
-
-        if(list_array == nullptr)
+        else if(option == CAN_SOLVE)
         {
-            *list_size = retSize;
+            std::vector<hipblasLtMatmulHeuristicResult_t> heuristicResults;
+            auto                                          fetch = hipblaslt_ext::getAllAlgos(handle,
+                                                    hipblaslt_ext::GemmType::HIPBLASLT_GEMM,
+                                                    (hipblasOperation_t)prob.trans_a,
+                                                    (hipblasOperation_t)prob.trans_b,
+                                                    hipblaslt_datatype<Ti>,
+                                                    hipblaslt_datatype<Ti>,
+                                                    hipblaslt_datatype<To>,
+                                                    hipblaslt_datatype<To>,
+                                                    hipblaslt_compute_type<Tc>,
+                                                    heuristicResults);
+
+            std::shared_ptr<hipblaslt_ext::GemmInstance> gemm;
+
+            if(prob.batch_A == 0)
+            {
+                gemm = std::make_shared<hipblaslt_ext::GemmInstance>(ConstructHipBlasLTGemm(prob));
+            }
+            else
+            {
+                gemm = std::make_shared<hipblaslt_ext::GemmInstance>(
+                    ConstructHipBlasLTGroupedGemm(prob));
+            }
+
+            size_t retSize   = heuristicResults.size();
+            size_t iter_size = list_array == nullptr ? retSize : *list_size;
+
+            auto   it = heuristicResults.begin();
+            size_t tmpWorkspaceSize;
+            while(added_sols < iter_size && it != heuristicResults.end())
+            {
+                if(gemm->isAlgoSupported(it->algo, tmpWorkspaceSize) == HIPBLAS_STATUS_SUCCESS)
+                {
+                    if(list_array != nullptr)
+                    {
+                        int solution_index = map_hipblaslt_to_rocblas_index(*it);
+                        if(solution_index != c_rocblas_bad_solution_index)
+                            list_array[added_sols++] = solution_index;
+                        else
+                            --retSize;
+                    }
+                }
+                else
+                {
+                    --retSize;
+                }
+                ++it;
+            }
+
+            if(list_array == nullptr)
+            {
+                *list_size = retSize;
+            }
+            else
+            {
+                int i = added_sols;
+                while(i < *list_size)
+                {
+                    list_array[i++] = c_rocblas_default_solution;
+                }
+            }
         }
-    }
-    else
-    {
-        return rocblas_status_invalid_value;
+        else
+        {
+            return rocblas_status_invalid_value;
+        }
     }
 
     // inject rocblas source-code gemv if applicable
@@ -723,116 +725,6 @@ template rocblas_status
     runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_double_complex>&,
                                    rocblas_gemm_algo algo,
                                    int32_t           solution_index);
-
-// EX types
-
-// f8 case0: Ti=f8 Tc=To=f32
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_f8, float, float>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(
-    const RocblasContractionProblem<rocblas_f8, rocblas_half, float>&,
-    rocblas_gemm_algo algo,
-    int32_t           solution_index);
-
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_f8, rocblas_f8, float>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_bf8, float, float>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(
-    const RocblasContractionProblem<rocblas_bf8, rocblas_half, float>&,
-    rocblas_gemm_algo algo,
-    int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(
-    const RocblasContractionProblem<rocblas_bf8, rocblas_bf8, float>&,
-    rocblas_gemm_algo algo,
-    int32_t           solution_index);
-
-//hybrid // Change of f8 parameter convention in order to support existing usage
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_f8,
-                                                                   float,
-                                                                   float,
-                                                                   rocblas_bf8,
-                                                                   rocblas_f8,
-                                                                   rocblas_bf8>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_f8,
-                                                                   rocblas_half,
-                                                                   float,
-                                                                   rocblas_bf8,
-                                                                   rocblas_f8,
-                                                                   rocblas_bf8>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_bf8,
-                                                                                       float,
-                                                                                       float,
-                                                                                       rocblas_f8,
-                                                                                       rocblas_bf8,
-                                                                                       rocblas_f8>&,
-                                                       rocblas_gemm_algo algo,
-                                                       int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_bf8,
-                                                                                       rocblas_half,
-                                                                                       float,
-                                                                                       rocblas_f8,
-                                                                                       rocblas_bf8,
-                                                                                       rocblas_f8>&,
-                                                       rocblas_gemm_algo algo,
-                                                       int32_t           solution_index);
-
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_f8,
-                                                                   rocblas_f8,
-                                                                   float,
-                                                                   rocblas_bf8,
-                                                                   rocblas_f8,
-                                                                   rocblas_bf8>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status
-    runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_f8,
-                                                                   rocblas_bf8,
-                                                                   float,
-                                                                   rocblas_bf8,
-                                                                   rocblas_f8,
-                                                                   rocblas_bf8>&,
-                                   rocblas_gemm_algo algo,
-                                   int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_bf8,
-                                                                                       rocblas_f8,
-                                                                                       float,
-                                                                                       rocblas_f8,
-                                                                                       rocblas_bf8,
-                                                                                       rocblas_f8>&,
-                                                       rocblas_gemm_algo algo,
-                                                       int32_t           solution_index);
-
-template rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<rocblas_bf8,
-                                                                                       rocblas_bf8,
-                                                                                       float,
-                                                                                       rocblas_f8,
-                                                                                       rocblas_bf8,
-                                                                                       rocblas_f8>&,
-                                                       rocblas_gemm_algo algo,
-                                                       int32_t           solution_index);
 
 // HPA types
 template rocblas_status runContractionProblemHipBlasLT(

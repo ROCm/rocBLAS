@@ -3,7 +3,57 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
-## (Unreleased) rocBLAS 4.4.0
+## (Unreleased) rocBLAS 5.0.0
+
+### Added
+
+### Changed
+
+### Removed
+
+* `rocblas_hgemm_kernel_name`, `rocblas_sgemm_kernel_name`, and `rocblas_dgemm_kernel_name` API functions
+
+### Optimized
+
+### Resolved issues
+
+## (Unreleased) rocBLAS 4.5.0
+
+### Added
+
+* `ROCBLAS_LAYER = 8` internal API logging for `gemm` debugging
+* Support for AOCL 5.0 gcc build as a client reference library 
+* Allow `PkgConfig` for client reference library fallback detection 
+
+### Changed
+
+* `CMAKE_CXX_COMPILER` is now passed on during compilation for a Tensile build 
+
+### Removed
+
+* Support code for non-production gfx targets 
+
+### Optimized
+
+* Optimized `gemm` by using `gemv` kernels when applicable 
+* Optimized `gemv` for small `m` and `n` with a large batch count on gfx942 
+* Improved the performance of Level 1 `dot` for all precisions and variants when `N > 100000000` on gfx942
+* Improved the performance of Level 1 `asum` and `nrm2` for all precisions and variants on gfx942
+* Improved the performance of Level 2 `sger` (single precision) on gfx942
+* Improved the performance of Level 3 `dgmm` for all precisions and variants on gfx942
+
+### Resolved issues
+
+* Fixed environment variable path-based logging to append multiple handle output to the same file 
+* Support numerics when `trsm` is running with `rocblas_status_perf_degraded` 
+* Fixed the build dependency installation of `joblib` on some operating systems
+* Return `rocblas_status_internal_error` when `rocblas_[set,get]_ [matrix,vector]` is called with a host pointer in place of a device pointer 
+
+### Upcoming changes
+
+* Deprecated the use of negative indices to indicate the default solution is being used for `gemm_ex` with `rocblas_gemm_algo_solution_index` 
+
+## rocBLAS 4.4.0 for ROCm 6.4
 
 ### Added
 
@@ -645,3 +695,4 @@ rocBLAS documentation is available at
 When using the install.sh script for "all" GPU Targets, which is the default, you must first set an environment variable `HCC_AMDGPU_TARGET` listing the GPU targets, e.g.  `HCC_AMDGPU_TARGET=gfx803,gfx900,gfx906,gfx908`
 If building for a specific architecture(s) using the  `-a` | --architecture flag, you should also set the environment variable `HCC_AMDGPU_TARGET` to match.
 Mismatching the environment variable to the `-a` flag architectures creates builds that may result in `SEGFAULTS` when running on GPUs which weren't specified.
+

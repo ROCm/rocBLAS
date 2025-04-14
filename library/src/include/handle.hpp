@@ -82,9 +82,8 @@ enum class Processor : int
     gfx906  = 906,
     gfx908  = 908,
     gfx90a  = 910,
-    gfx940  = 940,
-    gfx941  = 941,
     gfx942  = 942,
+    gfx950  = 950,
     gfx1010 = 1010,
     gfx1011 = 1011,
     gfx1012 = 1012,
@@ -243,6 +242,11 @@ public:
     int getArchMajorMinor()
     {
         return archMajorMinor;
+    }
+
+    int getWarpSize()
+    {
+        return mWarpSize;
     }
 
     int getMaxSharedMemPerBlock()
@@ -514,6 +518,8 @@ private:
     const int arch;
     int       archMajor;
     int       archMajorMinor;
+
+    int mWarpSize;
 
     // hipBLASLt handle is created at handle creation time and remains in effect for the life of the handle.
     std::shared_ptr<hipblasLtHandle_t> hipblasLtHandle;

@@ -12,6 +12,8 @@ rocBLAS Level-3 functions perform matix-matrix operations. [Level3]_
 
 Level-3 functions support the ILP64 API.  For more information on these ``_64`` functions, see the :ref:`ILP64 API` section.
 
+.. _rocblas_gemm:
+
 rocblas_Xgemm + batched, strided_batched
 =========================================
 
@@ -54,6 +56,8 @@ See the :ref:`ILP64 API` section.
 ``gemm_strided_batched`` functions support the ``_64`` interface. Only the parameter ``batch_count`` larger than ``(int32_t max value * 16)`` is currently supported.
 See the :ref:`ILP64 API` section.
 
+.. _rocblas_symm:
+
 rocblas_Xsymm + batched, strided_batched
 =========================================
 
@@ -65,7 +69,8 @@ rocblas_Xsymm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsymm
 
-The ``symm`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``symm`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssymm_batched
    :outline:
@@ -75,7 +80,8 @@ The ``symm`` functions support the ``_64`` interface. See the :ref:`ILP64 API` s
    :outline:
 .. doxygenfunction:: rocblas_zsymm_batched
 
-The ``symm_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``symm_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssymm_strided_batched
    :outline:
@@ -85,7 +91,10 @@ The ``symm_batched`` functions support the ``_64`` interface. See the :ref:`ILP6
    :outline:
 .. doxygenfunction:: rocblas_zsymm_strided_batched
 
-The ``symm_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``symm_strided_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_syrk:
 
 rocblas_Xsyrk + batched, strided_batched
 =========================================
@@ -98,7 +107,8 @@ rocblas_Xsyrk + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyrk
 
-The ``syrk`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syrk`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssyrk_batched
    :outline:
@@ -108,7 +118,8 @@ The ``syrk`` functions support the ``_64`` interface. See the :ref:`ILP64 API` s
    :outline:
 .. doxygenfunction:: rocblas_zsyrk_batched
 
-The ``syrk_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syrk_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssyrk_strided_batched
    :outline:
@@ -118,7 +129,10 @@ The ``syrk_batched`` functions support the ``_64`` interface. See the :ref:`ILP6
    :outline:
 .. doxygenfunction:: rocblas_zsyrk_strided_batched
 
-The ``syrk_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syrk_strided_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_syr2k:
 
 rocblas_Xsyr2k + batched, strided_batched
 =========================================
@@ -131,7 +145,8 @@ rocblas_Xsyr2k + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyr2k
 
-The ``syr2k`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syr2k`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssyr2k_batched
    :outline:
@@ -141,7 +156,8 @@ The ``syr2k`` functions support the ``_64`` interface. See the :ref:`ILP64 API` 
    :outline:
 .. doxygenfunction:: rocblas_zsyr2k_batched
 
-The ``syr2k_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syr2k_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssyr2k_strided_batched
    :outline:
@@ -151,7 +167,10 @@ The ``syr2k_batched`` functions support the ``_64`` interface. See the :ref:`ILP
    :outline:
 .. doxygenfunction:: rocblas_zsyr2k_strided_batched
 
-The ``syr2k_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syr2k_strided_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_syrkx:
 
 rocblas_Xsyrkx + batched, strided_batched
 =========================================
@@ -164,7 +183,8 @@ rocblas_Xsyrkx + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zsyrkx
 
-The ``syrkx`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syrkx`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssyrkx_batched
    :outline:
@@ -174,7 +194,8 @@ The ``syrkx`` functions support the ``_64`` interface. See the :ref:`ILP64 API` 
    :outline:
 .. doxygenfunction:: rocblas_zsyrkx_batched
 
-The ``syrkx_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syrkx_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_ssyrkx_strided_batched
    :outline:
@@ -184,7 +205,10 @@ The ``syrkx_batched`` functions support the ``_64`` interface. See the :ref:`ILP
    :outline:
 .. doxygenfunction:: rocblas_zsyrkx_strided_batched
 
-The ``syrkx_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``syrkx_strided_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_trmm:
 
 rocblas_Xtrmm + batched, strided_batched
 =========================================
@@ -197,7 +221,8 @@ rocblas_Xtrmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrmm
 
-The ``trmm`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``trmm`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``2^28`` not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_strmm_batched
    :outline:
@@ -207,7 +232,8 @@ The ``trmm`` functions support the ``_64`` interface. See the :ref:`ILP64 API` s
    :outline:
 .. doxygenfunction:: rocblas_ztrmm_batched
 
-The ``trmm_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``trmm_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``2^28`` are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_strmm_strided_batched
    :outline:
@@ -217,8 +243,10 @@ The ``trmm_batched`` functions support the ``_64`` interface. See the :ref:`ILP6
    :outline:
 .. doxygenfunction:: rocblas_ztrmm_strided_batched
 
-The ``trmm_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``trmm_strided_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``2^28`` are not currently supported.
+See the :ref:`ILP64 API` section.
 
+.. _rocblas_trsm:
 
 rocblas_Xtrsm + batched, strided_batched
 =========================================
@@ -231,7 +259,8 @@ rocblas_Xtrsm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_ztrsm
 
-The ``trsm`` functions support the ``_64`` interface. Parameters larger than ``int32_t`` max value are not currently supported. Refer to section :ref:`ILP64 API`.See the :ref:`ILP64 API` section.
+The ``trsm`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_strsm_batched
    :outline:
@@ -241,7 +270,8 @@ The ``trsm`` functions support the ``_64`` interface. Parameters larger than ``i
    :outline:
 .. doxygenfunction:: rocblas_ztrsm_batched
 
-The ``trsm_batched`` functions support the ``_64`` interface. Parameters larger than ``int32_t`` max value are not currently supported. See the :ref:`ILP64 API` section.
+The ``trsm_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_strsm_strided_batched
    :outline:
@@ -251,7 +281,10 @@ The ``trsm_batched`` functions support the ``_64`` interface. Parameters larger 
    :outline:
 .. doxygenfunction:: rocblas_ztrsm_strided_batched
 
-The ``trsm_strided_batched`` functions support the ``_64`` interface. Parameters larger than ``int32_t`` max value are not currently supported. See the :ref:`ILP64 API` section.
+The ``trsm_strided_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_hemm:
 
 rocblas_Xhemm + batched, strided_batched
 =========================================
@@ -260,19 +293,24 @@ rocblas_Xhemm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhemm
 
-The ``hemm`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``hemm`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_chemm_batched
    :outline:
 .. doxygenfunction:: rocblas_zhemm_batched
 
-The ``hemm_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``hemm_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_chemm_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhemm_strided_batched
 
-The ``hemm_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``hemm_strided_batched`` functions support the ``_64`` interface. Parameter ``m`` for left side, or ``n`` with right side, larger than ``int32_t`` max value are not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_herk:
 
 rocblas_Xherk + batched, strided_batched
 =========================================
@@ -281,19 +319,24 @@ rocblas_Xherk + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zherk
 
-The ``herk`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``herk`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_cherk_batched
    :outline:
 .. doxygenfunction:: rocblas_zherk_batched
 
-The ``herk_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``herk_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_cherk_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zherk_strided_batched
 
-The ``herk_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``herk_strided_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_her2k:
 
 rocblas_Xher2k + batched, strided_batched
 =========================================
@@ -302,19 +345,24 @@ rocblas_Xher2k + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zher2k
 
-The ``her2k`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``her2k`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_cher2k_batched
    :outline:
 .. doxygenfunction:: rocblas_zher2k_batched
 
-The ``her2k_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``her2k_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_cher2k_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zher2k_strided_batched
 
-The ``her2k_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``her2k_strided_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_herkx:
 
 rocblas_Xherkx + batched, strided_batched
 =========================================
@@ -323,19 +371,24 @@ rocblas_Xherkx + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zherkx
 
-The ``herkx`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``herkx`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_cherkx_batched
    :outline:
 .. doxygenfunction:: rocblas_zherkx_batched
 
-The ``herkx_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``herkx_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
 
 .. doxygenfunction:: rocblas_cherkx_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zherkx_strided_batched
 
-The ``herkx_strided_batched`` functions support the ``_64`` interface. See the :ref:`ILP64 API` section.
+The ``herkx_strided_batched`` functions support the ``_64`` interface. Parameter ``n`` larger than ``int32_t`` max value is not currently supported.
+See the :ref:`ILP64 API` section.
+
+.. _rocblas_trtri:
 
 rocblas_Xtrtri + batched, strided_batched
 =========================================
@@ -351,14 +404,4 @@ rocblas_Xtrtri + batched, strided_batched
 .. doxygenfunction:: rocblas_strtri_strided_batched
    :outline:
 .. doxygenfunction:: rocblas_dtrtri_strided_batched
-
-rocblas_Xgemm_kernel_name
-=========================
-
-.. doxygenfunction:: rocblas_hgemm_kernel_name
-   :outline:
-.. doxygenfunction:: rocblas_sgemm_kernel_name
-   :outline:
-.. doxygenfunction:: rocblas_dgemm_kernel_name
-   :outline:
 
