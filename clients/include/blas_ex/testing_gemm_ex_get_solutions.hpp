@@ -34,9 +34,9 @@ void testing_gemm_ex_get_solutions(const Arguments& arg)
 
     bool alpha_isnan = arg.alpha_isnan<Tc>();
     bool beta_isnan  = arg.beta_isnan<Tc>();
-    if(!std::is_same_v<To, float> && !std::is_same_v<To, double>
-       && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To>
-       && (alpha_isnan || beta_isnan))
+    if(!std::is_same_v<
+           To,
+           float> && !std::is_same_v<To, double> && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
