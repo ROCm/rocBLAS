@@ -132,10 +132,10 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
                                       batch_count);
     }
 
-    // Return the current status if a solution was not found
-    // by other libraries(hipBLASLt or Tensile) or if the data is not both complex.
-    // Otherwise, fall through to rocblas source GEMM.
-    if(status != rocblas_status_not_implemented || !rocblas_is_complex<TScal>)
+    // Return the current status if an exception is thrown
+    // by other libraries(hipBLASLt or Tensile).
+    // Otherwise, fall through to the rocBLAS source GEMM implementation.
+    if(status != rocblas_status_not_implemented)
     {
         return status;
     }
