@@ -166,7 +166,7 @@ _rocblas_handle::_rocblas_handle()
 {
     archMajor      = arch / 100; // this may need to switch to string handling in the future
     archMajorMinor = arch / 10;
-          
+
     THROW_IF_HIP_ERROR(hipDeviceGetAttribute(
         &mWarpSize, hipDeviceAttribute_t(hipDeviceAttributeWarpSize), device));
 
@@ -177,14 +177,26 @@ _rocblas_handle::_rocblas_handle()
         atomics_mode = strtoul(atomics_mode_env, nullptr, 0) ? rocblas_atomics_allowed
                                                              : rocblas_atomics_not_allowed;
     }
+    // Device memory size
+    const char* env = read_env("ROCBLAS_DEVICE_MEMORY_SIZE");
+    if(env)
+        device_memory_size = strtoul(env, nullptr, 0);
 
     // The following allocation & free of device memory using hipMallocAsync/hipFreeAsync will allocate memory from
     // the OS and release it to default memory pool. Further allocation of memory using hipMallocAsync
     // will be from the memory pool and it will be faster.
-    THROW_IF_HIP_ERROR(
-        (hipMallocAsync)(&device_memory, DEFAULT_DEVICE_MEMORY_SIZE_EXTENDED, stream));
+    if(env && device_memory_size)
+    {
+        THROW_IF_HIP_ERROR((hipMallocAsync)(&device_memory, device_memory_size, stream));
 
-    THROW_IF_HIP_ERROR((hipFreeAsync)(device_memory, stream));
+        THROW_IF_HIP_ERROR((hipFreeAsync)(device_memory, stream));
+    }
+    else //uses default memory size
+    {
+        THROW_IF_HIP_ERROR((hipMallocAsync)(&device_memory, getDefaultDeviceMemorySize(), stream));
+
+        THROW_IF_HIP_ERROR((hipFreeAsync)(device_memory, stream));
+    }
 
     device_memory = nullptr;
 
