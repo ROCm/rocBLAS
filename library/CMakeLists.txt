@@ -83,7 +83,22 @@ function( rocblas_library_settings lib_target_ )
   else()
     target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc)
     if (BUILD_SHARED_LIBS)
-      target_link_libraries(${lib_target_} PRIVATE -lroctx64)
+        set(ROCTX_PATH "" CACHE STRING "Path to the roctx library (directory containing libroctx64.so)")
+        find_library(ROCTX_LIBRARY
+        NAMES roctx64
+        HINTS
+          ${ROCTX_PATH} # User-provided path
+        PATHS
+          /opt/rocm/lib # Default ROCm path
+        NO_DEFAULT_PATH
+      )
+      if (ROCTX_LIBRARY)
+        message(STATUS "Found roctx library: ${ROCTX_LIBRARY}")
+        target_link_libraries(${lib_target_} PRIVATE ${ROCTX_LIBRARY})
+      else ()
+        message(WARNING "roctx library not found.  ROCTX tracing will be disabled.")
+        target_compile_definitions(${lib_target_} PRIVATE "DISABLE_ROCTX")
+      endif()
     endif()
   endif()
     target_link_libraries( ${lib_target_} PRIVATE Threads::Threads )
