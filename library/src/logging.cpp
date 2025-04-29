@@ -23,7 +23,6 @@
 #include <limits>
 
 #ifndef DISABLE_ROCTX
-erere;
 #if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
 #include <roctracer/roctx.h>
 #endif
