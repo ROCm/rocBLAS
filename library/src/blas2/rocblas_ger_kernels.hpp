@@ -139,7 +139,6 @@ rocblas_sger_gfx942_gfx950_kernel(rocblas_int    m,
                                   int64_t        lda,
                                   rocblas_stride strideA)
 {
-// gfx942 kernels
 #if defined(__gfx942__) || defined(__gfx950__)
 
     rocblas_int tx  = (blockIdx.x * DIM_X + threadIdx.x) * 2;
