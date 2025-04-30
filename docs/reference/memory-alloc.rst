@@ -14,9 +14,9 @@ There are two memory allocation schemes:
 
 *  **rocBLAS_managed(default)**: rocBLAS internally manages memory, allocating more if needed. Allocated memory persists with the handle for reuse.
 
-*  **user_owned**: Users allocate memory and provide it to rocBLAS via helper functions.
+*  **user_owned**: Users allocate memory and provide it to rocBLAS via ``rocblas_set_workspace``.
 
-Stream-ordered device memory allocation is the default. rocBLAS uses hipMallocAsync and hipFreeAsync to allocate and free memory in stream order, avoiding global synchronization. This enables seamless stream switching without needing hipStreamSynchronize().
+rocBLAS_managed is default, this scheme uses ``hipMallocAsync`` and ``hipFreeAsync`` (stream-order allocation) to allocate and free memory in stream order, avoiding global synchronization. This enables seamless stream switching without needing ``hipStreamSynchronize()``.
 
 The following computational functions use temporary device memory.
 
@@ -139,7 +139,7 @@ See the API section for information about these functions.
 rocBLAS function return values for insufficient device memory
 =============================================================
 
-If the user manually allocates, that size is used as the limit and no resizing or synchronizing ever occurs.
+If the user manually allocates (user-owned scheme) using ``rocblas_set_workspace(rocblas_handle handle, void* addr, size_t size)``, that size is used as the limit and no resizing or synchronizing ever occurs.
 The following two function return values indicate insufficient memory:
 
 *  ``rocblas_status == rocblas_status_memory_error`` : indicates there is insufficient device memory for a rocBLAS function.
