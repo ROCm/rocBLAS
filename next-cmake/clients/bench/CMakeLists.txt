@@ -28,7 +28,7 @@ add_executable(rocblas-bench)
 target_sources(rocblas-bench
     PRIVATE
         ${_CMAKE_CURRENT_SOURCE_DIR}/client.cpp
-        ${_CMAKE_CURRENT_SOURCE_DIR}/program_options.cpp
+        ${_CMAKE_CURRENT_SOURCE_DIR}/program_options.hpp
 )
 
 target_link_libraries(rocblas-bench
@@ -36,7 +36,7 @@ target_link_libraries(rocblas-bench
         rocblas-clients-common
 )
 
-# Not needed because the include directories are propogates through rocblas-clients-common
+# Not needed because the include directories are propogated through rocblas-clients-common
 # target_include_directories(rocblas-bench
 #     PRIVATE
 #         ${_CMAKE_CURRENT_SOURCE_DIR}/

@@ -35,8 +35,17 @@ set(ROCBLAS_ENABLE_DEVICE OFF CACHE BOOL "Build rocBLAS device libraries.")
 set(ROCBLAS_ENABLE_CLIENT ON CACHE BOOL "Build rocBLAS client apps.")
 cmake_dependent_option(ROCBLAS_ENABLE_HOST "Build rocBLAS host library." ON ROCBLAS_ENABLE_CLIENT OFF)
 
-set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
+if(ROCBLAS_ENABLE_HOST)
+    set(ROCBLAS_ENABLE_MSGPACK ON CACHE BOOL "Enable msgpack support.")
+    set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
+    set(ROCBLAS_BUILD_SHARED ON CACHE BOOL "Build the rocBLAS shared or static library")
+    set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
+endif()
 
+if(HIPBLASLT_ENABLE_CLIENT)
+    # rocm-smi is not presently available on Windows so we do not require it.
+    cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
+endif()
 
 find_package(hip REQUIRED)             # all
 find_package(BLIS REQUIRED)            # host & client
@@ -68,6 +77,12 @@ if(ROCBLAS_BUILD_WITH_HIPBLASLT)
     find_package(hipblaslt REQUIRED)
 endif()
 
+if(ROCBLAS_REQUIRE_ROCM_SMI)
+    find_package(rocm_smi REQUIRED)
+else()
+    find_package(rocm_smi)
+endif()
+
 
 # declare targets
 # Ideally we keep this top level nice and clean and only add_subdirectory
@@ -79,11 +94,11 @@ if(ROCBLAS_ENABLE_HOST)
     add_subdirectory(host-library)
 endif()
 
-# if(ROCBLAS_ENABLE_CLIENT)
-#     # Everything in this block should be contained within a single `add_subdirectory` call.
-#     message(STATUS "Building CLIENT")
-#     add_subdirectory(clients)
-# endif()
+if(ROCBLAS_ENABLE_CLIENT)
+    # Everything in this block should be contained within a single `add_subdirectory` call.
+    message(STATUS "Building CLIENT")
+    add_subdirectory(clients)
+endif()
 
 # TODO(@ellosal): Uncomment this once the Tensile device libraries are ready
 # if(ROCBLAS_ENABLE_DEVICE)

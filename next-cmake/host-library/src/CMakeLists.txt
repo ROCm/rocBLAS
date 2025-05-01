@@ -528,6 +528,8 @@ set(rocblas64_ex_source
 add_library(rocblas64-sources OBJECT)
 target_sources(rocblas64-sources
     PRIVATE
+        ${_CMAKE_CURRENT_SOURCE_DIR}/check_numerics_matrix.cpp
+        ${rocblas_auxiliary_source}
         ${rocblas64_blas3_source}
         ${rocblas64_blas3_source_no_tensile}
         ${rocblas64_blas2_source}
@@ -568,8 +570,6 @@ target_sources(rocblas
         ${rocblas_blas1_source}
         # ${rocblas_ex_source}  # TODO: This doesn't exist?
         ${rocblas_ex_source_no_tensile}
-        ${rocblas_auxiliary_source}
-        # src64
 )
 
 target_link_libraries(rocblas PRIVATE rocblas64-sources)

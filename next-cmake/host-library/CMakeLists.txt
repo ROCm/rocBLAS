@@ -42,11 +42,9 @@ generate_export_header(rocblas
     BASE_NAME rocblas
 )
 
-set(rocblas_headers_public
-)
-
 target_sources(rocblas
     PRIVATE
+        # rocblas_headers_public
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas.h>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-types.h>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas_bfloat16.h>
@@ -69,15 +67,17 @@ target_sources(rocblas
 
 
 target_include_directories(rocblas
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
+        # TODO: This is marked internal, but need to be public for the clients
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
     PRIVATE
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src/include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src/src64>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -87,11 +87,12 @@ target_link_libraries(rocblas
         hip::device
         OpenMP::OpenMP_CXX
 )
+if(ROCBLAS_BUILD_SHARED)
+    target_link_libraries(rocblas PRIVATE roctx64)
+endif()
+
 if(ROCBLAS_BUILD_WITH_HIPBLASLT)
-    target_link_libraries(rocblas
-        PRIVATE
-            roc::hipblaslt
-    )
+    target_link_libraries(rocblas PRIVATE roc::hipblaslt)
 endif()
 
 target_compile_features(rocblas PRIVATE cxx_std_17)
@@ -100,7 +101,6 @@ target_compile_definitions(rocblas
     PRIVATE
         ROCM_USE_FLOAT16
         ROCBLAS_INTERNAL_API
-        # ROCBLAS_INTERNAL_ILP64
         ROCBLAS_BETA_FEATURES_API
         rocblas_EXPORTS # TODO: needed?
 )
@@ -112,3 +112,21 @@ set_target_properties(rocblas
 
 # add_subdirectory(include)  # TODO: empty, but needed
 add_subdirectory(src)
+
+##############
+# Installation
+##############
+
+# TODO: Fix the source code that uses inconsistent include paths and then remove this
+#   Leaving this step in for now but this is improper practice and allows clients and
+#   other consumers to use wrong (or at least inconsistent) include paths.
+#   Refer to file: testing_gemm_batched_ex.hpp, which uses the following include
+#   ```
+#   #include <rocblas/internal/rocblas-beta.h>`
+#   ```
+execute_process(
+    COMMAND
+        ${CMAKE_COMMAND} -E copy_directory
+        ${_CMAKE_CURRENT_SOURCE_DIR}/include
+        ${PROJECT_BINARY_DIR}/include/rocblas
+)

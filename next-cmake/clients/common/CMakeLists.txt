@@ -21,83 +21,85 @@
 #
 # ########################################################################
 
+find_package(GTest REQUIRED)
+
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/common)
 
-set(rocblas_common_source
+set(rocblas_client_common_source
     # general
-    singletons.cpp
-    client_omp.cpp
-    client_utility.cpp
-    frequency_monitor.cpp
-    rocblas_arguments.cpp
-    argument_model.cpp
-    rocblas_random.cpp
-    rocblas_parse_data.cpp
-    host_alloc.cpp
-    gtest_helpers.cpp
-    rocblas_matrix.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/singletons.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/client_omp.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/client_utility.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/frequency_monitor.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/rocblas_arguments.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/argument_model.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/rocblas_random.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/rocblas_parse_data.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/host_alloc.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/gtest_helpers.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/rocblas_matrix.cpp
 )
 
-set(rocblas_common_blas_source
+set(rocblas_client_common_blas_source
     # general
-    cblas_interface.cpp
-    # TODO: ADD BLIS SOURCES?
+    ${_CMAKE_CURRENT_SOURCE_DIR}/cblas_interface.cpp
+    # TODO: ADD BLIS SOURCES? Nope, they're added through link libraries
     # blas1
-    blas1/common_asum.cpp
-    blas1/common_axpy.cpp
-    blas1/common_copy.cpp
-    blas1/common_dot.cpp
-    blas1/common_iamax_iamin.cpp
-    blas1/common_nrm2.cpp
-    blas1/common_rot.cpp
-    blas1/common_scal.cpp
-    blas1/common_swap.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_asum.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_axpy.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_copy.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_dot.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_iamax_iamin.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_nrm2.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_rot.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_scal.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas1/common_swap.cpp
     # blas1_ex
-    blas_ex/common_axpy_ex.cpp
-    blas_ex/common_dot_ex.cpp
-    blas_ex/common_nrm2_ex.cpp
-    blas_ex/common_rot_ex.cpp
-    blas_ex/common_scal_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_axpy_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_dot_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_nrm2_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_rot_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_scal_ex.cpp
     # blas2
-    blas2/common_trsv.cpp
-    blas2/common_gbmv.cpp
-    blas2/common_gemv.cpp
-    blas2/common_hbmv.cpp
-    blas2/common_hemv.cpp
-    blas2/common_her.cpp
-    blas2/common_her2.cpp
-    blas2/common_hpmv.cpp
-    blas2/common_hpr.cpp
-    blas2/common_hpr2.cpp
-    blas2/common_trmv.cpp
-    blas2/common_tpmv.cpp
-    blas2/common_tbmv.cpp
-    blas2/common_tbsv.cpp
-    blas2/common_tpsv.cpp
-    blas2/common_ger.cpp
-    blas2/common_spr.cpp
-    blas2/common_spr2.cpp
-    blas2/common_syr.cpp
-    blas2/common_syr2.cpp
-    blas2/common_sbmv.cpp
-    blas2/common_spmv.cpp
-    blas2/common_symv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_trsv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_gbmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_gemv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_hbmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_hemv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_her.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_her2.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_hpmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_hpr.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_hpr2.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_trmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_tpmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_tbmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_tbsv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_tpsv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_ger.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_spr.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_spr2.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_syr.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_syr2.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_sbmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_spmv.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas2/common_symv.cpp
     # blas3 may use tensile or source gemm
-    blas3/common_gemm.cpp
-    blas_ex/common_gemm_ex.cpp
-    blas_ex/common_trsm_ex.cpp
-    blas3/common_symm_hemm.cpp
-    blas3/common_trsm.cpp
-    blas3/common_trtri.cpp
-    blas3/common_trmm.cpp
-    blas3/common_syrk.cpp
-    blas3/common_syr2k.cpp # syrkx
-    blas3/common_herk.cpp
-    blas3/common_her2k.cpp # herkx
-    blas3/common_dgmm.cpp
-    blas3/common_geam.cpp
-    blas_ex/common_gemmt.cpp
-    blas_ex/common_geam_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_gemm.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_gemm_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_trsm_ex.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_symm_hemm.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_trsm.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_trtri.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_trmm.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_syrk.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_syr2k.cpp # syrkx
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_herk.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_her2k.cpp # herkx
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_dgmm.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/common_geam.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_gemmt.cpp
+    ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/common_geam_ex.cpp
 )
 
 add_library(rocblas-clients-common OBJECT)
@@ -112,17 +114,18 @@ target_compile_definitions(rocblas-clients-common
         CLIENTS_NO_FORTRAN
         ROCM_USE_FLOAT16
         ROCBLAS_INTERNAL_API
-    PRIVATE
-        ROCBLAS_NO_DEPRECATED_WARNINGS
         GOOGLE_TEST
+    PRIVATE
+        # ROCBLAS_NO_DEPRECATED_WARNINGS  # TODO: Why not just let the user handle this?
         ${TENSILE_DEFINES}  # TODO: Where are these defined?
         ${HIPBLASLT_DEFINES}  # TODO: Where are these defined?
 )
+target_compile_options(rocblas-clients-common PUBLIC -Wno-unused-result -Wno-deprecated-declarations)
 
 target_sources(rocblas-clients-common
-    PUBLIC
-        ${rocblas_common_source}
-        ${rocblas_common_blas_source}
+    PRIVATE
+        ${rocblas_client_common_source}
+        ${rocblas_client_common_blas_source}
 )
 
 target_link_libraries(rocblas-clients-common
@@ -132,11 +135,14 @@ target_link_libraries(rocblas-clients-common
         hip::device
         BLIS::BLIS
         OpenMP::OpenMP_CXX
+        GTest::gtest
+        rocm_smi64
         # TODO: Add common link libs? see rocBLAS old build sys
 )
 
 target_include_directories(rocblas-clients-common
-    PRIVATE
+    PUBLIC
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
@@ -148,17 +154,12 @@ target_include_directories(rocblas-clients-common
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
+    PRIVATE
         # TODO: There's a new BLIS integration system, figure that out and add it here
         #       and delete the 4 lines below
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>    # needed?
         $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>    # needed?
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>    # needed?
         $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>  # needed?
-
-)
-
-target_include_directories(rocblas-clients-common
-    PUBLIC
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}>
 
 )
