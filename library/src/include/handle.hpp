@@ -215,7 +215,7 @@ public:
     _rocblas_handle();
     ~_rocblas_handle();
 
-    _rocblas_handle(const _rocblas_handle&) = delete;
+    _rocblas_handle(const _rocblas_handle&)            = delete;
     _rocblas_handle& operator=(const _rocblas_handle&) = delete;
 
     // Set the HIP default device ID to the handle's device ID, and restore on exit
@@ -277,7 +277,7 @@ public:
     bool isDefaultHipBLASLtArch()
     {
         int gfx_arch = getArch();
-        if(gfx_arch == 1200 || gfx_arch == 1201)
+        if(gfx_arch == 1200 || gfx_arch == 1201 || gfx_arch == 950)
         {
             return true;
         }
