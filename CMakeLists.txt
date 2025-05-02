@@ -51,38 +51,10 @@ endif()
 # Main
 # ########################################################################
 
-# This finds the rocm-cmake project, and installs it if not found
-# rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM 0.7.3 CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
-if( NOT ROCM_FOUND )
-  set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
-  file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
-      ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip STATUS status LOG log)
 
-  list(GET status 0 status_code)
-  list(GET status 1 status_string)
-
-  if(NOT status_code EQUAL 0)
-    message(FATAL_ERROR "error: downloading
-    'https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip' failed
-    status_code: ${status_code}
-    status_string: ${status_string}
-    log: ${log}
-    ")
-  endif()
-
-  message(STATUS "downloading... done")
-
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzvf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
-  execute_process( COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${PROJECT_EXTERN_DIR}/rocm-cmake .
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
-  execute_process( COMMAND ${CMAKE_COMMAND} --build rocm-cmake-${rocm_cmake_tag} --target install
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR})
-
-  find_package( ROCM 0.7.3 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
-endif( )
+# This finds the rocm-cmake project, and installs it if not found
+include(get-rocm-cmake)
 
 # rocm-cmake helpers
 include( ROCMSetupVersion )
@@ -435,9 +407,9 @@ if(BUILD_CODE_COVERAGE)
   # Generate coverage output.
   #
   add_custom_command(TARGET coverage_output
-    COMMAND lcov --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
-    COMMAND lcov --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
-    COMMAND genhtml --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
+    COMMAND lcov --ignore-errors inconsistent --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
+    COMMAND lcov --ignore-errors inconsistent --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
+    COMMAND genhtml --ignore-errors inconsistent --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
     )
 
   add_custom_target(coverage DEPENDS coverage_output)
