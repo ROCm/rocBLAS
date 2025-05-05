@@ -21,22 +21,29 @@
 #
 # ########################################################################
 
-set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/benchmarks)
+set(_cmake_current_source_dir ${temp_clients_source_dir}/benchmarks/gemm-tune)
 
-add_executable(rocblas-bench)
+add_executable(rocblas-gemm-tune)
 
-target_sources(rocblas-bench
+target_sources(rocblas-gemm-tune
     PRIVATE
-        ${_CMAKE_CURRENT_SOURCE_DIR}/client.cpp
-        ${_CMAKE_CURRENT_SOURCE_DIR}/program_options.hpp
+        ${_CMAKE_CURRENT_SOURCE_DIR}/gemm_tune_client.cpp
+        ${_CMAKE_CURRENT_SOURCE_DIR}/gemm_tuners.cpp
+        ${_CMAKE_CURRENT_SOURCE_DIR}/gemm_tuners.hpp
 )
 
-target_link_libraries(rocblas-bench
+target_link_libraries(rocblas-gemm-tune
     PRIVATE
         rocblas-clients-common
 )
 
-target_compile_definitions(rocblas-bench
+target_compile_definitions(rocblas-gemm-tune
     PRIVATE
-        CLIENTS_NO_FORTRAN   # TODO: already defined in rocblas-clients-common, remove here
+        ROCBLAS_BENCH
+        ROCBLAS_NO_DEPRECATED_WARNINGS  # TODO: Do we really want this?
+)
+
+set_target_properties(rocblas-gemm-tune
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
 )

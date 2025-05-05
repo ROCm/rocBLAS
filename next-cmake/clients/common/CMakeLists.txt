@@ -40,6 +40,7 @@ set(rocblas_client_common_source
     ${_CMAKE_CURRENT_SOURCE_DIR}/rocblas_matrix.cpp
 )
 
+# Previously called rocblas_testing_common_source
 set(rocblas_client_common_blas_source
     # general
     ${_CMAKE_CURRENT_SOURCE_DIR}/cblas_interface.cpp
@@ -135,9 +136,10 @@ target_link_libraries(rocblas-clients-common
         hip::device
         BLIS::BLIS
         OpenMP::OpenMP_CXX
+        Threads::Threads
         GTest::gtest
         rocm_smi64
-        # TODO: Add common link libs? see rocBLAS old build sys
+        # -lm -lstd++fs  # TODO: Are these required?
 )
 
 target_include_directories(rocblas-clients-common

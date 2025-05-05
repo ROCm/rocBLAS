@@ -36,9 +36,9 @@ set(ROCBLAS_ENABLE_CLIENT ON CACHE BOOL "Build rocBLAS client apps.")
 cmake_dependent_option(ROCBLAS_ENABLE_HOST "Build rocBLAS host library." ON ROCBLAS_ENABLE_CLIENT OFF)
 
 if(ROCBLAS_ENABLE_HOST)
+    set(ROCBLAS_BUILD_SHARED ON CACHE BOOL "Build the rocBLAS shared or static library")
     set(ROCBLAS_ENABLE_MSGPACK ON CACHE BOOL "Enable msgpack support.")
     set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
-    set(ROCBLAS_BUILD_SHARED ON CACHE BOOL "Build the rocBLAS shared or static library")
     set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
 endif()
 

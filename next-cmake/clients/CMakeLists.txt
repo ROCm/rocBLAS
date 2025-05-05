@@ -28,5 +28,5 @@ set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
 
 add_subdirectory(common)
 add_subdirectory(bench)
-# add_subdirectory(test)      # TODO: needed but empty
+add_subdirectory(test)
 # add_subdirectory(examples)  # TODO: needed but empty
