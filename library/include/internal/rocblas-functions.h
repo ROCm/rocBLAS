@@ -25024,7 +25024,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle hand
 
 /*! \brief
     \details
-    Sets the device workspace for the handle to use.
+    Allows user to set the device memory for the handle to use as a workspace (user-owned scheme).
 
     Any previously allocated device memory managed by the handle is freed.
 
