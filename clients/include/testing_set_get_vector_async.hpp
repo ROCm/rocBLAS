@@ -62,22 +62,13 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         return;
     }
-    else if(N == 0)
+    else if(N <= 0 || incx <= 0 || incy <= 0 || ldd <= 0)
     {
-        DAPI_EXPECT(rocblas_status_success,
+        rocblas_status expected_status = N < 0 ? rocblas_status_invalid_size : rocblas_status_success;
+        DAPI_EXPECT(expected_status,
                     rocblas_set_vector_async_fn,
                     (N, sizeof(T), nullptr, incx, nullptr, ldd, stream));
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_get_vector_async_fn,
-                    (N, sizeof(T), nullptr, ldd, nullptr, incy, stream));
-        return;
-    }
-    else if(N < 0 || incx <= 0 || incy <= 0 || ldd <= 0)
-    {
-        DAPI_EXPECT(rocblas_status_invalid_size,
-                    rocblas_set_vector_async_fn,
-                    (N, sizeof(T), nullptr, incx, nullptr, ldd, stream));
-        DAPI_EXPECT(rocblas_status_invalid_size,
+        DAPI_EXPECT(expected_status,
                     rocblas_get_vector_async_fn,
                     (N, sizeof(T), nullptr, ldd, nullptr, incy, stream));
         return;
