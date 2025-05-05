@@ -67,7 +67,8 @@ void testing_set_get_vector_async(const Arguments& arg)
     }
     else if(N <= 0 || incx <= 0 || incy <= 0 || ldd <= 0)
     {
-        rocblas_status expected_status = N < 0 ? rocblas_status_invalid_size : rocblas_status_success;
+        rocblas_status expected_status
+            = N < 0 ? rocblas_status_invalid_size : rocblas_status_success;
         DAPI_EXPECT(expected_status,
                     rocblas_set_vector_async_fn,
                     (N, sizeof(T), nullptr, incx, nullptr, ldd, stream));
