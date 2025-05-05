@@ -41,6 +41,7 @@ void testing_set_get_vector(const Arguments& arg)
     // memory
     if(arg.algo == 1) // use arg.algo == 1 to test bad device pointer
     {
+#ifndef ASAN_BUILD
         T  host_data;
         T* host_data_ptr = &host_data;
 
@@ -52,7 +53,9 @@ void testing_set_get_vector(const Arguments& arg)
         status  = rocblas_get_vector_fn(1, sizeof(T), host_data_ptr, 1, host_data_ptr, 1);
         h_error = hipGetLastError(); // clear HIP error
         GTEST_ASSERT_TRUE(rocblas_status_internal_error == status);
-
+#else
+        GTEST_SKIP() << "ASAN_BUILD";
+#endif
         return;
     }
     else if(N <= 0 || incx <= 0 || incy <= 0 || ldd <= 0)
