@@ -115,12 +115,22 @@ target_compile_definitions(rocblas-clients-common
         CLIENTS_NO_FORTRAN
         ROCM_USE_FLOAT16
         ROCBLAS_INTERNAL_API
-        GOOGLE_TEST
-    PRIVATE
         # ROCBLAS_NO_DEPRECATED_WARNINGS  # TODO: Why not just let the user handle this?
-        ${TENSILE_DEFINES}  # TODO: Where are these defined?
+        BUILD_WITH_TENSILE  # TODO: This should not be unconditionally set on the clients-common target
+        ROCBLAS_TENSILE_SEPARATE_ARCH=1
+        ROCBLAS_TENSILE_LAZY_LOAD=1
+        # ${TENSILE_DEFINES}  # TODO: Where are these defined?
+    PRIVATE
+        GOOGLE_TEST
         ${HIPBLASLT_DEFINES}  # TODO: Where are these defined?
 )
+
+if(ROCBLAS_ENABLE_FORTRAN)
+    target_link_libraries(rocblas-clients-common PUBLIC rocblas-fortran-client)
+else()
+    target_compile_definitions(rocblas-clients-common PUBLIC CLIENTS_NO_FORTRAN)
+endif()
+
 target_compile_options(rocblas-clients-common PUBLIC -Wno-unused-result -Wno-deprecated-declarations)
 
 target_sources(rocblas-clients-common
@@ -156,12 +166,27 @@ target_include_directories(rocblas-clients-common
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
-    PRIVATE
-        # TODO: There's a new BLIS integration system, figure that out and add it here
-        #       and delete the 4 lines below
-        $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>    # needed?
-        $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>    # needed?
-        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>    # needed?
-        $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>  # needed?
+    # PRIVATE
+        # # TODO: There's a new BLIS integration system, figure that out and add it here
+        # #       and delete the 4 lines below
+        # $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>    # needed?
+        # $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>    # needed?
+        # $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>    # needed?
+        # $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>  # needed?
 
 )
+
+if(ROCBLAS_ENABLE_FORTRAN)
+    add_library(rocblas-fortran-client)
+    if(ROCBLAS_BUILD_WITH_TENSILE)
+        target_sources(rocblas-fortran-client
+            PRIVATE
+                ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran_tensile.f90
+        )
+    endif()
+    target_sources(rocblas-fortran-client
+        PRIVATE
+            ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90
+    )
+    target_link_libraries(rocblas-fortran-client PRIVATE rocblas-fortran)
+endif()

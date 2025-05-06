@@ -23,6 +23,15 @@
 
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR}/src)
 
+# rocblas external source
+if(ROCBLAS_BUILD_WITH_TENSILE AND NOT ROCBLAS_BUILD_WITH_HIPBLASLT)
+    set(rocblas_ex_source ${_CMAKE_CURRENT_SOURCE_DIR}/tensile_host.cpp)
+elseif(ROCBLAS_BUILD_WITH_HIPBLASLT AND NOT ROCBLAS_BUILD_WITH_TENSILE)
+    set(rocblas_ex_source ${_CMAKE_CURRENT_SOURCE_DIR}/hipblaslt_host.cpp)
+else()
+    message(FATAL_ERROR "rocBLAS must be built with either Tensile or hipBLASLt, but not both.")
+endif()
+
 # rocblas L3 that use tensile but can use source gemm as fallback
 set(rocblas_blas3_source
     # trsm first as currently slowest
@@ -525,8 +534,8 @@ set(rocblas64_ex_source
 )
 
 
-add_library(rocblas64-sources OBJECT)
-target_sources(rocblas64-sources
+add_library(rocblas64 OBJECT)
+target_sources(rocblas64
     PRIVATE
         ${_CMAKE_CURRENT_SOURCE_DIR}/check_numerics_matrix.cpp
         ${rocblas_auxiliary_source}
@@ -537,7 +546,7 @@ target_sources(rocblas64-sources
         ${rocblas64_ex_source}
         ${rocblas64_ex_source_no_tensile}
 )
-target_include_directories(rocblas64-sources
+target_include_directories(rocblas64
     PRIVATE
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/internal>
@@ -550,7 +559,7 @@ target_include_directories(rocblas64-sources
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_compile_definitions(rocblas64-sources PRIVATE
+target_compile_definitions(rocblas64 PRIVATE
     # TODO: Create a helper OBJECT library rocblas-common
     ROCBLAS_INTERNAL_ILP64  # <- this is the important one
     ROCM_USE_FLOAT16
@@ -558,9 +567,11 @@ target_compile_definitions(rocblas64-sources PRIVATE
     ROCBLAS_BETA_FEATURES_API
     rocblas_EXPORTS # TODO: needed?
 )
-target_link_libraries(rocblas64-sources PRIVATE hip::host hip::device)
+if(ROCBLAS_BUILD_WITH_TENSILE)
+    target_compile_definitions(rocblas64 PRIVATE BUILD_WITH_TENSILE)
+endif()
 
-# get_target_property(sources_tmp rocblas64-sources INTERFACE_SOURCES)
+target_link_libraries(rocblas64 PRIVATE hip::host hip::device)
 
 target_sources(rocblas
     PRIVATE
@@ -568,8 +579,14 @@ target_sources(rocblas
         ${rocblas_blas3_source_no_tensile}
         ${rocblas_blas2_source}
         ${rocblas_blas1_source}
-        # ${rocblas_ex_source}  # TODO: This doesn't exist?
+        ${rocblas_ex_source}  # TODO: This doesn't exist?
         ${rocblas_ex_source_no_tensile}
 )
 
-target_link_libraries(rocblas PRIVATE rocblas64-sources)
+target_link_libraries(rocblas PRIVATE rocblas64)
+
+
+
+# if(ROCBLAS_BUILD_WITH_HIPBLASLT)
+#     target_link_libraries(rocblas PRIVATE TensileHost)
+# else()

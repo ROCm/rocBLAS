@@ -121,6 +121,11 @@ target_link_libraries(rocblas-test
         rocblas-clients-common
 )
 
+target_compile_definitions(rocblas-test
+    PRIVATE
+        GOOGLE_TEST
+)
+
 set_target_properties(rocblas-test
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"

@@ -21,7 +21,7 @@
 #
 # ########################################################################
 
-set(_cmake_current_source_dir ${temp_clients_source_dir}/benchmarks/gemm-tune)
+set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/benchmarks/gemm_tune)
 
 add_executable(rocblas-gemm-tune)
 
@@ -37,10 +37,20 @@ target_link_libraries(rocblas-gemm-tune
         rocblas-clients-common
 )
 
+# TODO: clients-common already does this, remove here
+# if(ROCBLAS_BUILD_WITH_TENSILE)
+#   if(ROCBLAS_ENABLE_FORTRAN)
+#     target_link_libraries(rocblas-gemm-tune PRIVATE roc::rocblas-fortran-client)
+#   else()
+#     target_compile_definitions(rocblas-gemm-tune PRIVATE CLIENTS_NO_FORTRAN)
+#   endif()
+# endif()
+
 target_compile_definitions(rocblas-gemm-tune
     PRIVATE
         ROCBLAS_BENCH
         ROCBLAS_NO_DEPRECATED_WARNINGS  # TODO: Do we really want this?
+        __HIP_HCC_COMPAT_MODE__=1
 )
 
 set_target_properties(rocblas-gemm-tune

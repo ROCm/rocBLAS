@@ -25,7 +25,7 @@ set(TEMP_HOST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../library)
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR})
 
 cmake_minimum_required(VERSION 3.25.2)
-project(host-library VERSION 4.5.0 LANGUAGES CXX)
+project(host-library VERSION 4.5.0 LANGUAGES CXX Fortran)
 
 add_library(rocblas)
 add_library(roc::rocblas ALIAS rocblas)
@@ -104,11 +104,23 @@ target_compile_definitions(rocblas
         ROCBLAS_BETA_FEATURES_API
         rocblas_EXPORTS # TODO: needed?
 )
+if(ROCBLAS_BUILD_WITH_TENSILE)
+    target_compile_definitions(rocblas PRIVATE BUILD_WITH_TENSILE)
+endif()
 
 set_target_properties(rocblas
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
 )
+
+# TODO: This is only used in the clients, why do we have this at all?
+if(ROCBLAS_ENABLE_FORTRAN)
+    add_library(rocblas-fortran OBJECT)
+    target_sources(rocblas-fortran
+        PUBLIC
+            $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_module.f90>
+    )
+endif()
 
 # add_subdirectory(include)  # TODO: empty, but needed
 add_subdirectory(src)

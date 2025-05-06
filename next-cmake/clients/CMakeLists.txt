@@ -22,13 +22,17 @@
 # ########################################################################
 
 cmake_minimum_required(VERSION 3.16.8)
-project(clients)
+project(clients LANGUAGES C CXX Fortran)
 
 set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
 
 add_subdirectory(common)
 add_subdirectory(bench)
 add_subdirectory(test)
+
+if(ROCBLAS_BUILD_WITH_TENSILE)
+    add_subdirectory(gemm-tune)
+endif()
 
 if(ROCBLAS_ENABLE_SAMPLES)
     add_subdirectory(samples)

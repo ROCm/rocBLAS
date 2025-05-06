@@ -38,5 +38,10 @@ target_link_libraries(rocblas-bench
 
 target_compile_definitions(rocblas-bench
     PRIVATE
-        CLIENTS_NO_FORTRAN   # TODO: already defined in rocblas-clients-common, remove here
+        GOOGLE_TEST
+)
+
+set_target_properties(rocblas-bench
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )

@@ -31,7 +31,7 @@ include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 include(CMakeDependentOption)
 
-set(ROCBLAS_ENABLE_DEVICE OFF CACHE BOOL "Build rocBLAS device libraries.")
+set(ROCBLAS_ENABLE_DEVICE ON CACHE BOOL "Build rocBLAS device libraries.")
 set(ROCBLAS_ENABLE_CLIENT ON CACHE BOOL "Build rocBLAS client apps.")
 cmake_dependent_option(ROCBLAS_ENABLE_HOST "Build rocBLAS host library." ON ROCBLAS_ENABLE_CLIENT OFF)
 
@@ -40,13 +40,15 @@ if(ROCBLAS_ENABLE_HOST)
     set(ROCBLAS_ENABLE_MSGPACK ON CACHE BOOL "Enable msgpack support.")
     set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
     set(ROCBLAS_ENABLE_BLIS ON CACHE BOOL "Enable BLIS support.") # I don't know that we can build with this OFF
-    set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Enable Fortran host and clients.")
     set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
+    set(ROCBLAS_BUILD_WITH_TENSILE ON CACHE BOOL "Build rocBLAS with Tensile.")
+    set(ROCBLAS_BUILD_WITH_HIPBLASLT OFF CACHE BOOL "Build rocBLAS with hipBLASLt.")
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
     # rocm-smi is not presently available on Windows so we do not require it.
     set(ROCBLAS_ENABLE_SAMPLES ON CACHE BOOL "Build rocBLAS client samples.")
+    set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Enable Fortran clients.")
     cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
 endif()
 
@@ -86,24 +88,18 @@ else()
     find_package(rocm_smi)
 endif()
 
-
-# declare targets
-# Ideally we keep this top level nice and clean and only add_subdirectory
-# here instead of declaring targets
-
-# add subdirectories
 if(ROCBLAS_ENABLE_HOST)
     message(STATUS "Building HOST")
     add_subdirectory(host-library)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
-    # Everything in this block should be contained within a single `add_subdirectory` call.
     message(STATUS "Building CLIENT")
     add_subdirectory(clients)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
+    message(STATUS "Building DEVICE with Tensile")
     if(NOT TARGET tensile::tensile-host)
         add_subdirectory(Tensile/next-cmake)
     endif()
@@ -112,6 +108,3 @@ if(ROCBLAS_ENABLE_DEVICE)
     endif()
 endif()
 
-# installation
-
-# packaging

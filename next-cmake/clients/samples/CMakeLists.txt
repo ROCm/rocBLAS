@@ -63,7 +63,7 @@ target_sources(sample-helper-cpp
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/host_alloc.cpp>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/client_utility.hpp>
 )
-# TODO: Is this needed? Test it.
+# TODO: Is this needed? Test it. Yup, looks like it works fine.
 # set_target_properties(sample-helper-cpp
 #     PROPERTIES
 #         CXX_STANDARD_REQUIRED ON
@@ -75,7 +75,7 @@ add_library(sample-helper-c INTERFACE)
 target_compile_definitions(sample-helper-c INTERFACE __HIP_PLATFORM_HCC__)
 target_compile_options(sample-helper-c INTERFACE -std=c11 )
 target_link_libraries(sample-helper-c INTERFACE sample-helper-general)
-# TODO: I don't think this is needed either. Test it.
+# TODO: I don't think this is needed either. Test it. Yup, looks like it works fine.
 # set_target_properties(sample-helper-c
 #     PROPERTIES
 #         LINKER_LANGUAGE C
@@ -83,7 +83,13 @@ target_link_libraries(sample-helper-c INTERFACE sample-helper-general)
 
 if(ROCBLAS_ENABLE_FORTRAN)
     add_library(sample-helper-f90 INTERFACE)
-    target_link_libraries(sample-helper-f90 INTERFACE sample-helper-general)
+    # Link this here because we don't need to link against the
+    # rocblas-clients-common target in the samples
+    target_link_libraries(sample-helper-f90
+        INTERFACE
+            sample-helper-general
+            rocblas-fortran-client
+    )
     target_sources(sample-helper-f90
         INTERFACE
             $<TARGET_OBJECTS:rocblase_fortran>
