@@ -103,10 +103,14 @@ if(ROCBLAS_ENABLE_CLIENT)
     add_subdirectory(clients)
 endif()
 
-# TODO(@ellosal): Uncomment this once the Tensile device libraries are ready
-# if(ROCBLAS_ENABLE_DEVICE)
-#     message(STATUS "Building DEVICE --- Not implemented yet")
-# endif()
+if(ROCBLAS_ENABLE_DEVICE)
+    if(NOT TARGET tensile::tensile-host)
+        add_subdirectory(Tensile/next-cmake)
+    endif()
+    if(ROCBLAS_ENABLE_HOST)
+        target_link_libraries(rocblas PRIVATE tensile::tensile-host)
+    endif()
+endif()
 
 # installation
 
