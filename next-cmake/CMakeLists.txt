@@ -40,10 +40,12 @@ if(ROCBLAS_ENABLE_HOST)
     set(ROCBLAS_ENABLE_MSGPACK ON CACHE BOOL "Enable msgpack support.")
     set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
     set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
+    set(ROCBLAS_ENABLE_BLIS ON CACHE BOOL "Enable BLIS support.") # I don't know that we can build with this OFF
 endif()
 
-if(HIPBLASLT_ENABLE_CLIENT)
+if(ROCBLAS_ENABLE_CLIENT)
     # rocm-smi is not presently available on Windows so we do not require it.
+    set(ROCBLAS_ENABLE_SAMPLES ON CACHE BOOL "Build rocBLAS client samples.")
     cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
 endif()
 

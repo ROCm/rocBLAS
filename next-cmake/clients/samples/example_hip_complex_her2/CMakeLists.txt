@@ -21,15 +21,7 @@
 #
 # ########################################################################
 
-cmake_minimum_required(VERSION 3.16.8)
-project(clients LANGUAGES CXX)
-
-set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
-
-add_subdirectory(common)
-add_subdirectory(bench)
-add_subdirectory(test)
-
-if(ROCBLAS_ENABLE_SAMPLES)
-    add_subdirectory(samples)
-endif()
+add_executable(rocblas-example-hip-complex-her2
+    ${_CMAKE_CURRENT_SOURCE_DIR}/example_hip_complex_her2.cpp
+)
+target_link_libraries(rocblas-example-hip-complex-her2 PRIVATE sample-helper)

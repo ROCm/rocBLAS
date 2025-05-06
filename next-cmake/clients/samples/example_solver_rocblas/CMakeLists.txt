@@ -21,15 +21,15 @@
 #
 # ########################################################################
 
-cmake_minimum_required(VERSION 3.16.8)
-project(clients LANGUAGES CXX)
+add_executable(rocblas-example-solver
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_solver_rocblas.cpp
+)
 
-set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
+target_link_libraries(rocblas-example-solver PRIVATE sample-helper)
 
-add_subdirectory(common)
-add_subdirectory(bench)
-add_subdirectory(test)
-
-if(ROCBLAS_ENABLE_SAMPLES)
-    add_subdirectory(samples)
-endif()
+# This is over including files, but rocblase_device_malloc.cpp is used in this
+# sample and it's the only place it's used anywhere in rocBLAS.
+target_include_directories(rocblas-example-solver
+    PRIVATE
+        ${TEMP_CLIENT_SAMPLES_DIR}/../../library/src/include
+)

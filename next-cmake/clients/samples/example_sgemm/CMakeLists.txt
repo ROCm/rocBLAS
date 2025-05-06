@@ -21,15 +21,8 @@
 #
 # ########################################################################
 
-cmake_minimum_required(VERSION 3.16.8)
-project(clients LANGUAGES CXX)
+add_executable(rocblas-example-sgemm
+    ${_CMAKE_CURRENT_SOURCE_DIR}/example_sgemm.cpp
+)
+target_link_libraries(rocblas-example-sgemm PRIVATE sample-helper)
 
-set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
-
-add_subdirectory(common)
-add_subdirectory(bench)
-add_subdirectory(test)
-
-if(ROCBLAS_ENABLE_SAMPLES)
-    add_subdirectory(samples)
-endif()

@@ -21,15 +21,8 @@
 #
 # ########################################################################
 
-cmake_minimum_required(VERSION 3.16.8)
-project(clients LANGUAGES CXX)
-
-set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
-
-add_subdirectory(common)
-add_subdirectory(bench)
-add_subdirectory(test)
-
-if(ROCBLAS_ENABLE_SAMPLES)
-    add_subdirectory(samples)
-endif()
+# TODO: Only if building with Tensile
+add_executable(rocblas-example-user-driven-tuning
+    ${_CMAKE_CURRENT_SOURCE_DIR}/example_user_driven_tuning.cpp
+)
+target_link_libraries(rocblas-example-user-driven-tuning PRIVATE sample-helper)

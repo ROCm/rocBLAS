@@ -21,15 +21,17 @@
 #
 # ########################################################################
 
-cmake_minimum_required(VERSION 3.16.8)
-project(clients LANGUAGES CXX)
+add_executable(rocblas-example-c-dgeam
+    ${_CMAKE_CURRENT_SOURCE_DIR}/../example_c_dgeam.cpp
+)
 
-set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
+target_compile_definitions(rocblas-example-c-dgeam
+    PRIVATE
+        __HIP_PLATFORM_HCC__
+)
+target_compile_options( rocblas-example-c-dgeam PRIVATE -std=c11 )
 
-add_subdirectory(common)
-add_subdirectory(bench)
-add_subdirectory(test)
 
-if(ROCBLAS_ENABLE_SAMPLES)
-    add_subdirectory(samples)
-endif()
+target_link_libraries(rocblas-example-c-dgeam PRIVATE sample-helper)
+
+
