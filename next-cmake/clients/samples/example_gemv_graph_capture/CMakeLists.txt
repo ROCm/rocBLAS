@@ -22,6 +22,6 @@
 # ########################################################################
 
 add_executable(rocblas-example-gemv-graph-capture
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_gemv_graph_capture.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_gemv_graph_capture.cpp
 )
-target_link_libraries(rocblas-example-gemv-graph-capture PRIVATE sample-helper)
+target_link_libraries(rocblas-example-gemv-graph-capture PRIVATE sample-helper-cpp)

@@ -22,6 +22,6 @@
 # ########################################################################
 
 add_executable(rocblas-example-hip-complex-her2
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_hip_complex_her2.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_hip_complex_her2.cpp
 )
-target_link_libraries(rocblas-example-hip-complex-her2 PRIVATE sample-helper)
+target_link_libraries(rocblas-example-hip-complex-her2 PRIVATE sample-helper-cpp)

@@ -24,54 +24,78 @@
 set(TEMP_CLIENT_SAMPLES_DIR ${TEMP_CLIENTS_SOURCE_DIR}/samples)
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENT_SAMPLES_DIR})
 
-add_library(sample-helper INTERFACE)
+add_library(sample-helper-general INTERFACE)
 
 if(ROCBLAS_ENABLE_BLIS)
-    target_link_libraries(sample-helper INTERFACE BLIS::BLIS)
+    target_link_libraries(sample-helper-general INTERFACE BLIS::BLIS)
 endif()
-target_link_libraries(sample-helper
+target_link_libraries(sample-helper-general
     INTERFACE
         hip::host
         hip::device
         roc::rocblas
 )
-
-target_compile_features(sample-helper INTERFACE cxx_std_14)
-
-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_definitions(sample-helper INTERFACE ROCBLAS_INTERNAL_API )
-endif( )
-target_compile_definitions(sample-helper INTERFACE
-    ROCM_USE_FLOAT16
-)
-
-target_sources(sample-helper
-    INTERFACE
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/client_utility.cpp>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/singletons.cpp>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_random.cpp>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/host_alloc.cpp>
-)
-
-target_include_directories(sample-helper
+target_include_directories(sample-helper-general
     INTERFACE
         # $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/include/internal>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common>
 )
-
-set_target_properties( ${exe} PROPERTIES
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
+set_target_properties(sample-helper-general
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
+
+if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_definitions(sample-helper-general INTERFACE ROCBLAS_INTERNAL_API )
+endif( )
+
+add_library(sample-helper-cpp INTERFACE)
+
+target_compile_features(sample-helper-cpp INTERFACE cxx_std_14)
+target_compile_definitions(sample-helper-cpp INTERFACE ROCM_USE_FLOAT16)
+target_link_libraries(sample-helper-cpp INTERFACE sample-helper-general)
+target_sources(sample-helper-cpp
+    INTERFACE
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/client_utility.cpp>
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/singletons.cpp>
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_random.cpp>
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/host_alloc.cpp>
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/client_utility.hpp>
+)
+# TODO: Is this needed? Test it.
+# set_target_properties(sample-helper-cpp
+#     PROPERTIES
+#         CXX_STANDARD_REQUIRED ON
+#         CXX_EXTENSIONS OFF
+# )
+
+add_library(sample-helper-c INTERFACE)
+
+target_compile_definitions(sample-helper-c INTERFACE __HIP_PLATFORM_HCC__)
+target_compile_options(sample-helper-c INTERFACE -std=c11 )
+target_link_libraries(sample-helper-c INTERFACE sample-helper-general)
+# TODO: I don't think this is needed either. Test it.
+# set_target_properties(sample-helper-c
+#     PROPERTIES
+#         LINKER_LANGUAGE C
+# )
+
+if(ROCBLAS_ENABLE_FORTRAN)
+    add_library(sample-helper-f90 INTERFACE)
+    target_link_libraries(sample-helper-f90 INTERFACE sample-helper-general)
+    target_sources(sample-helper-f90
+        INTERFACE
+            $<TARGET_OBJECTS:rocblase_fortran>
+    )
+endif()
 
 # Unused examples:
 #    example_gemm_strided_batched_ex_xdl_math_op.cpp
 #    example_openmp.cpp
 
 # C examples
-# add_subdirectory(example_c_dgeam)
+add_subdirectory(example_c_dgeam)
 # C++ examples
 add_subdirectory(example_gemv_graph_capture)
 add_subdirectory(example_header_check)
@@ -86,11 +110,12 @@ add_subdirectory(example_sgemm)
 add_subdirectory(example_sgemm_multiple_strided_batch)
 add_subdirectory(example_sgemm_strided_batched)
 
-# if ( BUILD_FORTRAN_CLIENTS )
-#   # Fortran examples
-#   add_executable( rocblas-example-fortran-axpy example_fortran_axpy.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-#   add_executable( rocblas-example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-#   add_executable( rocblas-example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-
-#   set( sample_list_fortran rocblas-example-fortran-axpy rocblas-example-fortran-scal rocblas-example-fortran-gemv )
-# endif()
+if ( BUILD_FORTRAN_CLIENTS )
+  # Fortran examples
+  add_executable(rocblas-example-fortran-axpy example_fortran_axpy.f90)
+  target_sources(rocblas-example-fortran-axpy PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
+  add_executable(rocblas-example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)
+  target_sources(rocblas-example-fortran-scal PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
+  add_executable(rocblas-example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
+  target_sources(rocblas-example-fortran-gemv PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
+endif()

@@ -22,6 +22,6 @@
 # ########################################################################
 
 add_executable(rocblas-example-sscal
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_sscal.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_sscal.cpp
 )
-target_link_libraries(rocblas-example-sscal PRIVATE sample-helper)
+target_link_libraries(rocblas-example-sscal PRIVATE sample-helper-cpp)

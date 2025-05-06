@@ -22,7 +22,7 @@
 # ########################################################################
 
 cmake_minimum_required(VERSION 3.16.8)
-project(clients LANGUAGES CXX)
+project(clients)
 
 set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
 

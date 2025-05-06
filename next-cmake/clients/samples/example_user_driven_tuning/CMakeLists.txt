@@ -23,6 +23,6 @@
 
 # TODO: Only if building with Tensile
 add_executable(rocblas-example-user-driven-tuning
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_user_driven_tuning.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_user_driven_tuning.cpp
 )
-target_link_libraries(rocblas-example-user-driven-tuning PRIVATE sample-helper)
+target_link_libraries(rocblas-example-user-driven-tuning PRIVATE sample-helper-cpp)

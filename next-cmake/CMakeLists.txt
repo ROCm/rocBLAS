@@ -38,9 +38,10 @@ cmake_dependent_option(ROCBLAS_ENABLE_HOST "Build rocBLAS host library." ON ROCB
 if(ROCBLAS_ENABLE_HOST)
     set(ROCBLAS_BUILD_SHARED ON CACHE BOOL "Build the rocBLAS shared or static library")
     set(ROCBLAS_ENABLE_MSGPACK ON CACHE BOOL "Enable msgpack support.")
-    set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
     set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
     set(ROCBLAS_ENABLE_BLIS ON CACHE BOOL "Enable BLIS support.") # I don't know that we can build with this OFF
+    set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Enable Fortran host and clients.")
+    set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)

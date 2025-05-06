@@ -22,6 +22,6 @@
 # ########################################################################
 
 add_executable(rocblas-example-sgemm-strided-batched
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_sgemm_strided_batched.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_sgemm_strided_batched.cpp
 )
-target_link_libraries(rocblas-example-sgemm-strided-batched PRIVATE sample-helper)
+target_link_libraries(rocblas-example-sgemm-strided-batched PRIVATE sample-helper-cpp)

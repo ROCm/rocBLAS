@@ -22,6 +22,6 @@
 # ########################################################################
 
 add_executable(rocblas-example-scal-template
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_scal_template.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_scal_template.cpp
 )
-target_link_libraries(rocblas-example-scal-template PRIVATE sample-helper)
+target_link_libraries(rocblas-example-scal-template PRIVATE sample-helper-cpp)

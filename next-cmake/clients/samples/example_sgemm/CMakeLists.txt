@@ -22,7 +22,7 @@
 # ########################################################################
 
 add_executable(rocblas-example-sgemm
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_sgemm.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_sgemm.cpp
 )
-target_link_libraries(rocblas-example-sgemm PRIVATE sample-helper)
+target_link_libraries(rocblas-example-sgemm PRIVATE sample-helper-cpp)
 

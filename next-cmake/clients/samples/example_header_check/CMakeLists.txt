@@ -22,6 +22,6 @@
 # ########################################################################
 
 add_executable(rocblas-example-header-check
-    ${_CMAKE_CURRENT_SOURCE_DIR}/example_header_check.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_header_check.cpp
 )
-target_link_libraries(rocblas-example-header-check PRIVATE sample-helper)
+target_link_libraries(rocblas-example-header-check PRIVATE sample-helper-cpp)

@@ -22,16 +22,7 @@
 # ########################################################################
 
 add_executable(rocblas-example-c-dgeam
-    ${_CMAKE_CURRENT_SOURCE_DIR}/../example_c_dgeam.cpp
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_c_dgeam.c
 )
 
-target_compile_definitions(rocblas-example-c-dgeam
-    PRIVATE
-        __HIP_PLATFORM_HCC__
-)
-target_compile_options( rocblas-example-c-dgeam PRIVATE -std=c11 )
-
-
-target_link_libraries(rocblas-example-c-dgeam PRIVATE sample-helper)
-
-
+target_link_libraries(rocblas-example-c-dgeam PRIVATE sample-helper-c)
