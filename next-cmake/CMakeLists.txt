@@ -47,9 +47,17 @@ endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
     # rocm-smi is not presently available on Windows so we do not require it.
+<<<<<<< HEAD
     set(ROCBLAS_ENABLE_SAMPLES ON CACHE BOOL "Build rocBLAS client samples.")
+=======
+    set(ROCBLAS_ENABLE_SAMPLE_CLIENTS ON CACHE BOOL "Build rocBLAS client samples.")
+>>>>>>> d2119656... build(next-cmake): draft: support fortran (almost)
     set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Enable Fortran clients.")
     cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
+endif()
+
+if(ROCBLAS_ENABLE_DEVICE)
+    set(ROCBLAS_BUILD_WITH_TENSILE ON CACHE BOOL "Build rocBLAS with Tensile.")
 endif()
 
 find_package(hip REQUIRED)             # all

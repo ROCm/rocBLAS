@@ -36,6 +36,13 @@ target_link_libraries(rocblas-bench
         rocblas-clients-common
 )
 
+# TODO: This is added to cliens-common, remove here
+# if(ROCBLAS_ENABLE_FORTRAN)
+#     target_link_libraries(rocblas-bench PRIVATE roc::rocblas-fortran-client)
+# else()
+#     target_compile_definitions(rocblas-bench PRIVATE CLIENTS_NO_FORTRAN)
+# endif()
+
 target_compile_definitions(rocblas-bench
     PRIVATE
         GOOGLE_TEST
