@@ -140,11 +140,11 @@ set(rocblas_testing_common_source
     blas_ex/common_geam_ex.cpp
 )
 
-add_library(rocblas_clients_common OBJECT ${rocblas_testing_common_tensile_source} ${rocblas_common_source})
+add_library(rocblas_clients_common OBJECT ${rocblas_common_source})
 
 rocblas_client_library_settings( rocblas_clients_common )
 
-add_library(rocblas_clients_testing_common OBJECT ${rocblas_testing_common_source})
+add_library(rocblas_clients_testing_common OBJECT ${rocblas_testing_common_tensile_source}  ${rocblas_testing_common_source})
 
 rocblas_client_library_settings( rocblas_clients_testing_common )
 
