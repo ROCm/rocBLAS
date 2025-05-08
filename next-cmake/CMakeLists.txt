@@ -117,3 +117,177 @@ if(ROCBLAS_ENABLE_DEVICE)
     endif()
 endif()
 
+if(ROCBLAS_ENABLE_HOST)
+    install(TARGETS rocblas
+        EXPORT rocblas-targets
+        LIBRARY
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            COMPONENT rocBLAS_Runtime
+        ARCHIVE
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            COMPONENT rocBLAS_Development
+        RUNTIME
+            DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            COMPONENT rocBLAS_Runtime
+        PUBLIC_HEADER
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+            COMPONENT rocBLAS_Development
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    )
+    install(
+        EXPORT rocblas-targets
+        NAMESPACE roc::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/rocblas
+    )
+    get_target_property(rocblas_public_headers roc::rocblas INTERFACE_SOURCES)
+    install(
+        FILES ${rocblas_public_headers}
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+        COMPONENT rocBLAS_Development
+    )
+
+    # Install generated header files
+    install(
+        FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-export.h"
+            "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-version.h"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        COMPONENT rocBLAS_Development
+    )
+
+    # Create and install package version file
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+    )
+
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/rocblas-config.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake" @ONLY)
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/rocblas"
+        COMPONENT rocBLAS_Development
+    )
+
+    install(
+        FILES "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md"
+        DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+        COMPONENT rocBLAS_Docs
+    )
+
+    if(ROCBLAS_ENABLE_DEVICE)
+        install(
+            DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/next-cmake/device/library"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/rocblas"
+            COMPONENT rocBLAS_Runtime
+        )
+    endif()
+
+    if(ROCBLAS_ENABLE_CLIENT)
+        if(ROCBLAS_ENABLE_BENCHMARKS)
+            install(
+                TARGETS rocblas-bench
+                EXPORT rocblas-targets
+                COMPONENT rocBLAS_Runtime
+            )
+            if(ROCBLAS_BUILD_WITH_TENSILE)
+                install(
+                    TARGETS rocblas-gemm-tune
+                    EXPORT rocblas-targets
+                    COMPONENT rocBLAS_Runtime
+                )
+            endif()
+        endif()
+
+        if(BUILD_TESTING OR ROCBLAS_ENABLE_TESTS)
+            install(
+                TARGETS rocblas-test
+                EXPORT rocblas-targets
+                COMPONENT rocBLAS_Runtime
+            )
+            install(
+                FILES "${CMAKE_CURRENT_BINARY_DIR}/clients/rocblas_gtest.data"
+                DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT rocBLAS_Runtime
+            )
+        endif()
+
+        if(ROCBLAS_ENABLE_SAMPLES)
+            # List all sample targets
+            install(
+                TARGETS
+                    rocblas-example-c-dgeam
+                    rocblas-example-fortran-axpy
+                    rocblas-example-fortran-gemv
+                    rocblas-example-fortran-scal
+                    rocblas-example-gemv-graph-capture
+                    rocblas-example-header-check
+                    rocblas-example-hip-complex-her2
+                    rocblas-example-scal-multiple-strided-batch
+                    rocblas-example-scal-template
+                    rocblas-example-sgemm
+                    rocblas-example-sgemm-multiple-strided-batch
+                    rocblas-example-sgemm-strided-batched
+                    rocblas-example-solver
+                    rocblas-example-sscal
+                    rocblas-example-user-driven-tuning
+                EXPORT rocblas-targets
+                COMPONENT rocBLAS_Runtime
+            )
+        endif()
+    endif()
+
+    # CPack configuration
+    set(CPACK_PACKAGE_NAME "rocBLAS")
+    set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices, Inc.")
+    set(CPACK_PACKAGE_CONTACT "rocBLAS Maintainer <rocblas-maintainer@amd.com>")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ROCm BLAS marshalling library")
+    set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+    set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+    set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_LIST_DIR}/../LICENSE.md)
+    set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_LIST_DIR}/../README.md)
+    set(CPACK_VERBATIM_VARIABLES YES)
+    set(CPACK_COMPONENTS_ALL "rocBLAS_Runtime;rocBLAS_Development;rocBLAS_Docs")
+
+    set(CPACK_COMPONENTS_GROUPING IGNORE)
+
+    # Debian package settings
+    set(CPACK_DEB_COMPONENT_INSTALL ON)
+    set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+    set(CPACK_DEBIAN_ROCBLAS_RUNTIME_PACKAGE_NAME "rocblas")
+    set(CPACK_DEBIAN_ROCBLAS_RUNTIME_PACKAGE_SECTION "runtime")
+    set(CPACK_DEBIAN_ROCBLAS_DEVELOPMENT_PACKAGE_NAME "rocblas-dev")
+    set(CPACK_DEBIAN_ROCBLAS_DOCS_PACKAGE_NAME "rocblas-docs")
+    set(CPACK_DEBIAN_PACKAGE_PROVIDES "rocblas (= ${PROJECT_VERSION})")
+
+    # RPM package settings
+    set(CPACK_RPM_COMPONENT_INSTALL ON)
+    set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
+    set(CPACK_RPM_ROCBLAS_RUNTIME_PACKAGE_NAME "rocblas")
+    set(CPACK_RPM_ROCBLAS_DEVELOPMENT_PACKAGE_NAME "rocblas-devel")
+    set(CPACK_RPM_ROCBLAS_DOCS_PACKAGE_NAME "rocblas-docs")
+    set(CPACK_RPM_ROCBLAS_RUNTIME_PACKAGE_REQUIRES "rocblas (= ${PROJECT_VERSION})")
+    set(CPACK_RPM_PACKAGE_PROVIDES "rocblas (= ${PROJECT_VERSION})")
+
+    include(CPack)
+
+    # Component definitions
+    cpack_add_component(rocBLAS_Runtime
+        DISPLAY_NAME "Runtime"
+        DESCRIPTION "Runtime libraries for rocBLAS"
+        REQUIRED
+    )
+    cpack_add_component(rocBLAS_Development
+        DISPLAY_NAME "Development"
+        DESCRIPTION "Headers and CMake files for rocBLAS"
+        DEPENDS rocBLAS_Runtime
+    )
+    cpack_add_component(rocBLAS_Docs
+        DISPLAY_NAME "Documentation"
+        DESCRIPTION "Documentation for rocBLAS"
+    )
+endif()
