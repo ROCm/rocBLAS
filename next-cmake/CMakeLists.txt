@@ -41,24 +41,25 @@ if(ROCBLAS_ENABLE_HOST)
     set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
     set(ROCBLAS_ENABLE_BLIS ON CACHE BOOL "Enable BLIS support.") # I don't know that we can build with this OFF
     set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
-    set(ROCBLAS_BUILD_WITH_TENSILE ON CACHE BOOL "Build rocBLAS with Tensile.")
-    set(ROCBLAS_BUILD_WITH_HIPBLASLT OFF CACHE BOOL "Build rocBLAS with hipBLASLt.")
+    set(ROCBLAS_BUILD_WITH_TENSILE ON CACHE BOOL "Build rocBLAS host library with Tensile backend.")
+    set(ROCBLAS_BUILD_WITH_HIPBLASLT OFF CACHE BOOL "Build rocBLAS host library with hipBLASLt backend (not currently supported).")
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
     # rocm-smi is not presently available on Windows so we do not require it.
-<<<<<<< HEAD
-    set(ROCBLAS_ENABLE_SAMPLES ON CACHE BOOL "Build rocBLAS client samples.")
-=======
-    set(ROCBLAS_ENABLE_SAMPLE_CLIENTS ON CACHE BOOL "Build rocBLAS client samples.")
->>>>>>> d2119656... build(next-cmake): draft: support fortran (almost)
-    set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Enable Fortran clients.")
+    set(ROCBLAS_ENABLE_BENCHMARKS ON CACHE BOOL "Build benchmark client.")
+    set(ROCBLAS_ENABLE_TESTS ON CACHE BOOL "Build benchmark client.")
+    set(ROCBLAS_ENABLE_SAMPLES ON CACHE BOOL "Build client samples.")
+    set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Build Fortran clients.")
     cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
     set(ROCBLAS_BUILD_WITH_TENSILE ON CACHE BOOL "Build rocBLAS with Tensile.")
 endif()
+
+# Export compile_commands.json for clang tooling support
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 find_package(hip REQUIRED)             # all
 find_package(BLIS REQUIRED)            # host & client

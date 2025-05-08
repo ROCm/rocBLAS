@@ -22,16 +22,22 @@
 # ########################################################################
 
 cmake_minimum_required(VERSION 3.16.8)
+# TODO: Should Fortran be an optional language only if ROCBLAS_ENABLE_FORTRAN is ON?
 project(clients LANGUAGES C CXX Fortran)
 
 set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
 
 add_subdirectory(common)
-add_subdirectory(bench)
-add_subdirectory(test)
 
-if(ROCBLAS_BUILD_WITH_TENSILE)
-    add_subdirectory(gemm-tune)
+if(ROCBLAS_ENABLE_BENCHMARKS)
+    add_subdirectory(bench)
+    if(ROCBLAS_BUILD_WITH_TENSILE)
+        add_subdirectory(gemm-tune)
+    endif()
+endif()
+
+if(ROCBLAS_ENABLE_TESTS)
+    add_subdirectory(test)
 endif()
 
 if(ROCBLAS_ENABLE_SAMPLES)

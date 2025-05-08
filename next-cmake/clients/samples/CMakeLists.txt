@@ -37,7 +37,6 @@ target_link_libraries(sample-helper-general
 )
 target_include_directories(sample-helper-general
     INTERFACE
-        # $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/include/internal>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common>
 )
@@ -63,28 +62,16 @@ target_sources(sample-helper-cpp
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/host_alloc.cpp>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/client_utility.hpp>
 )
-# TODO: Is this needed? Test it. Yup, looks like it works fine.
-# set_target_properties(sample-helper-cpp
-#     PROPERTIES
-#         CXX_STANDARD_REQUIRED ON
-#         CXX_EXTENSIONS OFF
-# )
 
 add_library(sample-helper-c INTERFACE)
 
 target_compile_definitions(sample-helper-c INTERFACE __HIP_PLATFORM_HCC__)
 target_compile_options(sample-helper-c INTERFACE -std=c11 )
 target_link_libraries(sample-helper-c INTERFACE sample-helper-general)
-# TODO: I don't think this is needed either. Test it. Yup, looks like it works fine.
-# set_target_properties(sample-helper-c
-#     PROPERTIES
-#         LINKER_LANGUAGE C
-# )
 
 if(ROCBLAS_ENABLE_FORTRAN)
     add_library(sample-helper-f90 INTERFACE)
-    # Link this here because we don't need to link against the
-    # rocblas-clients-common target in the samples
+    # Link this here because we don't need to link against rocblas-clients-common in the samples
     target_link_libraries(sample-helper-f90
         INTERFACE
             sample-helper-general
@@ -111,17 +98,14 @@ add_subdirectory(example_scal_template)
 add_subdirectory(example_solver_rocblas)
 add_subdirectory(example_sscal)
 add_subdirectory(example_user_driven_tuning)
-# L3 examples with or with tensile or source gemm builds
+# C++ L3 examples with or with tensile or source gemm builds
 add_subdirectory(example_sgemm)
 add_subdirectory(example_sgemm_multiple_strided_batch)
 add_subdirectory(example_sgemm_strided_batched)
 
-if ( BUILD_FORTRAN_CLIENTS )
-  # Fortran examples
-  add_executable(rocblas-example-fortran-axpy example_fortran_axpy.f90)
-  target_sources(rocblas-example-fortran-axpy PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
-  add_executable(rocblas-example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-  target_sources(rocblas-example-fortran-scal PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
-  add_executable(rocblas-example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-  target_sources(rocblas-example-fortran-gemv PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
+if (ROCBLAS_ENABLE_FORTRAN)
+    # Fortran examples
+    add_subdirectory(example_fortran_axpy)
+    add_subdirectory(example_fortran_scal)
+    add_subdirectory(example_fortran_gemv)
 endif()

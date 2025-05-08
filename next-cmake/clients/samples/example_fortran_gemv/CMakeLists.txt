@@ -21,13 +21,16 @@
 #
 # ########################################################################
 
-add_executable(rocblas-example-header-check
-    ${TEMP_CLIENT_SAMPLES_DIR}/example_header_check.cpp
+add_executable(rocblas-example-fortran-gemv
+    ${TEMP_CLIENT_SAMPLES_DIR}/example_fortran_gemv.f90
 )
 
-target_link_libraries(rocblas-example-header-check PRIVATE sample-helper-cpp)
+target_sources(rocblas-example-fortran-gemv
+    PRIVATE
+        $<TARGET_OBJECTS:rocblas_fortran>
+)
 
-set_target_properties(rocblas-example-header-check
+set_target_properties(rocblas-example-fortran-gemv
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
 )

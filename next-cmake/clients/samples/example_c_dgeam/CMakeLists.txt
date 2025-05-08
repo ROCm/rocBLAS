@@ -26,3 +26,8 @@ add_executable(rocblas-example-c-dgeam
 )
 
 target_link_libraries(rocblas-example-c-dgeam PRIVATE sample-helper-c)
+
+set_target_properties(rocblas-example-c-dgeam
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
+)

@@ -33,3 +33,8 @@ target_include_directories(rocblas-example-solver
     PRIVATE
         ${TEMP_CLIENT_SAMPLES_DIR}/../../library/src/include
 )
+
+set_target_properties(rocblas-example-solver
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
+)

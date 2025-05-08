@@ -37,9 +37,12 @@ configure_file(
     @ONLY
 )
 
-generate_export_header(rocblas
-    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal/rocblas-export.h
-    BASE_NAME rocblas
+target_compile_definitions(rocblas64 PRIVATE
+    ROCBLAS_INTERNAL_ILP64
+    ROCM_USE_FLOAT16
+    ROCBLAS_INTERNAL_API
+    ROCBLAS_BETA_FEATURES_API
+    rocblas_EXPORTS # TODO: needed?
 )
 
 target_sources(rocblas
@@ -113,7 +116,6 @@ set_target_properties(rocblas
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
 )
 
-# TODO: This is only used in the clients, why do we have this at all?
 if(ROCBLAS_ENABLE_FORTRAN)
     add_library(rocblas-fortran OBJECT)
     target_sources(rocblas-fortran
