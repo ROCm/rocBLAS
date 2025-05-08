@@ -59,7 +59,7 @@ if(ROCBLAS_ENABLE_DEVICE)
 endif()
 
 # Export compile_commands.json for clang tooling support
-set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(hip REQUIRED)             # all
 find_package(BLIS REQUIRED)            # host & client
@@ -146,7 +146,6 @@ if(ROCBLAS_ENABLE_HOST)
         COMPONENT rocBLAS_Development
     )
 
-    # Install generated header files
     install(
         FILES
             "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-export.h"
@@ -155,7 +154,6 @@ if(ROCBLAS_ENABLE_HOST)
         COMPONENT rocBLAS_Development
     )
 
-    # Create and install package version file
     write_basic_package_version_file(
         "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
         VERSION ${PROJECT_VERSION}
@@ -239,7 +237,6 @@ if(ROCBLAS_ENABLE_HOST)
         endif()
     endif()
 
-    # CPack configuration
     set(CPACK_PACKAGE_NAME "rocBLAS")
     set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices, Inc.")
     set(CPACK_PACKAGE_CONTACT "rocBLAS Maintainer <rocblas-maintainer@amd.com>")
@@ -255,7 +252,6 @@ if(ROCBLAS_ENABLE_HOST)
 
     set(CPACK_COMPONENTS_GROUPING IGNORE)
 
-    # Debian package settings
     set(CPACK_DEB_COMPONENT_INSTALL ON)
     set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
     set(CPACK_DEBIAN_ROCBLAS_RUNTIME_PACKAGE_NAME "rocblas")
@@ -264,7 +260,6 @@ if(ROCBLAS_ENABLE_HOST)
     set(CPACK_DEBIAN_ROCBLAS_DOCS_PACKAGE_NAME "rocblas-docs")
     set(CPACK_DEBIAN_PACKAGE_PROVIDES "rocblas (= ${PROJECT_VERSION})")
 
-    # RPM package settings
     set(CPACK_RPM_COMPONENT_INSTALL ON)
     set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
     set(CPACK_RPM_ROCBLAS_RUNTIME_PACKAGE_NAME "rocblas")
@@ -275,7 +270,6 @@ if(ROCBLAS_ENABLE_HOST)
 
     include(CPack)
 
-    # Component definitions
     cpack_add_component(rocBLAS_Runtime
         DISPLAY_NAME "Runtime"
         DESCRIPTION "Runtime libraries for rocBLAS"
