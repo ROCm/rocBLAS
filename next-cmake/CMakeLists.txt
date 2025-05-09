@@ -22,7 +22,7 @@
 # ######################################################################### Copyright
 
 cmake_minimum_required(VERSION 3.25.2)  # TODO: Test this with various cmake versions
-project(rocblas VERSION 4.5.0 LANGUAGES CXX)  # TODO: Which version?
+project(rocblas VERSION 4.5.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -30,6 +30,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 include(CMakeDependentOption)
+
 
 set(ROCBLAS_ENABLE_DEVICE ON CACHE BOOL "Build rocBLAS device libraries.")
 set(ROCBLAS_ENABLE_HOST ON CACHE BOOL "Build rocBLAS host library.")
@@ -58,28 +59,15 @@ endif()
 # Export compile_commands.json for clang tooling support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# TODO: Add proper conditionals for requiring these packages
-find_package(hip REQUIRED)             # all
-find_package(BLIS REQUIRED)            # host & client
-find_package(cblas REQUIRED)           # client
-find_package(BLAS REQUIRED)            # client?
-find_package(LAPACK REQUIRED)          # client?
 
-if(ROCBLAS_ENABLE_OPENMP)
-    find_package(OpenMP REQUIRED)      # client?
+find_package(hip REQUIRED)
+
+if(ROCBLAS_ENABLE_BLIS)
+    find_package(BLIS REQUIRED)
 endif()
 
-# TODO: Do we really need to be linking against msgpack, it should be propogated through the Tensile host
-if(ROCBLAS_ENABLE_MSGPACK)
-    # See: https://github.com/msgpack/msgpack-c/wiki/Q%26A#how-to-support-both-msgpack-c-c-version-5x-and-6x-
-    # Prefer 6.x (msgpack-cxx) as that is what we bundle in the build.
-    find_package(msgpack-cxx CONFIG)
-    if(msgpack-cxx_FOUND)
-        message(STATUS "Found msgpack-cxx (>=6.x)")
-    else()
-        find_package(msgpackc-cxx CONFIG REQUIRED NAMES msgpackc-cxx msgpack)
-        message(STATUS "Found msgpack (<=5.x)")
-    endif()
+if(ROCBLAS_ENABLE_OPENMP)
+    find_package(OpenMP REQUIRED)
 endif()
 
 if(ROCBLAS_ENABLE_LLVM)
@@ -87,7 +75,7 @@ if(ROCBLAS_ENABLE_LLVM)
 endif()
 
 if(ROCBLAS_BUILD_WITH_HIPBLASLT)
-    find_package(hipblaslt REQUIRED)
+    find_package(roc::hipblaslt REQUIRED)
 endif()
 
 if(ROCBLAS_REQUIRE_ROCM_SMI)
@@ -96,22 +84,23 @@ else()
     find_package(rocm_smi)
 endif()
 
-if(BUILD_TESTING OR ROCBLAS_ENABLE_BENCHMARKS OR ROCBLAS_ENABLE_TESTS)
-    find_package(GTest REQUIRED)
-endif()
 
 if(ROCBLAS_ENABLE_HOST)
-    message(STATUS "Building HOST")
+    message(STATUS "Configuring host library")
     add_subdirectory(host-library)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
-    message(STATUS "Building CLIENT")
+    find_package(GTest REQUIRED)
+    find_package(cblas REQUIRED)
+    find_package(BLAS REQUIRED)
+    find_package(LAPACK REQUIRED)
+    message(STATUS "Configuing clients")
     add_subdirectory(clients)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-    message(STATUS "Building DEVICE with Tensile")
+    message(STATUS "Configuring device libraries")
     if(NOT TARGET tensile::tensile-host)
         add_subdirectory(Tensile/next-cmake)
     endif()
