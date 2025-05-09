@@ -185,7 +185,7 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
     set( BLIS_CPP ../common/blis_interface.cpp )
   endif()
 
-  message(STATUS "Linking BLAS LIB: ${BLAS_LIBRARY}")
+  message(STATUS "Linking reference BLAS LIB: ${BLAS_LIBRARY}")
 
   if ( WARN_NOT_ILP64_PREFERRED )
     message( WARNING "Using ${BLAS_LIBRARY} as reference library, 64-bit tests may fail. Test suite should be run with --gtest_filter=-*stress*")
