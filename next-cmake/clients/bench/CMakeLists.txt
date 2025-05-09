@@ -25,15 +25,9 @@ set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/benchmarks)
 
 add_executable(rocblas-bench)
 
-target_sources(rocblas-bench
-    PRIVATE
-        ${_CMAKE_CURRENT_SOURCE_DIR}/client.cpp
-        ${_CMAKE_CURRENT_SOURCE_DIR}/program_options.hpp
-)
-
-target_link_libraries(rocblas-bench
-    PRIVATE
-        rocblas-clients-common
+set_target_properties(rocblas-bench
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
 
 # TODO: This is added to cliens-common, remove here
@@ -48,7 +42,10 @@ target_compile_definitions(rocblas-bench
         GOOGLE_TEST
 )
 
-set_target_properties(rocblas-bench
-    PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
+target_link_libraries(rocblas-bench
+    PRIVATE
+        rocblas-clients-common
 )
+
+add_subdirectory(include)
+add_subdirectory(src)

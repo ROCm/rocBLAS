@@ -96,6 +96,10 @@ else()
     find_package(rocm_smi)
 endif()
 
+if(BUILD_TESTING OR ROCBLAS_ENABLE_BENCHMARKS OR ROCBLAS_ENABLE_TESTS)
+    find_package(GTest REQUIRED)
+endif()
+
 if(ROCBLAS_ENABLE_HOST)
     message(STATUS "Building HOST")
     add_subdirectory(host-library)
