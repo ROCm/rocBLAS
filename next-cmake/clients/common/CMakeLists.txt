@@ -107,22 +107,19 @@ add_library(rocblas-clients-common OBJECT)
 
 # TODO: Is the below if-block needed?
 if (WARN_NOT_ILP64_PREFERRED)
-  target_compile_definitions(rocblas-clients-common PRIVATE ROCBLAS_REFERENCE_LIB_WARN )
+  target_compile_definitions(rocblas-clients-common PRIVATE ROCBLAS_REFERENCE_LIB_WARN)
 endif()
 target_compile_definitions(rocblas-clients-common
     PUBLIC
         ROCBLAS_REFERENCE_LIB=${BLAS_LIBRARY}
-        CLIENTS_NO_FORTRAN
         ROCM_USE_FLOAT16
         ROCBLAS_INTERNAL_API
         # ROCBLAS_NO_DEPRECATED_WARNINGS  # TODO: Why not just let the user handle this?
-        BUILD_WITH_TENSILE  # TODO: This should not be unconditionally set on the clients-common target
         ROCBLAS_TENSILE_SEPARATE_ARCH=1
         ROCBLAS_TENSILE_LAZY_LOAD=1
-        # ${TENSILE_DEFINES}  # TODO: Where are these defined?
     PRIVATE
         GOOGLE_TEST
-        ${HIPBLASLT_DEFINES}  # TODO: Where are these defined?
+        # ${HIPBLASLT_DEFINES}  # TODO: Where are these defined?
 )
 
 if(ROCBLAS_ENABLE_FORTRAN)
@@ -131,8 +128,7 @@ else()
     target_compile_definitions(rocblas-clients-common PUBLIC CLIENTS_NO_FORTRAN)
 endif()
 
-target_compile_options(rocblas-clients-common PUBLIC -Wno-unused-result -Wno-deprecated-declarations)
-
+# TODO: move this into src
 target_sources(rocblas-clients-common
     PRIVATE
         ${rocblas_client_common_source}
@@ -149,7 +145,6 @@ target_link_libraries(rocblas-clients-common
         Threads::Threads
         GTest::gtest
         rocm_smi64
-        # -lm -lstd++fs  # TODO: Are these required?
 )
 
 target_include_directories(rocblas-clients-common

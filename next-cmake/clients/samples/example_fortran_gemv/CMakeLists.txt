@@ -25,6 +25,8 @@ add_executable(rocblas-example-fortran-gemv
     ${TEMP_CLIENT_SAMPLES_DIR}/example_fortran_gemv.f90
 )
 
+target_link_libraries(rocblas-example-fortran-gemv PRIVATE sample-helper-f90)
+
 target_sources(rocblas-example-fortran-gemv
     PRIVATE
         $<TARGET_OBJECTS:rocblas_fortran>

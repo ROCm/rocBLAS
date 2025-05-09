@@ -25,6 +25,8 @@ add_executable(rocblas-example-fortran-axpy
     ${TEMP_CLIENT_SAMPLES_DIR}/example_fortran_axpy.f90
 )
 
+target_link_libraries(rocblas-example-fortran-axpy PRIVATE sample-helper-f90)
+
 target_sources(rocblas-example-fortran-axpy
     PRIVATE
         $<TARGET_OBJECTS:rocblas_fortran>

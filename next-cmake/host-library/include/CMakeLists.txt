@@ -24,35 +24,47 @@
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR}/include)
 
 configure_file(
-    ${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-version.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-version.h
+    "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-version.h"
     @ONLY
 )
 
 generate_export_header(rocblas
-    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-export.h
+    EXPORT_FILE_NAME "${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-export.h"
     BASE_NAME rocblas
+)
+
+target_sources(rocblas-helper
+    INTERFACE
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/check_numerics_matrix.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/check_numerics_vector.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/definitions.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/device_macros.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/handle.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/hipblaslt_host.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/int64_helpers.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/logging.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/macros.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/rocblas_device_malloc.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/rocblas_ostream.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/tensile_host.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/tuple_helper.hpp"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/utility.hpp"
 )
 
 target_sources(rocblas
     PRIVATE
-        # rocblas_headers_public
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/rocblas.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-types.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas_bfloat16.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-auxiliary.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-functions.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-macros.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-beta.h>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-version.h>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-export.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/rocblas.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-types.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas_bfloat16.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-auxiliary.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-functions.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-macros.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-beta.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/rocblas/internal/rocblas-version.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/rocblas/internal/rocblas-export.h>
+        "${_CMAKE_CURRENT_SOURCE_DIR}/rocblas.h"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-types.h"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas_bfloat16.h"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-auxiliary.h"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-functions.h"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-macros.h"
+        "${_CMAKE_CURRENT_SOURCE_DIR}/internal/rocblas-beta.h"
+        "${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-version.h"
+        "${CMAKE_CURRENT_BINARY_DIR}/rocblas/internal/rocblas-export.h"
 )
+
+# TODO: add headers in blas1/blas2/blas3/blas_ex directories
+
+add_subdirectory(include64)

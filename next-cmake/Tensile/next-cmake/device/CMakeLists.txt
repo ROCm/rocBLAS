@@ -28,6 +28,7 @@ list(JOIN GPU_TARGETS "$<SEMICOLON>" TENSILE_GPU_TARGETS_SEMI_ESCAPED)
 set(TENSILE_BUILD_OPTS ${TENSILE_BUILD_OPTS} "--code-object-version=${TENSILE_CODE_OBJECT_VERSION}")
 set(TENSILE_BUILD_OPTS ${TENSILE_BUILD_OPTS} "--architecture=\"${TENSILE_GPU_TARGETS_SEMI_ESCAPED}\"")
 set(TENSILE_BUILD_OPTS ${TENSILE_BUILD_OPTS} "--cxx-compiler=${CMAKE_CXX_COMPILER}")
+set(TENSILE_BUILD_OPTS ${TENSILE_BUILD_OPTS} "--merge-files")
 if(TENSILE_JOBS)
     set(TENSILE_BUILD_OPTS ${TENSILE_BUILD_OPTS} "--jobs=${TENSILE_JOBS}")
 endif()
@@ -48,6 +49,11 @@ add_custom_command(
     OUTPUT "${output_stamp}"
     WORKING_DIRECTORY "${TENSILE_SOURCE_TREE}/../.."
 )
+
+block(SCOPE_FOR VARIABLES)
+    list(JOIN TENSILE_CREATE_LIBRARY_COMMAND " " FORMATTED_TCL)
+    message(VERBOSE "Device lib build command: ${FORMATTED_TCL}")
+endblock()
 
 add_custom_target(tensile-device-libraries ALL
     DEPENDS "${output_stamp}"

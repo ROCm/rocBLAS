@@ -32,7 +32,6 @@ set(rocblas_tensile_test_source
     # use of tensile based functions (gemm)
     ${_CMAKE_CURRENT_SOURCE_DIR}/atomics_mode_gtest.cpp
     ${_CMAKE_CURRENT_SOURCE_DIR}/get_solutions_gtest.cpp
-
 )
 
 set(rocblas_no_tensile_test_source

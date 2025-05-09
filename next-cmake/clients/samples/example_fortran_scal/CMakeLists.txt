@@ -25,6 +25,8 @@ add_executable(rocblas-example-fortran-scal
     ${TEMP_CLIENT_SAMPLES_DIR}/example_fortran_scal.f90
 )
 
+target_link_libraries(rocblas-example-fortran-scal PRIVATE sample-helper-f90)
+
 target_sources(rocblas-example-fortran-scal
     PRIVATE
         $<TARGET_OBJECTS:rocblas_fortran>

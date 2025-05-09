@@ -25,70 +25,66 @@ set(TEMP_HOST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../library)
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR})
 
 cmake_minimum_required(VERSION 3.25.2)
-project(host-library VERSION 4.5.0 LANGUAGES CXX Fortran)
+project(host-library VERSION 4.5.0 LANGUAGES CXX)
 
-add_library(rocblas)
-add_library(roc::rocblas ALIAS rocblas)
+if(ROCBLAS_ENABLE_FORTRAN)
+    enable_language(Fortran)
+endif()
 
-# TODO: goes into `host-library/include`
-configure_file(
-    ${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
-    @ONLY
-)
+add_library(rocblas-helper INTERFACE)
 
-target_compile_definitions(rocblas64 PRIVATE
-    ROCBLAS_INTERNAL_ILP64
-    ROCM_USE_FLOAT16
-    ROCBLAS_INTERNAL_API
-    ROCBLAS_BETA_FEATURES_API
-    rocblas_EXPORTS # TODO: needed?
-)
-
-target_sources(rocblas
-    PRIVATE
-        # rocblas_headers_public
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-types.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas_bfloat16.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-auxiliary.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-functions.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-macros.h>
-        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-beta.h>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal/rocblas-export.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/rocblas.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-types.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas_bfloat16.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-auxiliary.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-functions.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-macros.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/internal/rocblas-beta.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/rocblas/internal/rocblas-version.h>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/include/rocblas/internal/rocblas-export.h>
-)
-
-
-target_include_directories(rocblas
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+target_include_directories(rocblas-helper
+    INTERFACE
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
-        # TODO: This is marked internal, but need to be public for the clients
+        # This is marked 'internal', but needs to be public for the clients
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
-    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src/include>
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src/include/internal>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src/src64>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(rocblas
-    PRIVATE
+target_compile_definitions(rocblas-helper
+    INTERFACE
+        ROCM_USE_FLOAT16
+        ROCBLAS_INTERNAL_API
+        ROCBLAS_BETA_FEATURES_API
+        rocblas_EXPORTS # TODO: needed?
+)
+if(ROCBLAS_BUILD_WITH_TENSILE)
+    target_compile_definitions(rocblas-helper INTERFACE BUILD_WITH_TENSILE)
+endif()
+
+target_compile_features(rocblas-helper INTERFACE cxx_std_17)
+
+target_link_libraries(rocblas-helper
+    INTERFACE
         hip::host
         hip::device
-        OpenMP::OpenMP_CXX
+)
+
+add_library(rocblas64 OBJECT)
+
+target_compile_definitions(rocblas64
+    PRIVATE
+        ROCBLAS_INTERNAL_ILP64
+)
+
+target_link_libraries(rocblas64 PRIVATE rocblas-helper)
+
+
+target_include_directories(rocblas
+    PUBLIC
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
+        # TODO: This is marked internal, but need to be public for the clients
+        $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
 )
 if(ROCBLAS_BUILD_SHARED)
     target_link_libraries(rocblas PRIVATE roctx64)
@@ -98,22 +94,16 @@ if(ROCBLAS_BUILD_WITH_HIPBLASLT)
     target_link_libraries(rocblas PRIVATE roc::hipblaslt)
 endif()
 
-target_compile_features(rocblas PRIVATE cxx_std_17)
-
-target_compile_definitions(rocblas
-    PRIVATE
-        ROCM_USE_FLOAT16
-        ROCBLAS_INTERNAL_API
-        ROCBLAS_BETA_FEATURES_API
-        rocblas_EXPORTS # TODO: needed?
-)
-if(ROCBLAS_BUILD_WITH_TENSILE)
-    target_compile_definitions(rocblas PRIVATE BUILD_WITH_TENSILE)
-endif()
-
 set_target_properties(rocblas
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
+)
+
+target_link_libraries(rocblas
+    PRIVATE
+        rocblas-helper
+        rocblas64
+        OpenMP::OpenMP_CXX
 )
 
 if(ROCBLAS_ENABLE_FORTRAN)
@@ -127,11 +117,7 @@ endif()
 # add_subdirectory(include)  # TODO: empty, but needed
 add_subdirectory(src)
 
-##############
-# Installation
-##############
-
-# TODO: Fix the source code that uses inconsistent include paths and then remove this
+# TODO: Fix the source code that uses inconsistent include paths and then remove this.
 #   Leaving this step in for now but this is improper practice and allows clients and
 #   other consumers to use wrong (or at least inconsistent) include paths.
 #   Refer to file: testing_gemm_batched_ex.hpp, which uses the following include
