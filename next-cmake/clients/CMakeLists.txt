@@ -34,7 +34,7 @@ add_subdirectory(common)
 
 if(ROCBLAS_ENABLE_BENCHMARKS)
     add_subdirectory(bench)
-    if(ROCBLAS_BUILD_WITH_TENSILE)
+    if(ROCBLAS_ENABLE_TENSILE)
         add_subdirectory(gemm-tune)
     endif()
 endif()

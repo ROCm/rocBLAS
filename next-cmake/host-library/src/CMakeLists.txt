@@ -35,13 +35,12 @@ target_sources(rocblas-helper
         ${_CMAKE_CURRENT_SOURCE_DIR}/utility.cpp
 )
 
-# rocblas_ex_source
-if(ROCBLAS_BUILD_WITH_TENSILE AND NOT ROCBLAS_BUILD_WITH_HIPBLASLT)
+if(ROCBLAS_ENABLE_TENSILE)
     target_sources(rocblas PRIVATE ${_CMAKE_CURRENT_SOURCE_DIR}/tensile_host.cpp)
-elseif(NOT ROCBLAS_BUILD_WITH_TENSILE AND ROCBLAS_BUILD_WITH_TENSILE)
+endif()
+
+if(ROCBLAS_ENABLE_HIPBLASLT)
     target_sources(rocblas PRIVATE ${_CMAKE_CURRENT_SOURCE_DIR}/hipblaslt_host.cpp)
-else()
-    message(FATAL_ERROR "rocBLAS must be built with either Tensile or hipBLASLt, but not both.")
 endif()
 
 target_sources(rocblas

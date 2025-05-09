@@ -71,7 +71,7 @@ target_link_libraries(rocblas-clients-common
 
 if(ROCBLAS_ENABLE_FORTRAN)
     add_library(rocblas-fortran-client)
-    if(ROCBLAS_BUILD_WITH_TENSILE)
+    if(ROCBLAS_ENABLE_TENSILE)
         target_sources(rocblas-fortran-client
             PRIVATE
                 ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran_tensile.f90

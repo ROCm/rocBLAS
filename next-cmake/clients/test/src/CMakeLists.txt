@@ -23,7 +23,7 @@
 
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/gtest/src)
 
-if(ROCBLAS_BUILD_WITH_TENSILE)
+if(ROCBLAS_ENABLE_TENSILE)
     target_sources(rocblas-test
         PRIVATE
             "${_CMAKE_CURRENT_SOURCE_DIR}/../multiheaded_gtest.cpp"

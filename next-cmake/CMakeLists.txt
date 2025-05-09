@@ -43,8 +43,8 @@ if(ROCBLAS_ENABLE_HOST)
     set(ROCBLAS_ENABLE_BLIS ON CACHE BOOL "Enable BLIS support.") # I don't know that we can build with this OFF
     set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
     # TODO: Use ENABLE_ prefix for these options
-    set(ROCBLAS_BUILD_WITH_TENSILE ON CACHE BOOL "Build rocBLAS host library with Tensile backend.")
-    set(ROCBLAS_BUILD_WITH_HIPBLASLT OFF CACHE BOOL "Build rocBLAS host library with hipBLASLt backend (not currently supported).")
+    set(ROCBLAS_ENABLE_TENSILE ON CACHE BOOL "Build rocBLAS host library with Tensile backend.")
+    set(ROCBLAS_ENABLE_HIPBLASLT OFF CACHE BOOL "Build rocBLAS host library with hipBLASLt backend (not currently supported).")
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
@@ -74,7 +74,7 @@ if(ROCBLAS_ENABLE_LLVM)
     find_package(LLVM REQUIRED)
 endif()
 
-if(ROCBLAS_BUILD_WITH_HIPBLASLT)
+if(ROCBLAS_ENABLE_HIPBLASLT)
     find_package(roc::hipblaslt REQUIRED)
 endif()
 
@@ -182,7 +182,7 @@ endif()
 #                 EXPORT rocblas-targets
 #                 COMPONENT rocBLAS_Runtime
 #             )
-#             if(ROCBLAS_BUILD_WITH_TENSILE)
+#             if(ROCBLAS_ENABLE_TENSILE)
 #                 install(
 #                     TARGETS rocblas-gemm-tune
 #                     EXPORT rocblas-targets

@@ -55,7 +55,7 @@ target_compile_definitions(rocblas-helper
         ROCBLAS_BETA_FEATURES_API
         rocblas_EXPORTS # TODO: needed?
 )
-if(ROCBLAS_BUILD_WITH_TENSILE)
+if(ROCBLAS_ENABLE_TENSILE)
     target_compile_definitions(rocblas-helper INTERFACE BUILD_WITH_TENSILE)
 endif()
 
@@ -90,7 +90,7 @@ if(ROCBLAS_BUILD_SHARED)
     target_link_libraries(rocblas PRIVATE roctx64)
 endif()
 
-if(ROCBLAS_BUILD_WITH_HIPBLASLT)
+if(ROCBLAS_ENABLE_HIPBLASLT)
     target_link_libraries(rocblas PRIVATE roc::hipblaslt)
 endif()
 
