@@ -547,29 +547,7 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
         gemm.getDefaultValueForDeviceUserArguments(userArgs);
-        for(int batch = 0; batch < batch_count; batch++)
-        {
-            userArgs[batch].m        = prob.m;
-            userArgs[batch].n        = prob.n;
-            userArgs[batch].k        = prob.k;
-            userArgs[batch].strideA1 = prob.col_stride_a;
-            userArgs[batch].strideB1 = prob.col_stride_b;
-            userArgs[batch].strideC1 = prob.col_stride_c;
-            userArgs[batch].strideD1 = prob.col_stride_d;
-            userArgs[batch].strideA2 = prob.batch_stride_a;
-            userArgs[batch].strideB2 = prob.batch_stride_b;
-            userArgs[batch].strideC2 = prob.batch_stride_c;
-            userArgs[batch].strideD2 = prob.batch_stride_d;
-            userArgs[batch].batch    = 1;
-            userArgs[batch].a        = (void*)(A[batch] + prob.buffer_offset_a);
-            userArgs[batch].b        = (void*)(B[batch] + prob.buffer_offset_b);
-            userArgs[batch].c        = (void*)(C[batch] + prob.buffer_offset_c);
-            userArgs[batch].d        = (void*)(D[batch] + prob.buffer_offset_d);
-
-            userArgs[batch].alpha[0] = convertScalarForHipblasLT(h_alpha);
-            userArgs[batch].beta[0]  = convertScalarForHipblasLT(h_beta);
-        }
-
+        
         // Copy them to device memory
         hipblaslt_ext::UserArguments* d_userArgs
             = (hipblaslt_ext::UserArguments*)((char*)(prob.handle->gsu_workspace)
