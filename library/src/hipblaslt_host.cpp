@@ -547,7 +547,7 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
         gemm.getDefaultValueForDeviceUserArguments(userArgs);
-        
+
         // Copy them to device memory
         hipblaslt_ext::UserArguments* d_userArgs
             = (hipblaslt_ext::UserArguments*)((char*)(prob.handle->gsu_workspace)
