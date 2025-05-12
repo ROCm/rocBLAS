@@ -24,7 +24,7 @@
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR}/src)
 
 target_sources(rocblas-helper
-    INTERFACE
+    PRIVATE
         ${_CMAKE_CURRENT_SOURCE_DIR}/handle.cpp
         ${_CMAKE_CURRENT_SOURCE_DIR}/logging.cpp
         ${_CMAKE_CURRENT_SOURCE_DIR}/rocblas_auxiliary.cpp

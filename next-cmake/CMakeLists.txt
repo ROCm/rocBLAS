@@ -103,8 +103,6 @@ include(ROCMSetupVersion)
 include(ROCMCreatePackage)
 include(ROCMInstallTargets)
 include(ROCMPackageConfigHelpers)
-include(ROCMInstallSymlinks)
-include(ROCMSetupProjectVersion)
 
 
 if(ROCBLAS_ENABLE_HOST)
@@ -137,10 +135,10 @@ rocm_setup_version(VERSION ${PROJECT_VERSION})
 # Install host library with proper component segmentation
 if(ROCBLAS_ENABLE_HOST)
     rocm_install_targets(
-        TARGETS rocblas
+        TARGETS rocblas rocblas64 tensile-host rocblas-helper rocblas-interface
         EXPORT rocblas-targets
         COMPONENT rocblas_runtime
-        INCLUDE DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+        # INCLUDE DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
     )
 
     # Install public header files
@@ -163,7 +161,7 @@ if(ROCBLAS_ENABLE_HOST)
 
     rocm_export_targets(
         NAMESPACE roc::
-        TARGETS rocblas
+        TARGETS rocblas rocblas64 tensile-host rocblas-helper
         EXPORT rocblas-targets
         INCLUDE "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
         VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
@@ -261,21 +259,25 @@ if(ROCBLAS_ENABLE_CLIENT)
                 COMPONENT rocblas_runtime
             )
         endif()
+    endif()
 endif()
 
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
+set(ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file")
 
 rocm_create_package(
-    rocblas_runtime
+    NAME rocblas_runtime
     DESCRIPTION "BLAS implementation for ROCm, optimized for AMD GPUs"
     MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
+    LDCONFIG
+    LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
 )
 rocm_create_package(
-    rocblas_devel
+    NAME rocblas_devel
     DEPENDS COMPONENT rocblas_runtime
     MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
 )
 rocm_create_package(
-    rocblas_docs
+    NAME rocblas_docs
     MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
 )

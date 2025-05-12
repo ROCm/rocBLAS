@@ -35,7 +35,7 @@ generate_export_header(rocblas
 )
 
 target_sources(rocblas-helper
-    INTERFACE
+    PRIVATE
         "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/check_numerics_matrix.hpp"
         "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/check_numerics_vector.hpp"
         "${_CMAKE_CURRENT_SOURCE_DIR}/../src/include/definitions.hpp"

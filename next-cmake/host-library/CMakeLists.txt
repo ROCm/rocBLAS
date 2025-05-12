@@ -31,9 +31,9 @@ if(ROCBLAS_ENABLE_FORTRAN)
     enable_language(Fortran)
 endif()
 
-add_library(rocblas-helper INTERFACE)
+add_library(rocblas-interface INTERFACE)
 
-target_include_directories(rocblas-helper
+target_include_directories(rocblas-interface
     INTERFACE
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
         # This is marked 'internal', but needs to be public for the clients
@@ -48,7 +48,7 @@ target_include_directories(rocblas-helper
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_compile_definitions(rocblas-helper
+target_compile_definitions(rocblas-interface
     INTERFACE
         ROCM_USE_FLOAT16
         ROCBLAS_INTERNAL_API
@@ -56,13 +56,16 @@ target_compile_definitions(rocblas-helper
         rocblas_EXPORTS # TODO: needed?
 )
 if(ROCBLAS_ENABLE_TENSILE)
-    target_compile_definitions(rocblas-helper INTERFACE BUILD_WITH_TENSILE)
+    target_compile_definitions(rocblas-interface INTERFACE BUILD_WITH_TENSILE)
 endif()
 
-target_compile_features(rocblas-helper INTERFACE cxx_std_17)
+target_compile_features(rocblas-interface INTERFACE cxx_std_17)
+
+add_library(rocblas-helper OBJECT)
 
 target_link_libraries(rocblas-helper
-    INTERFACE
+    PRIVATE
+        rocblas-interface
         hip::host
         hip::device
 )
@@ -85,6 +88,7 @@ target_include_directories(rocblas
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/rocblas>  # TODO: Probably wrong
 )
 if(ROCBLAS_BUILD_SHARED)
     target_link_libraries(rocblas PRIVATE roctx64)
