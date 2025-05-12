@@ -526,24 +526,6 @@ rocblas_status runContractionProblemHipBlasLT(const RocblasContractionProblem<Ti
             return rocblas_status_internal_error;
         }
 
-        auto h_alpha = *(prob.alpha);
-        auto h_beta  = *(prob.beta);
-
-        int batch_count = prob.batch_count;
-
-        std::vector<Ti const*> A(batch_count);
-        std::vector<Ti const*> B(batch_count);
-        std::vector<To*>       C(batch_count);
-        std::vector<To*>       D(batch_count);
-        RETURN_IF_HIP_ERROR(hipMemcpy(
-            (void*)(&A[0]), prob.batch_A, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(
-            (void*)(&B[0]), prob.batch_B, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(
-            (void*)(&C[0]), prob.batch_C, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(
-            (void*)(&D[0]), prob.batch_D, sizeof(void*) * batch_count, hipMemcpyDeviceToHost));
-
         hipblaslt_ext::UserArguments* userArgs;
         hipHostMalloc(&userArgs, userArgsSize);
         gemm.getDefaultValueForDeviceUserArguments(userArgs);
