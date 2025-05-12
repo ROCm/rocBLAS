@@ -88,24 +88,6 @@ namespace
     template <>
     constexpr auto hipblaslt_compute_type<double> = HIPBLAS_COMPUTE_64F;
 
-    template <typename T>
-    auto convertScalarForHipblasLT(T num)
-    {
-        return static_cast<int8_t>(num);
-    }
-
-    template <>
-    auto convertScalarForHipblasLT(rocblas_float_complex num)
-    {
-        return static_cast<int8_t>(std::real(num));
-    }
-
-    template <>
-    auto convertScalarForHipblasLT(rocblas_double_complex num)
-    {
-        return static_cast<int8_t>(std::real(num));
-    }
-
     /**************************************************************************
     * We normally print error messages only once, to avoid excessive logging *
     **************************************************************************/
