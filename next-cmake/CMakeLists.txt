@@ -26,11 +26,17 @@ project(rocblas VERSION 4.5.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+include(FetchContent)
+include(fetch-rocm-cmake)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
-include(FetchContent)
 include(GenerateExportHeader)
 include(GNUInstallDirs)
+include(ROCMSetupVersion)
+include(ROCMClients)
+include(ROCMCreatePackage)
+include(ROCMInstallTargets)
+include(ROCMPackageConfigHelpers)
 
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
@@ -79,6 +85,7 @@ endif()
 
 if(ROCBLAS_ENABLE_HIPBLASLT)
     find_package(roc::hipblaslt REQUIRED)
+    rocm_package_add_dependencies(DEPENDS "hipblaslt >= 0.6.0")
 endif()
 
 if(ROCBLAS_REQUIRE_ROCM_SMI)
@@ -87,22 +94,7 @@ else()
     find_package(rocm_smi)
 endif()
 
-FetchContent_Declare(
-  rocm-cmake
-  GIT_REPOSITORY https://github.com/ROCm/rocm-cmake.git
-  GIT_TAG        develop
-  GIT_SHALLOW    TRUE
-  FIND_PACKAGE_ARGS CONFIG
-)
-FetchContent_MakeAvailable(rocm-cmake)
-list(APPEND CMAKE_MODULE_PATH ${rocm-cmake_SOURCE_DIR}/modules)
-find_package(ROCmCMakeBuildTools REQUIRED)
 
-# TODO: We want these includes with the others, think of how best to do this...
-include(ROCMSetupVersion)
-include(ROCMCreatePackage)
-include(ROCMInstallTargets)
-include(ROCMPackageConfigHelpers)
 
 
 if(ROCBLAS_ENABLE_HOST)
@@ -130,19 +122,123 @@ if(ROCBLAS_ENABLE_DEVICE)
 endif()
 
 
-rocm_setup_version(VERSION ${PROJECT_VERSION})
+# TODO: This if-block was taken from the previous packaging steps and needs review
+if(ROCBLAS_ENABLE_CLIENT)
+    if(NOT CLIENTS_OS)
+        rocm_set_os_id(CLIENTS_OS)
+        string(TOLOWER "${CLIENTS_OS}" CLIENTS_OS)
+        rocm_read_os_release(CLIENTS_OS_VERSION VERSION_ID)
+    endif()
 
-# Install host library with proper component segmentation
+    message(STATUS "OS: ${CLIENTS_OS} ${CLIENTS_OS_VERSION}")
+
+    # Set dependencies based on OS
+    set(OPENMP_RPM "libgomp")
+    set(OPENMP_DEB "libomp-dev")
+    set(GFORTRAN_RPM "libgfortran4")
+    set(GFORTRAN_DEB "libgfortran4")
+
+    if(CLIENTS_OS STREQUAL "centos" OR CLIENTS_OS STREQUAL "rhel")
+        if(CLIENTS_OS_VERSION VERSION_GREATER_EQUAL "8")
+            set(GFORTRAN_RPM "libgfortran")
+        endif()
+    elseif(CLIENTS_OS STREQUAL "ubuntu" AND CLIENTS_OS_VERSION VERSION_GREATER_EQUAL "20.04")
+        set(GFORTRAN_DEB "libgfortran5")
+    elseif(CLIENTS_OS STREQUAL "sles")
+        set(OPENMP_RPM "libgomp1")
+    elseif(CLIENTS_OS STREQUAL "mariner" OR CLIENTS_OS STREQUAL "azurelinux")
+        set(GFORTRAN_RPM "gfortran")
+    endif()
+
+    rocm_package_setup_component(clients)
+    rocm_package_setup_client_component(clients-common)
+
+    if(ROCBLAS_ENABLE_TESTS)
+        rocm_package_setup_client_component(
+            tests
+            DEPENDS
+                COMPONENT clients-common
+                DEB "${OPENMP_DEB}"
+                RPM "${OPENMP_RPM}"
+        )
+    endif()
+
+    if(ROCBLAS_ENABLE_BENCHMARKS)
+        rocm_package_setup_client_component(
+            benchmarks
+            DEPENDS
+                COMPONENT clients-common
+                DEB "${OPENMP_DEB}"
+                RPM "${OPENMP_RPM}"
+        )
+    endif()
+
+    if(ROCBLAS_ENABLE_SAMPLES)
+        rocm_package_setup_client_component(
+            samples
+            DEPENDS
+                COMPONENT clients-common
+                DEB "${OPENMP_DEB}"
+                RPM "${OPENMP_RPM}"
+        )
+    endif()
+
+    # Add Fortran dependencies if enabled
+    if(ROCBLAS_ENABLE_FORTRAN)
+        rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_RPM}")
+        rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_DEB}")
+        rocm_package_add_rpm_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_RPM}")
+        rocm_package_add_deb_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_DEB}")
+    endif()
+endif()
+
+set(HIP_RUNTIME_MINIMUM 4.5.0)
+
+# TODO: Review when finalizing address sanitizer code
+if(BUILD_ADDRESS_SANITIZER)
+    set(DEPENDS_HIP_RUNTIME "hip-runtime-amd-asan")
+else()
+    set(DEPENDS_HIP_RUNTIME "hip-runtime-amd")
+endif()
+
+rocm_package_add_dependencies(SHARED_DEPENDS "${DEPENDS_HIP_RUNTIME} >= ${HIP_RUNTIME_MINIMUM}")
+
+rocm_package_add_deb_dependencies(STATIC_DEPENDS "hip-static-dev >= ${HIP_RUNTIME_MINIMUM}")
+rocm_package_add_rpm_dependencies(STATIC_DEPENDS "hip-static-devel >= ${HIP_RUNTIME_MINIMUM}")
+
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
+set(CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
+
+# TODO: Copied from previous impl, this should be fixed for Windows specific config
+if(WIN32)
+    set(CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path" FORCE)
+    set(INSTALL_PREFIX "C:/hipSDK")
+    set(CPACK_SET_DESTDIR FALSE)
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "C:/hipSDK")
+    set(CPACK_PACKAGING_INSTALL_PREFIX "")
+    set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+    set(CPACK_SOURCE_GENERATOR "ZIP")
+    set(CPACK_GENERATOR "ZIP")
+else()
+    if(NOT CPACK_PACKAGING_INSTALL_PREFIX)
+        set(CPACK_PACKAGING_INSTALL_PREFIX ${ROCM_PATH})
+    endif()
+endif()
+
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}")
+
+# Work around code object stripping failure if using /usr/bin/strip
+# set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip ${rocm_bin}/../llvm/bin/llvm-strip")
+
 if(ROCBLAS_ENABLE_HOST)
-    rocm_install_targets(
+    rocm_install(
         TARGETS rocblas rocblas64 tensile-host rocblas-helper rocblas-interface
         EXPORT rocblas-targets
-        COMPONENT rocblas_runtime
-        # INCLUDE DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+        ARCHIVE COMPONENT devel
+        LIBRARY COMPONENT runtime
+        RUNTIME COMPONENT runtime
     )
 
-    # Install public header files
-    # TODO: May need to fix the search path and install path of these headers
     rocm_install(
         DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
@@ -150,7 +246,6 @@ if(ROCBLAS_ENABLE_HOST)
         FILES_MATCHING PATTERN "*.h*"
     )
 
-    # Install generated headers
     rocm_install(
         FILES
             "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-export.h"
@@ -164,7 +259,7 @@ if(ROCBLAS_ENABLE_HOST)
         TARGETS rocblas rocblas64 tensile-host rocblas-helper
         EXPORT rocblas-targets
         INCLUDE "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
-        VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
+        DEPENDS PACKAGE hip
     )
 
     rocm_configure_package_config_file(
@@ -184,7 +279,7 @@ if(ROCBLAS_ENABLE_HOST)
             "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
             "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/rocblas"
-        COMPONENT rocblas_devel
+        COMPONENT devel
     )
 
     rocm_install(
@@ -194,44 +289,43 @@ if(ROCBLAS_ENABLE_HOST)
     )
 endif()
 
-# Install device library
 if(ROCBLAS_ENABLE_DEVICE)
+    # TODO: This appears to be installing to a double slash directory // (?)
+    set(ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/rocblas" CACHE PATH "Path to tensile library")
+
     rocm_install(
-        # TODO: I think this directory is wrong
-        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Tensile/next-cmake/device/library
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/rocblas
+        DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/next-cmake/device/library/"
+        DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}"
         COMPONENT rocblas_runtime
     )
 endif()
 
-# Install client
 if(ROCBLAS_ENABLE_CLIENT)
-    # TODO: Should I break these into another component? Like `rocblas_client`?
     if(ROCBLAS_ENABLE_BENCHMARKS)
         rocm_install(
             TARGETS rocblas-bench
-            EXPORT rocblas-targets
-            COMPONENT rocblas_runtime
+            COMPONENT benchmarks
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
+
         if(ROCBLAS_ENABLE_TENSILE)
             rocm_install(
                 TARGETS rocblas-gemm-tune
-                EXPORT rocblas-targets
-                COMPONENT rocblas_runtime
+                COMPONENT benchmarks
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
             )
         endif()
     endif()
 
-    if(BUILD_TESTING OR ROCBLAS_ENABLE_TESTS)
+    if(ROCBLAS_ENABLE_TESTS)
         rocm_install(
             TARGETS rocblas-test
-            EXPORT rocblas-targets
-            COMPONENT rocblas_runtime
+            COMPONENT tests
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
     endif()
 
     if(ROCBLAS_ENABLE_SAMPLES)
-        # List all sample targets
         rocm_install(
             TARGETS
                 rocblas-example-c-dgeam
@@ -246,38 +340,29 @@ if(ROCBLAS_ENABLE_CLIENT)
                 rocblas-example-solver
                 rocblas-example-sscal
                 rocblas-example-user-driven-tuning
-            EXPORT rocblas-targets
-            COMPONENT rocblas_runtime
+            COMPONENT samples
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
+
         if(ROCBLAS_ENABLE_FORTRAN)
             rocm_install(
                 TARGETS
                     rocblas-example-fortran-axpy
                     rocblas-example-fortran-gemv
                     rocblas-example-fortran-scal
-                EXPORT rocblas-targets
-                COMPONENT rocblas_runtime
+                COMPONENT samples
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
             )
         endif()
     endif()
 endif()
 
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
 set(ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file")
 
 rocm_create_package(
-    NAME rocblas_runtime
-    DESCRIPTION "BLAS implementation for ROCm, optimized for AMD GPUs"
+    NAME rocblas
+    DESCRIPTION "BLAS implementation for ROCm, optimized for AMD GPUs."
     MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
     LDCONFIG
     LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
-)
-rocm_create_package(
-    NAME rocblas_devel
-    DEPENDS COMPONENT rocblas_runtime
-    MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
-)
-rocm_create_package(
-    NAME rocblas_docs
-    MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
 )

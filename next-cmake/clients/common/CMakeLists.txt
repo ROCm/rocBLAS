@@ -33,7 +33,7 @@ target_compile_definitions(rocblas-clients-common
         ROCBLAS_REFERENCE_LIB=${BLAS_LIBRARY}
         ROCM_USE_FLOAT16
         ROCBLAS_INTERNAL_API
-        # ROCBLAS_NO_DEPRECATED_WARNINGS  # TODO: Why not just let the user handle this?
+        ROCBLAS_NO_DEPRECATED_WARNINGS
         ROCBLAS_TENSILE_SEPARATE_ARCH=1
         ROCBLAS_TENSILE_LAZY_LOAD=1
     PRIVATE

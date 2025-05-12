@@ -55,11 +55,32 @@ target_compile_definitions(rocblas-interface
         ROCBLAS_BETA_FEATURES_API
         rocblas_EXPORTS # TODO: needed?
 )
+
+# NOTE: We assume separate architectures and lazy library loading are always enabled.
 if(ROCBLAS_ENABLE_TENSILE)
-    target_compile_definitions(rocblas-interface INTERFACE BUILD_WITH_TENSILE)
+    target_compile_definitions(rocblas-interface
+        INTERFACE
+            BUILD_WITH_TENSILE
+            ROCBLAS_TENSILE_SEPARATE_ARCH=1
+            ROCBLAS_TENSILE_LAZY_LOAD=1
+    )
+endif()
+
+if(ROCBLAS_ENABLE_HIPBLASLT)
+    target_link_libraries(rocblas INTERFACE roc::hipblaslt)
+    target_compile_definitions(rocblas-interface
+        INTERFACE
+            BUILD_WITH_HIPBLASLT
+    )
 endif()
 
 target_compile_features(rocblas-interface INTERFACE cxx_std_17)
+
+target_link_libraries(rocblas-interface
+    INTERFACE
+        hip::host
+        hip::device
+)
 
 add_library(rocblas-helper OBJECT)
 
@@ -77,7 +98,11 @@ target_compile_definitions(rocblas64
         ROCBLAS_INTERNAL_ILP64
 )
 
-target_link_libraries(rocblas64 PRIVATE rocblas-helper)
+target_link_libraries(rocblas64
+    PRIVATE
+        rocblas-interface
+        rocblas-helper
+)
 
 
 target_include_directories(rocblas
@@ -94,10 +119,6 @@ if(ROCBLAS_BUILD_SHARED)
     target_link_libraries(rocblas PRIVATE roctx64)
 endif()
 
-if(ROCBLAS_ENABLE_HIPBLASLT)
-    target_link_libraries(rocblas PRIVATE roc::hipblaslt)
-endif()
-
 set_target_properties(rocblas
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
@@ -105,6 +126,7 @@ set_target_properties(rocblas
 
 target_link_libraries(rocblas
     PRIVATE
+        rocblas-interface
         rocblas-helper
         rocblas64
         OpenMP::OpenMP_CXX
