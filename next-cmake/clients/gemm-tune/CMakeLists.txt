@@ -30,15 +30,6 @@ set_target_properties(rocblas-gemm-tune
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/staging
 )
 
-# TODO: clients-common already does this, remove here
-# if(ROCBLAS_BUILD_WITH_TENSILE)
-#   if(ROCBLAS_ENABLE_FORTRAN)
-#     target_link_libraries(rocblas-gemm-tune PRIVATE roc::rocblas-fortran-client)
-#   else()
-#     target_compile_definitions(rocblas-gemm-tune PRIVATE CLIENTS_NO_FORTRAN)
-#   endif()
-# endif()
-
 target_compile_definitions(rocblas-gemm-tune
     PRIVATE
         ROCBLAS_BENCH

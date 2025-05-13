@@ -30,13 +30,6 @@ set_target_properties(rocblas-bench
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
 
-# TODO: This is added to cliens-common, remove here
-# if(ROCBLAS_ENABLE_FORTRAN)
-#     target_link_libraries(rocblas-bench PRIVATE roc::rocblas-fortran-client)
-# else()
-#     target_compile_definitions(rocblas-bench PRIVATE CLIENTS_NO_FORTRAN)
-# endif()
-
 target_compile_definitions(rocblas-bench
     PRIVATE
         GOOGLE_TEST
