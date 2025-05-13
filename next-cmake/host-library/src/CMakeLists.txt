@@ -280,10 +280,4 @@ target_sources(rocblas
         ${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex/rocblas_trsv_batched_ex.cpp
 )
 
-target_link_libraries(rocblas PRIVATE rocblas64)
-
-
-
-# if(ROCBLAS_BUILD_WITH_HIPBLASLT)
-#     target_link_libraries(rocblas PRIVATE TensileHost)
-# else()
+add_subdirectory(src64)

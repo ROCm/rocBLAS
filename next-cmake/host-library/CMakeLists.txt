@@ -104,17 +104,20 @@ target_link_libraries(rocblas64
         rocblas-helper
 )
 
+add_library(rocblas)
+add_library(roc::rocblas ALIAS rocblas)
 
 target_include_directories(rocblas
     PUBLIC
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
-        # TODO: This is marked internal, but need to be public for the clients
+        # This is marked 'internal', but needs to be public for the clients
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>  # TODO: Required?
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/rocblas>  # TODO: Probably wrong
 )
+
 if(ROCBLAS_BUILD_SHARED)
     target_link_libraries(rocblas PRIVATE roctx64)
 endif()
@@ -140,7 +143,7 @@ if(ROCBLAS_ENABLE_FORTRAN)
     )
 endif()
 
-# add_subdirectory(include)  # TODO: empty, but needed
+add_subdirectory(include)
 add_subdirectory(src)
 
 # TODO: Fix the source code that uses inconsistent include paths and then remove this.
