@@ -132,7 +132,6 @@ if(ROCBLAS_ENABLE_CLIENT)
 
     message(STATUS "OS: ${CLIENTS_OS} ${CLIENTS_OS_VERSION}")
 
-    # Set dependencies based on OS
     set(OPENMP_RPM "libgomp")
     set(OPENMP_DEB "libomp-dev")
     set(GFORTRAN_RPM "libgfortran4")
@@ -228,7 +227,7 @@ endif()
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}")
 
 # Work around code object stripping failure if using /usr/bin/strip
-# set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip ${rocm_bin}/../llvm/bin/llvm-strip")
+set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip /opt/rocm/llvm/bin/llvm-strip")
 
 if(ROCBLAS_ENABLE_HOST)
     rocm_install(
