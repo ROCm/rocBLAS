@@ -25,7 +25,8 @@ set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR}/src/src64)
 
 target_sources(rocblas64
     PRIVATE
-    # rocblas64_blas3_source: L3 sources that use Tensile but can also use source GEMM as fallback
+        $<TARGET_OBJECTS:rocblas-helper>
+        # rocblas64_blas3_source: L3 sources that use Tensile but can also use source GEMM as fallback
         ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/rocblas_hemm_64.cpp
         ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/rocblas_hemm_batched_64.cpp
         ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/rocblas_hemm_strided_batched_64.cpp

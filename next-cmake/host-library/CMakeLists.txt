@@ -101,7 +101,6 @@ target_compile_definitions(rocblas64
 target_link_libraries(rocblas64
     PRIVATE
         rocblas-interface
-        rocblas-helper
 )
 
 add_library(rocblas)
@@ -130,7 +129,6 @@ set_target_properties(rocblas
 target_link_libraries(rocblas
     PRIVATE
         rocblas-interface
-        rocblas-helper
         rocblas64
         OpenMP::OpenMP_CXX
 )

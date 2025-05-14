@@ -218,7 +218,7 @@ set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip /opt/rocm/llvm/bin/llvm-strip")
 
 if(ROCBLAS_ENABLE_HOST)
     rocm_install(
-        TARGETS rocblas rocblas64 tensile-host rocblas-helper rocblas-interface
+        TARGETS rocblas rocblas64 rocblas-interface
         EXPORT rocblas-targets
         ARCHIVE COMPONENT devel
         LIBRARY COMPONENT runtime
@@ -242,7 +242,7 @@ if(ROCBLAS_ENABLE_HOST)
 
     rocm_export_targets(
         NAMESPACE roc::
-        TARGETS rocblas rocblas64 tensile-host rocblas-helper
+        TARGETS rocblas rocblas64 rocblas-interface
         EXPORT rocblas-targets
         INCLUDE "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
         DEPENDS PACKAGE hip
