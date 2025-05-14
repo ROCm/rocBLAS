@@ -119,7 +119,6 @@ if(ROCBLAS_ENABLE_DEVICE)
 endif()
 
 
-# TODO: This if-block was taken from the previous packaging steps and needs review
 if(ROCBLAS_ENABLE_CLIENT)
     if(NOT CLIENTS_OS)
         rocm_set_os_id(CLIENTS_OS)
@@ -148,44 +147,43 @@ if(ROCBLAS_ENABLE_CLIENT)
 
     rocm_package_setup_component(clients)
     rocm_package_setup_client_component(clients-common)
+endif()
 
-    if(ROCBLAS_ENABLE_TESTS)
-        rocm_package_setup_client_component(
-            tests
-            DEPENDS
-                COMPONENT clients-common
-                DEB "${OPENMP_DEB}"
-                RPM "${OPENMP_RPM}"
-        )
-    endif()
+if(BUILD_TESTING OR ROCBLAS_ENABLE_TESTS)
+    rocm_package_setup_client_component(
+        tests
+        DEPENDS
+            COMPONENT clients-common
+            DEB "${OPENMP_DEB}"
+            RPM "${OPENMP_RPM}"
+    )
+endif()
 
-    if(ROCBLAS_ENABLE_BENCHMARKS)
-        rocm_package_setup_client_component(
-            benchmarks
-            DEPENDS
-                COMPONENT clients-common
-                DEB "${OPENMP_DEB}"
-                RPM "${OPENMP_RPM}"
-        )
-    endif()
+if(ROCBLAS_ENABLE_BENCHMARKS)
+    rocm_package_setup_client_component(
+        benchmarks
+        DEPENDS
+            COMPONENT clients-common
+            DEB "${OPENMP_DEB}"
+            RPM "${OPENMP_RPM}"
+    )
+endif()
 
-    if(ROCBLAS_ENABLE_SAMPLES)
-        rocm_package_setup_client_component(
-            samples
-            DEPENDS
-                COMPONENT clients-common
-                DEB "${OPENMP_DEB}"
-                RPM "${OPENMP_RPM}"
-        )
-    endif()
+if(ROCBLAS_ENABLE_SAMPLES)
+    rocm_package_setup_client_component(
+        samples
+        DEPENDS
+            COMPONENT clients-common
+            DEB "${OPENMP_DEB}"
+            RPM "${OPENMP_RPM}"
+    )
+endif()
 
-    # Add Fortran dependencies if enabled
-    if(ROCBLAS_ENABLE_FORTRAN)
-        rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_RPM}")
-        rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_DEB}")
-        rocm_package_add_rpm_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_RPM}")
-        rocm_package_add_deb_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_DEB}")
-    endif()
+if(ROCBLAS_ENABLE_FORTRAN)
+    rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_RPM}")
+    rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_DEB}")
+    rocm_package_add_rpm_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_RPM}")
+    rocm_package_add_deb_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_DEB}")
 endif()
 
 set(HIP_RUNTIME_MINIMUM 4.5.0)
