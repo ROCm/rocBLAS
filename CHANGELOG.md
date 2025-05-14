@@ -22,8 +22,8 @@ rocBLAS documentation is available at
 
 * Support code for non-production gfx targets 
 * `rocblas_hgemm_kernel_name`, `rocblas_sgemm_kernel_name`, and `rocblas_dgemm_kernel_name` API functions
-* use of warpSize as a constexpr
-* use of deprecated behaviour of `hipPeekLastError`
+* Use of `warpSize` as a constexpr
+* Use of deprecated behavior of `hipPeekLastError`
 * `rocblas_is_user_managing_device_memory` and `rocblas_set_device_memory_size` API functions
 * `rocblas_float8.h` and `rocblas_hip_f8_impl.h` files
 * `rocblas_gemm_ex3` API function
