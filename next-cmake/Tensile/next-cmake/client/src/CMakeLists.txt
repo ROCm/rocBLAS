@@ -50,8 +50,8 @@ target_sources(tensile-client-helper
 )
 
 if(NOT WIN32)
-target_sources(tensile-client-helper
-    PRIVATE
-        "${_CMAKE_CURRENT_SOURCE_DIR}/HardwareMonitor.cpp"
-)
+    target_sources(tensile-client-helper
+        PRIVATE
+            "${_CMAKE_CURRENT_SOURCE_DIR}/HardwareMonitor.cpp"
+    )
 endif()
