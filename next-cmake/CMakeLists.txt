@@ -19,9 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ######################################################################### Copyright
+# ########################################################################
 
-cmake_minimum_required(VERSION 3.25.2)  # TODO: Test this with various cmake versions
+cmake_minimum_required(VERSION 3.25.2)
 project(rocblas VERSION 4.5.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -40,6 +40,17 @@ include(ROCMPackageConfigHelpers)
 
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
+endif()
+
+rocm_setup_version(VERSION ${PROJECT_VERSION})
+set(rocblas_SOVERSION 4.5)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    if(WIN32)
+      set(CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path prefix." FORCE)
+    else()
+      set(CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix." FORCE)
+    endif()
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compile_commands.json for clang tooling support")
@@ -201,25 +212,7 @@ rocm_package_add_rpm_dependencies(STATIC_DEPENDS "hip-static-devel >= ${HIP_RUNT
 
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
 set(CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
-
-# TODO: Copied from previous impl, this should be fixed for Windows specific config
-if(WIN32)
-    set(CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path" FORCE)
-    set(INSTALL_PREFIX "C:/hipSDK")
-    set(CPACK_SET_DESTDIR FALSE)
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "C:/hipSDK")
-    set(CPACK_PACKAGING_INSTALL_PREFIX "")
-    set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
-    set(CPACK_SOURCE_GENERATOR "ZIP")
-    set(CPACK_GENERATOR "ZIP")
-else()
-    if(NOT CPACK_PACKAGING_INSTALL_PREFIX)
-        set(CPACK_PACKAGING_INSTALL_PREFIX ${ROCM_PATH})
-    endif()
-endif()
-
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}")
-
 # Work around code object stripping failure if using /usr/bin/strip
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip /opt/rocm/llvm/bin/llvm-strip")
 
@@ -283,9 +276,11 @@ if(ROCBLAS_ENABLE_HOST)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-    # TODO: This appears to be installing to a double slash directory // (?)
-    set(ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/rocblas" CACHE PATH "Path to tensile library")
-
+    if(WIN32)
+        set(ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "path to tensile library")
+    else()
+        set(ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas" CACHE PATH "path to tensile library")
+    endif()
     rocm_install(
         DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/next-cmake/device/library/"
         DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}"
