@@ -79,7 +79,7 @@ if(ROCBLAS_ENABLE_FORTRAN)
     )
     target_sources(sample-helper-f90
         INTERFACE
-            $<TARGET_OBJECTS:rocblase_fortran>
+            $<TARGET_OBJECTS:rocblas-fortran>
     )
 endif()
 
