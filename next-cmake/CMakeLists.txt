@@ -42,8 +42,7 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
-# Export compile_commands.json for clang tooling support
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Export compile_commands.json for clang tooling support")
 
 set(ROCBLAS_ENABLE_DEVICE ON CACHE BOOL "Build rocBLAS device libraries.")
 set(ROCBLAS_ENABLE_HOST ON CACHE BOOL "Build rocBLAS host library.")
