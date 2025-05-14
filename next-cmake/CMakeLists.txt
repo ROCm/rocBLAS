@@ -51,10 +51,8 @@ cmake_dependent_option(ROCBLAS_ENABLE_CLIENT "Build rocBLAS clients." ON ROCBLAS
 
 if(ROCBLAS_ENABLE_HOST)
     set(ROCBLAS_BUILD_SHARED ON CACHE BOOL "Build the rocBLAS shared or static library")
-    set(ROCBLAS_ENABLE_MSGPACK ON CACHE BOOL "Enable msgpack support.")
     set(ROCBLAS_ENABLE_OPENMP ON CACHE BOOL "Enable OpenMP support.")
     set(ROCBLAS_ENABLE_BLIS ON CACHE BOOL "Enable BLIS support.") # I don't know that we can build with this OFF
-    set(ROCBLAS_ENABLE_LLVM OFF CACHE BOOL "Enable LLVM support.")
     set(ROCBLAS_ENABLE_TENSILE ON CACHE BOOL "Build rocBLAS host library with Tensile backend.")
     set(ROCBLAS_ENABLE_HIPBLASLT OFF CACHE BOOL "Build rocBLAS host library with hipBLASLt backend (not currently supported).")
 endif()
@@ -95,8 +93,6 @@ else()
 endif()
 
 
-
-
 if(ROCBLAS_ENABLE_HOST)
     message(STATUS "Configuring host library")
     add_subdirectory(host-library)
@@ -113,12 +109,13 @@ endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
     message(STATUS "Configuring device libraries")
-    if(NOT TARGET tensile::tensile-host)
-        add_subdirectory(Tensile/next-cmake)
-    endif()
-    if(ROCBLAS_ENABLE_HOST)
-        target_link_libraries(rocblas PRIVATE tensile::tensile-host)
-    endif()
+    # TODO(@bstefanuk): Tensile is not currently integrated into rocBLAS
+    # if(NOT TARGET tensile::tensile-host)
+    #     add_subdirectory(Tensile/next-cmake)
+    # endif()
+    # if(ROCBLAS_ENABLE_HOST)
+    #     target_link_libraries(rocblas PRIVATE tensile::tensile-host)
+    # endif()
 endif()
 
 
