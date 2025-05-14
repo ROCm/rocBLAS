@@ -43,9 +43,9 @@ rocBLAS documentation is available at
 * Support numerics when `trsm` is running with `rocblas_status_perf_degraded` 
 * Fixed the build dependency installation of `joblib` on some operating systems
 * Return `rocblas_status_internal_error` when `rocblas_[set,get]_ [matrix,vector]` is called with a host pointer in place of a device pointer 
-* reduced default verbosity level for internal GEMM backend information
-* updated from deprecated rocm-cmake to ROCmCMakeBuildTools
-* almalinux gfortran package dependencies corrected
+* Reduced the default verbosity level for internal GEMM backend information
+* Updated from the deprecated rocm-cmake to ROCmCMakeBuildTools
+* Corrected AlmaLinux gfortran package dependencies
 
 ### Upcoming changes
 
