@@ -58,11 +58,11 @@ if(ROCBLAS_ENABLE_HOST)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
-    # rocm-smi is not presently available on Windows so we do not require it.
     set(ROCBLAS_ENABLE_BENCHMARKS ON CACHE BOOL "Build benchmark client.")
     set(ROCBLAS_ENABLE_TESTS ON CACHE BOOL "Build benchmark client.")
     set(ROCBLAS_ENABLE_SAMPLES ON CACHE BOOL "Build client samples.")
     set(ROCBLAS_ENABLE_FORTRAN OFF CACHE BOOL "Build Fortran clients.")
+    # rocm-smi is not presently available on Windows so we do not require it.
     cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
 endif()
 

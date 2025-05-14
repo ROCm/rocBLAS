@@ -57,6 +57,9 @@ target_include_directories(rocblas-clients-common
 
 )
 
+if(rocm_smi_FOUND)
+    target_link_libraries(rocblas-clients-common PUBLIC rocm_smi64)
+endif()
 target_link_libraries(rocblas-clients-common
     PUBLIC
         roc::rocblas
@@ -66,7 +69,6 @@ target_link_libraries(rocblas-clients-common
         OpenMP::OpenMP_CXX
         Threads::Threads
         GTest::gtest
-        rocm_smi64
 )
 
 if(ROCBLAS_ENABLE_FORTRAN)
