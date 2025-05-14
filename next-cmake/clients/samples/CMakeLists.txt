@@ -24,36 +24,36 @@
 set(TEMP_CLIENT_SAMPLES_DIR ${TEMP_CLIENTS_SOURCE_DIR}/samples)
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENT_SAMPLES_DIR})
 
-add_library(sample-helper-general INTERFACE)
+add_library(sample-helper-common INTERFACE)
 
 if(ROCBLAS_ENABLE_BLIS)
-    target_link_libraries(sample-helper-general INTERFACE BLIS::BLIS)
+    target_link_libraries(sample-helper-common INTERFACE BLIS::BLIS)
 endif()
-target_link_libraries(sample-helper-general
+target_link_libraries(sample-helper-common
     INTERFACE
         hip::host
         hip::device
         roc::rocblas
 )
-target_include_directories(sample-helper-general
+target_include_directories(sample-helper-common
     INTERFACE
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common>
 )
-set_target_properties(sample-helper-general
+set_target_properties(sample-helper-common
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_definitions(sample-helper-general INTERFACE ROCBLAS_INTERNAL_API )
+    target_compile_definitions(sample-helper-common INTERFACE ROCBLAS_INTERNAL_API )
 endif()
 
 add_library(sample-helper-cpp INTERFACE)
 
 target_compile_features(sample-helper-cpp INTERFACE cxx_std_14)
 target_compile_definitions(sample-helper-cpp INTERFACE ROCM_USE_FLOAT16)
-target_link_libraries(sample-helper-cpp INTERFACE sample-helper-general)
+target_link_libraries(sample-helper-cpp INTERFACE sample-helper-common)
 target_sources(sample-helper-cpp
     INTERFACE
         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/client_utility.cpp>
@@ -67,15 +67,15 @@ add_library(sample-helper-c INTERFACE)
 
 target_compile_definitions(sample-helper-c INTERFACE __HIP_PLATFORM_HCC__)
 target_compile_options(sample-helper-c INTERFACE -std=c11 )
-target_link_libraries(sample-helper-c INTERFACE sample-helper-general)
+target_link_libraries(sample-helper-c INTERFACE sample-helper-common)
 
 if(ROCBLAS_ENABLE_FORTRAN)
     add_library(sample-helper-f90 INTERFACE)
     # Link this here because we don't need to link against rocblas-clients-common in the samples
     target_link_libraries(sample-helper-f90
         INTERFACE
-            sample-helper-general
-            rocblas-fortran-client
+            sample-helper-common
+            rocblas-fortran-client-common
     )
     target_sources(sample-helper-f90
         INTERFACE
