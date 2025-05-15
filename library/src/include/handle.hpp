@@ -357,7 +357,7 @@ public:
     rocblas_layer_mode layer_mode = rocblas_layer_mode_none;
 
     // default atomics mode allows atomic operations
-    rocblas_atomics_mode atomics_mode = rocblas_atomics_allowed;
+    rocblas_atomics_mode atomics_mode = rocblas_atomics_not_allowed;
 
     // Selects the benchmark library to be used for solution selection
     rocblas_performance_metric performance_metric = rocblas_default_performance_metric;
