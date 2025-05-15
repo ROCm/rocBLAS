@@ -328,7 +328,7 @@ Some functions within the rocBLAS library such as ``gemv``, ``symv``, ``trsv``, 
 and ``gemm`` can use atomic operations to increase performance.
 By using atomics, functions might not give bit-wise reproducible results.
 Differences between multiple runs should not be significant and the results will
-remain accurate. If you want to allow atomic operations see :any:`rocblas_atomics_mode`,
+remain accurate. If you want to allow atomic operations, see :any:`rocblas_atomics_mode`,
 :any:`rocblas_set_atomics_mode`, and :any:`rocblas_get_atomics_mode`.
 
 In addition to the API above, rocBLAS also provides the environment variable ``ROCBLAS_DEFAULT_ATOMICS_MODE``,
