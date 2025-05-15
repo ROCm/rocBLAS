@@ -66,7 +66,7 @@ target_sources(sample-helper-cpp
 add_library(sample-helper-c INTERFACE)
 
 target_compile_definitions(sample-helper-c INTERFACE __HIP_PLATFORM_HCC__)
-target_compile_options(sample-helper-c INTERFACE -std=c11 )
+target_compile_features(sample-helper-c INTERFACE c_std_11)
 target_link_libraries(sample-helper-c INTERFACE sample-helper-common)
 
 if(ROCBLAS_ENABLE_FORTRAN)
