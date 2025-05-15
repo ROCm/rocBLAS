@@ -360,7 +360,7 @@ By default, atomic operations are not allowed. All other functions are bitwise r
    To notify users that an unoptimized kernel is being used, the function returns the :any:`rocblas_status_perf_degraded` status.
 
 ======================================================
-Functions that can be ensbled to use atomic operations
+Functions that can be enabled to use atomic operations
 ======================================================
 
  :any:`rocblas_sgemv`
