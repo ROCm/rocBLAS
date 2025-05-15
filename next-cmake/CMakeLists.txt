@@ -120,12 +120,12 @@ endif()
 if(ROCBLAS_ENABLE_DEVICE)
     message(STATUS "Configuring device libraries")
     # TODO(@bstefanuk): Tensile is not currently integrated into rocBLAS
-    # if(NOT TARGET tensile::tensile-host)
-    #     add_subdirectory(Tensile/next-cmake)
-    # endif()
-    # if(ROCBLAS_ENABLE_HOST)
-    #     target_link_libraries(rocblas PRIVATE tensile::tensile-host)
-    # endif()
+    if(NOT TARGET tensile::tensile-host)
+        add_subdirectory(${PROJECT_SOURCE_DIR}/../../Tensile/next-cmake ${PROJECT_BINARY_DIR}/Tensile)
+    endif()
+    if(ROCBLAS_ENABLE_HOST)
+        target_link_libraries(rocblas PRIVATE tensile::tensile-host)
+    endif()
 endif()
 
 
@@ -218,7 +218,7 @@ set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip /opt/rocm/llvm/bin/llvm-strip")
 
 if(ROCBLAS_ENABLE_HOST)
     rocm_install(
-        TARGETS rocblas rocblas64 rocblas-interface
+        TARGETS rocblas rocblas64 rocblas-interface tensile-host
         EXPORT rocblas-targets
         ARCHIVE COMPONENT devel
         LIBRARY COMPONENT runtime
