@@ -144,16 +144,21 @@ endif()
 add_subdirectory(include)
 add_subdirectory(src)
 
-# TODO: Fix the source code that uses inconsistent include paths and then remove this.
-#   Leaving this step in for now but this is improper practice and allows clients and
-#   other consumers to use wrong (or at least inconsistent) include paths.
-#   Refer to file: testing_gemm_batched_ex.hpp, which uses the following include
-#   ```
-#   #include <rocblas/internal/rocblas-beta.h>`
-#   ```
-execute_process(
-    COMMAND
-        ${CMAKE_COMMAND} -E copy_directory
-        ${_CMAKE_CURRENT_SOURCE_DIR}/include
-        ${PROJECT_BINARY_DIR}/include/rocblas
+# TODO: Fix the source code that uses inconsistent include paths and then remove
+# the `configure_file` calls below. This is improper practice and allows clients
+# to use wrong (or at least inconsistent) include paths.
+# Refer to file: testing_gemm_batched_ex.hpp, which uses the following include
+# ```
+# #include <rocblas/internal/rocblas-beta.h>`
+# ```
+configure_file(
+    "${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-beta.h"
+    "${PROJECT_BINARY_DIR}/include/rocblas/internal"
+    COPYONLY
+)
+
+configure_file(
+    "${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas.h"
+    "${PROJECT_BINARY_DIR}/include/rocblas"
+    COPYONLY
 )
