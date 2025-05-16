@@ -1,4 +1,4 @@
-# ########################################################################
+# ##############################################################################
 # Copyright (C) 2025 Advanced Micro Devices, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -8,37 +8,29 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 #
-# ########################################################################
+# ##############################################################################
 
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/benchmarks)
 
-add_executable(rocblas-bench)
 
-set_target_properties(rocblas-bench
-    PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
-)
 
-target_compile_definitions(rocblas-bench
-    PRIVATE
-        GOOGLE_TEST
-)
+set_target_properties(rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                               "${PROJECT_BINARY_DIR}/staging")
 
-target_link_libraries(rocblas-bench
-    PRIVATE
-        rocblas-clients-common
-)
+target_compile_definitions(rocblas-bench PRIVATE GOOGLE_TEST)
+
+target_link_libraries(rocblas-bench PRIVATE rocblas-clients-common)
 
 add_subdirectory(include)
 add_subdirectory(src)
