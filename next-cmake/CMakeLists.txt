@@ -102,7 +102,7 @@ if(ROCBLAS_ENABLE_CLIENT)
       CACHE BOOL "Build benchmark client.")
   set(ROCBLAS_ENABLE_TESTS
       ON
-      CACHE BOOL "Build benchmark client.")
+      CACHE BOOL "Build test client.")
   set(ROCBLAS_ENABLE_SAMPLES
       ON
       CACHE BOOL "Build client samples.")
@@ -117,6 +117,9 @@ endif()
 set(ROCBLAS_ENABLE_ASAN
     OFF
     CACHE BOOL "Build with address sanitizer enabled.")
+set(ROCBLAS_ENABLE_COVERAGE
+    OFF
+    CACHE BOOL "Build with gcov support.")
 
 find_package(hip REQUIRED)
 
@@ -410,3 +413,52 @@ rocm_create_package(
   LDCONFIG
   LDCONFIG_DIR
   ${ROCBLAS_CONFIG_DIR})
+
+if(ROCBLAS_ENABLE_COVERAGE)
+    target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(rocblas PRIVATE -fprofile-instr-generate)
+
+    target_compile_options(rocblas-clients-common PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(rocblas-clients-common PRIVATE -fprofile-instr-generate)
+
+    target_compile_options(rocblas-bench PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(rocblas-bench PRIVATE -fprofile-instr-generate)
+
+    target_compile_options(rocblas-test PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(rocblas-test PRIVATE -fprofile-instr-generate)
+
+    set(coverage_dir "${CMAKE_CURRENT_BINARY_DIR}/coverage-report")
+    add_custom_target(
+        code_cov_tests
+        DEPENDS rocblas-test
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${coverage_dir}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${coverage_dir}/profraw"
+        COMMAND ${CMAKE_COMMAND} -E env LLVM_PROFILE_FILE="${coverage_dir}/profraw/rocblas-coverage_%p.profraw" 
+                                        GTEST_LISTENER=NO_PASS_LINE_IN_LOG 
+                                        $<TARGET_FILE:rocblas-test> 
+                                        --precompile=rocblas-test-precompile.db
+    )
+
+    find_program(
+        LLVM_PROFDATA
+        llvm-profdata
+        HINTS llvm/bin
+        REQUIRED
+    )
+
+    find_program(
+        LLVM_COV
+        llvm-cov
+        REQUIRED
+        HINTS llvm/bin
+    )
+
+    add_custom_target(
+        coverage
+        DEPENDS code_cov_tests
+        COMMAND ${LLVM_PROFDATA} merge -sparse "${coverage_dir}/profraw/rocblas-coverage_*.profraw" -o "${coverage_dir}/rocblas.profdata"
+        COMMAND ${LLVM_COV} report -object $<TARGET_FILE:rocblas> -instr-profile="${coverage_dir}/rocblas.profdata"
+        COMMAND ${LLVM_COV} show -object $<TARGET_FILE:rocblas> -instr-profile="${coverage_dir}/rocblas.profdata" -format=html -output-dir="${coverage_dir}"
+    )
+endif()
+
