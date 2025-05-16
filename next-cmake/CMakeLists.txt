@@ -28,6 +28,12 @@ project(
   LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+# Set cpack license file here to avoid rocm-cmake warning
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/../LICENSE.md")
+
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 include(FetchContent)
 include(fetch_rocm_cmake)
@@ -42,12 +48,11 @@ include(ROCMCreatePackage)
 include(ROCMInstallTargets)
 include(ROCMPackageConfigHelpers)
 
-if(POLICY CMP0135)
-  cmake_policy(SET CMP0135 NEW)
-endif()
-
-rocm_setup_version(VERSION ${PROJECT_VERSION})
 set(rocblas_SOVERSION 4.5)
+rocm_setup_version(VERSION ${PROJECT_VERSION})
+set(HIP_RUNTIME_MINIMUM
+    "4.5.0"
+    CACHE STRING "Minimum HIP runtime version required")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if(WIN32)
@@ -74,6 +79,13 @@ set(ROCBLAS_ENABLE_HOST
 cmake_dependent_option(ROCBLAS_ENABLE_CLIENT "Build rocBLAS clients." ON
                        ROCBLAS_ENABLE_HOST OFF)
 
+if(ROCBLAS_ENABLE_DEVICE)
+  cmake_dependent_option(
+    ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin"
+    "WIN32" "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas"
+    "path to tensile library")
+endif()
+
 if(ROCBLAS_ENABLE_HOST)
   set(ROCBLAS_BUILD_SHARED
       ON
@@ -90,10 +102,10 @@ if(ROCBLAS_ENABLE_HOST)
       CACHE BOOL "Build rocBLAS host library with Tensile backend.")
   set(ROCBLAS_ENABLE_HIPBLASLT
       OFF
-      CACHE
-        BOOL
-        "Build rocBLAS host library with hipBLASLt backend (not currently supported)."
-  )
+      CACHE BOOL "Build rocBLAS host library with hipBLASLt backend.")
+  set(ROCBLAS_CONFIG_DIR
+      "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+      CACHE PATH "Path placed into ldconfig file")
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
@@ -243,19 +255,18 @@ if(ROCBLAS_ENABLE_FORTRAN)
                                     "${GFORTRAN_DEB}")
 endif()
 
-set(HIP_RUNTIME_MINIMUM 4.5.0)
-
 rocm_package_add_deb_dependencies(STATIC_DEPENDS
                                   "hip-static-dev >= ${HIP_RUNTIME_MINIMUM}")
 rocm_package_add_rpm_dependencies(STATIC_DEPENDS
                                   "hip-static-devel >= ${HIP_RUNTIME_MINIMUM}")
 
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
 set(CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
     "\${CPACK_PACKAGING_INSTALL_PREFIX}")
+
 # Work around code object stripping failure if using /usr/bin/strip
-set(CPACK_RPM_SPEC_MORE_DEFINE "%define __strip /opt/rocm/llvm/bin/llvm-strip")
+set(CPACK_RPM_SPEC_MORE_DEFINE
+    "%define __strip ${CMAKE_PREFIX_PATH}/llvm/bin/llvm-strip")
 
 if(ROCBLAS_ENABLE_HOST)
   rocm_install(
@@ -335,17 +346,8 @@ if(ROCBLAS_ENABLE_HOST)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-  if(WIN32)
-    set(ROCBLAS_TENSILE_LIBRARY_DIR
-        "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin"
-        CACHE PATH "path to tensile library")
-  else()
-    set(ROCBLAS_TENSILE_LIBRARY_DIR
-        "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas"
-        CACHE PATH "path to tensile library")
-  endif()
   rocm_install(
-    DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/next-cmake/device/library/"
+    DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/device/library/"
     DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT rocblas_runtime)
 endif()
 
@@ -379,11 +381,15 @@ if(ROCBLAS_ENABLE_CLIENT)
       rocblas-example-sgemm-strided-batched
       rocblas-example-solver
       rocblas-example-sscal
-      rocblas-example-user-driven-tuning
       COMPONENT
       samples
       DESTINATION
       ${CMAKE_INSTALL_BINDIR})
+
+    if(ROCBLAS_ENABLE_TENSILE)
+      rocm_install(TARGETS rocblas-example-user-driven-tuning COMPONENT samples
+                   DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
 
     if(ROCBLAS_ENABLE_FORTRAN)
       rocm_install(
@@ -399,10 +405,6 @@ if(ROCBLAS_ENABLE_CLIENT)
   endif()
 endif()
 
-set(ROCBLAS_CONFIG_DIR
-    "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
-    CACHE PATH "Path placed into ldconfig file")
-
 rocm_create_package(
   NAME
   rocblas
@@ -415,50 +417,50 @@ rocm_create_package(
   ${ROCBLAS_CONFIG_DIR})
 
 if(ROCBLAS_ENABLE_COVERAGE)
-    target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-    target_link_options(rocblas PRIVATE -fprofile-instr-generate)
+  target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate
+                                         -fcoverage-mapping)
+  target_link_options(rocblas PRIVATE -fprofile-instr-generate)
 
-    target_compile_options(rocblas-clients-common PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-    target_link_options(rocblas-clients-common PRIVATE -fprofile-instr-generate)
+  target_compile_options(
+    rocblas-clients-common PRIVATE -g -O0 -fprofile-instr-generate
+                                   -fcoverage-mapping)
+  target_link_options(rocblas-clients-common PRIVATE -fprofile-instr-generate)
 
-    target_compile_options(rocblas-bench PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-    target_link_options(rocblas-bench PRIVATE -fprofile-instr-generate)
+  target_compile_options(rocblas-bench PRIVATE -g -O0 -fprofile-instr-generate
+                                               -fcoverage-mapping)
+  target_link_options(rocblas-bench PRIVATE -fprofile-instr-generate)
 
-    target_compile_options(rocblas-test PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-    target_link_options(rocblas-test PRIVATE -fprofile-instr-generate)
+  target_compile_options(rocblas-test PRIVATE -g -O0 -fprofile-instr-generate
+                                              -fcoverage-mapping)
+  target_link_options(rocblas-test PRIVATE -fprofile-instr-generate)
 
-    set(coverage_dir "${CMAKE_CURRENT_BINARY_DIR}/coverage-report")
-    add_custom_target(
-        code_cov_tests
-        DEPENDS rocblas-test
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "${coverage_dir}"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${coverage_dir}/profraw"
-        COMMAND ${CMAKE_COMMAND} -E env LLVM_PROFILE_FILE="${coverage_dir}/profraw/rocblas-coverage_%p.profraw" 
-                                        GTEST_LISTENER=NO_PASS_LINE_IN_LOG 
-                                        $<TARGET_FILE:rocblas-test> 
-                                        --precompile=rocblas-test-precompile.db
-    )
+  set(coverage_dir "${CMAKE_CURRENT_BINARY_DIR}/coverage-report")
+  add_custom_target(
+    code_cov_tests
+    DEPENDS rocblas-test
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${coverage_dir}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${coverage_dir}/profraw"
+    COMMAND
+      ${CMAKE_COMMAND} -E env
+      LLVM_PROFILE_FILE="${coverage_dir}/profraw/rocblas-coverage_%p.profraw"
+      GTEST_LISTENER=NO_PASS_LINE_IN_LOG $<TARGET_FILE:rocblas-test>
+      --precompile=rocblas-test-precompile.db)
 
-    find_program(
-        LLVM_PROFDATA
-        llvm-profdata
-        HINTS llvm/bin
-        REQUIRED
-    )
+  find_program(LLVM_PROFDATA llvm-profdata HINTS llvm/bin REQUIRED)
 
-    find_program(
-        LLVM_COV
-        llvm-cov
-        REQUIRED
-        HINTS llvm/bin
-    )
+  find_program(LLVM_COV llvm-cov REQUIRED HINTS llvm/bin)
 
-    add_custom_target(
-        coverage
-        DEPENDS code_cov_tests
-        COMMAND ${LLVM_PROFDATA} merge -sparse "${coverage_dir}/profraw/rocblas-coverage_*.profraw" -o "${coverage_dir}/rocblas.profdata"
-        COMMAND ${LLVM_COV} report -object $<TARGET_FILE:rocblas> -instr-profile="${coverage_dir}/rocblas.profdata"
-        COMMAND ${LLVM_COV} show -object $<TARGET_FILE:rocblas> -instr-profile="${coverage_dir}/rocblas.profdata" -format=html -output-dir="${coverage_dir}"
-    )
+  add_custom_target(
+    coverage
+    DEPENDS code_cov_tests
+    COMMAND
+      ${LLVM_PROFDATA} merge -sparse
+      "${coverage_dir}/profraw/rocblas-coverage_*.profraw" -o
+      "${coverage_dir}/rocblas.profdata"
+    COMMAND ${LLVM_COV} report -object $<TARGET_FILE:rocblas>
+            -instr-profile="${coverage_dir}/rocblas.profdata"
+    COMMAND
+      ${LLVM_COV} show -object $<TARGET_FILE:rocblas>
+      -instr-profile="${coverage_dir}/rocblas.profdata" -format=html
+      -output-dir="${coverage_dir}")
 endif()
-

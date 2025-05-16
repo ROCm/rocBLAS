@@ -93,7 +93,7 @@ add_subdirectory(example_scal_multiple_strided_batch)
 add_subdirectory(example_scal_template)
 add_subdirectory(example_solver_rocblas)
 add_subdirectory(example_sscal)
-if(ROCBLAS_BUILD_TENSILE)
+if(ROCBLAS_ENABLE_TENSILE)
   add_subdirectory(example_user_driven_tuning)
 endif()
 

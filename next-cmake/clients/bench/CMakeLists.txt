@@ -23,7 +23,7 @@
 
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/benchmarks)
 
-
+add_executable(rocblas-bench)
 
 set_target_properties(rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                                "${PROJECT_BINARY_DIR}/staging")
