@@ -30,7 +30,8 @@ project(
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(FetchContent)
-include(fetch-rocm-cmake)
+include(fetch_rocm_cmake)
+include(rocblas_target_configure_sanitizers)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
@@ -127,10 +128,6 @@ if(ROCBLAS_ENABLE_OPENMP)
   find_package(OpenMP REQUIRED)
 endif()
 
-if(ROCBLAS_ENABLE_LLVM)
-  find_package(LLVM REQUIRED)
-endif()
-
 if(ROCBLAS_ENABLE_HIPBLASLT)
   find_package(roc::hipblaslt REQUIRED)
   rocm_package_add_dependencies(DEPENDS "hipblaslt >= 0.6.0")
@@ -158,7 +155,6 @@ endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
   message(STATUS "Configuring device libraries")
-  # TODO(@bstefanuk): Tensile is not currently integrated into rocBLAS
   if(NOT TARGET tensile::tensile-host)
     add_subdirectory(${PROJECT_SOURCE_DIR}/../../Tensile/next-cmake
                      ${PROJECT_BINARY_DIR}/Tensile)
@@ -245,16 +241,6 @@ if(ROCBLAS_ENABLE_FORTRAN)
 endif()
 
 set(HIP_RUNTIME_MINIMUM 4.5.0)
-
-# TODO: Review when finalizing address sanitizer code
-if(BUILD_ADDRESS_SANITIZER)
-  set(DEPENDS_HIP_RUNTIME "hip-runtime-amd-asan")
-else()
-  set(DEPENDS_HIP_RUNTIME "hip-runtime-amd")
-endif()
-
-rocm_package_add_dependencies(
-  SHARED_DEPENDS "${DEPENDS_HIP_RUNTIME} >= ${HIP_RUNTIME_MINIMUM}")
 
 rocm_package_add_deb_dependencies(STATIC_DEPENDS
                                   "hip-static-dev >= ${HIP_RUNTIME_MINIMUM}")

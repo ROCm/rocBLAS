@@ -26,6 +26,10 @@ set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENT_SAMPLES_DIR})
 
 add_library(sample-helper-common INTERFACE)
 
+if(ROCBLAS_ENABLE_ASAN)
+  rocblas_target_configure_sanitizers(sample-helper-common INTERFACE)
+endif()
+
 if(ROCBLAS_ENABLE_BLIS)
   target_link_libraries(sample-helper-common INTERFACE BLIS::BLIS)
 endif()

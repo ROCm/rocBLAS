@@ -20,11 +20,18 @@
 # THE SOFTWARE.
 #
 # ########################################################################
-include(CMakeFindDependencyMacro)
 
-find_dependency(hip)
-find_dependency(BLIS)
-find_dependency(OpenMP)
-
-include("${CMAKE_CURRENT_LIST_DIR}/rocblas-targets.cmake")
-check_required_components(rocblas)
+function(rocblas_target_configure_sanitizers rocblas_target linkage)
+    # Add asan flags to target
+    target_compile_options(${rocblas_target}
+        ${linkage}
+            -fsanitize=address
+            -shared-libasan
+    )
+    target_link_options(${rocblas_target}
+        ${linkage}
+            -fsanitize=address
+            -shared-libasan
+            -fuse-ld=lld
+    )
+endfunction()

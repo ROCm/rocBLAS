@@ -45,13 +45,16 @@ target_include_directories(
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
-    # TODO: We don't also need /blas3, /blas2, /blas1?
+    # TODO: Don't we also need /blas3, /blas2, /blas1?
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
     # TODO: ^^^ The above three lines might be able to be added from a helper
-    # lib
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../../library/src>)
+
+if(ROCBLAS_ENABLE_ASAN)
+  rocblas_target_configure_sanitizers(rocblas-clients-common PRIVATE)
+endif()
 
 if(rocm_smi_FOUND)
   target_link_libraries(rocblas-clients-common PUBLIC rocm_smi64)
