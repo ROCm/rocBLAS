@@ -84,6 +84,7 @@ endif()
 
 # C examples
 add_subdirectory(example_c_dgeam)
+
 # C++ examples
 add_subdirectory(example_gemv_graph_capture)
 add_subdirectory(example_header_check)
@@ -92,7 +93,10 @@ add_subdirectory(example_scal_multiple_strided_batch)
 add_subdirectory(example_scal_template)
 add_subdirectory(example_solver_rocblas)
 add_subdirectory(example_sscal)
-add_subdirectory(example_user_driven_tuning)
+if(ROCBLAS_BUILD_TENSILE)
+  add_subdirectory(example_user_driven_tuning)
+endif()
+
 # C++ L3 examples with or with tensile or source gemm builds
 add_subdirectory(example_sgemm)
 add_subdirectory(example_sgemm_multiple_strided_batch)

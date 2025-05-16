@@ -30,10 +30,8 @@ set_target_properties(
                                ${PROJECT_BINARY_DIR}/staging)
 
 target_compile_definitions(
-  rocblas-gemm-tune
-  PRIVATE ROCBLAS_BENCH ROCBLAS_NO_DEPRECATED_WARNINGS # TODO: Do we really want
-                                                       # this?
-          __HIP_HCC_COMPAT_MODE__=1)
+  rocblas-gemm-tune PRIVATE ROCBLAS_BENCH ROCBLAS_NO_DEPRECATED_WARNINGS
+                            __HIP_HCC_COMPAT_MODE__=1)
 
 target_link_libraries(rocblas-gemm-tune PRIVATE rocblas-clients-common)
 

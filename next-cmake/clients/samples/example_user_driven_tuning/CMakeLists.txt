@@ -21,7 +21,6 @@
 #
 # ##############################################################################
 
-# TODO: Only if building with Tensile?
 add_executable(rocblas-example-user-driven-tuning
                ${TEMP_CLIENT_SAMPLES_DIR}/example_user_driven_tuning.cpp)
 

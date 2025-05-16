@@ -43,7 +43,7 @@ target_include_directories(
     # This is marked 'internal', but needs to be public for the clients
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    # TODO: Required?
+    # TODO: Below include may not be required?
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -52,11 +52,9 @@ target_include_directories(
     $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/src/src64>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-
 target_compile_definitions(
   rocblas-interface
   INTERFACE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_BETA_FEATURES_API
-            rocblas_EXPORTS # TODO: needed?
 )
 
 # NOTE: We assume separate architectures and lazy library loading are always
@@ -97,17 +95,14 @@ add_library(roc::rocblas ALIAS rocblas)
 
 target_include_directories(
   rocblas
-  PUBLIC
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
-    # This is marked 'internal', but needs to be public for the clients
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas> # TODO:
-                                                                   # Required?
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/rocblas> # TODO: Probably
-                                                             # wrong
-)
+  PUBLIC $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include>
+         # This is marked 'internal', but needs to be public for the clients
+         $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/internal>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+         # TODO: Below include may not be required?
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal>
+         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/rocblas>)
 
 if(ROCBLAS_ENABLE_ASAN)
   rocblas_target_configure_sanitizers(rocblas PRIVATE)
