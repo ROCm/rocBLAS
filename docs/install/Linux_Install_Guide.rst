@@ -27,7 +27,34 @@ For example, on Ubuntu or Debian, use these commands:
    sudo apt-get update
    sudo apt-get install rocblas
 
-After installation, use rocBLAS like any other library with a C API.
+For Fedora, CentOS, or RHEL, use these commands:
+
+.. code-block:: shell
+
+   sudo dnf install rocblas
+
+If you are compiling a program that will link against rocBLAS, instead install the ``rocblas-dev`` package.
+Similarly at the top level instead of installing ``rocm``, install ``rocm-dev``.
+For example, on Ubuntu or Debian, use these commands:
+
+.. code-block:: shell
+
+   sudo apt-get update
+   sudo apt-get install rocblas-dev
+
+For Fedora, CentOS, or RHEL, use these commands:
+
+.. code-block:: shell
+
+   sudo dnf install rocblas-devel
+
+If you are using a different distribution, use the appropriate package manager to install the ``rocblas`` or ``rocblas-dev`` package.
+
+The ``rocblas`` package contains the shared library and runtime only requirements.
+The ``rocblas-dev`` package depends on the ``rocblas`` package that has the shared library and runtime requirements, but includes the header files and/or static library.
+The ``rocblas-dev`` package is not required to run the library, but it is required to compile code that uses rocBLAS.
+
+After installation of the development package which includes headers, use rocBLAS like any other library with a C API.
 The ``rocblas.h`` header file must be included in the user code to make calls
 into rocBLAS, while the rocBLAS shared library is link-time and run-time
 dependent for the user application.
@@ -115,8 +142,25 @@ Library dependencies
 CMake has a minimum version requirement, which is listed in the ``install.sh`` script.
 See the ``--cmake_install`` flag in ``install.sh`` to upgrade automatically.
 
-The dependencies are listed in the ``install.sh`` script.
-Pass the ``-d`` flag to ``install.sh`` to install the dependencies.
+The ROCm hipBLASLt dependency is not installed using ``-d`` flag to ``install.sh`` so install it
+manually using the native package manager for your distribution.
+For example, on Ubuntu or Debian, use:
+
+.. code-block:: shell
+
+   sudo apt-get install hipblaslt-dev
+
+For Fedora, CentOS, or RHEL, use:
+
+.. code-block:: shell
+
+   sudo dnf install hipblaslt-devel
+
+For other distributions, use the appropriate package manager to install the ``hipblaslt-dev`` or ``hipblaslt-devel`` package.
+
+Other dependencies are listed in the ``install.sh`` script.
+Pass the ``-d`` flag to ``install.sh`` to install these dependencies.
+
 
 However, for the host reference BLAS test and benchmark clients,
 it is recommended that you manually download and install the AMD `ILP64 version of
