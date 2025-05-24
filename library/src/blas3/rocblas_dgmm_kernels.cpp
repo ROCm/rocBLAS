@@ -91,7 +91,7 @@ rocblas_dgmm_gfx942_gfx950_kernel(rocblas_int    m,
                                   int64_t        ldc,
                                   rocblas_stride stride_C)
 {
-#if defined(__gfx942__) || defined(__gfx950__)
+#if defined(__gfx942__) || defined(__gfx950__) || defined(__gfx9_4_generic__)
 
     rocblas_int tx = (blockIdx.x * DIM_X + threadIdx.x) * 2;
     rocblas_int ty = blockIdx.y * DIM_Y + threadIdx.y;

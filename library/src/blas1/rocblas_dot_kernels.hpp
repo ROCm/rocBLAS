@@ -237,7 +237,7 @@ rocblas_dot_kernel_gfx942_gfx950_float_double(rocblas_int n,
                                               V* __restrict__ workspace,
                                               T* __restrict__ out)
 {
-#if defined(__gfx942__) || defined(__gfx950__)
+#if defined(__gfx942__) || defined(__gfx950__) || defined(__gfx9_4_generic__)
     int         i = blockIdx.x * NB + threadIdx.x;
     const auto* x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
     const auto* y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
