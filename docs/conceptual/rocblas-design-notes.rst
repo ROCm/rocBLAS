@@ -16,16 +16,16 @@ Use of Tensile and hipBLASLt
 
 The rocBLAS library uses :doc:`Tensile <tensile:src/index>` and :doc:`hipBLASLt <hipblaslt:index>` internally, which
 supply high-performance implementations of GEMM. Tensile is installed as part of the rocBLAS package, while hipBLASLt is
-available as a separate package. The rocBLAS library is built with Tensile by default, and by default depends on the
+available as a separate package. By default, the rocBLAS library is built with Tensile and depends on the
 external hipBLASLt library.
 
-rocBLAS uses CMake for building, and by default CMake downloads Tensile component during library configuration and automatically
+rocBLAS uses CMake for building, which by default downloads the Tensile component during library configuration and automatically
 builds it as an integrated part of the rocBLAS build. No further set-up work is required by the
 user.  For hermetic builds, the Tensile component can be built from a local path installation (see command line options).
 Note that external facing APIs for Tensile are not provided.
 
 The choice of whether to use the embedded Tensile backend or hipBLASLt is handled automatically based on the architecture and problem.
-For instance, hipBLASLt is used as the default backend for problems on the gfx12 architecture.  Source code GEMMs internal to rocBLAS library also
+For instance, hipBLASLt is used as the default backend for problems on the gfx12 architecture.  Source code GEMMs internal to the rocBLAS library also
 allow rocBLAS to be built without Tensile or hipBLASLt.
 They can potentially be used as fallbacks for problems that are not supported by the Tensile or hipBLASLt backends.
 
@@ -40,7 +40,7 @@ according to the following settings:
 
 .. note::
 
-   hipBLASLt backend for rocBLAS is currently not supported on Windows builds or static builds,
+   The hipBLASLt backend for rocBLAS is currently not supported on Windows builds or static builds,
    and is not included if building without Tensile.
 
 rocBLAS API and legacy BLAS functions
