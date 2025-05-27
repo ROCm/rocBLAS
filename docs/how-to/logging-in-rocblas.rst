@@ -30,8 +30,6 @@ You can set four environment variables to control logging:
 
 *  ``(ROCBLAS_LAYER & 4) != 0`` enables profile logging.
 
-*  ``(ROCBLAS_LAYER & 8) != 0`` enables internal API logging, for example, the GEMM backend.
-
 See the ``rocblas_layer_mode`` enumeration for these values as constants.
 
 Trace logging outputs a line each time a rocBLAS function is called. The
