@@ -80,13 +80,13 @@ target_link_libraries(rocblas-helper PRIVATE rocblas-interface hip::host
                                              hip::device)
 
 if(ROCBLAS_BUILD_SHARED)
-  set_property(TARGET rocblas-helper PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(rocblas-helper PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 add_library(rocblas64 OBJECT)
 
 if(ROCBLAS_BUILD_SHARED)
-  set_property(TARGET rocblas64 PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(rocblas64 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(ROCBLAS_ENABLE_ASAN)

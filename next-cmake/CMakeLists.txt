@@ -317,27 +317,15 @@ if(ROCBLAS_ENABLE_HOST)
     rocblas-interface
     EXPORT
     rocblas-targets
-    INCLUDE
-    "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
     DEPENDS
     PACKAGE
     hip)
-
-  rocm_configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rocblas-config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake" INSTALL_DESTINATION
-    "${CMAKE_INSTALL_LIBDIR}/cmake/rocblas")
-
-  write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
-    VERSION "${PROJECT_VERSION}"
-    COMPATIBILITY SameMajorVersion)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
   rocm_install(
     DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/device/library/"
-    DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT rocblas_runtime)
+    DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT runtime)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
