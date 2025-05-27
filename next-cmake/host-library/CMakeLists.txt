@@ -53,9 +53,8 @@ target_include_directories(
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_compile_definitions(
-  rocblas-interface
-  INTERFACE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_BETA_FEATURES_API
-)
+  rocblas-interface INTERFACE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API
+                              ROCBLAS_BETA_FEATURES_API)
 
 # NOTE: We assume separate architectures and lazy library loading are always
 # enabled.
@@ -80,7 +79,15 @@ add_library(rocblas-helper OBJECT)
 target_link_libraries(rocblas-helper PRIVATE rocblas-interface hip::host
                                              hip::device)
 
+if(ROCBLAS_BUILD_SHARED)
+  set_property(TARGET rocblas-helper PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
+
 add_library(rocblas64 OBJECT)
+
+if(ROCBLAS_BUILD_SHARED)
+  set_property(TARGET rocblas64 PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(ROCBLAS_ENABLE_ASAN)
   rocblas_target_configure_sanitizers(rocblas PRIVATE)
@@ -90,7 +97,13 @@ target_compile_definitions(rocblas64 PRIVATE ROCBLAS_INTERNAL_ILP64)
 
 target_link_libraries(rocblas64 PRIVATE rocblas-interface)
 
-add_library(rocblas)
+if(ROCBLAS_BUILD_SHARED)
+  add_library(rocblas SHARED)
+else()
+  add_library(rocblas STATIC)
+endif()
+
+rocm_set_soversion(rocblas ${rocblas_SOVERSION})
 add_library(roc::rocblas ALIAS rocblas)
 
 target_include_directories(

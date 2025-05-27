@@ -26,7 +26,7 @@ set(BLIS_PATH_4_2_0 "/opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc")
 set(BLIS_PATH_4_1_0 "/opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc")
 set(BLIS_PATH_4_0   "/opt/AMD/aocl/aocl-linux-aocc-4.0")
 
-# # Keeping this code for reference of previous implementation
+# # NOTE: Keeping this code for reference of previous implementation
 # # Only the first three paths are used in the current find_path/find_library calls below
 # if(EXISTS                "/opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc/lib_ILP64/libblis-mt.a" )
 #     set( BLIS_LIB         /opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc/lib_ILP64/libblis-mt.a )
@@ -58,19 +58,31 @@ find_path(BLIS_INCLUDE_DIR
         ${BLIS_PATH_4_2_0}/include_ILP64
         ${BLIS_PATH_4_1_0}/include_ILP64
         ${BLIS_PATH_4_0}/include_ILP64
-    # PATH_SUFFIXES include_ILP64
 )
 
 find_library(BLIS_LIB
-    NAMES blis-mt blis
+    NAMES libblis-mt.a libblis.a blis-mt blis
     PATHS
         ${BLIS_ROOT}
         ENV BLIS_ROOT
         ${BLIS_PATH_4_2_0}/lib_ILP64
         ${BLIS_PATH_4_1_0}/lib_ILP64
         ${BLIS_PATH_4_0}/lib_ILP64
-    # PATH_SUFFIXES lib lib_ILP64
+    NO_DEFAULT_PATH
 )
+
+# If static library wasn't found, try shared libraries
+if(NOT BLIS_LIB)
+    find_library(BLIS_LIB
+        NAMES blis-mt blis
+        PATHS
+            ${BLIS_ROOT}
+            ENV BLIS_ROOT
+            ${BLIS_PATH_4_2_0}/lib_ILP64
+            ${BLIS_PATH_4_1_0}/lib_ILP64
+            ${BLIS_PATH_4_0}/lib_ILP64
+    )
+endif()
 
 find_package_handle_standard_args(BLIS
     REQUIRED_VARS BLIS_LIB BLIS_INCLUDE_DIR

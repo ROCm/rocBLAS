@@ -24,10 +24,11 @@
 cmake_minimum_required(VERSION 3.25.2)
 project(
   rocblas
-  VERSION 4.5.0
+  VERSION 5.0.0
   LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # Set cpack license file here to avoid rocm-cmake warning
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/../LICENSE.md")
 
@@ -35,21 +36,16 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
-include(FetchContent)
-include(fetch_rocm_cmake)
 include(rocblas_target_configure_sanitizers)
+include(FetchROCmCMake)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 include(GNUInstallDirs)
-include(ROCMSetupVersion)
-include(ROCMClients)
-include(ROCMCreatePackage)
-include(ROCMInstallTargets)
-include(ROCMPackageConfigHelpers)
 
-set(rocblas_SOVERSION 4.5)
 rocm_setup_version(VERSION ${PROJECT_VERSION})
+set(rocblas_SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+
 set(HIP_RUNTIME_MINIMUM
     "4.5.0"
     CACHE STRING "Minimum HIP runtime version required")
@@ -80,10 +76,15 @@ cmake_dependent_option(ROCBLAS_ENABLE_CLIENT "Build rocBLAS clients." ON
                        ROCBLAS_ENABLE_HOST OFF)
 
 if(ROCBLAS_ENABLE_DEVICE)
-  cmake_dependent_option(
-    ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin"
-    "WIN32" "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas"
-    "path to tensile library")
+  if(WIN32)
+    set(ROCBLAS_TENSILE_LIBRARY_DIR
+        "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin"
+        CACHE PATH "path to tensile library")
+  else()
+    set(ROCBLAS_TENSILE_LIBRARY_DIR
+        "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas/library"
+        CACHE PATH "path to tensile library")
+  endif()
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
@@ -331,18 +332,6 @@ if(ROCBLAS_ENABLE_HOST)
     "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion)
-
-  rocm_install(
-    FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake"
-    DESTINATION
-    "${CMAKE_INSTALL_LIBDIR}/cmake/rocblas"
-    COMPONENT
-    devel)
-
-  rocm_install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" DESTINATION
-               "${CMAKE_INSTALL_DOCDIR}" COMPONENT rocblas_docs)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
