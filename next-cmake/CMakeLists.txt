@@ -290,14 +290,16 @@ if(ROCBLAS_ENABLE_HOST)
 
   rocm_install(
     DIRECTORY
-    "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
     DESTINATION
     "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
     COMPONENT
     devel
     FILES_MATCHING
     PATTERN
-    "*.h*")
+    "*.h"
+    PATTERN
+    "*.f90")
 
   rocm_install(
     FILES
@@ -307,6 +309,12 @@ if(ROCBLAS_ENABLE_HOST)
     "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
     COMPONENT
     devel)
+
+  # Hack for one off installs of files required in the install tree
+  rocm_install(
+    FILES
+    "${PROJECT_SOURCE_DIR}/../library/src/include/rocblas_device_malloc.hpp"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal" COMPONENT devel)
 
   rocm_export_targets(
     NAMESPACE
@@ -323,9 +331,8 @@ if(ROCBLAS_ENABLE_HOST)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-  rocm_install(
-    DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/device/library/"
-    DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT runtime)
+  rocm_install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/device/library/"
+               DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT runtime)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
@@ -349,7 +356,8 @@ if(ROCBLAS_ENABLE_CLIENT)
       TARGETS
       rocblas-example-c-dgeam
       rocblas-example-gemv-graph-capture
-      rocblas-example-header-check
+      # For whatever reason rocblas-example-header-check isn't installed
+      # rocblas-example-header-check
       rocblas-example-hip-complex-her2
       rocblas-example-scal-multiple-strided-batch
       rocblas-example-scal-template

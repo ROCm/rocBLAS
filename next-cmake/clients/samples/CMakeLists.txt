@@ -75,8 +75,11 @@ if(ROCBLAS_ENABLE_FORTRAN)
   # in the samples
   target_link_libraries(
     sample-helper-f90 INTERFACE sample-helper-common
-                                rocblas-fortran-client-common)
-  target_sources(sample-helper-f90 INTERFACE $<TARGET_OBJECTS:rocblas-fortran>)
+                                rocblas-fortran
+                                rocblas-fortran-clients-common)
+  target_include_directories(
+    sample-helper-f90 INTERFACE
+    $<TARGET_PROPERTY:rocblas-fortran,Fortran_MODULE_DIRECTORY>)
 endif()
 
 # Unused examples: example_gemm_strided_batched_ex_xdl_math_op.cpp

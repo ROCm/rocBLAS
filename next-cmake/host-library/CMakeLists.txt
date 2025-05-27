@@ -138,6 +138,14 @@ if(ROCBLAS_ENABLE_FORTRAN)
     PUBLIC
       $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_module.f90>
   )
+  set_target_properties(rocblas-fortran PROPERTIES
+    Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/modules
+    POSITION_INDEPENDENT_CODE ON)
+
+  target_include_directories(rocblas-fortran
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/modules>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/rocblas>)
 endif()
 
 add_subdirectory(include)
@@ -154,4 +162,7 @@ configure_file("${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-beta.h"
                "${PROJECT_BINARY_DIR}/include/rocblas/internal" COPYONLY)
 
 configure_file("${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas.h"
+               "${PROJECT_BINARY_DIR}/include/rocblas" COPYONLY)
+
+configure_file("${_CMAKE_CURRENT_SOURCE_DIR}/src/include/rocblas_device_malloc.hpp"
                "${PROJECT_BINARY_DIR}/include/rocblas" COPYONLY)

@@ -69,19 +69,19 @@ target_link_libraries(
          GTest::gtest)
 
 if(ROCBLAS_ENABLE_FORTRAN)
-  add_library(rocblas-fortran-clients-common)
+  add_library(rocblas-fortran-clients-common OBJECT)
   if(ROCBLAS_ENABLE_TENSILE)
     target_sources(
       rocblas-fortran-clients-common
-      PRIVATE
+      PUBLIC
         ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran_tensile.f90)
   endif()
   target_sources(
     rocblas-fortran-clients-common
-    PRIVATE ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90)
-  target_link_libraries(rocblas-fortran-clients-common PRIVATE rocblas-fortran)
+    PUBLIC ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90)
+
   target_link_libraries(rocblas-clients-common
-                        PUBLIC rocblas-fortran-clients-common)
+                        PRIVATE rocblas-fortran-clients-common)
 else()
   target_compile_definitions(rocblas-clients-common PUBLIC CLIENTS_NO_FORTRAN)
 endif()

@@ -26,9 +26,6 @@ add_executable(rocblas-example-fortran-axpy
 
 target_link_libraries(rocblas-example-fortran-axpy PRIVATE sample-helper-f90)
 
-target_sources(rocblas-example-fortran-axpy
-               PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
-
 set_target_properties(
   rocblas-example-fortran-axpy PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                           ${PROJECT_BINARY_DIR}/staging)

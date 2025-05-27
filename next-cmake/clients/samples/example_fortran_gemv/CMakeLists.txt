@@ -26,9 +26,6 @@ add_executable(rocblas-example-fortran-gemv
 
 target_link_libraries(rocblas-example-fortran-gemv PRIVATE sample-helper-f90)
 
-target_sources(rocblas-example-fortran-gemv
-               PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
-
 set_target_properties(
   rocblas-example-fortran-gemv PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                           ${PROJECT_BINARY_DIR}/staging)

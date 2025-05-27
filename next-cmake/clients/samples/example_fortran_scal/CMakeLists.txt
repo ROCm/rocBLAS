@@ -26,9 +26,6 @@ add_executable(rocblas-example-fortran-scal
 
 target_link_libraries(rocblas-example-fortran-scal PRIVATE sample-helper-f90)
 
-target_sources(rocblas-example-fortran-scal
-               PRIVATE $<TARGET_OBJECTS:rocblas_fortran>)
-
 set_target_properties(
   rocblas-example-fortran-scal PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                           ${PROJECT_BINARY_DIR}/staging)
