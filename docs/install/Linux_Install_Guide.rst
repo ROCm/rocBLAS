@@ -51,7 +51,8 @@ For Fedora, CentOS, or RHEL, use these commands:
 If you are using a different distribution, use the appropriate package manager to install the ``rocblas`` or ``rocblas-dev`` package.
 
 The ``rocblas`` package contains the shared library and runtime only requirements.
-The ``rocblas-dev`` package depends on the ``rocblas`` package that has the shared library and runtime requirements, but includes the header files and/or static library.
+The ``rocblas-dev`` package includes the header files and depends on the ``rocblas`` package.
+The development package will also include the static library when using static library packages.
 The ``rocblas-dev`` package is not required to run the library but is required to compile code that uses rocBLAS.
 
 After installation of the development package which includes the headers, use rocBLAS like any other library with a C API.
