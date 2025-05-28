@@ -6,7 +6,7 @@ library. rocBLAS is implemented in the
 GPUs.
 
 ## Requirements
-
+ 
 You must have ROCm installed on your system before you can install rocBLAS. For information on
 ROCm installation and required platform dependencies, refer to the
 [ROCm](https://rocm.docs.amd.com/en/latest).
