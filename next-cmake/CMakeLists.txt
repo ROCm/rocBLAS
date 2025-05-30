@@ -269,37 +269,32 @@ set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
 set(CPACK_RPM_SPEC_MORE_DEFINE
     "%define __strip ${CMAKE_PREFIX_PATH}/llvm/bin/llvm-strip")
 
-if(ROCBLAS_ENABLE_HOST)
-  rocm_install(
-    TARGETS
-    rocblas
-    rocblas64
-    rocblas-interface
-    tensile-host
-    EXPORT
-    rocblas-targets
-    ARCHIVE
-    COMPONENT
-    devel
-    LIBRARY
-    COMPONENT
-    runtime
-    RUNTIME
-    COMPONENT
-    runtime)
 
+if(ROCBLAS_ENABLE_HOST)
+  # cmake-format: off
   rocm_install(
-    DIRECTORY
-    "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
-    DESTINATION
-    "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
-    COMPONENT
-    devel
-    FILES_MATCHING
-    PATTERN
-    "*.h"
-    PATTERN
-    "*.f90")
+    TARGETS rocblas
+    EXPORT rocblas-targets
+    ARCHIVE COMPONENT devel
+    LIBRARY COMPONENT runtime
+    RUNTIME COMPONENT runtime)
+
+  if(ROCBLAS_ENABLE_FORTRAN)
+    rocm_install(
+      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
+      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+      COMPONENT devel
+      FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.f90")
+  else()
+    rocm_install(
+      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
+      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+      COMPONENT devel
+      FILES_MATCHING
+        PATTERN "*.h")
+  endif()
 
   rocm_install(
     FILES
@@ -307,27 +302,31 @@ if(ROCBLAS_ENABLE_HOST)
     "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-version.h"
     DESTINATION
     "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
-    COMPONENT
-    devel)
+    COMPONENT devel)
 
-  # Hack for one off installs of files required in the install tree
+  # Hack for one off inclusion of files required in the install tree
   rocm_install(
-    FILES
-    "${PROJECT_SOURCE_DIR}/../library/src/include/rocblas_device_malloc.hpp"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal" COMPONENT devel)
+    FILES "${PROJECT_SOURCE_DIR}/../library/src/include/rocblas_device_malloc.hpp"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
+    COMPONENT devel)
 
-  rocm_export_targets(
-    NAMESPACE
-    roc::
-    TARGETS
-    rocblas
-    rocblas64
-    rocblas-interface
-    EXPORT
-    rocblas-targets
-    DEPENDS
-    PACKAGE
-    hip)
+  if(ROCBLAS_ENABLE_OPENMP)
+    rocm_export_targets(
+      NAMESPACE roc::
+      TARGETS rocblas
+      EXPORT rocblas-targets
+      DEPENDS
+        PACKAGE hip
+        PACKAGE OpenMP)
+  else()
+    rocm_export_targets(
+      NAMESPACE roc::
+      TARGETS rocblas
+      EXPORT rocblas-targets
+      DEPENDS
+        PACKAGE hip)
+  endif()
+  # cmake-format: on
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
