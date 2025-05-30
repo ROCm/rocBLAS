@@ -136,7 +136,7 @@ if(ROCBLAS_ENABLE_FORTRAN)
   target_sources(
     rocblas-fortran
     PUBLIC
-      $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_module.f90>
+      ${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_module.f90
   )
   set_target_properties(rocblas-fortran PROPERTIES
     Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/modules

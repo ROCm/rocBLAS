@@ -70,18 +70,31 @@ target_link_libraries(
 
 if(ROCBLAS_ENABLE_FORTRAN)
   add_library(rocblas-fortran-clients-common OBJECT)
+
   if(ROCBLAS_ENABLE_TENSILE)
     target_sources(
       rocblas-fortran-clients-common
       PUBLIC
         ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran_tensile.f90)
   endif()
+
   target_sources(
     rocblas-fortran-clients-common
-    PUBLIC ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90)
+    PUBLIC
+      ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90)
+
+  target_link_libraries(rocblas-fortran-clients-common
+    PUBLIC
+      rocblas-fortran)
+
+  # Make the object library available to the main client library
+  set_target_properties(rocblas-fortran-clients-common
+    PROPERTIES
+      POSITION_INDEPENDENT_CODE ON)
 
   target_link_libraries(rocblas-clients-common
-                        PRIVATE rocblas-fortran-clients-common)
+    PRIVATE
+      rocblas-fortran-clients-common)
 else()
   target_compile_definitions(rocblas-clients-common PUBLIC CLIENTS_NO_FORTRAN)
 endif()
