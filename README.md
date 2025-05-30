@@ -11,7 +11,7 @@ You must have ROCm installed on your system before you can install rocBLAS. For 
 ROCm installation and required platform dependencies, refer to the
 [ROCm](https://rocm.docs.amd.com/en/latest).
 
-## Documentation
+## Documentation 
 
 > [!NOTE]
 > The published rocBLAS documentation is available at [rocBLAS](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html) in an organized, easy-to-read format, with search and a table of contents. The documentation source files reside in the rocBLAS/docs folder of this repository. As with all ROCm projects, the documentation is open source. For more information, see [Contribute to ROCm documentation](https://rocm.docs.amd.com/en/latest/contribute/contributing.html).
