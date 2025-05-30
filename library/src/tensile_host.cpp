@@ -728,6 +728,9 @@ namespace
                         // For ASAN packaging, library file directory will be lib/asan
                         // so need to prefix ../ to set search base_path to lib/rocblas/library
                         base_path += "/../rocblas/library";
+                    else if(TestPath(base_path + "/../Tensile/device/library"))
+                        // For next-cmake build-tree support
+                        base_path += "/../Tensile/device/library";
                     else
                         base_path += "/rocblas/library";
 
