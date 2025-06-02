@@ -84,7 +84,7 @@ Building and installing rocBLAS
 
 For most users, it isn't necessary to build rocBLAS from source. They can use
 the prebuilt packages as described above. However, if necessary, you can use the following instructions to build
-rocBLAS from source.  You need to install ``rocm-dev`` instead of ``rocm`` (or in addition to ``rocm``), because``rocm`` contains the runtime-only packages.
+rocBLAS from source.  You need to install ``rocm-dev`` instead of ``rocm`` (or in addition to ``rocm``), because ``rocm`` contains the runtime-only packages.
 For example, on Ubuntu or Debian, use these commands:
 
 .. code-block:: shell
