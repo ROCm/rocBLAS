@@ -66,7 +66,7 @@ if(ROCBLAS_ENABLE_TENSILE)
 endif()
 
 if(ROCBLAS_ENABLE_HIPBLASLT)
-  target_link_libraries(rocblas INTERFACE roc::hipblaslt)
+  target_link_libraries(rocblas-interface INTERFACE roc::hipblaslt)
   target_compile_definitions(rocblas-interface INTERFACE BUILD_WITH_HIPBLASLT)
 endif()
 

@@ -145,7 +145,7 @@ if(ROCBLAS_ENABLE_OPENMP)
 endif()
 
 if(ROCBLAS_ENABLE_HIPBLASLT)
-  find_package(roc::hipblaslt REQUIRED)
+  find_package(hipblaslt REQUIRED)
   rocm_package_add_dependencies(DEPENDS "hipblaslt >= 0.6.0")
 endif()
 
