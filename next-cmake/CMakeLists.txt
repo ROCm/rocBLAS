@@ -27,16 +27,17 @@ project(
   VERSION 5.0.0
   LANGUAGES CXX)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
-# Set cpack license file here to avoid rocm-cmake warning
-set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/../LICENSE.md")
 
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+# Set cpack license file here to avoid rocm-cmake warning
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/../LICENSE.md")
+
 include(rocblas_target_configure_sanitizers)
+include(query_git_hash)
 include(FetchROCmCMake)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
@@ -85,6 +86,8 @@ if(ROCBLAS_ENABLE_DEVICE)
         "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas/library"
         CACHE PATH "path to tensile library")
   endif()
+  set(ROCBLAS_TENSILE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile)
+  query_git_hash(tensile ${ROCBLAS_TENSILE_PATH})
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
@@ -107,6 +110,7 @@ if(ROCBLAS_ENABLE_HOST)
   set(ROCBLAS_CONFIG_DIR
       "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
       CACHE PATH "Path placed into ldconfig file")
+  query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
@@ -172,7 +176,7 @@ endif()
 if(ROCBLAS_ENABLE_DEVICE)
   message(STATUS "Configuring device libraries")
   if(NOT TARGET tensile::tensile-host)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/../../Tensile/next-cmake
+    add_subdirectory(${ROCBLAS_TENSILE_PATH}/next-cmake
                      ${PROJECT_BINARY_DIR}/Tensile)
   endif()
   if(ROCBLAS_ENABLE_HOST)

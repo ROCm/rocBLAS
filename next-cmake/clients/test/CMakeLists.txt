@@ -29,6 +29,9 @@ set_target_properties(rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                               "${PROJECT_BINARY_DIR}/staging")
 
 target_compile_definitions(rocblas-test PRIVATE GOOGLE_TEST)
+if(ROCBLAS_ENABLE_TENSILE)
+    target_compile_definitions(rocblas-test PRIVATE BUILD_WITH_TENSILE)
+endif()
 
 target_link_libraries(rocblas-test PRIVATE rocblas-clients-common)
 
