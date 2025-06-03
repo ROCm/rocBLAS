@@ -95,7 +95,7 @@ Options
 
 *Host library options*:
 
-* `ROCBLAS_BUILD_SHARED`: Build the |project_name| shared or static library (default: `ON`)
+* `ROCBLAS_BUILD_SHARED_LIBS`: Build the |project_name| shared or static library (default: `ON`)
 * `ROCBLAS_ENABLE_BLIS`: Enable BLIS support (default: `ON`)
 * `ROCBLAS_ENABLE_OPENMP`: Enable OpenMP support (default: `ON`)
 * `ROCBLAS_ENABLE_TENSILE`: Build |project_name| host library with Tensile backend (default: `ON`)

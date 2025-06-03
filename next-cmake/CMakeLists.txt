@@ -94,7 +94,7 @@ if(ROCBLAS_ENABLE_DEVICE)
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
-  set(ROCBLAS_BUILD_SHARED
+  set(ROCBLAS_BUILD_SHARED_LIBS
       ON
       CACHE BOOL "Build the rocBLAS shared or static library")
   set(ROCBLAS_ENABLE_OPENMP
