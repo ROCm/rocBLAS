@@ -85,8 +85,12 @@ if(ROCBLAS_ENABLE_DEVICE)
         "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas/library"
         CACHE PATH "path to tensile library")
   endif()
-  set(ROCBLAS_TENSILE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile)
-  query_git_hash(tensile ${ROCBLAS_TENSILE_PATH})
+  set(ROCBLAS_TENSILE_BUILD_FROM_SUBDIR
+      OFF
+      CACHE BOOL "Build Tensile from subdirectory.")
+  if(ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
+    set(ROCBLAS_TENSILE_SUBDIR_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile")
+  endif()
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
@@ -152,15 +156,32 @@ if(ROCBLAS_ENABLE_HIPBLASLT)
   rocm_package_add_dependencies(DEPENDS "hipblaslt >= 0.6.0")
 endif()
 
+if(ROCBLAS_ENABLE_TENSILE AND NOT ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
+  find_package(tensile REQUIRED)
+endif()
+
 if(ROCBLAS_REQUIRE_ROCM_SMI)
   find_package(rocm_smi REQUIRED)
 else()
   find_package(rocm_smi)
 endif()
 
+if(ROCBLAS_ENABLE_DEVICE)
+  message(STATUS "Configuring device libraries")
+  if(NOT TARGET roc::tensile-host AND ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
+    message(STATUS "Building Tensile from subdirectory")
+    add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
+                    ${PROJECT_BINARY_DIR}/Tensile)
+  else()
+    message(STATUS "Tensile already found at ${tensile_DIR}")
+  endif()
+
+endif()
+
 if(ROCBLAS_ENABLE_HOST)
   message(STATUS "Configuring host library")
   add_subdirectory(host-library)
+  target_link_libraries(rocblas PRIVATE roc::tensile-host)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
@@ -172,16 +193,7 @@ if(ROCBLAS_ENABLE_CLIENT)
   add_subdirectory(clients)
 endif()
 
-if(ROCBLAS_ENABLE_DEVICE)
-  message(STATUS "Configuring device libraries")
-  if(NOT TARGET tensile::tensile-host)
-    add_subdirectory(${ROCBLAS_TENSILE_PATH}/next-cmake
-                     ${PROJECT_BINARY_DIR}/Tensile)
-  endif()
-  if(ROCBLAS_ENABLE_HOST)
-    target_link_libraries(rocblas PRIVATE tensile::tensile-host)
-  endif()
-endif()
+
 
 if(ROCBLAS_ENABLE_CLIENT)
   if(NOT CLIENTS_OS)
