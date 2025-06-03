@@ -130,7 +130,7 @@ if(ROCBLAS_ENABLE_CLIENT)
       OFF
       CACHE BOOL "Build Fortran clients.")
   # rocm-smi is not presently available on Windows so we do not require it.
-  cmake_dependent_option(ROCBLAS_REQUIRE_ROCM_SMI "Require rocm_smi." ON
+  cmake_dependent_option(ROCBLAS_ENABLE_ROCM_SMI "Require rocm_smi." ON
                          "NOT WIN32" OFF)
 endif()
 
@@ -160,10 +160,8 @@ if(ROCBLAS_ENABLE_TENSILE AND NOT ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
   find_package(tensile REQUIRED)
 endif()
 
-if(ROCBLAS_REQUIRE_ROCM_SMI)
+if(ROCBLAS_ENABLE_ROCM_SMI)
   find_package(rocm_smi REQUIRED)
-else()
-  find_package(rocm_smi)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
