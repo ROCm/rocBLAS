@@ -45,7 +45,7 @@ Full build of |project_name|
             -D CMAKE_C_COMPILER=/opt/rocm/bin/amdclang     \
             -D CMAKE_BUILD_TYPE=Release                    \
             -D CMAKE_PREFIX_PATH=/opt/rocm                 \
-            -D GPU_TARGETS=gfx1201
+            -D GPU_TARGETS=gfx90a
       # build
       cmake --build build --parallel 32
 
@@ -62,7 +62,7 @@ Building device libraries
             -D CMAKE_C_COMPILER=/opt/rocm/bin/amdclang     \
             -D CMAKE_BUILD_TYPE=Release                    \
             -D CMAKE_PREFIX_PATH=/opt/rocm                 \
-            -D GPU_TARGETS=gfx1201                         \
+            -D GPU_TARGETS=gfx90a                          \
             -D ROCBLAS_ENABLE_DEVICE=ON                    \
             -D ROCBLAS_ENABLE_HOST=OFF                     \
             -D ROCBLAS_ENABLE_CLIENT=OFF

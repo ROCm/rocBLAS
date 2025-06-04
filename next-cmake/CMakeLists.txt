@@ -24,7 +24,7 @@
 cmake_minimum_required(VERSION 3.25.2)
 project(
   rocblas
-  VERSION 5.0.0
+  VERSION 5.1.0
   LANGUAGES CXX)
 
 if(POLICY CMP0135)
@@ -85,12 +85,9 @@ if(ROCBLAS_ENABLE_DEVICE)
         "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas/library"
         CACHE PATH "path to tensile library")
   endif()
-  set(ROCBLAS_TENSILE_BUILD_FROM_SUBDIR
-      OFF
-      CACHE BOOL "Build Tensile from subdirectory.")
-  if(ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
-    set(ROCBLAS_TENSILE_SUBDIR_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile")
-  endif()
+  set(ROCBLAS_TENSILE_SUBDIR_PATH
+      "${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile"
+      CACHE STRING "Path to Tensile subdirectory")
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
@@ -152,12 +149,8 @@ if(ROCBLAS_ENABLE_OPENMP)
 endif()
 
 if(ROCBLAS_ENABLE_HIPBLASLT)
-  find_package(hipblaslt REQUIRED)
-  rocm_package_add_dependencies(DEPENDS "hipblaslt >= 0.6.0")
-endif()
-
-if(ROCBLAS_ENABLE_TENSILE AND NOT ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
-  find_package(tensile REQUIRED)
+  find_package(hipblaslt 1.0.0 REQUIRED)
+  rocm_package_add_dependencies(DEPENDS "hipblaslt >= 1.0.0")
 endif()
 
 if(ROCBLAS_ENABLE_ROCM_SMI)
@@ -165,15 +158,12 @@ if(ROCBLAS_ENABLE_ROCM_SMI)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-  message(STATUS "Configuring device libraries")
-  if(NOT TARGET roc::tensile-host AND ROCBLAS_TENSILE_BUILD_FROM_SUBDIR)
-    message(STATUS "Building Tensile from subdirectory")
-    add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
-                    ${PROJECT_BINARY_DIR}/Tensile)
-  else()
-    message(STATUS "Tensile already found at ${tensile_DIR}")
-  endif()
-
+  message(
+    STATUS
+      "Configuring device libraries from subdirectory: ${ROCBLAS_TENSILE_SUBDIR_PATH}"
+  )
+  add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
+                   ${CMAKE_CURRENT_BINARY_DIR}/Tensile)
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
@@ -190,8 +180,6 @@ if(ROCBLAS_ENABLE_CLIENT)
   message(STATUS "Configuing clients")
   add_subdirectory(clients)
 endif()
-
-
 
 if(ROCBLAS_ENABLE_CLIENT)
   if(NOT CLIENTS_OS)
@@ -281,7 +269,6 @@ set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
 # Work around code object stripping failure if using /usr/bin/strip
 set(CPACK_RPM_SPEC_MORE_DEFINE
     "%define __strip ${CMAKE_PREFIX_PATH}/llvm/bin/llvm-strip")
-
 
 if(ROCBLAS_ENABLE_HOST)
   # cmake-format: off
