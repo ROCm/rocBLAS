@@ -30,7 +30,7 @@ set_target_properties(rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY
 
 target_compile_definitions(rocblas-test PRIVATE GOOGLE_TEST)
 if(ROCBLAS_ENABLE_TENSILE)
-    target_compile_definitions(rocblas-test PRIVATE BUILD_WITH_TENSILE)
+  target_compile_definitions(rocblas-test PRIVATE BUILD_WITH_TENSILE)
 endif()
 
 target_link_libraries(rocblas-test PRIVATE rocblas-clients-common)
@@ -129,56 +129,94 @@ add_custom_target(
   DEPENDS "${ROCBLAS_TEST_DATA}"
   COMMENT "Generating rocBLAS test data")
 
+set_target_properties(rocblas-test-data PROPERTIES ROCBLAS_INSTALL_FILES "${ROCBLAS_TEST_DATA}")
+
 function(rocblas_add_copy_command OUTPUT_FILE SOURCE_FILE COMMENT_MSG)
-    add_custom_command(
-        OUTPUT "${OUTPUT_FILE}"
-        COMMAND "${CMAKE_COMMAND}"
-        ARGS -E copy "${SOURCE_FILE}" "${OUTPUT_FILE}"
-        DEPENDS "${SOURCE_FILE}"
-        WORKING_DIRECTORY "${_CMAKE_CURRENT_SOURCE_DIR}"
-        COMMENT "${COMMENT_MSG}"
-        VERBATIM
-    )
+  add_custom_command(
+    OUTPUT "${OUTPUT_FILE}"
+    COMMAND "${CMAKE_COMMAND}" ARGS -E copy "${SOURCE_FILE}" "${OUTPUT_FILE}"
+    DEPENDS "${SOURCE_FILE}"
+    WORKING_DIRECTORY "${_CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "${COMMENT_MSG}"
+    VERBATIM)
 endfunction()
 
 set(ROCBLAS_SMOKE "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_smoke.yaml")
 rocblas_add_copy_command(
-    "${ROCBLAS_SMOKE}"
-    "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_smoke.yaml"
-    "Copying rocBLAS smoke test configuration"
-)
+  "${ROCBLAS_SMOKE}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_smoke.yaml"
+  "Copying rocBLAS smoke test configuration")
 
 set(ROCBLAS_EXTRAS "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_extras.yaml")
 rocblas_add_copy_command(
-    "${ROCBLAS_EXTRAS}"
-    "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_extras.yaml"
-    "Copying rocBLAS extras configuration"
-)
+  "${ROCBLAS_EXTRAS}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_extras.yaml"
+  "Copying rocBLAS extras configuration")
 
 set(ROCBLAS_CLIENTS_RTEST
     "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_rtest.py")
 rocblas_add_copy_command(
-    "${ROCBLAS_CLIENTS_RTEST}"
-    "${_CMAKE_CURRENT_SOURCE_DIR}/../../rtest.py"
-    "Copying rocBLAS test scripts"
-)
+  "${ROCBLAS_CLIENTS_RTEST}" "${_CMAKE_CURRENT_SOURCE_DIR}/../../rtest.py"
+  "Copying rocBLAS test scripts")
 
 set(ROCBLAS_CLIENTS_RTEST_XML
     "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_rtest.xml")
 rocblas_add_copy_command(
-    "${ROCBLAS_CLIENTS_RTEST_XML}"
-    "${_CMAKE_CURRENT_SOURCE_DIR}/../../rtest.xml"
-    "Copying rocBLAS test XML"
-)
+  "${ROCBLAS_CLIENTS_RTEST_XML}" "${_CMAKE_CURRENT_SOURCE_DIR}/../../rtest.xml"
+  "Copying rocBLAS test XML")
 
+set(ROCBLAS_COMMON "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_common.yaml")
+rocblas_add_copy_command(
+  "${ROCBLAS_COMMON}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_common.yaml"
+  "Copying rocBLAS common configuration")
+
+set(ROCBLAS_TEMPLATE
+    "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_template.yaml")
+rocblas_add_copy_command(
+  "${ROCBLAS_TEMPLATE}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_template.yaml"
+  "Copying rocBLAS template configuration")
+
+set(ROCBLAS_GENERAL_YAML
+    "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_general.yaml")
+rocblas_add_copy_command(
+  "${ROCBLAS_GENERAL_YAML}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_general.yaml"
+  "Copying rocBLAS general configuration")
+
+set(ROCBLAS_GENTEST "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_gentest.py")
+rocblas_add_copy_command(
+  "${ROCBLAS_GENTEST}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_gentest.py"
+  "Copying rocBLAS gentest script")
+
+set(ROCBLAS_CLIENTS_README
+    "${CMAKE_CURRENT_BINARY_DIR}/../staging/rocblas_clients_readme.txt")
+rocblas_add_copy_command(
+  "${ROCBLAS_CLIENTS_README}"
+  "${_CMAKE_CURRENT_SOURCE_DIR}/../rocblas_clients_readme.txt"
+  "Copying rocBLAS clients readme")
+
+# I think we should move this up into the clients/CMakeLists.txt file
 add_custom_target(
-    rocblas-test-files ALL
-    DEPENDS
-        "${ROCBLAS_SMOKE}"
-        "${ROCBLAS_EXTRAS}"
-        "${ROCBLAS_CLIENTS_RTEST}"
-        "${ROCBLAS_CLIENTS_RTEST_XML}"
-    COMMENT "Generating rocBLAS test files"
-)
+  rocblas-test-files ALL
+  DEPENDS "${ROCBLAS_SMOKE}"
+          "${ROCBLAS_EXTRAS}"
+          "${ROCBLAS_CLIENTS_RTEST}"
+          "${ROCBLAS_CLIENTS_RTEST_XML}"
+          "${ROCBLAS_COMMON}"
+          "${ROCBLAS_TEMPLATE}"
+          "${ROCBLAS_GENERAL_YAML}"
+          "${ROCBLAS_GENTEST}"
+          "${ROCBLAS_CLIENTS_README}"
+  COMMENT "Generating rocBLAS test files")
+
+set_target_properties(
+  rocblas-test-files
+  PROPERTIES
+    ROCBLAS_INSTALL_FILES
+    "${ROCBLAS_SMOKE};${ROCBLAS_EXTRAS};${ROCBLAS_COMMON};${ROCBLAS_TEMPLATE};${ROCBLAS_GENERAL_YAML};${ROCBLAS_CLIENTS_README};${ROCBLAS_CLIENTS_RTEST_XML}"
+    ROCBLAS_INSTALL_PROGRAMS "${ROCBLAS_CLIENTS_RTEST};${ROCBLAS_GENTEST}")
 
 add_dependencies(rocblas-test rocblas-test-data rocblas-test-files)

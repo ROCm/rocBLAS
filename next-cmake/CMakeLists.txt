@@ -348,6 +348,38 @@ if(ROCBLAS_ENABLE_CLIENT)
   if(ROCBLAS_ENABLE_TESTS)
     rocm_install(TARGETS rocblas-test COMPONENT tests DESTINATION
                  ${CMAKE_INSTALL_BINDIR})
+
+    if(TARGET rocblas-test-data)
+      get_target_property(TEST_DATA rocblas-test-data ROCBLAS_INSTALL_FILES)
+      if(TEST_DATA)
+        rocm_install(
+          FILES ${TEST_DATA}
+          DESTINATION "${CMAKE_INSTALL_BINDIR}"
+          COMPONENT tests
+        )
+      endif()
+    endif()
+
+    if(TARGET rocblas-test-files)
+      get_target_property(TEST_FILES rocblas-test-files ROCBLAS_INSTALL_FILES)
+      get_target_property(TEST_PROGRAMS rocblas-test-files ROCBLAS_INSTALL_PROGRAMS)
+
+      if(TEST_FILES)
+        rocm_install(
+          FILES ${TEST_FILES}
+          DESTINATION "${CMAKE_INSTALL_BINDIR}"
+          COMPONENT tests
+        )
+      endif()
+
+      if(TEST_PROGRAMS)
+        rocm_install(
+          PROGRAMS ${TEST_PROGRAMS}
+          DESTINATION "${CMAKE_INSTALL_BINDIR}"
+          COMPONENT tests
+        )
+      endif()
+    endif()
   endif()
 
   if(ROCBLAS_ENABLE_SAMPLES)
