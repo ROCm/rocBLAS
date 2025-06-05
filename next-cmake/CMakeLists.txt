@@ -163,7 +163,7 @@ if(ROCBLAS_ENABLE_DEVICE)
     message(STATUS "Adding Tensile from subdirectory: ${ROCBLAS_TENSILE_SUBDIR_PATH}")
     add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
                      ${CMAKE_CURRENT_BINARY_DIR}/Tensile)
-  else()
+  endif()
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
