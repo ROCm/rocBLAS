@@ -105,7 +105,7 @@ if(ROCBLAS_ENABLE_HOST)
       ON
       CACHE BOOL "Build rocBLAS host library with Tensile backend.")
   set(ROCBLAS_ENABLE_HIPBLASLT
-      OFF
+      ON
       CACHE BOOL "Build rocBLAS host library with hipBLASLt backend.")
   set(ROCBLAS_CONFIG_DIR
       "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
@@ -124,7 +124,7 @@ if(ROCBLAS_ENABLE_CLIENT)
       ON
       CACHE BOOL "Build client samples.")
   set(ROCBLAS_ENABLE_FORTRAN
-      OFF
+      ON
       CACHE BOOL "Build Fortran clients.")
   # rocm-smi is not presently available on Windows so we do not require it.
   cmake_dependent_option(ROCBLAS_ENABLE_ROCM_SMI "Require rocm_smi." ON
