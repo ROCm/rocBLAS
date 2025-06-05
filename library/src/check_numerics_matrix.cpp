@@ -307,12 +307,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                         int64_t                   batch_count,    \
                                                         const int                 check_numerics, \
                                                         bool                      is_input)
-INST(int*);
-INST(int* const*);
-INST(int const*);
-INST(int const* const*);
-INST(signed char const*);
-INST(signed char const* const*);
+// INST(int*);
+// INST(int* const*);
+// INST(int const*);
+// INST(int const* const*);
 
 INST(float*);
 INST(float* const*);
