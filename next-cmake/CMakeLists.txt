@@ -330,7 +330,7 @@ if(ROCBLAS_ENABLE_HOST)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-  rocm_install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/device/library/"
+  rocm_install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/library/"
                DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT runtime)
 endif()
 
