@@ -158,12 +158,12 @@ if(ROCBLAS_ENABLE_ROCM_SMI)
 endif()
 
 if(ROCBLAS_ENABLE_DEVICE)
-  message(
-    STATUS
-      "Configuring device libraries from subdirectory: ${ROCBLAS_TENSILE_SUBDIR_PATH}"
-  )
-  add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
-                   ${CMAKE_CURRENT_BINARY_DIR}/Tensile)
+  message(STATUS "Configuring device libraries...")
+  if(NOT TARGET roc::tensile-host)
+    message(STATUS "Adding Tensile from subdirectory: ${ROCBLAS_TENSILE_SUBDIR_PATH}")
+    add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
+                     ${CMAKE_CURRENT_BINARY_DIR}/Tensile)
+  else()
 endif()
 
 if(ROCBLAS_ENABLE_HOST)
