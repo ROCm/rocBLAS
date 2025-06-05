@@ -108,7 +108,7 @@ endif()
 set_target_properties(rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                          ${PROJECT_BINARY_DIR}/staging)
 
-target_link_libraries(rocblas PRIVATE rocblas-interface rocblas64
+target_link_libraries(rocblas PRIVATE roc::tensile-host rocblas-interface rocblas64
                                       OpenMP::OpenMP_CXX)
 
 if(ROCBLAS_ENABLE_FORTRAN)

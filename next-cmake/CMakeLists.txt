@@ -151,7 +151,6 @@ endif()
 if(ROCBLAS_ENABLE_HOST)
   message(STATUS "Configuring host library")
   add_subdirectory(host-library)
-  target_link_libraries(rocblas PRIVATE roc::tensile-host)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
