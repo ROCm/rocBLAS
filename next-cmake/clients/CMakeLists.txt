@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
 

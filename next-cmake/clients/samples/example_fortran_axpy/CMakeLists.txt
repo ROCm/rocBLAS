@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 add_executable(rocblas-example-fortran-axpy
                ${TEMP_CLIENT_SAMPLES_DIR}/example_fortran_axpy.f90)

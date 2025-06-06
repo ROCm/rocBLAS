@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 add_executable(rocblas-example-solver
                ${TEMP_CLIENT_SAMPLES_DIR}/example_solver_rocblas.cpp)

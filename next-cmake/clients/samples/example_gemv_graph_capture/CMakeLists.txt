@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 add_executable(rocblas-example-gemv-graph-capture
                ${TEMP_CLIENT_SAMPLES_DIR}/example_gemv_graph_capture.cpp)

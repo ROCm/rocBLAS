@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 # Attempt to find ROCmCMakeBuildTools in the system, if not found, fetch from source
 # To install ROCmCMakeBuildTools from source, see: https://github.com/ROCm/rocm-cmake

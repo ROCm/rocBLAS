@@ -1,5 +1,6 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
+
 include(FindPackageHandleStandardArgs)
 
 set(BLIS_PATH_4_2_0 "/opt/AMD/aocl/aocl-linux-gcc-4.2.0/gcc")

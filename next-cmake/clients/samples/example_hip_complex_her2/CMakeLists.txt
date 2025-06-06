@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 add_executable(rocblas-example-hip-complex-her2
                ${TEMP_CLIENT_SAMPLES_DIR}/example_hip_complex_her2.cpp)

@@ -1,5 +1,5 @@
 # Copyright Advanced Micro Devices, Inc., or its affiliates.
-# SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.25.2)
 project(
@@ -13,7 +13,7 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # Set cpack license file here to avoid rocm-cmake warning
-set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/../LICENSE.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md")
 
 include(rocblas_target_configure_sanitizers)
 include(query_git_hash)
@@ -243,7 +243,7 @@ rocm_package_add_deb_dependencies(STATIC_DEPENDS
 rocm_package_add_rpm_dependencies(STATIC_DEPENDS
                                   "hip-static-devel >= ${HIP_RUNTIME_MINIMUM}")
 
-set(CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
+set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
     "\${CPACK_PACKAGING_INSTALL_PREFIX}")
 
