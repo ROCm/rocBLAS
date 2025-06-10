@@ -59,13 +59,13 @@ add_library(rocblas-helper OBJECT)
 target_link_libraries(rocblas-helper PRIVATE rocblas-interface hip::host
                                              hip::device)
 
-if(ROCBLAS_BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
   set_target_properties(rocblas-helper PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 add_library(rocblas64 OBJECT)
 
-if(ROCBLAS_BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
   set_target_properties(rocblas64 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
@@ -77,7 +77,7 @@ target_compile_definitions(rocblas64 PRIVATE ROCBLAS_INTERNAL_ILP64)
 
 target_link_libraries(rocblas64 PRIVATE rocblas-interface)
 
-if(ROCBLAS_BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
   add_library(rocblas SHARED)
 else()
   add_library(rocblas STATIC)
@@ -101,7 +101,7 @@ if(ROCBLAS_ENABLE_ASAN)
   rocblas_target_configure_sanitizers(rocblas PRIVATE)
 endif()
 
-if(ROCBLAS_BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
   target_link_libraries(rocblas PRIVATE roctx64)
 endif()
 

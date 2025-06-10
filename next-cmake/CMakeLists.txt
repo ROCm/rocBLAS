@@ -68,9 +68,11 @@ if(ROCBLAS_ENABLE_TENSILE)
       CACHE STRING "Path to Tensile subdirectory")
 endif()
 
-set(ROCBLAS_BUILD_SHARED_LIBS
-    ON
-    CACHE BOOL "Build the rocBLAS shared or static library")
+option(BUILD_SHARED_LIBS "Build the rocBLAS shared or static library; master switch." ON)
+if(NOT DEFINED ROCBLAS_BUILD_SHARED_LIBS)
+  option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
+endif()
+
 set(ROCBLAS_ENABLE_OPENMP
     ON
     CACHE BOOL "Enable OpenMP support.")

@@ -89,6 +89,7 @@ Options
 
 * `BUILD_CODE_COVERAGE`: Build tests with coverage support (default: `OFF`)
 * `BUILD_TESTING`: Build test client (default: `ON`)
+* `BUILD_SHARED_LIBS`: Build the rocBLAS shared or static library (default: `ON`)
 
 *Project wide options*:
 
@@ -99,7 +100,7 @@ Options
 
 *Host library options*:
 
-* `ROCBLAS_BUILD_SHARED_LIBS`: Build the |project_name| shared or static library (default: `ON`)
+* `ROCBLAS_BUILD_SHARED_LIBS`: Build the |project_name| shared or static library (default: same as `BUILD_SHARED_LIBS`)
 * `ROCBLAS_ENABLE_BLIS`: Enable BLIS support (default: `ON`)
 * `ROCBLAS_ENABLE_OPENMP`: Enable OpenMP support (default: `ON`)
 * `ROCBLAS_ENABLE_TENSILE`: Build |project_name| host library with Tensile backend (default: `ON`)
@@ -113,7 +114,7 @@ Options
 *Client options*:
 
 * `ROCBLAS_ENABLE_BENCHMARKS`: Build benchmark client (default: `ON`)
-* `ROCBLAS_BUILD_TESTING`: Build test client (default: `ON`)
+* `ROCBLAS_BUILD_TESTING`: Build test client (default: same as `BUILD_TESTING`)
 * `ROCBLAS_ENABLE_SAMPLES`: Build client samples (default: `ON`)
 * `ROCBLAS_ENABLE_FORTRAN`: Build Fortran clients (default: `OFF`)
 * `ROCBLAS_REQUIRE_ROCM_SMI`: Require rocm_smi (default: `ON` on Linux, `OFF` on Windows)
