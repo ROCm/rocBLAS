@@ -108,8 +108,7 @@ if(ROCTX64_LIBRARY)
   target_link_libraries(rocblas PRIVATE ${ROCTX64_LIBRARY})
 endif()
 
-target_link_libraries(rocblas PRIVATE roc::tensile-host rocblas-interface rocblas64
-                                      OpenMP::OpenMP_CXX)
+target_link_libraries(rocblas PRIVATE roc::tensile-host rocblas-interface rocblas64)
 
 if(ROCBLAS_ENABLE_FORTRAN)
   add_library(rocblas-fortran OBJECT)

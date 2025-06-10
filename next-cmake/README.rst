@@ -102,9 +102,8 @@ Options
 
 * `ROCBLAS_BUILD_SHARED_LIBS`: Build the |project_name| shared or static library (default: same as `BUILD_SHARED_LIBS`)
 * `ROCBLAS_ENABLE_BLIS`: Enable BLIS support (default: `ON`)
-* `ROCBLAS_ENABLE_OPENMP`: Enable OpenMP support (default: `ON`)
 * `ROCBLAS_ENABLE_TENSILE`: Build |project_name| host library with Tensile backend (default: `ON`)
-* `ROCBLAS_ENABLE_HIPBLASLT`: Build |project_name| host library with hipBLASLt backend (default: `OFF`)
+* `ROCBLAS_ENABLE_HIPBLASLT`: Build |project_name| host library with hipBLASLt backend (default: `ON`)
 * `ROCBLAS_CONFIG_DIR`: Path placed into ldconfig file (default: `${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}`)
 * `ROCBLAS_ENABLE_MARKER`: Enable rocTracer marker support (default: `OFF`)
 

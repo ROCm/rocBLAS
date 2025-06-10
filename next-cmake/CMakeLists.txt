@@ -72,9 +72,6 @@ option(BUILD_SHARED_LIBS "Build the rocBLAS shared or static library; master swi
 option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
 
 option(ROCBLAS_ENABLE_MARKER "Enable rocTracer marker support." OFF)
-set(ROCBLAS_ENABLE_OPENMP
-    ON
-    CACHE BOOL "Enable OpenMP support.")
 # I don't know that we can build with BLIS OFF
 set(ROCBLAS_ENABLE_BLIS
     ON
@@ -132,10 +129,6 @@ if(ROCBLAS_ENABLE_BLIS)
   find_package(BLIS REQUIRED)
 endif()
 
-if(ROCBLAS_ENABLE_OPENMP)
-  find_package(OpenMP REQUIRED)
-endif()
-
 if(ROCBLAS_ENABLE_HIPBLASLT)
   if(NOT TARGET roc::hipblaslt)
     find_package(hipblaslt 1.0.0 REQUIRED)
@@ -165,6 +158,8 @@ if(ROCBLAS_ENABLE_CLIENT)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
+  # TODO: This code needs to be invesigated to see if it is needed,
+  # and if so, how it can be cleaned up.
   if(NOT CLIENTS_OS)
     rocm_set_os_id(CLIENTS_OS)
     string(TOLOWER "${CLIENTS_OS}" CLIENTS_OS)
@@ -195,7 +190,7 @@ if(ROCBLAS_ENABLE_CLIENT)
   rocm_package_setup_client_component(clients-common)
 endif()
 
-if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
+if(ROCBLAS_BUILD_TESTING AND BUILD_TESTING)
   rocm_package_setup_client_component(
     tests
     DEPENDS
@@ -292,22 +287,12 @@ rocm_install(
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
   COMPONENT devel)
 
-if(ROCBLAS_ENABLE_OPENMP)
-  rocm_export_targets(
-    NAMESPACE roc::
-    TARGETS rocblas
-    EXPORT rocblas-targets
-    DEPENDS
-      PACKAGE hip
-      PACKAGE OpenMP)
-else()
-  rocm_export_targets(
-    NAMESPACE roc::
-    TARGETS rocblas
-    EXPORT rocblas-targets
-    DEPENDS
-      PACKAGE hip)
-endif()
+rocm_export_targets(
+  NAMESPACE roc::
+  TARGETS rocblas
+  EXPORT rocblas-targets
+  DEPENDS
+    PACKAGE hip)
 # cmake-format: on
 
 if(ROCBLAS_ENABLE_TENSILE)
@@ -326,7 +311,7 @@ if(ROCBLAS_ENABLE_CLIENT)
     endif()
   endif()
 
-  if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
+  if(ROCBLAS_BUILD_TESTING AND BUILD_TESTING)
     rocm_install(TARGETS rocblas-test COMPONENT tests DESTINATION
                  ${CMAKE_INSTALL_BINDIR})
 
@@ -368,8 +353,6 @@ if(ROCBLAS_ENABLE_CLIENT)
       TARGETS
       rocblas-example-c-dgeam
       rocblas-example-gemv-graph-capture
-      # For whatever reason rocblas-example-header-check isn't installed
-      # rocblas-example-header-check
       rocblas-example-hip-complex-her2
       rocblas-example-scal-multiple-strided-batch
       rocblas-example-scal-template
@@ -378,6 +361,8 @@ if(ROCBLAS_ENABLE_CLIENT)
       rocblas-example-sgemm-strided-batched
       rocblas-example-solver
       rocblas-example-sscal
+      # `rocblas-example-header-check` is not installed because it is used to check
+      # a C++ version guard exists, and thereby serves as a compile time check.
       COMPONENT
       samples
       DESTINATION
@@ -413,7 +398,7 @@ rocm_create_package(
   LDCONFIG_DIR
   ${ROCBLAS_CONFIG_DIR})
 
-if(ROCBLAS_ENABLE_COVERAGE OR BUILD_CODE_COVERAGE)
+if(ROCBLAS_ENABLE_COVERAGE AND BUILD_CODE_COVERAGE)
   target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate
                                          -fcoverage-mapping)
   target_link_options(rocblas PRIVATE -fprofile-instr-generate)

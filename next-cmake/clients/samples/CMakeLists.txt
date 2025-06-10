@@ -62,7 +62,8 @@ if(ROCBLAS_ENABLE_FORTRAN)
     $<TARGET_PROPERTY:rocblas-fortran,Fortran_MODULE_DIRECTORY>)
 endif()
 
-# Unused examples: example_gemm_strided_batched_ex_xdl_math_op.cpp
+# Unused examples:
+# example_gemm_strided_batched_ex_xdl_math_op.cpp
 # example_openmp.cpp
 
 # C examples

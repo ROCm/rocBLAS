@@ -4,6 +4,7 @@
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/common)
 
 find_package(GTest REQUIRED)
+find_package(OpenMP REQUIRED)
 # TODO: Review the usage of these libraries, and whether they are needed
 find_package(BLAS REQUIRED)
 find_package(cblas REQUIRED)
