@@ -25,93 +25,55 @@ include(GNUInstallDirs)
 
 rocm_setup_version(VERSION ${PROJECT_VERSION})
 set(rocblas_SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(HIP_RUNTIME_MINIMUM
-    "4.5.0"
-    CACHE STRING "Minimum HIP runtime version required")
+set(HIP_RUNTIME_MINIMUM "4.5.0" CACHE STRING "Minimum HIP runtime version required")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if(WIN32)
-    set(CMAKE_INSTALL_PREFIX
-        "C:/hipSDK"
-        CACHE PATH "Install path prefix." FORCE)
+    set(CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path prefix." FORCE)
   else()
-    set(CMAKE_INSTALL_PREFIX
-        "/opt/rocm"
-        CACHE PATH "Install path prefix." FORCE)
+    set(CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix." FORCE)
   endif()
 endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS
-    ON
-    CACHE BOOL "Export compile_commands.json for clang tooling support")
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json for clang tooling support" ON)
 
-set(ROCBLAS_ENABLE_TENSILE
-    ON
-    CACHE BOOL "Build rocBLAS device libraries.")
-set(ROCBLAS_ENABLE_CLIENT
-    ON
-    CACHE BOOL "Build rocBLAS clients.")
+option(ROCBLAS_ENABLE_CLIENT "Build rocBLAS clients." ON)
+option(ROCBLAS_ENABLE_TENSILE "Build Tensile GEMM device libraries." ON)
+option(ROCBLAS_ENABLE_HIPBLASLT "Build rocBLAS host library with hipBLASLt backend." ON)
+
+if(ROCBLAS_ENABLE_CLIENT)
+  option(ROCBLAS_ENABLE_BENCHMARKS "Build benchmark client." ON)
+  option(ROCBLAS_ENABLE_SAMPLES "Build client samples." ON)
+  option(ROCBLAS_ENABLE_FORTRAN "Build Fortran clients." ON)
+  # rocm-smi is not presently available on Windows so we do not require it.
+  cmake_dependent_option(ROCBLAS_ENABLE_ROCM_SMI "Require rocm_smi." ON "NOT WIN32" OFF)
+endif()
 
 if(ROCBLAS_ENABLE_TENSILE)
   if(WIN32)
-    set(ROCBLAS_TENSILE_LIBRARY_DIR
-        "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin"
-        CACHE PATH "path to tensile library")
+    set(ROCBLAS_TENSILE_INSTALL_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "Path to install tree tensile library")
   else()
-    set(ROCBLAS_TENSILE_LIBRARY_DIR
-        "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas/library"
-        CACHE PATH "path to tensile library")
+    set(ROCBLAS_TENSILE_INSTALL_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas/library" CACHE PATH "Path to tensile library")
   endif()
-  set(ROCBLAS_TENSILE_SUBDIR_PATH
-      "${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile"
-      CACHE STRING "Path to Tensile subdirectory")
+  set(ROCBLAS_TENSILE_SUBDIR_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile" CACHE STRING "Path to Tensile subdirectory")
 endif()
+set(ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file")
 
 option(BUILD_SHARED_LIBS "Build the rocBLAS shared or static library; master switch." ON)
 option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
 
-option(ROCBLAS_ENABLE_MARKER "Enable rocTracer marker support." OFF)
-# I don't know that we can build with BLIS OFF
-set(ROCBLAS_ENABLE_BLIS
-    ON
-    CACHE BOOL "Enable BLIS support.")
-set(ROCBLAS_ENABLE_TENSILE
-    ON
-    CACHE BOOL "Build rocBLAS host library with Tensile backend.")
-set(ROCBLAS_ENABLE_HIPBLASLT
-    ON
-    CACHE BOOL "Build rocBLAS host library with hipBLASLt backend.")
-set(ROCBLAS_CONFIG_DIR
-    "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
-    CACHE PATH "Path placed into ldconfig file")
-query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
-
-
 option(BUILD_TESTING "Build test client; master switch." ON)
 option(ROCBLAS_BUILD_TESTING "Build test client." ${BUILD_TESTING})
 
-if(ROCBLAS_ENABLE_CLIENT)
-  set(ROCBLAS_ENABLE_BENCHMARKS
-      ON
-      CACHE BOOL "Build benchmark client.")
-  set(ROCBLAS_ENABLE_SAMPLES
-      ON
-      CACHE BOOL "Build client samples.")
-  set(ROCBLAS_ENABLE_FORTRAN
-      ON
-      CACHE BOOL "Build Fortran clients.")
-  # rocm-smi is not presently available on Windows so we do not require it.
-  cmake_dependent_option(ROCBLAS_ENABLE_ROCM_SMI "Require rocm_smi." ON
-                         "NOT WIN32" OFF)
-endif()
-
-set(ROCBLAS_ENABLE_ASAN
-    OFF
-    CACHE BOOL "Build with address sanitizer enabled.")
-
 option(BUILD_CODE_COVERAGE "Build tests with coverage support; master switch." OFF)
-option(ROCBLAS_ENABLE_COVERAGE "Build tests with coverage support." ${BUILD_CODE_COVERAGE})
+option(ROCBLAS_BUILD_COVERAGE "Build tests with coverage support." ${BUILD_CODE_COVERAGE})
+
+# I don't know that we can build with BLIS OFF
+option(ROCBLAS_ENABLE_BLIS "Enable BLIS support." ON)
+option(ROCBLAS_ENABLE_MARKER "Enable rocTracer marker support." OFF)
+option(ROCBLAS_ENABLE_ASAN "Build with address sanitizer enabled." OFF)
 
 find_package(hip REQUIRED)
 
@@ -297,7 +259,7 @@ rocm_export_targets(
 
 if(ROCBLAS_ENABLE_TENSILE)
   rocm_install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/library/"
-               DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT runtime)
+               DESTINATION "${ROCBLAS_TENSILE_INSTALL_DIR}" COMPONENT runtime)
 endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
@@ -398,7 +360,7 @@ rocm_create_package(
   LDCONFIG_DIR
   ${ROCBLAS_CONFIG_DIR})
 
-if(ROCBLAS_ENABLE_COVERAGE AND BUILD_CODE_COVERAGE)
+if(ROCBLAS_BUILD_COVERAGE AND BUILD_CODE_COVERAGE)
   target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate
                                          -fcoverage-mapping)
   target_link_options(rocblas PRIVATE -fprofile-instr-generate)
