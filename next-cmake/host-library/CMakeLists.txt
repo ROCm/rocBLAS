@@ -101,12 +101,12 @@ if(ROCBLAS_ENABLE_ASAN)
   rocblas_target_configure_sanitizers(rocblas PRIVATE)
 endif()
 
-if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
-  target_link_libraries(rocblas PRIVATE roctx64)
-endif()
-
 set_target_properties(rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                          ${PROJECT_BINARY_DIR}/staging)
+
+if(ROCTX64_LIBRARY)
+  target_link_libraries(rocblas PRIVATE ${ROCTX64_LIBRARY})
+endif()
 
 target_link_libraries(rocblas PRIVATE roc::tensile-host rocblas-interface rocblas64
                                       OpenMP::OpenMP_CXX)

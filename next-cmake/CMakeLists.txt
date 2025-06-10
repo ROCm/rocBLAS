@@ -71,6 +71,7 @@ endif()
 option(BUILD_SHARED_LIBS "Build the rocBLAS shared or static library; master switch." ON)
 option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
 
+option(ROCBLAS_ENABLE_MARKER "Enable rocTracer marker support." OFF)
 set(ROCBLAS_ENABLE_OPENMP
     ON
     CACHE BOOL "Enable OpenMP support.")
@@ -116,6 +117,16 @@ option(BUILD_CODE_COVERAGE "Build tests with coverage support; master switch." O
 option(ROCBLAS_ENABLE_COVERAGE "Build tests with coverage support." ${BUILD_CODE_COVERAGE})
 
 find_package(hip REQUIRED)
+
+if(ROCBLAS_ENABLE_MARKER)
+  find_library(ROCTX64_LIBRARY NAMES roctx64 libroctx64)
+  if(ROCTX64_LIBRARY)
+    message(STATUS "Found roctx64: ${ROCTX64_LIBRARY}")
+  else()
+    message(WARNING "Could NOT find roctx64: disabling marker support")
+    set(ROCBLAS_ENABLE_MARKER OFF)
+  endif()
+endif()
 
 if(ROCBLAS_ENABLE_BLIS)
   find_package(BLIS REQUIRED)

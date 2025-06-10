@@ -106,6 +106,7 @@ Options
 * `ROCBLAS_ENABLE_TENSILE`: Build |project_name| host library with Tensile backend (default: `ON`)
 * `ROCBLAS_ENABLE_HIPBLASLT`: Build |project_name| host library with hipBLASLt backend (default: `OFF`)
 * `ROCBLAS_CONFIG_DIR`: Path placed into ldconfig file (default: `${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}`)
+* `ROCBLAS_ENABLE_MARKER`: Enable rocTracer marker support (default: `OFF`)
 
 *Device libraries options*:
 
