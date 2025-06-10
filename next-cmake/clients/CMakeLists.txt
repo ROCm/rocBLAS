@@ -19,7 +19,8 @@ if(ROCBLAS_ENABLE_BENCHMARKS)
   endif()
 endif()
 
-if(ROCBLAS_ENABLE_TESTS)
+if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
+  enable_testing()
   add_subdirectory(test)
 endif()
 

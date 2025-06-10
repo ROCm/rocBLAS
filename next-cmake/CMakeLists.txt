@@ -89,13 +89,15 @@ set(ROCBLAS_CONFIG_DIR
     CACHE PATH "Path placed into ldconfig file")
 query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
 
+option(BUILD_TESTING "Build test client; master switch." ON)
+if(NOT DEFINED ROCBLAS_BUILD_TESTING)
+  option(ROCBLAS_BUILD_TESTING "Build test client." ${BUILD_TESTING})
+endif()
+
 if(ROCBLAS_ENABLE_CLIENT)
   set(ROCBLAS_ENABLE_BENCHMARKS
       ON
       CACHE BOOL "Build benchmark client.")
-  set(ROCBLAS_ENABLE_TESTS
-      ON
-      CACHE BOOL "Build test client.")
   set(ROCBLAS_ENABLE_SAMPLES
       ON
       CACHE BOOL "Build client samples.")
@@ -186,7 +188,7 @@ if(ROCBLAS_ENABLE_CLIENT)
   rocm_package_setup_client_component(clients-common)
 endif()
 
-if(BUILD_TESTING OR ROCBLAS_ENABLE_TESTS)
+if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
   rocm_package_setup_client_component(
     tests
     DEPENDS
@@ -317,7 +319,7 @@ if(ROCBLAS_ENABLE_CLIENT)
     endif()
   endif()
 
-  if(ROCBLAS_ENABLE_TESTS)
+  if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
     rocm_install(TARGETS rocblas-test COMPONENT tests DESTINATION
                  ${CMAKE_INSTALL_BINDIR})
 

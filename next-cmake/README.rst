@@ -88,6 +88,7 @@ Options
 *Superbuild options*:
 
 * `BUILD_CODE_COVERAGE`: Build tests with coverage support (default: `OFF`)
+* `BUILD_TESTING`: Build test client (default: `ON`)
 
 *Project wide options*:
 
@@ -112,7 +113,7 @@ Options
 *Client options*:
 
 * `ROCBLAS_ENABLE_BENCHMARKS`: Build benchmark client (default: `ON`)
-* `ROCBLAS_ENABLE_TESTS`: Build test client (default: `ON`)
+* `ROCBLAS_BUILD_TESTING`: Build test client (default: `ON`)
 * `ROCBLAS_ENABLE_SAMPLES`: Build client samples (default: `ON`)
 * `ROCBLAS_ENABLE_FORTRAN`: Build Fortran clients (default: `OFF`)
 * `ROCBLAS_REQUIRE_ROCM_SMI`: Require rocm_smi (default: `ON` on Linux, `OFF` on Windows)
