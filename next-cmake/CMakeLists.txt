@@ -46,16 +46,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS
     ON
     CACHE BOOL "Export compile_commands.json for clang tooling support")
 
-set(ROCBLAS_ENABLE_DEVICE
+set(ROCBLAS_ENABLE_TENSILE
     ON
     CACHE BOOL "Build rocBLAS device libraries.")
-set(ROCBLAS_ENABLE_HOST
+set(ROCBLAS_ENABLE_CLIENT
     ON
-    CACHE BOOL "Build rocBLAS host library.")
-cmake_dependent_option(ROCBLAS_ENABLE_CLIENT "Build rocBLAS clients." ON
-                       ROCBLAS_ENABLE_HOST OFF)
+    CACHE BOOL "Build rocBLAS clients.")
 
-if(ROCBLAS_ENABLE_DEVICE)
+if(ROCBLAS_ENABLE_TENSILE)
   if(WIN32)
     set(ROCBLAS_TENSILE_LIBRARY_DIR
         "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin"
@@ -70,28 +68,26 @@ if(ROCBLAS_ENABLE_DEVICE)
       CACHE STRING "Path to Tensile subdirectory")
 endif()
 
-if(ROCBLAS_ENABLE_HOST)
-  set(ROCBLAS_BUILD_SHARED_LIBS
-      ON
-      CACHE BOOL "Build the rocBLAS shared or static library")
-  set(ROCBLAS_ENABLE_OPENMP
-      ON
-      CACHE BOOL "Enable OpenMP support.")
-  # I don't know that we can build with BLIS OFF
-  set(ROCBLAS_ENABLE_BLIS
-      ON
-      CACHE BOOL "Enable BLIS support.")
-  set(ROCBLAS_ENABLE_TENSILE
-      ON
-      CACHE BOOL "Build rocBLAS host library with Tensile backend.")
-  set(ROCBLAS_ENABLE_HIPBLASLT
-      ON
-      CACHE BOOL "Build rocBLAS host library with hipBLASLt backend.")
-  set(ROCBLAS_CONFIG_DIR
-      "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
-      CACHE PATH "Path placed into ldconfig file")
-  query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+set(ROCBLAS_BUILD_SHARED_LIBS
+    ON
+    CACHE BOOL "Build the rocBLAS shared or static library")
+set(ROCBLAS_ENABLE_OPENMP
+    ON
+    CACHE BOOL "Enable OpenMP support.")
+# I don't know that we can build with BLIS OFF
+set(ROCBLAS_ENABLE_BLIS
+    ON
+    CACHE BOOL "Enable BLIS support.")
+set(ROCBLAS_ENABLE_TENSILE
+    ON
+    CACHE BOOL "Build rocBLAS host library with Tensile backend.")
+set(ROCBLAS_ENABLE_HIPBLASLT
+    ON
+    CACHE BOOL "Build rocBLAS host library with hipBLASLt backend.")
+set(ROCBLAS_CONFIG_DIR
+    "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+    CACHE PATH "Path placed into ldconfig file")
+query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(ROCBLAS_ENABLE_CLIENT)
   set(ROCBLAS_ENABLE_BENCHMARKS
@@ -139,7 +135,7 @@ if(ROCBLAS_ENABLE_ROCM_SMI)
   find_package(rocm_smi REQUIRED)
 endif()
 
-if(ROCBLAS_ENABLE_DEVICE)
+if(ROCBLAS_ENABLE_TENSILE)
   message(STATUS "Configuring device libraries...")
   if(NOT TARGET roc::tensile-host)
     message(STATUS "Adding Tensile from subdirectory: ${ROCBLAS_TENSILE_SUBDIR_PATH}")
@@ -148,10 +144,8 @@ if(ROCBLAS_ENABLE_DEVICE)
   endif()
 endif()
 
-if(ROCBLAS_ENABLE_HOST)
-  message(STATUS "Configuring host library")
-  add_subdirectory(host-library)
-endif()
+message(STATUS "Configuring host library")
+add_subdirectory(host-library)
 
 if(ROCBLAS_ENABLE_CLIENT)
   find_package(GTest REQUIRED)
@@ -251,66 +245,64 @@ set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
 set(CPACK_RPM_SPEC_MORE_DEFINE
     "%define __strip ${CMAKE_PREFIX_PATH}/llvm/bin/llvm-strip")
 
-if(ROCBLAS_ENABLE_HOST)
-  # cmake-format: off
+# cmake-format: off
+rocm_install(
+  TARGETS rocblas
+  EXPORT rocblas-targets
+  ARCHIVE COMPONENT devel
+  LIBRARY COMPONENT runtime
+  RUNTIME COMPONENT runtime)
+
+if(ROCBLAS_ENABLE_FORTRAN)
   rocm_install(
-    TARGETS rocblas
-    EXPORT rocblas-targets
-    ARCHIVE COMPONENT devel
-    LIBRARY COMPONENT runtime
-    RUNTIME COMPONENT runtime)
-
-  if(ROCBLAS_ENABLE_FORTRAN)
-    rocm_install(
-      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
-      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
-      COMPONENT devel
-      FILES_MATCHING
-        PATTERN "*.h"
-        PATTERN "*.f90")
-  else()
-    rocm_install(
-      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
-      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
-      COMPONENT devel
-      FILES_MATCHING
-        PATTERN "*.h")
-  endif()
-
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+    COMPONENT devel
+    FILES_MATCHING
+      PATTERN "*.h"
+      PATTERN "*.f90")
+else()
   rocm_install(
-    FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-export.h"
-    "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-version.h"
-    DESTINATION
-    "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
-    COMPONENT devel)
-
-  # Hack for one off inclusion of files required in the install tree
-  rocm_install(
-    FILES "${PROJECT_SOURCE_DIR}/../library/src/include/rocblas_device_malloc.hpp"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
-    COMPONENT devel)
-
-  if(ROCBLAS_ENABLE_OPENMP)
-    rocm_export_targets(
-      NAMESPACE roc::
-      TARGETS rocblas
-      EXPORT rocblas-targets
-      DEPENDS
-        PACKAGE hip
-        PACKAGE OpenMP)
-  else()
-    rocm_export_targets(
-      NAMESPACE roc::
-      TARGETS rocblas
-      EXPORT rocblas-targets
-      DEPENDS
-        PACKAGE hip)
-  endif()
-  # cmake-format: on
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas"
+    COMPONENT devel
+    FILES_MATCHING
+      PATTERN "*.h")
 endif()
 
-if(ROCBLAS_ENABLE_DEVICE)
+rocm_install(
+  FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-export.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-version.h"
+  DESTINATION
+  "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
+  COMPONENT devel)
+
+# Hack for one off inclusion of files required in the install tree
+rocm_install(
+  FILES "${PROJECT_SOURCE_DIR}/../library/src/include/rocblas_device_malloc.hpp"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
+  COMPONENT devel)
+
+if(ROCBLAS_ENABLE_OPENMP)
+  rocm_export_targets(
+    NAMESPACE roc::
+    TARGETS rocblas
+    EXPORT rocblas-targets
+    DEPENDS
+      PACKAGE hip
+      PACKAGE OpenMP)
+else()
+  rocm_export_targets(
+    NAMESPACE roc::
+    TARGETS rocblas
+    EXPORT rocblas-targets
+    DEPENDS
+      PACKAGE hip)
+endif()
+# cmake-format: on
+
+if(ROCBLAS_ENABLE_TENSILE)
   rocm_install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Tensile/library/"
                DESTINATION "${ROCBLAS_TENSILE_LIBRARY_DIR}" COMPONENT runtime)
 endif()

@@ -63,8 +63,7 @@ Building device libraries
             -D CMAKE_BUILD_TYPE=Release                    \
             -D CMAKE_PREFIX_PATH=/opt/rocm                 \
             -D GPU_TARGETS=gfx90a                          \
-            -D ROCBLAS_ENABLE_DEVICE=ON                    \
-            -D ROCBLAS_ENABLE_HOST=OFF                     \
+            -D ROCBLAS_ENABLE_TENSILE=ON                   \
             -D ROCBLAS_ENABLE_CLIENT=OFF
       # build
       cmake --build build --parallel 32
@@ -87,9 +86,8 @@ Options
 
 *Project wide options*:
 
-* `ROCBLAS_ENABLE_HOST`: Enables generation of host library (default: `ON`)
-* `ROCBLAS_ENABLE_DEVICE`: Enables generation of device libraries (default: `ON`)
-* `ROCBLAS_ENABLE_CLIENT`: Enables generation of client applications (default: `ON` if `ROCBLAS_ENABLE_HOST` is `ON`, `OFF` otherwise)
+* `ROCBLAS_ENABLE_TENSILE`: Enables generation of device libraries (default: `ON`)
+* `ROCBLAS_ENABLE_CLIENT`: Enables generation of client applications (default: `ON`)
 * `ROCBLAS_ENABLE_ASAN`: Build with address sanitizer enabled (default: `OFF`)
 * `ROCBLAS_ENABLE_COVERAGE`: Build with gcov support (default: `OFF`)
 
