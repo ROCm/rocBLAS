@@ -27,6 +27,8 @@
 #include "rocblas_dot.hpp"
 #include "rocblas_level1_threshold.hpp"
 
+#include <cassert>
+
 template <typename T>
 constexpr int rocblas_dot_one_block_threshold()
 {
