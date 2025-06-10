@@ -3,6 +3,8 @@
 
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/gtest)
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
 add_executable(rocblas-test)
 
 set_target_properties(rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY

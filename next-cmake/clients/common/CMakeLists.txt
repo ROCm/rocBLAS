@@ -3,6 +3,12 @@
 
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENTS_SOURCE_DIR}/common)
 
+find_package(GTest REQUIRED)
+# TODO: Review the usage of these libraries, and whether they are needed
+find_package(BLAS REQUIRED)
+find_package(cblas REQUIRED)
+find_package(LAPACK REQUIRED)
+
 add_library(rocblas-clients-common OBJECT)
 
 if(WARN_NOT_ILP64_PREFERRED)
