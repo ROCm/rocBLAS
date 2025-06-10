@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,14 @@
 
 #ifdef BUILD_WITH_TENSILE
 #include "gemm_tensile.hpp"
-#else
-#include "blas3/rocblas_gemm_source.hpp"
 #endif
+#include "blas3/rocblas_gemm_source.hpp"
 
 #include "blas3/rocblas_gemm.hpp"
 
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
+#include "logging.hpp"
 
 /*
  * ===========================================================================
@@ -61,10 +61,12 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count)
 {
+    rocblas_status status = rocblas_status_success;
+
     // quick return 0 is valid in BLAS
     // Note: k==0 is not a quick return, because C must still be multiplied by beta
     if(!m || !n || !batch_count)
-        return rocblas_status_success;
+        return status;
 
     TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
@@ -75,61 +77,92 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
 
     if(BATCHED)
     {
-        return rocblas_call_tensile(handle,
-                                    alpha,
-                                    beta,
-                                    A,
-                                    B,
-                                    C,
-                                    C, // gemm uses C matrix for output D
-                                    trans_a,
-                                    trans_b,
-                                    ldc, // gemm uses C matrix for output D
-                                    stride_c,
-                                    offset_c,
-                                    ldc,
-                                    stride_c,
-                                    offset_c,
-                                    lda,
-                                    stride_a,
-                                    offset_a,
-                                    ldb,
-                                    stride_b,
-                                    offset_b,
-                                    m,
-                                    n,
-                                    k,
-                                    batch_count);
+        status = rocblas_call_tensile(handle,
+                                      alpha,
+                                      beta,
+                                      A,
+                                      B,
+                                      C,
+                                      C, // gemm uses C matrix for output D
+                                      trans_a,
+                                      trans_b,
+                                      ldc, // gemm uses C matrix for output D
+                                      stride_c,
+                                      offset_c,
+                                      ldc,
+                                      stride_c,
+                                      offset_c,
+                                      lda,
+                                      stride_a,
+                                      offset_a,
+                                      ldb,
+                                      stride_b,
+                                      offset_b,
+                                      m,
+                                      n,
+                                      k,
+                                      batch_count);
     }
     else
     {
-        return rocblas_call_tensile(handle,
-                                    alpha,
-                                    beta,
-                                    A + offset_a,
-                                    B + offset_b,
-                                    C + offset_c,
-                                    C + offset_c,
-                                    trans_a,
-                                    trans_b,
-                                    ldc,
-                                    stride_c,
-                                    0,
-                                    ldc,
-                                    stride_c,
-                                    0,
-                                    lda,
-                                    stride_a,
-                                    0,
-                                    ldb,
-                                    stride_b,
-                                    0,
-                                    m,
-                                    n,
-                                    k,
-                                    batch_count);
+        status = rocblas_call_tensile(handle,
+                                      alpha,
+                                      beta,
+                                      A + offset_a,
+                                      B + offset_b,
+                                      C + offset_c,
+                                      C + offset_c,
+                                      trans_a,
+                                      trans_b,
+                                      ldc,
+                                      stride_c,
+                                      0,
+                                      ldc,
+                                      stride_c,
+                                      0,
+                                      lda,
+                                      stride_a,
+                                      0,
+                                      ldb,
+                                      stride_b,
+                                      0,
+                                      m,
+                                      n,
+                                      k,
+                                      batch_count);
     }
-#else // BUILD_WITH_TENSILE
+
+    // Return the current status if an exception is thrown
+    // by other libraries(hipBLASLt or Tensile).
+    // Otherwise, fall through to the rocBLAS source GEMM implementation.
+    if(status != rocblas_status_not_implemented)
+    {
+        return status;
+    }
+
+#endif // BUILD_WITH_TENSILE
+
+    bool backend_logging = handle->layer_mode & rocblas_layer_mode_log_internal;
+    if(backend_logging)
+    {
+        rocblas_internal_logger logger;
+        logger.log_trace(handle,
+                         c_rocblas_internal,
+                         "rocblas_gemm_source_backend",
+                         trans_a,
+                         trans_b,
+                         m,
+                         n,
+                         k,
+                         LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                         A,
+                         lda,
+                         B,
+                         ldb,
+                         LOG_TRACE_SCALAR_VALUE(handle, beta),
+                         C,
+                         ldc);
+    }
 
     if(k == 0 || (alpha && *alpha == 0))
     {
@@ -137,7 +170,7 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
             handle, m, n, *beta, C, offset_c, ldc, stride_c, batch_count);
     }
 
-    rocblas_status status = rocblas_status_success;
+    status = rocblas_status_success;
     for(int64_t n_base = 0; n_base < n; n_base += c_i64_grid_YZ_chunk)
     {
         // don't need to block through M as it's 32 bit and can use full 32-bits in X-dim of grid
@@ -175,8 +208,6 @@ rocblas_status rocblas_internal_gemm(rocblas_handle    handle,
     }
 
     return status;
-
-#endif // BUILD_WITH_TENSILE
 }
 
 template <typename T>

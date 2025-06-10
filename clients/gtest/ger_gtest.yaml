@@ -37,8 +37,8 @@ Definitions:
 
   - &large_matrix_size_range
     - { M: 1025, N: 4011, lda: 1025, stride_a:   4111275 }
-    - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
-    - { M: 4300000, N: 2, lda: 4300000, stride_a: 9000000 }
+    - { M: 7001, N: 2000, lda: 7000, stride_a:   14000000 }
+    - { M: 4300001, N: 2, lda: 4300000, stride_a: 9000000 }
     - { M: 2, N: 4300000, lda: 2, stride_a: 9000000 }
 
   - &double_buffered_size_range
@@ -111,7 +111,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha: [ -0.5 ]
   pointer_mode_host: false
-  gpu_arch: ['90a','942']
+  gpu_arch: ['90a','942','950']
 
 - name: ger_size_t_inc
   category: stress
@@ -297,7 +297,7 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
 
-- name: ger_64
+- name: ger_ILP64
   category: stress
   arguments:
     - { M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }

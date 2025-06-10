@@ -129,7 +129,7 @@ Tests:
   matrix_size: *size_t_n_lda_incx_range
   pointer_mode_device: false
   alpha_beta: *alpha_range_small
-  gpu_arch: ['90a','942']
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 # her_batched
@@ -269,10 +269,10 @@ Tests:
   pointer_mode_device: false
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
-  gpu_arch: ['90a','942']
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
-- name: her_64
+- name: her_ILP64
   category: stress
   arguments:
     - { N: 2, lda: 2147483649, incx: 1, batch_count: 1 }

@@ -26,6 +26,8 @@
 #include "frequency_monitor.hpp"
 #include "testing_common.hpp"
 
+#include <rocblas/internal/rocblas-beta.h>
+
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex_bad_arg(const Arguments& arg)
@@ -224,7 +226,7 @@ dD, d_type, ldd, compute_type, algo, solution_index, flags));
 }
 
 template <typename Ti, typename To, typename Tc>
-void testing_gemm_ex(const Arguments& arg)
+void testing_gemm_ex_run(const Arguments& arg)
 {
     auto rocblas_gemm_ex_fn = arg.api & c_API_FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
     auto rocblas_gemm_ex_fn_64
@@ -671,6 +673,20 @@ void testing_gemm_ex(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        // if solution index is given check it is valid before benchmarking
+        if(algo == rocblas_gemm_algo_solution_index && solution_index != 0)
+        {
+            uint32_t test_flags = flags | rocblas_gemm_flags_check_solution_index;
+            // clang-format off
+            DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                                   dA[0], arg.a_type, lda,
+                                                   dB[0], arg.b_type, ldb, &h_beta_Tc,
+                                                   dC[0], arg.c_type, ldc,
+                                                   dD[0],     d_type, ldd,
+                                                   arg.compute_type, algo, solution_index, test_flags));
+            // clang-format on
+        }
+
         for(int i = 0; i < number_cold_calls; i++)
         {
             // clang-format off
@@ -782,4 +798,71 @@ void testing_gemm_ex(const Arguments& arg)
                           ArgumentLogging::NA_value,
                           ArgumentLogging::NA_value);
     }
+#undef GEMM_EX_ARGS
+#undef rocblas_gemm_exM
+}
+
+template <typename Ti, typename To, typename Tc>
+void testing_gemm_ex(const Arguments& arg)
+{
+    bool                     compare_solutions = arg.solution_index == -2;
+    const Arguments*         arguments         = &arg;
+    Arguments                run_arg(arg);
+    std::vector<rocblas_int> solutions_that_solve(1, 0);
+
+    rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
+
+#ifdef BUILD_WITH_TENSILE // tensile or hipblaslt only for now
+    if(compare_solutions && algo == rocblas_gemm_algo_solution_index)
+    {
+        arguments = &run_arg; // override
+
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        // fetch all solutions
+        rocblas_int             solution_count = 0;
+        const rocblas_operation transA         = char2rocblas_operation(arg.transA);
+        const rocblas_operation transB         = char2rocblas_operation(arg.transB);
+        if(!arg.outofplace)
+        {
+            run_arg.ldd    = arg.ldc;
+            run_arg.d_type = arg.c_type;
+        }
+
+        Tc h_alpha_Tc = arg.get_alpha<Tc>();
+        Tc h_beta_Tc  = arg.get_beta<Tc>();
+
+#define GEMM_EX_SOL_ARGS                                                                    \
+    handle, transA, transB, arg.M, arg.N, arg.K, &h_alpha_Tc, nullptr, arg.a_type, arg.lda, \
+        nullptr, arg.b_type, arg.ldb, &h_beta_Tc, nullptr, arg.c_type, arg.ldc, nullptr,    \
+        run_arg.d_type, run_arg.ldd, arg.compute_type, algo
+
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_get_solutions(
+            GEMM_EX_SOL_ARGS, rocblas_gemm_flags_none, nullptr, &solution_count));
+        solutions_that_solve.resize(solution_count);
+        if(solution_count > 0)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_get_solutions(GEMM_EX_SOL_ARGS,
+                                                              rocblas_gemm_flags_none,
+                                                              solutions_that_solve.data(),
+                                                              &solution_count));
+
+            // append default
+            solutions_that_solve.push_back(0);
+        }
+    }
+#endif
+
+    for(auto sol : solutions_that_solve)
+    {
+        if(compare_solutions)
+        {
+            run_arg.solution_index = sol;
+        }
+
+        testing_gemm_ex_run<Ti, To, Tc>(*arguments);
+    }
+
+#undef GEMM_EX_SOL_ARGS
 }

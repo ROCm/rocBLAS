@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,12 +50,12 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto   layer_mode  = handle->layer_mode;
-        auto   x_type_str  = rocblas_datatype_string(x_type);
-        auto   y_type_str  = rocblas_datatype_string(y_type);
-        auto   cs_type_str = rocblas_datatype_string(cs_type);
-        auto   ex_type_str = rocblas_datatype_string(execution_type);
-        Logger logger;
+        auto                    layer_mode  = handle->layer_mode;
+        auto                    x_type_str  = rocblas_datatype_string(x_type);
+        auto                    y_type_str  = rocblas_datatype_string(y_type);
+        auto                    cs_type_str = rocblas_datatype_string(cs_type);
+        auto                    ex_type_str = rocblas_datatype_string(execution_type);
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
             logger.log_trace(handle,
                              ROCBLAS_API_STR(rocblas_rot_ex),

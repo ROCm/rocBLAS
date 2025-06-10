@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
 
 namespace
 {
-    template <typename T, typename = T>
+    template <typename T, typename U = T>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
     constexpr char rocblas_scal_name<float>[] = ROCBLAS_API_STR(rocblas_sscal);
@@ -57,9 +57,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto   layer_mode     = handle->layer_mode;
-        auto   check_numerics = handle->check_numerics;
-        Logger logger;
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
             logger.log_trace(
                 handle, rocblas_scal_name<T, U>, n, LOG_TRACE_SCALAR_VALUE(handle, alpha), x, incx);
@@ -100,7 +100,7 @@ namespace
         {
             bool           is_input              = true;
             rocblas_status check_numerics_status = rocblas_internal_check_numerics_vector_template(
-                rocblas_scal_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
+                rocblas_scal_name<T, U>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }
@@ -114,7 +114,7 @@ namespace
         {
             bool           is_input              = false;
             rocblas_status check_numerics_status = rocblas_internal_check_numerics_vector_template(
-                rocblas_scal_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
+                rocblas_scal_name<T, U>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }

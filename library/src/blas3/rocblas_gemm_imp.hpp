@@ -1,5 +1,5 @@
 /**************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,9 +71,9 @@ namespace
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         // Perform logging
-        auto   layer_mode     = handle->layer_mode;
-        auto   check_numerics = handle->check_numerics;
-        Logger logger;
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -137,13 +137,13 @@ namespace
                                    "K",
                                    k,
                                    "alpha",
-                                   value_category(*alpha),
+                                   rocblas_internal_value_category(*alpha),
                                    "lda",
                                    lda,
                                    "ldb",
                                    ldb,
                                    "beta",
-                                   value_category(*beta),
+                                   rocblas_internal_value_category(*beta),
                                    "ldc",
                                    ldc);
         }

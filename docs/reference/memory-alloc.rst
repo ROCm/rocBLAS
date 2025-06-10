@@ -1,13 +1,22 @@
 .. meta::
-  :description: rocBLAS documentation and API reference library
-  :keywords: rocBLAS, ROCm, API, Linear Algebra, documentation
+  :description: A guide to memory allocation in rocBLAS
+  :keywords: rocBLAS, ROCm, API, Linear Algebra, documentation, memory
 
 .. _memory-alloc:
 .. _Device Memory Allocation Usage:
 
 ********************************************************************
-Device Memory Allocation in rocBLAS
+Device memory allocation in rocBLAS
 ********************************************************************
+rocBLAS uses per-handle device memory allocation to manage temporary memory efficiently. Each handle maintains its own memory and executes kernels sequentially in a single stream, allowing memory reuse across kernels.
+
+There are two memory allocation schemes:
+
+*  **rocBLAS_managed(default)**:  By default rocBLAS internally manages memory, allocating more if needed. Allocated memory persists with the handle for reuse.
+
+*  **user_owned**: Users allocate memory and provide it to rocBLAS via ``rocblas_set_workspace``.
+
+rocBLAS_managed is the default scheme, this scheme uses ``hipMallocAsync`` and ``hipFreeAsync`` (stream-order allocation) to allocate and free memory in stream order, avoiding global synchronization. This enables seamless stream switching without needing ``hipStreamSynchronize()``.
 
 The following computational functions use temporary device memory.
 
@@ -41,7 +50,7 @@ The following computational functions use temporary device memory.
 |L2 functions                                    | Result array before overwriting input                |
 |                                                |                                                      |
 | - rocblas_Xgemv (optional)                     | Column reductions of skinny transposed matrices      |
-| - rocblas_Xgemv_batched                        | applicable for gemv functions                        |
+| - rocblas_Xgemv_batched                        | applicable for ``gemv`` functions                    |
 | - rocblas_Xgemv_strided_batched                |                                                      |
 | - rocblas_Xtbmv                                |                                                      |
 | - rocblas_Xtbmv_batched                        |                                                      |
@@ -65,7 +74,7 @@ The following computational functions use temporary device memory.
 | - rocblas_Xtrsv_batched_ex                     |                                                      |
 | - rocblas_Xtrsv_strided_batched_ex             |                                                      |
 +------------------------------------------------+------------------------------------------------------+
-|L3 gemm based functions                         | Block of matrix                                      |
+|L3 GEMM-based functions                         | Block of matrix                                      |
 |                                                |                                                      |
 | - rocblas_Xtrsm                                |                                                      |
 | - rocblas_Xtrsm_batched                        |                                                      |
@@ -108,76 +117,36 @@ The following computational functions use temporary device memory.
 | - rocblas_Xtrtri_strided_batched               |                                                      |
 +------------------------------------------------+------------------------------------------------------+
 
+Memory allocation functions
+==============================================
 
-For temporary device memory, rocBLAS uses a per-handle memory allocation with out-of-band management.
-The temporary device memory is stored in the handle. This allows for recycling temporary device memory
-across multiple computational kernels that use the same handle. Each handle has a single stream, and
-kernels execute in order in the stream, with each kernel completing before the next kernel in the
-stream starts. There are 4 schemes for temporary device memory:
+rocBLAS includes functions for manually setting the memory size and determining the memory requirements.
 
-#. **rocBLAS_managed**: This is the default scheme. If there is not enough memory in the handle, computational functions allocate the memory they require. Note that any memory allocated persists in the handle, so it is available for later computational functions that use the handle.
-#. **user_managed, preallocate**: An environment variable is set before the rocBLAS handle is created, and thereafter there are no more allocations or deallocations.
-#. **user_managed, manual**:  The user calls helper functions to get or set memory size throughout the program, thereby controlling when allocation and deallocation occur.
-#. **user_owned**:  The user allocates workspace and calls a helper function to allow rocBLAS to access the workspace.
+Function for setting a user-owned workspace
+----------------------------------------------
 
-The default scheme has the disadvantage that allocation is synchronizing, so if there is not enough memory in the handle, a synchronizing deallocation and allocation occur.
+* ``rocblas_set_workspace``
 
-Environment Variable for Preallocating
-========================================
+Functions for determining memory requirements
+----------------------------------------------
 
-The environment variable ``ROCBLAS_DEVICE_MEMORY_SIZE`` is used to set how much memory to preallocate:
+*  ``rocblas_start_device_memory_size_query``
+*  ``rocblas_stop_device_memory_size_query``
+*  ``rocblas_is_managing_device_memory``
 
-- If > 0, sets the default handle device memory size to the specified size (in bytes)
-- If == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MiB or 128MiB), and expanding it when necessary
+See the API section for information about these functions.
 
-Functions for Manually Setting Memory Size
-===========================================
-
-- ``rocblas_set_device_memory_size``
-- ``rocblas_get_device_memory_size``
-- ``rocblas_is_user_managing_device_memory``
-
-Function for Setting User Owned Workspace
-==========================================
-
-- ``rocblas_set_workspace``
-
-Functions for Finding How Much Memory Is Required
-==================================================
-
-- ``rocblas_start_device_memory_size_query``
-- ``rocblas_stop_device_memory_size_query``
-- ``rocblas_is_managing_device_memory``
-
-See the API section for information on the above functions.
-
-rocBLAS Function Return Values for Insufficient Device Memory
+rocBLAS function return values for insufficient device memory
 =============================================================
 
-If the user preallocates or manually allocates, then that size is used as the limit, and no resizing or synchronizing ever occurs. The following two function return values indicate insufficient memory:
+If the user manually allocates (user-owned scheme) using ``rocblas_set_workspace(rocblas_handle handle, void* addr, size_t size)``, that size is used as the limit and no resizing or synchronizing ever occurs.
+The following two function return values indicate insufficient memory:
 
-- ``rocblas_status == rocblas_status_memory_error`` : indicates there is not sufficient device memory for a rocBLAS function
-- ``rocblas_status == rocblas_status_perf_degraded`` : indicates that a slower algorithm was used because of insufficient device memory for the optimal algorithm
+*  ``rocblas_status == rocblas_status_memory_error`` : indicates there is insufficient device memory for a rocBLAS function.
+*  ``rocblas_status == rocblas_status_perf_degraded`` : indicates that a slower algorithm was used because of insufficient device memory for the optimal algorithm.
 
-.. _stream order alloc:
+Switching streams without synchronization
+----------------------------------------------
 
-Stream-Ordered Memory Allocation
-========================================
-
-Stream-ordered device memory allocation is added to rocBLAS. Asynchronous allocators ( ``hipMallocAsync()`` and ``hipFreeAsync()`` ) are used to allow allocation and free to be stream order.
-
-This is a non-default beta option enabled by setting the environment variable ``ROCBLAS_STREAM_ORDER_ALLOC``.
-
-A user may check if the device supports stream-order allocation by calling ``hipDeviceGetAttribute()`` with device attribute ``hipDeviceAttributeMemoryPoolsSupported``.
-
-Environment Variable to Enable Stream-Ordered Memory Allocation
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-On supported platforms, environment variable ROCBLAS_STREAM_ORDER_ALLOC is used to enable stream-ordered memory allocation.
-
-- if > 0, sets the allocation to be stream-ordered, uses ``hipMallocAsync/hipFreeAsync`` to manage device memory.
-- if == 0 or unset, uses ``hipMalloc/hipFree`` to manage device memory.
-
-Supports Switching Streams Without Any Synchronization
-''''''''''''''''''''''''''''''''''''''''''''''''''''''
-Stream-order memory allocation allows switching of streams without the need to call ``hipStreamSynchronize()``.
+Stream-order memory allocation lets the application switch streams without having to call ``hipStreamSynchronize()``.
 

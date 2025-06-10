@@ -124,12 +124,13 @@ void testing_scal(const Arguments& arg)
 
         if(arg.pointer_mode_device)
         {
+            // GPU BLAS, rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
             // copy data from CPU to device for rocblas_pointer_mode_device tests
             CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
             CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
-            // GPU BLAS, rocblas_pointer_mode_device
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_scal_fn, (handle, N, d_alpha, dx, incx));
             handle.post_test(arg);
@@ -210,6 +211,7 @@ void testing_scal(const Arguments& arg)
 
     if(arg.timing)
     {
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         size_t aligned_stride_x = align_stride<T>(size_t(N) * (incx >= 0 ? incx : -incx));
 
         size_t x_size        = incx >= 0 ? N * incx * sizeof(T) : N * (-incx) * sizeof(T);

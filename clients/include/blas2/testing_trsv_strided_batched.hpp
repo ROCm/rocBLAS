@@ -171,7 +171,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     hb.copy_from(hx);
 
     // Calculate hb = hA*hx;
-    for(int b = 0; b < batch_count; b++)
+    for(size_t b = 0; b < batch_count; b++)
     {
         ref_trmv<T>(uplo, transA, diag, N, hA[b], lda, hb + stride_x * b, incx);
     }
@@ -180,38 +180,14 @@ void testing_trsv_strided_batched(const Arguments& arg)
     hx_or_b.copy_from(hb);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
 
     double error_host              = 0.0;
     double error_device            = 0.0;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
-
-    if(!ROCBLAS_REALLOC_ON_DEMAND)
-    {
-        // Compute size
-        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
-
-        CHECK_ALLOC_QUERY(rocblas_trsv_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          diag,
-                                                          N,
-                                                          dA,
-                                                          lda,
-                                                          stride_a,
-                                                          dx_or_b,
-                                                          incx,
-                                                          stride_x,
-                                                          batch_count));
-        size_t size;
-        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
-
-        // Allocate memory
-        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
-    }
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -235,6 +211,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                         stride_x,
                         batch_count));
             handle.post_test(arg);
+
             CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
         }
 
@@ -243,6 +220,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
             // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_HIP_ERROR(dx_or_b.transfer_from(cpu_x_or_b));
+
+            handle.pre_test(arg);
             DAPI_CHECK(rocblas_trsv_strided_batched_fn,
                        (handle,
                         uplo,
@@ -256,6 +235,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                         incx,
                         stride_x,
                         batch_count));
+            handle.post_test(arg);
 
             if(arg.repeatability_check)
             {

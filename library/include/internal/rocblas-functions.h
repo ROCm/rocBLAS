@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19905,75 +19905,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_strided_batched_64(rocblas_handle   
     \brief <b> BLAS Level 3 API </b>
 
     \details
-    gemm_kernel_name functions were never fully implemented and are deprecated for removal in a future release.
-
-    Returns rocblas_status_not_implemented.
-    ********************************************************************/
-ROCBLAS_DEPRECATED_MSG("rocblas_hgemm_kernel_name will be removed in a future release")
-ROCBLAS_EXPORT rocblas_status rocblas_hgemm_kernel_name(rocblas_handle      handle,
-                                                        rocblas_operation   transA,
-                                                        rocblas_operation   transB,
-                                                        rocblas_int         m,
-                                                        rocblas_int         n,
-                                                        rocblas_int         k,
-                                                        const rocblas_half* alpha,
-                                                        const rocblas_half* A,
-                                                        rocblas_int         lda,
-                                                        rocblas_stride      stride_a,
-                                                        const rocblas_half* B,
-                                                        rocblas_int         ldb,
-                                                        rocblas_stride      stride_b,
-                                                        const rocblas_half* beta,
-                                                        rocblas_half*       C,
-                                                        rocblas_int         ldc,
-                                                        rocblas_stride      stride_c,
-                                                        rocblas_int         batch_count);
-
-ROCBLAS_DEPRECATED_MSG("rocblas_sgemm_kernel_name will be removed in a future release")
-ROCBLAS_EXPORT rocblas_status rocblas_sgemm_kernel_name(rocblas_handle    handle,
-                                                        rocblas_operation transA,
-                                                        rocblas_operation transB,
-                                                        rocblas_int       m,
-                                                        rocblas_int       n,
-                                                        rocblas_int       k,
-                                                        const float*      alpha,
-                                                        const float*      A,
-                                                        rocblas_int       lda,
-                                                        rocblas_stride    stride_a,
-                                                        const float*      B,
-                                                        rocblas_int       ldb,
-                                                        rocblas_stride    stride_b,
-                                                        const float*      beta,
-                                                        float*            C,
-                                                        rocblas_int       ldc,
-                                                        rocblas_stride    stride_c,
-                                                        rocblas_int       batch_count);
-
-ROCBLAS_DEPRECATED_MSG("rocblas_dgemm_kernel_name will be removed in a future release")
-ROCBLAS_EXPORT rocblas_status rocblas_dgemm_kernel_name(rocblas_handle    handle,
-                                                        rocblas_operation transA,
-                                                        rocblas_operation transB,
-                                                        rocblas_int       m,
-                                                        rocblas_int       n,
-                                                        rocblas_int       k,
-                                                        const double*     alpha,
-                                                        const double*     A,
-                                                        rocblas_int       lda,
-                                                        rocblas_stride    stride_a,
-                                                        const double*     B,
-                                                        rocblas_int       ldb,
-                                                        rocblas_stride    stride_b,
-                                                        const double*     beta,
-                                                        double*           C,
-                                                        rocblas_int       ldc,
-                                                        rocblas_stride    stride_c,
-                                                        rocblas_int       batch_count);
-//! @}
-
-/*! @{
-    \brief <b> BLAS Level 3 API </b>
-
-    \details
     gemm performs one of the matrix-matrix operations:
 
         C = alpha*op( A )*op( B ) + beta*C,
@@ -21823,8 +21754,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched_64(rocblas_handle   
     solution_index
               [int32_t]
               if algo is rocblas_gemm_algo_solution_index, this controls which solution is used.
-              When algo is not rocblas_gemm_algo_solution_index, or if solution_index <= 0, the default solution is used.
-              This parameter was unused in previous releases and instead always used the default solution
+              When algo is not rocblas_gemm_algo_solution_index, or if solution_index = 0, the default solution is used.
+              Passing rocblas_gemm_algo_solution_index and solution_index < 0 to use the default solution is deprecated.
     @param[in]
     flags     [uint32_t]
               optional gemm flags.
@@ -22044,8 +21975,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_64(rocblas_handle    handle,
     solution_index
               [int32_t]
               if algo is rocblas_gemm_algo_solution_index, this controls which solution is used.
-              When algo is not rocblas_gemm_algo_solution_index, or if solution_index <= 0, the default solution is used.
-              This parameter was unused in previous releases and instead always used the default solution
+              When algo is not rocblas_gemm_algo_solution_index, or if solution_index = 0, the default solution is used.
+              Passing rocblas_gemm_algo_solution_index and solution_index < 0 to use the default solution is deprecated.
     @param[in]
     flags     [uint32_t]
               optional gemm flags.
@@ -22230,8 +22161,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_64(rocblas_handle    handl
     solution_index
               [int32_t]
               if algo is rocblas_gemm_algo_solution_index, this controls which solution is used.
-              When algo is not rocblas_gemm_algo_solution_index, or if solution_index <= 0, the default solution is used.
-              This parameter was unused in previous releases and instead always used the default solution
+              When algo is not rocblas_gemm_algo_solution_index, or if solution_index = 0, the default solution is used.
+              Passing rocblas_gemm_algo_solution_index and solution_index < 0 to use the default solution is deprecated.
     @param[in]
     flags     [uint32_t]
               optional gemm flags.
@@ -25009,6 +24940,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string_size(size_t* len);
 
+/*! \brief   Loads char* buf with the rocblas library commit hash. size_t len
+    is the maximum length of char* buf.
+    \details
+
+    @param[in, out]
+    buf             pointer to buffer for version string
+
+    @param[in]
+    len             length of buf
+
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_get_commit_hash_string(char* buf, size_t len);
+
+/*! \brief   Queries the minimum buffer size for a successful call to
+    \ref rocblas_get_commit_hash_string
+    \details
+
+    @param[out]
+    len             pointer to size_t for storing the length
+
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_get_commit_hash_string_size(size_t* len);
+
 /*
  * ===========================================================================
  *    device memory allocation
@@ -25070,25 +25024,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle hand
 
 /*! \brief
     \details
-    Changes the size of allocated device memory at runtime.
-
-    Any previously allocated device memory managed by the handle is freed.
-
-    If size > 0 sets the device memory size to the specified size (in bytes).
-    If size == 0, frees the memory allocated so far, and lets rocBLAS manage device memory in the future, expanding it when necessary.
-    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if size is nullptr; rocblas_status_success otherwise
-    @param[in]
-    handle          rocblas handle
-    @param[in]
-    size            size of allocated device memory
- ******************************************************************************/
-ROCBLAS_DEPRECATED_MSG("rocblas_set_device_memory_size will be removed in a future release and "
-                       "supported modes will be rocblas_managed & user_owned")
-ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
-
-/*! \brief
-    \details
-    Sets the device workspace for the handle to use.
+    Allows user to set the device memory for the handle to use as a workspace (user-owned scheme).
 
     Any previously allocated device memory managed by the handle is freed.
 
@@ -25110,16 +25046,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_workspace(rocblas_handle handle, void*
     handle          rocblas handle
  ******************************************************************************/
 ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
-
-/*! \brief
-    \details
-    Returns true when device memory in handle is managed by the user
-    @param[in]
-    handle          rocblas handle
- ******************************************************************************/
-ROCBLAS_DEPRECATED_MSG("rocblas_is_user_managing_device_memory will be removed in a future release "
-                       "and supported modes will be rocblas_managed and user_owned")
-ROCBLAS_EXPORT bool rocblas_is_user_managing_device_memory(rocblas_handle handle);
 
 /*! \brief
     \details

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,8 +52,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto   layer_mode = handle->layer_mode;
-        Logger logger;
+        auto                    layer_mode = handle->layer_mode;
+        rocblas_internal_logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -68,51 +68,47 @@ namespace
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
                     rocblas_internal_ostream alphass, betass;
-                    if(log_trace_alpha_beta_ex(alpha_type, alpha, nullptr, alphass, betass)
-                       == rocblas_status_success)
-                    {
-                        logger.log_trace(handle,
-                                         ROCBLAS_API_STR(rocblas_axpy_batched_ex),
-                                         n,
-                                         alphass.str(),
-                                         alpha_type_str,
-                                         x,
-                                         x_type_str,
-                                         incx,
-                                         y,
-                                         y_type_str,
-                                         incy,
-                                         batch_count,
-                                         ex_type_str);
-                    }
+                    (void)rocblas_internal_log_trace_alpha_beta_ex(
+                        alpha_type, alpha, nullptr, alphass, betass);
+                    logger.log_trace(handle,
+                                     ROCBLAS_API_STR(rocblas_axpy_batched_ex),
+                                     n,
+                                     alphass.str(),
+                                     alpha_type_str,
+                                     x,
+                                     x_type_str,
+                                     incx,
+                                     y,
+                                     y_type_str,
+                                     incy,
+                                     batch_count,
+                                     ex_type_str);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     std::string alphas, betas;
-                    if(log_bench_alpha_beta_ex(alpha_type, alpha, nullptr, alphas, betas)
-                       == rocblas_status_success)
-                    {
-                        logger.log_bench(handle,
-                                         ROCBLAS_API_BENCH " -f axpy_batched_ex",
-                                         "-n",
-                                         n,
-                                         alphas,
-                                         "--a_type",
-                                         alpha_type_str,
-                                         "--b_type",
-                                         x_type_str,
-                                         "--incx",
-                                         incx,
-                                         "--c_type",
-                                         y_type_str,
-                                         "--incy",
-                                         incy,
-                                         "--batch_count",
-                                         batch_count,
-                                         "--compute_type",
-                                         ex_type_str);
-                    }
+                    (void)rocblas_internal_log_bench_alpha_beta_ex(
+                        alpha_type, alpha, nullptr, alphas, betas);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f axpy_batched_ex",
+                                     "-n",
+                                     n,
+                                     alphas,
+                                     "--a_type",
+                                     alpha_type_str,
+                                     "--b_type",
+                                     x_type_str,
+                                     "--incx",
+                                     incx,
+                                     "--c_type",
+                                     y_type_str,
+                                     "--incy",
+                                     incy,
+                                     "--batch_count",
+                                     batch_count,
+                                     "--compute_type",
+                                     ex_type_str);
                 }
             }
             else if(layer_mode & rocblas_layer_mode_log_trace)

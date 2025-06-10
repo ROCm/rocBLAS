@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,10 @@ rocblas_reduction_kernel_part2_64(rocblas_int nblocks, To* workspace, Tr* result
         sum = rocblas_default_value<To>{}();
     }
 
-    sum = rocblas_dot_block_reduce<NB, To>(sum);
+    if(warpSize == WARP_32)
+        sum = rocblas_dot_block_reduce<WARP_32, NB, To>(sum);
+    else
+        sum = rocblas_dot_block_reduce<WARP_64, NB, To>(sum);
 
     // Store result on device or in workspace
     if(tx == 0)
@@ -79,13 +82,14 @@ rocblas_status rocblas_internal_asum_nrm2_kernel_launcher(rocblas_handle handle,
                                                           Tr*            result)
 {
     // param REDUCE is always SUM for these kernels so not passed on
+    static constexpr int WIN = rocblas_dot_WIN<To>();
 
-    rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
+    rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB * WIN);
 
     int batches = handle->getBatchGridDim((int)batch_count);
 
     //Calling the original rocblas_reduction_kernel_part1 kernel in rocbblas_asum_nrm2_kernels.hpp
-    ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part1<API_INT, NB, FETCH>),
+    ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part1<API_INT, NB, WIN, FETCH>),
                           dim3(blocks, 1, batches),
                           dim3(NB),
                           0,

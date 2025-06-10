@@ -33,3 +33,7 @@ constexpr int syrk_k_lower_threshold           = 500;
 // Threshold values of N and K in gfx90a to get better performance
 constexpr int sdsyrk_gfx90a_n_higher_threshold = 3000;
 constexpr int czsyrk_gfx90a_n_higher_threshold = 2500;
+
+/*********************************************************************dgmm**********************************************************************/
+// Threshold values of M in gfx942 to get better performance
+constexpr int dcdgmm_gfx942_m_lower_threshold = 2500;

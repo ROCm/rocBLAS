@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -122,16 +122,21 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
 #define GEMM_B_EX_ARGS                                                                        \
     handle, transA, transB, M, N, K, &h_alpha_Tc, dA.ptr_on_device(), arg.a_type, lda,        \
         dB.ptr_on_device(), arg.b_type, ldb, &h_beta_Tc, dC.ptr_on_device(), arg.c_type, ldc, \
-        dD.ptr_on_device(), arg.d_type, ldd, batch_count, arg.compute_type, algo
+        dDref.ptr_on_device(), arg.d_type, ldd, batch_count, arg.compute_type, algo
 #define rocblas_gemm_batched_exM(...) rocblas_gemm_batched_ex(__VA_ARGS__)
+
+    // bad arg
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_get_solutions(
+                              GEMM_B_EX_ARGS, rocblas_gemm_flags_none, nullptr, nullptr),
+                          rocblas_status_invalid_pointer);
 
     // Get number of solutions
     rocblas_int size;
     CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions(
-        GEMM_B_EX_ARGS, rocblas_gemm_flags_none, NULL, &size));
+        GEMM_B_EX_ARGS, rocblas_gemm_flags_none, nullptr, &size));
 
     rocblas_int              size_large = size * 2;
-    std::vector<rocblas_int> ary(size_large, -1);
+    std::vector<rocblas_int> ary(size_large, 0);
 
     if(size == 0)
         GTEST_SKIP() << "Backend returning 0 valid solutions";
@@ -141,16 +146,14 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
         rocblas_int size_small = size / 2;
         CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions(
             GEMM_B_EX_ARGS, rocblas_gemm_flags_none, ary.data(), &size_small));
-        EXPECT_EQ(ary[size_small], -1);
+        EXPECT_EQ(ary[size_small], 0);
     }
 
-    CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions(
-        GEMM_B_EX_ARGS, rocblas_gemm_flags_none, ary.data(), &size));
-    EXPECT_EQ(ary[size], -1);
-
+    // full set of solutions should be padded with 0
     CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions(
         GEMM_B_EX_ARGS, rocblas_gemm_flags_none, ary.data(), &size_large));
-    EXPECT_EQ(ary[size], -1);
+    EXPECT_EQ(ary[size], 0); // one past last index
+    EXPECT_EQ(ary[size_large - 1], 0);
 
     for(auto sol : ary)
     {
@@ -158,24 +161,18 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
             rocblas_gemm_batched_exM(GEMM_B_EX_ARGS, sol, rocblas_gemm_flags_check_solution_index));
     }
 
-    // Testing 0 and negative values work (uses default solution)
+    // Testing 0 and -1 values work (uses default solution)
     CHECK_ROCBLAS_ERROR(
         rocblas_gemm_batched_exM(GEMM_B_EX_ARGS, 0, rocblas_gemm_flags_check_solution_index));
     CHECK_ROCBLAS_ERROR(
         rocblas_gemm_batched_exM(GEMM_B_EX_ARGS, -1, rocblas_gemm_flags_check_solution_index));
+    // always have rocblas fallback
+    // CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_exM(
+    //     GEMM_B_EX_ARGS, c_rocblas_source_solution, rocblas_gemm_flags_check_solution_index));
 
-    rocblas_int max = -1;
-    for(auto sol : ary)
-    {
-        if(sol > max)
-            max = sol;
-    }
-
-#ifndef BUILD_WITH_HIPBLASLT
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_batched_exM(GEMM_B_EX_ARGS, max + 1, rocblas_gemm_flags_none),
-        rocblas_status_invalid_value);
-#endif
+    // full set of solutions
+    CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions(
+        GEMM_B_EX_ARGS, rocblas_gemm_flags_none, ary.data(), &size));
 
     // Testing get solutions by type - should be superset of solutions that solve problem
     rocblas_int size_type;
@@ -184,7 +181,7 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
                                                                       arg.c_type,
                                                                       arg.compute_type,
                                                                       rocblas_gemm_flags_none,
-                                                                      NULL,
+                                                                      nullptr,
                                                                       &size_type));
 
     std::vector<rocblas_int> ary_type(size_type);
@@ -196,13 +193,10 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
                                                                       ary_type.data(),
                                                                       &size_type));
 
-#ifndef BUILD_WITH_HIPBLASLT
-    std::vector<rocblas_int> valid_ary(ary.begin(), ary.begin() + size); // Trim off junk values
-    std::sort(ary_type.begin(), ary_type.end());
-    std::sort(valid_ary.begin(), valid_ary.end());
+    sorted_unique_solutions(ary_type);
+    sorted_unique_solutions(ary);
 
-    bool ary_is_subset
-        = std::includes(ary_type.begin(), ary_type.end(), valid_ary.begin(), valid_ary.end());
+    bool ary_is_subset = std::includes(ary_type.begin(), ary_type.end(), ary.begin(), ary.end());
     EXPECT_TRUE(ary_is_subset);
 #endif
 }

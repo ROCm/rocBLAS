@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,14 +39,33 @@ void testing_set_get_vector(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(N < 0 || incx <= 0 || incy <= 0 || ldd <= 0)
+    if(arg.algo == 1) // use arg.algo == 1 to test bad device pointer
     {
-        DAPI_EXPECT(rocblas_status_invalid_size,
-                    rocblas_set_vector_fn,
-                    (N, sizeof(T), nullptr, incx, nullptr, ldd));
-        DAPI_EXPECT(rocblas_status_invalid_size,
-                    rocblas_get_vector_fn,
-                    (N, sizeof(T), nullptr, ldd, nullptr, incy));
+#ifndef ASAN_BUILD
+        T  host_data;
+        T* host_data_ptr = &host_data;
+
+        rocblas_status status
+            = rocblas_set_vector_fn(1, sizeof(T), host_data_ptr, 1, host_data_ptr, 1);
+        hipError_t h_error = hipGetLastError(); // clear HIP error
+        GTEST_ASSERT_TRUE(rocblas_status_internal_error == status);
+
+        status  = rocblas_get_vector_fn(1, sizeof(T), host_data_ptr, 1, host_data_ptr, 1);
+        h_error = hipGetLastError(); // clear HIP error
+        GTEST_ASSERT_TRUE(rocblas_status_internal_error == status);
+#else
+        GTEST_SKIP() << "ASAN_BUILD";
+#endif
+        return;
+    }
+    else if(N <= 0 || incx <= 0 || incy <= 0 || ldd <= 0)
+    {
+        rocblas_status expected_status
+            = N == 0 ? rocblas_status_success : rocblas_status_invalid_size;
+        DAPI_EXPECT(
+            expected_status, rocblas_set_vector_fn, (N, sizeof(T), nullptr, incx, nullptr, ldd));
+        DAPI_EXPECT(
+            expected_status, rocblas_get_vector_fn, (N, sizeof(T), nullptr, ldd, nullptr, incy));
         return;
     }
 

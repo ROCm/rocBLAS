@@ -36,8 +36,19 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
 {
     std::string tmp     = rocblas_tempname();
     auto        exepath = rocblas_exepath();
+
+    std::string yaml_path;
+    if(!rocblas_file_exists(yaml.c_str()))
+    {
+        yaml_path = exepath + yaml;
+    }
+    else
+    {
+        yaml_path = yaml;
+    }
+
     auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
-               + tmp + " " + yaml;
+               + tmp + " " + yaml_path;
     rocblas_cerr << cmd << std::endl;
 
 #ifdef WIN32

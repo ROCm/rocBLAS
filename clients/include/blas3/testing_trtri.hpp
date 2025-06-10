@@ -163,20 +163,6 @@ void testing_trtri(const Arguments& arg)
     gpu_time_used = cpu_time_used = 0.0;
     double rocblas_error_out, rocblas_error_in;
 
-    if(!ROCBLAS_REALLOC_ON_DEMAND)
-    {
-        // Compute size
-        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
-
-        CHECK_ALLOC_QUERY(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
-
-        size_t size;
-        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
-
-        // Allocate memory
-        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
-    }
-
     /* =====================================================================
            ROCBLAS
     =================================================================== */
@@ -300,7 +286,7 @@ void testing_trtri(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
 
         // CBLAS doesn't have trtri implementation so using the LAPACK trtri
-        lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
+        ref_lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
 
         if(arg.timing)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;

@@ -40,7 +40,7 @@ timeout = False
 test_proc = None
 stop = 0
 
-test_script = [ 'cd %IDIR%', '%XML%' ]
+test_script = [ '%XML%' ] # [ 'cd %IDIR%', '%XML%' ]
 
 def parse_args():
     """Parse command-line arguments"""
@@ -49,6 +49,8 @@ def parse_args():
     """)
     parser.add_argument(      '--ci_labels', type=str, required=False, default="",
                     help='Semi-colon seperated list of labels that may modify test runs (optional, e.g. "gfx12;TestLevel1Only")')
+    parser.add_argument(      '--ci_gfx', type=str, required=False, default="",
+                    help='Semi-colon seperated list of gfx targets expected on test runs (optional, e.g. "gfx1030;gfx1201")')
     parser.add_argument('-e', '--emulation', type=str, required=False,
                         help='Emulation test set to run from rtest.xml (e.g. smoke, regression, extended')
     parser.add_argument('-t', '--test', required=False,
@@ -65,6 +67,9 @@ def parse_args():
     #                     help='Verbose install (optional, default: False)')
     return parser.parse_args()
 
+def arg_into_list(arg) -> list:
+    arg = re.sub(r"['\"]|['\']",'', arg)
+    return arg.split(';')
 
 def vram_detect():
     global OS_info
@@ -179,6 +184,7 @@ def gfilter_subset(filter, groups) -> str:
     return new_filter
 
 def label_modifiers(cmd, labels) -> str:
+    original_cmd = cmd
     processed = ["TestTensileOnly", "TestLevel3Only", "TestLevel2Only", "TestLevel1Only"]
     overlap = [v for v in processed if v in labels]
     if len(overlap):
@@ -189,16 +195,16 @@ def label_modifiers(cmd, labels) -> str:
 
     filter = ""
     if "TestTensileOnly" in overlap:
-        filter += gfilter_subset( cmd, ["blas3_tensile", "blas2_tensile"] )
+        filter += gfilter_subset( original_cmd, ["blas3_tensile", "blas2_tensile"] )
     if "TestLevel3Only" in overlap:
-        filter += gfilter_subset( cmd, ["blas3"] )
+        filter += gfilter_subset( original_cmd, ["blas3"] )
     if "TestLevel2Only" in overlap:
-        filter += gfilter_subset( cmd, ["blas2"] )
+        filter += gfilter_subset( original_cmd, ["blas2"] )
     if "TestLevel1Only" in overlap:
-        filter += gfilter_subset( cmd, ["blas1"] )
-    return cmd + f"'{filter}'"
+        filter += gfilter_subset( original_cmd, ["blas1"] )
+    return cmd + f'"{filter}"'
 
-def run_cmd(cmd, test = False, time_limit = 0):
+def run_cmd(cmd, test = False, time_limit = 0, path = "" ):
     global args
     global test_proc, timer_thread
     global stop
@@ -214,7 +220,8 @@ def run_cmd(cmd, test = False, time_limit = 0):
             status = proc.returncode
         else:
             sub_env = os.environ.copy()
-            sub_env["PATH"] = os.getcwd() + os.pathsep + sub_env["PATH"]
+            if len(path):
+                sub_env["PATH"] = path + os.pathsep + sub_env["PATH"]
             error = False
             timeout = False
             test_proc = subprocess.Popen(cmdline, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, env=sub_env)
@@ -250,13 +257,27 @@ def run_cmd(cmd, test = False, time_limit = 0):
         status = 3
     return status
 
+def test_xml():
+    # Get the full path of the currently executing script look for installed name first
+    exe_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    installed_file = os.path.join( exe_path, 'rocblas_rtest.xml')
+    if (os.path.exists(installed_file)):
+        xmlPath = installed_file
+    else:
+        cwd = os.curdir
+        xmlPath = os.path.join( cwd, 'rtest.xml')
+    return xmlPath
+
 def batch(script, xml):
     global OS_info
     global args
     #
     cwd = pathlib.os.curdir
     rtest_cwd_path = os.path.abspath( os.path.join( cwd, 'rtest.xml') )
-    if os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
+    rtest_path = test_xml()
+    if 'rocblas_rtest.xml' in rtest_path:
+        test_dir = os.path.dirname( rtest_path )
+    elif os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
         # if in a staging directory then test locally
         test_dir = cwd
     else:
@@ -281,6 +302,7 @@ def batch(script, xml):
                 name = var.getAttribute('name')
                 val = var.getAttribute('value')
                 var_subs[name] = val
+            var_subs['EXE_DIR'] = test_dir + os.path.sep
             for test in xml.getElementsByTagName('test'):
                 sets = test.getAttribute('sets')
                 runset = sets.split(',')
@@ -303,8 +325,8 @@ def batch(script, xml):
                         raw_cmd = run.firstChild.data
                         var_cmd = raw_cmd.format_map(var_subs)
                         if args.ci_labels:
-                            var_cmd = label_modifiers(var_cmd, args.ci_labels.split(';'))
-                        error = run_cmd(var_cmd, True, timeout)
+                            var_cmd = label_modifiers(var_cmd, arg_into_list(args.ci_labels))
+                        error = run_cmd(var_cmd, True, timeout, test_dir)
                         if (error == 2):
                             print( f'***\n*** Timed out when running: {name}\n***')
         else:
@@ -323,6 +345,7 @@ def batch(script, xml):
         os.chdir( cwd )
     return 0
 
+
 def run_tests():
     global test_script
     global xmlDoc
@@ -330,7 +353,7 @@ def run_tests():
     # install
     cwd = os.curdir
 
-    xmlPath = os.path.join( cwd, 'rtest.xml')
+    xmlPath = test_xml()
     xmlDoc = minidom.parse( xmlPath )
 
     scripts = []

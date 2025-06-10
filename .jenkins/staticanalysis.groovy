@@ -13,15 +13,18 @@ def runCI =
 {
     nodeDetails, jobName->
 
+    def settings = [formatCheck: true,
+                    addressSanitizer: false,
+                    gfilter: "*quick*:*pre_checkin*"]
+
     def prj  = new rocProject('rocBLAS', 'StaticAnalysis')
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
 
-    boolean formatCheck = true
     boolean staticAnalysis = true
 
-    buildProject(prj, formatCheck, nodes.dockerArray, null, null, null, staticAnalysis)
+    buildProject(prj, settings.formatCheck, nodes.dockerArray, null, null, null, staticAnalysis)
 }
 
 ci: {

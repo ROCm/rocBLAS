@@ -92,6 +92,9 @@
 void rocblas_client_init();
 void rocblas_client_shutdown();
 
+void print_rocblas_version_string();
+void print_rocblas_client_commit_hashes();
+
 /*!
  * Initialize rocBLAS for the requested number of  HIP devices
  * and report the time taken to complete the initialization.
@@ -113,6 +116,8 @@ class rocblas_local_handle
     void*          m_memory{nullptr};
     hipStream_t    m_graph_stream{nullptr};
     hipStream_t    m_old_stream{nullptr};
+    std::string    m_hipblaslt_saved_status = "";
+    bool           m_hipblaslt_env_set{false};
 
     void rocblas_stream_begin_capture();
     void rocblas_stream_end_capture();
@@ -173,6 +178,10 @@ double get_time_us_sync(hipStream_t stream);
 
 /*! \brief  CPU Timer(in microsecond): no GPU synchronization and return wall time */
 double get_time_us_no_sync();
+
+/* ============================================================================================ */
+// Return if full path file exists
+bool rocblas_file_exists(const char* path);
 
 /* ============================================================================================ */
 // Return path of this executable
@@ -594,20 +603,6 @@ size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
                                    size_t arg_flush_memory_size,
                                    size_t cached_size);
 
-inline void print_reference_lib_warning()
-{
-    // prints a warning to cout if the recommended reference library isn't used
-#ifdef ROCBLAS_REFERENCE_LIB
-#define TOSTR2(s) #s
-#define TOSTR(s) TOSTR2(s)
-    rocblas_cout
-        << "Warning: Using reference library '" << TOSTR(ROCBLAS_REFERENCE_LIB)
-        << "' which may not support 64-bit input arguments. If running a test suite, please use "
-        << "--gtest_filter=-*stress* to avoid 64-bit test failures.\n";
-#undef TOSTR
-#undef TOSTR2
-#endif
-}
 void print_reference_lib_warning();
 
 hipError_t limit_device_count(int& device_count, int max_limit);

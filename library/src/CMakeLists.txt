@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -115,9 +115,6 @@ if( BUILD_WITH_TENSILE )
   endif()
 
   set( rocblas_ex_source
-    blas_ex/rocblas_gemm_ex3.cpp
-    blas_ex/rocblas_gemm_strided_batched_ex3.cpp
-    blas_ex/rocblas_gemm_batched_ex3.cpp
     ${Tensile_SRC}
     ${HipBlasLT_SRC}
   )
@@ -327,6 +324,7 @@ set( rocblas_blas2_source
 
 set( rocblas_auxiliary_source
   handle.cpp
+  logging.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
   rocblas_ostream.cpp
@@ -684,9 +682,6 @@ rocblas_library_settings( rocblas )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
 
-if(BUILD_WITH_HIPBLASLT)
-  find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
-endif()
 
 if( NOT BUILD_SHARED_LIBS )
   target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )

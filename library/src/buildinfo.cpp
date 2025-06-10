@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,5 +53,33 @@ extern "C" rocblas_status rocblas_get_version_string_size(size_t* len)
     if(!len)
         return rocblas_status_invalid_pointer;
     *len = std::strlen(VERSION_STRING) + 1;
+    return rocblas_status_success;
+}
+
+static constexpr const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
+
+/*******************************************************************************
+ *! \brief   loads char* buf with the rocblas library version. size_t len
+     is the maximum length of char* buf.
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_get_commit_hash_string(char* buf, size_t len)
+{
+
+    if(!buf)
+        return rocblas_status_invalid_pointer;
+    if(len < sizeof(rocblas_tensile_commit_hash[0]))
+        return rocblas_status_invalid_size;
+    memcpy(buf, rocblas_tensile_commit_hash[0], strlen(rocblas_tensile_commit_hash[0]));
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ *! \brief   Returns size of buffer required for rocblas_get_commit_hash_string
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_get_commit_hash_string_size(size_t* len)
+{
+    if(!len)
+        return rocblas_status_invalid_pointer;
+    *len = std::strlen(rocblas_tensile_commit_hash[0]) + 1;
     return rocblas_status_success;
 }

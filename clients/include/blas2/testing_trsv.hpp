@@ -146,6 +146,7 @@ void testing_trsv(const Arguments& arg)
     hx_or_b    = hb;
 
     // copy data from CPU to device
+    CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
     double max_err_host            = 0.0;
@@ -154,29 +155,17 @@ void testing_trsv(const Arguments& arg)
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
-    if(!ROCBLAS_REALLOC_ON_DEMAND)
-    {
-        // Compute size
-        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
-        CHECK_ALLOC_QUERY(rocblas_trsv_fn(handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
-        size_t size;
-        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
-
-        // Allocate memory
-        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
-    }
-
     if(arg.unit_check || arg.norm_check)
     {
         if(arg.pointer_mode_host)
         {
             // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
 
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_trsv_fn, (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
             handle.post_test(arg);
+
             CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
         }
 

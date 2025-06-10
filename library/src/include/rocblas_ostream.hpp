@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <future>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -39,24 +40,17 @@
 #include <queue>
 #include <sstream>
 #include <string>
-#include <sys/stat.h>
 #include <thread>
+#include <unordered_map>
 #include <utility>
+
 #ifdef WIN32
-#include <io.h>
-#include <iostream>
-#include <sstream>
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #define STDOUT_FILENO _fileno(stdout)
 #define STDERR_FILENO _fileno(stderr)
-#define FDOPEN(A, B) _fdopen(A, B)
-#define OPEN(A) _open(A, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_APPEND, _S_IREAD | _S_IWRITE);
-#define CLOSE(A) _close(A)
 #else
-#define FDOPEN(A, B) fdopen(A, B)
-#define OPEN(A) open(A, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
-#define CLOSE(A) close(A)
 #include <unistd.h>
 #endif
 
@@ -169,11 +163,9 @@ class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
 
     // Mutex for accessing the map
     // Implemented as singleton to avoid the static initialization order fiasco
-    static auto& worker_map_mutex()
-    {
-        static std::recursive_mutex map_mutex;
-        return map_mutex;
-    }
+    static std::recursive_mutex& worker_map_mutex();
+
+    static std::unordered_map<std::string, bool> m_file_open_map;
 
     // Output buffer for formatted IO
     std::ostringstream m_os;
@@ -230,6 +222,8 @@ public:
         return rocblas_internal_ostream(*this);
     }
 
+    static bool already_open_file(const char* filename);
+
     // For testing to allow file closing and deletion
     static void clear_workers();
 
@@ -271,9 +265,6 @@ public:
         thread_local rocblas_internal_ostream t_cerr{STDERR_FILENO};
         return t_cerr;
     }
-
-    // Abort function which safely flushes all IO
-    friend void rocblas_abort_once();
 
     // stream output is required to allow csv override of std::forward
     // which will use of rocblas_*_complex operators
@@ -459,13 +450,6 @@ public:
         return os;
     }
 
-    // rocblas_datatype output
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, rocblas_computetype d)
-    {
-        os.m_os << rocblas_datatype_string(d);
-        return os;
-    }
-
     // rocblas_operation output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
                                                 rocblas_operation         trans)
@@ -519,16 +503,16 @@ public:
     }
 
     // Transfer rocblas_internal_ostream to std::ostream
-    friend std::ostream& operator<<(std::ostream& os, const rocblas_internal_ostream& str)
+    friend std::ostream& operator<<(std::ostream& os, const rocblas_internal_ostream& rbi_ostream)
     {
-        return os << str.str();
+        return os << rbi_ostream.str();
     }
 
     // Transfer rocblas_internal_ostream to rocblas_internal_ostream
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&       os,
-                                                const rocblas_internal_ostream& str)
+                                                const rocblas_internal_ostream& rbi_ostream)
     {
-        return os << str.str();
+        return os << rbi_ostream.str();
     }
 
     // IO Manipulators

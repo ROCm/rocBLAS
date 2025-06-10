@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@
 #include "rocblas-export.h"
 #include "rocblas-macros.h"
 #include "rocblas_bfloat16.h"
-#include "rocblas_float8.h"
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -180,21 +179,8 @@ typedef enum rocblas_datatype_
     rocblas_datatype_u32_c   = 167, /**< 32-bit unsigned integer, complex */
     rocblas_datatype_bf16_r  = 168, /**< 16-bit bfloat, real */
     rocblas_datatype_bf16_c  = 169, /**< 16-bit bfloat, complex */
-    rocblas_datatype_f8_r    = 170, /**< 8 bit floating point, real */
-    rocblas_datatype_bf8_r   = 171, /**< 8 bit bfloat, real */
     rocblas_datatype_invalid = 255, /**< Invalid datatype value, do not use */
 } rocblas_datatype;
-
-/*! \brief Indicates the compute precision mode. */
-typedef enum rocblas_computetype_
-{
-    rocblas_compute_type_f32         = 300,
-    rocblas_compute_type_f8_f8_f32   = 301,
-    rocblas_compute_type_f8_bf8_f32  = 302,
-    rocblas_compute_type_bf8_f8_f32  = 303,
-    rocblas_compute_type_bf8_bf8_f32 = 304,
-    rocblas_compute_type_invalid     = 455, /**< Invalid datatype value, do not use */
-} rocblas_computetype;
 
 /* ============================================================================================ */
 /**
@@ -268,6 +254,8 @@ typedef enum rocblas_layer_mode_
     rocblas_layer_mode_log_bench = 0x2,
     /*! \brief Outputs a YAML description of each rocBLAS function called, along with its arguments and number of times it was called. */
     rocblas_layer_mode_log_profile = 0x4,
+    /*! \brief Outputs to the same stream as trace logging with limited internal API details like GEMM backend used */
+    rocblas_layer_mode_log_internal = 0x8,
 } rocblas_layer_mode;
 
 /*! \brief Indicates if layer is active with bitmask*/
