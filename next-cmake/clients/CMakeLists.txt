@@ -6,10 +6,12 @@ set(TEMP_CLIENTS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../clients)
 cmake_minimum_required(VERSION 3.16.8)
 project(clients LANGUAGES C CXX)
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 find_package(GTest REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(cblas REQUIRED)
 find_package(LAPACK REQUIRED)
+
 
 if(ROCBLAS_ENABLE_FORTRAN)
   enable_language(Fortran)

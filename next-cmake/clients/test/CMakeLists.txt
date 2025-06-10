@@ -95,7 +95,7 @@ set(ROCBLAS_TEST_DATA
 add_custom_command(
   OUTPUT "${ROCBLAS_TEST_DATA}"
   COMMAND
-    "${python}" ARGS "${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_gentest.py"
+    "${Python3_EXECUTABLE}" ARGS "${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_gentest.py"
     -I "${_CMAKE_CURRENT_SOURCE_DIR}/../include" "rocblas_gtest.yaml" -o
     "${ROCBLAS_TEST_DATA}"
   DEPENDS "${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_gentest.py"
