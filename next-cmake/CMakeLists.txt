@@ -69,9 +69,7 @@ if(ROCBLAS_ENABLE_TENSILE)
 endif()
 
 option(BUILD_SHARED_LIBS "Build the rocBLAS shared or static library; master switch." ON)
-if(NOT DEFINED ROCBLAS_BUILD_SHARED_LIBS)
-  option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
-endif()
+option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
 
 set(ROCBLAS_ENABLE_OPENMP
     ON
@@ -91,10 +89,9 @@ set(ROCBLAS_CONFIG_DIR
     CACHE PATH "Path placed into ldconfig file")
 query_git_hash(rocblas ${CMAKE_CURRENT_SOURCE_DIR})
 
+
 option(BUILD_TESTING "Build test client; master switch." ON)
-if(NOT DEFINED ROCBLAS_BUILD_TESTING)
-  option(ROCBLAS_BUILD_TESTING "Build test client." ${BUILD_TESTING})
-endif()
+option(ROCBLAS_BUILD_TESTING "Build test client." ${BUILD_TESTING})
 
 if(ROCBLAS_ENABLE_CLIENT)
   set(ROCBLAS_ENABLE_BENCHMARKS
@@ -114,8 +111,9 @@ endif()
 set(ROCBLAS_ENABLE_ASAN
     OFF
     CACHE BOOL "Build with address sanitizer enabled.")
-option(ROCBLAS_ENABLE_COVERAGE "Build tests with coverage support." OFF)
+
 option(BUILD_CODE_COVERAGE "Build tests with coverage support; master switch." OFF)
+option(ROCBLAS_ENABLE_COVERAGE "Build tests with coverage support." ${BUILD_CODE_COVERAGE})
 
 find_package(hip REQUIRED)
 
