@@ -84,12 +84,16 @@ Options
 * `CMAKE_PREFIX_PATH`: Find package search path (consider setting to ``$ROCM_PATH``)
 * `CMAKE_EXPORT_COMPILE_COMMANDS`: Export compile_commands.json for clang tooling support (default: `ON`)
 
+*Superbuild options*:
+
+* `BUILD_CODE_COVERAGE`: Build tests with coverage support (default: `OFF`)
+
 *Project wide options*:
 
 * `ROCBLAS_ENABLE_TENSILE`: Enables generation of device libraries (default: `ON`)
 * `ROCBLAS_ENABLE_CLIENT`: Enables generation of client applications (default: `ON`)
 * `ROCBLAS_ENABLE_ASAN`: Build with address sanitizer enabled (default: `OFF`)
-* `ROCBLAS_ENABLE_COVERAGE`: Build with gcov support (default: `OFF`)
+* `ROCBLAS_ENABLE_COVERAGE`: Build tests with coverage support (default: `OFF`)
 
 *Host library options*:
 

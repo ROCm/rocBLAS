@@ -110,9 +110,8 @@ endif()
 set(ROCBLAS_ENABLE_ASAN
     OFF
     CACHE BOOL "Build with address sanitizer enabled.")
-set(ROCBLAS_ENABLE_COVERAGE
-    OFF
-    CACHE BOOL "Build with gcov support.")
+option(ROCBLAS_ENABLE_COVERAGE "Build tests with coverage support." OFF)
+option(BUILD_CODE_COVERAGE "Build tests with coverage support; master switch." OFF)
 
 find_package(hip REQUIRED)
 
@@ -405,7 +404,7 @@ rocm_create_package(
   LDCONFIG_DIR
   ${ROCBLAS_CONFIG_DIR})
 
-if(ROCBLAS_ENABLE_COVERAGE)
+if(ROCBLAS_ENABLE_COVERAGE OR BUILD_CODE_COVERAGE)
   target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate
                                          -fcoverage-mapping)
   target_link_options(rocblas PRIVATE -fprofile-instr-generate)
