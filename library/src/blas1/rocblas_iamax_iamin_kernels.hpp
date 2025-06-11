@@ -48,23 +48,23 @@ __inline__ __device__ rocblas_index_value_t<T>
 template <int NB, typename REDUCE, typename T>
 __inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
 {
-    __shared__ T psums[warpSize];
+    __shared__ T psums[WarpSize];
 
-    rocblas_int wavefront = threadIdx.x / warpSize;
-    rocblas_int wavelet   = threadIdx.x % warpSize;
+    rocblas_int wavefront = threadIdx.x / WarpSize;
+    rocblas_int wavelet   = threadIdx.x % WarpSize;
 
     if(wavefront == 0)
         psums[wavelet] = T{};
     __syncthreads();
 
-    val = rocblas_wavefront_reduce_method<warpSize, REDUCE>(val); // sum over wavefront
+    val = rocblas_wavefront_reduce_method<WarpSize, REDUCE>(val); // sum over wavefront
     if(wavelet == 0)
         psums[wavefront] = val; // store sum for wavefront
 
     __syncthreads(); // Wait for all wavefront reductions
 
     // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = NB / warpSize;
+    static constexpr rocblas_int num_wavefronts = NB / WarpSize;
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T{};
     if(wavefront == 0)
         val = rocblas_wavefront_reduce_method<num_wavefronts, REDUCE>(val); // sum wavefront sums

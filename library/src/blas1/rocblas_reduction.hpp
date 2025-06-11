@@ -26,6 +26,12 @@
 #include "utility.hpp"
 #include <hip/hip_runtime.h>
 
+#if defined(__GFX9__)
+  __device__ static constexpr int WarpSize = 64;
+#else  
+  __device__ static constexpr int WarpSize = 32;
+#endif
+
 static constexpr int rocblas_log2ui(int x)
 {
     unsigned int ax = (unsigned int)x;
@@ -121,23 +127,23 @@ __inline__ __device__ rocblas_half rocblas_wavefront_reduce(rocblas_half val)
 template <int NB, typename T>
 __inline__ __device__ T rocblas_dot_block_reduce(T val)
 {
-    __shared__ T psums[warpSize];
+    __shared__ T psums[WarpSize];
 
-    rocblas_int wavefront = threadIdx.x / warpSize;
-    rocblas_int wavelet   = threadIdx.x % warpSize;
+    rocblas_int wavefront = threadIdx.x / WarpSize;
+    rocblas_int wavelet   = threadIdx.x % WarpSize;
 
     if(wavefront == 0)
         psums[wavelet] = T(0);
     __syncthreads();
 
-    val = rocblas_wavefront_reduce<warpSize>(val); // sum over wavefront
+    val = rocblas_wavefront_reduce<WarpSize>(val); // sum over wavefront
     if(wavelet == 0)
         psums[wavefront] = val; // store sum for wavefront
 
     __syncthreads(); // Wait for all wavefront reductions
 
     // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = NB / warpSize;
+    static constexpr rocblas_int num_wavefronts = NB / WarpSize;
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T(0);
     if(wavefront == 0)
         val = rocblas_wavefront_reduce<num_wavefronts>(val); // sum wavefront sums

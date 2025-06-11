@@ -24,6 +24,7 @@
 
 #include "rocblas_block_sizes.h"
 #include "rocblas_dot.hpp"
+#include <cassert>
 
 template <typename T>
 constexpr int rocblas_dot_one_block_threshold()

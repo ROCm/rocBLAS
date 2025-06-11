@@ -24,6 +24,7 @@
 #include "rocblas.h"
 #include "rocblas_block_sizes.h"
 #include "rocblas_dot_64.hpp"
+#include <cassert>
 
 #include "blas1/rocblas_dot.hpp" // int32 API called
 #include "blas1/rocblas_dot_kernels.hpp"

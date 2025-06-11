@@ -31,6 +31,7 @@
 #include <map>
 #include <random>
 #include <vector>
+#include <cassert>
 
 #define DIM1 64
 #define DIM2 64

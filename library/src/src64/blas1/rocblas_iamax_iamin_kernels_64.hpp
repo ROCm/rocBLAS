@@ -51,23 +51,23 @@ ROCBLAS_KERNEL_ILF rocblas_index_64_value_t<T>
 template <int DIM_X, typename REDUCE, typename T>
 ROCBLAS_KERNEL_ILF T rocblas_shuffle_block_reduce_method_64(T val)
 {
-    __shared__ T psums[warpSize];
+    __shared__ T psums[WarpSize];
 
-    rocblas_int wavefront = threadIdx.x / warpSize;
-    rocblas_int wavelet   = threadIdx.x % warpSize;
+    rocblas_int wavefront = threadIdx.x / WarpSize;
+    rocblas_int wavelet   = threadIdx.x % WarpSize;
 
     if(wavefront == 0)
         psums[wavelet] = T{};
     __syncthreads();
 
-    val = rocblas_wavefront_reduce_method_64<warpSize, REDUCE>(val); // sum over wavefront
+    val = rocblas_wavefront_reduce_method_64<WarpSize, REDUCE>(val); // sum over wavefront
     if(wavelet == 0)
         psums[wavefront] = val; // store sum for wavefront
 
     __syncthreads(); // Wait for all wavefront reductions
 
     // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = DIM_X / warpSize;
+    static constexpr rocblas_int num_wavefronts = DIM_X / WarpSize;
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T{};
     if(wavefront == 0)
         val = rocblas_wavefront_reduce_method_64<num_wavefronts, REDUCE>(val); // sum wavefront sums
