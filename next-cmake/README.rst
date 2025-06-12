@@ -80,60 +80,47 @@ Options
 
 *CMake options*:
 
-* `CMAKE_BUILD_TYPE`: Any of Release, Debug, RelWithDebInfo, MinSizeRel
-* `CMAKE_INSTALL_PREFIX`: Base installation directory (defaults to /opt/rocm on Linux, C:/hipSDK on Windows)
-* `CMAKE_PREFIX_PATH`: Find package search path (consider setting to ``$ROCM_PATH``)
-* `CMAKE_EXPORT_COMPILE_COMMANDS`: Export compile_commands.json for clang tooling support (default: `ON`)
+* ``CMAKE_BUILD_TYPE``: Any of Release, Debug, RelWithDebInfo, MinSizeRel
+* ``CMAKE_INSTALL_PREFIX``: Base installation directory (defaults to ``/opt/rocm`` on Linux, ``C:/hipSDK`` on Windows)
+* ``CMAKE_PREFIX_PATH``: Find package search path (consider setting to ``$ROCM_PATH``)
+* ``CMAKE_EXPORT_COMPILE_COMMANDS``: Export compile_commands.json for clang tooling support (default: ``ON``)
 
 *Superbuild options*:
 
-* `BUILD_CODE_COVERAGE`: Build tests with coverage support (default: `OFF`)
-* `BUILD_TESTING`: Build test client (default: `ON`)
-* `BUILD_SHARED_LIBS`: Build the rocBLAS shared or static library (default: `ON`)
+* ``BUILD_SHARED_LIBS``: Build the rocBLAS shared or static library (default: ``ON``)
+* ``BUILD_TESTING``: Build test client (default: ``ON``)
+* ``BUILD_CODE_COVERAGE``: Build tests with coverage support (default: ``OFF``)
 
 *Project wide options*:
 
-* `ROCBLAS_ENABLE_TENSILE`: Enables generation of device libraries (default: `ON`)
-* `ROCBLAS_ENABLE_CLIENT`: Enables generation of client applications (default: `ON`)
-* `ROCBLAS_ENABLE_ASAN`: Build with address sanitizer enabled (default: `OFF`)
-* `ROCBLAS_BUILD_COVERAGE`: Build tests with coverage support (default: `OFF`)
+* ``ROCBLAS_ENABLE_TENSILE``: Enables generation of device libraries (default: ``ON``)
+* ``ROCBLAS_ENABLE_CLIENT``: Enables generation of client applications (default: ``ON``)
+* ``ROCBLAS_ENABLE_ASAN``: Build with address sanitizer enabled (default: ``OFF``)
+* ``ROCBLAS_BUILD_COVERAGE``: Build tests with coverage support (default: ``OFF``)
 
 *rocBLAS library options*:
 
-* `ROCBLAS_BUILD_SHARED_LIBS`: Build the |project_name| shared or static library (default: same as `BUILD_SHARED_LIBS`)
-* `ROCBLAS_ENABLE_TENSILE`: Build |project_name| host library with Tensile backend (default: `ON`)
-* `ROCBLAS_ENABLE_HIPBLASLT`: Build |project_name| host library with hipBLASLt backend (default: `ON`)
-* `ROCBLAS_CONFIG_DIR`: Path placed into ldconfig file (default: `${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}`)
-* `ROCBLAS_ENABLE_BLIS`: Enable BLIS support (default: `ON`)
-* `ROCBLAS_ENABLE_MARKER`: Enable rocTracer marker support (default: `OFF`)
+* ``ROCBLAS_BUILD_SHARED_LIBS``: Build the |project_name| shared or static library (default: same as ``BUILD_SHARED_LIBS``)
+* ``ROCBLAS_ENABLE_TENSILE``: Build |project_name| library with Tensile backend (default: ``ON``)
+* ``ROCBLAS_ENABLE_HIPBLASLT``: Build |project_name| library with hipBLASLt backend (default: ``ON``)
+* ``ROCBLAS_ENABLE_BLIS``: Enable BLIS support (default: ``ON``)
+* ``ROCBLAS_ENABLE_MARKER``: Enable rocTracer marker support (default: ``OFF``)
+* ``ROCBLAS_CONFIG_DIR``: Path placed into ldconfig file (default: ``${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}``)
 
 *Tensile device libraries options*:
 
-* `ROCBLAS_TENSILE_SUBDIR_PATH`: Path to Tensile subdirectory (default: `${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile`)
-* `ROCBLAS_TENSILE_INSTALL_DIR`: Path to tensile library (default: `${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas` on Linux, `${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin` on Windows)
+* ``ROCBLAS_TENSILE_SUBDIR_PATH``: Path to Tensile subdirectory (default: ``${CMAKE_CURRENT_SOURCE_DIR}/../../Tensile``)
+* ``ROCBLAS_TENSILE_INSTALL_DIR``: Path to tensile library (default: ``${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas`` on Linux, ``${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin`` on Windows)
 
 *Client options*:
 
-* `ROCBLAS_BUILD_TESTING`: Build test client (default: same as `BUILD_TESTING`)
-* `ROCBLAS_ENABLE_BENCHMARKS`: Build benchmark client (default: `ON`)
-* `ROCBLAS_ENABLE_SAMPLES`: Build client samples (default: `ON`)
-* `ROCBLAS_ENABLE_FORTRAN`: Build Fortran clients (default: `OFF`)
-* `ROCBLAS_REQUIRE_ROCM_SMI`: Require rocm_smi (default: `ON` on Linux, `OFF` on Windows)
+* ``ROCBLAS_BUILD_TESTING``: Build test client (default: same as ``BUILD_TESTING``)
+* ``ROCBLAS_ENABLE_BENCHMARKS``: Build benchmark client (default: ``ON``)
+* ``ROCBLAS_ENABLE_SAMPLES``: Build client samples (default: ``ON``)
+* ``ROCBLAS_ENABLE_FORTRAN``: Build Fortran clients (default: ``OFF``)
+* ``ROCBLAS_REQUIRE_ROCM_SMI``: Require rocm_smi (default: ``ON`` on Linux, ``OFF`` on Windows)
 
 CMake Targets
 -------------
 
-* `roc::rocblas`
-
----------------
-Physical Design
----------------
-
-|project_name| consists of three components:
-
-1. host library
-2. device libraries built by Tensile
-3. client applications
-
-The host library and clients are built by |project_name|, while the device libraries are built by Tensile.
-Note that the client applications require the host library to build and the device libraries to run.
+* ``roc::rocblas``
