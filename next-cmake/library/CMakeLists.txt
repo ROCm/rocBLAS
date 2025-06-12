@@ -134,10 +134,10 @@ add_subdirectory(src)
 # #include <rocblas/internal/rocblas-beta.h>`
 # ~~~
 configure_file("${_CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-beta.h"
-               "${PROJECT_BINARY_DIR}/include/rocblas/internal" COPYONLY)
+               "${CMAKE_CURRENT_BINARY_DIR}/include/rocblas/internal" COPYONLY)
 
 configure_file("${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas.h"
-               "${PROJECT_BINARY_DIR}/include/rocblas" COPYONLY)
+               "${CMAKE_CURRENT_BINARY_DIR}/include/rocblas" COPYONLY)
 
 configure_file("${_CMAKE_CURRENT_SOURCE_DIR}/src/include/rocblas_device_malloc.hpp"
-               "${PROJECT_BINARY_DIR}/include/rocblas" COPYONLY)
+               "${CMAKE_CURRENT_BINARY_DIR}/include/rocblas" COPYONLY)
