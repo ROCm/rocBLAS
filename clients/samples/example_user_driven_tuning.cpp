@@ -27,11 +27,11 @@
 #include <hip/hip_runtime.h>
 #include <rocblas/rocblas.h>
 
+#include <cassert>
 #include <chrono>
 #include <map>
 #include <random>
 #include <vector>
-#include <cassert>
 
 #define DIM1 64
 #define DIM2 64
