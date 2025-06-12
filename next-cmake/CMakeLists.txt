@@ -113,7 +113,7 @@ if(ROCBLAS_ENABLE_TENSILE)
   endif()
 endif()
 
-add_subdirectory(host-library)
+add_subdirectory(library)
 
 if(ROCBLAS_ENABLE_CLIENT)
   add_subdirectory(clients)

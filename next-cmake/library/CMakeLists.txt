@@ -4,12 +4,6 @@
 set(TEMP_HOST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../library)
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR})
 
-cmake_minimum_required(VERSION 3.25.2)
-project(
-  host-library
-  VERSION 4.5.0
-  LANGUAGES CXX)
-
 if(ROCBLAS_ENABLE_FORTRAN)
   enable_language(Fortran)
 endif()
