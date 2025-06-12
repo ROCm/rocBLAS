@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_syrk_herk.hpp"
@@ -103,11 +104,11 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
 
         // Launch kernel to copy the data from triangular matrix to the workspace memory
         if(rocblas_fill_upper == uplo)
-            RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<true, true>(
-                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
+            RETURN_IF_ROCBLAS_ERROR((rocblas_copy_triangular_excluding_diagonal<true, true>(
+                handle, n, C, ldc, stride_C, (T*)w_mem, batch_count)));
         else
-            RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<true, false>(
-                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
+            RETURN_IF_ROCBLAS_ERROR((rocblas_copy_triangular_excluding_diagonal<true, false>(
+                handle, n, C, ldc, stride_C, (T*)w_mem, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_64<BATCHED>(handle,
                                                                    trans_orig,
@@ -133,11 +134,11 @@ rocblas_status rocblas_internal_syrk_herk_template(rocblas_handle    handle,
 
         // Launch kernel to copy the data from workspace memory back to triangular matrix
         if(rocblas_fill_upper == uplo)
-            RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<false, true>(
-                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
+            RETURN_IF_ROCBLAS_ERROR((rocblas_copy_triangular_excluding_diagonal<false, true>(
+                handle, n, C, ldc, stride_C, (T*)w_mem, batch_count)));
         else
-            RETURN_IF_ROCBLAS_ERROR((rocbals_copy_triangular_excluding_diagonal<false, false>(
-                n, C, ldc, stride_C, (T*)w_mem, batch_count, rocblas_stream)));
+            RETURN_IF_ROCBLAS_ERROR((rocblas_copy_triangular_excluding_diagonal<false, false>(
+                handle, n, C, ldc, stride_C, (T*)w_mem, batch_count)));
 
         return rocblas_status_success;
     }

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -285,7 +285,8 @@ void testing_trtri_batched(const Arguments& arg)
 
                 // multi-GPU support
                 int device_id, device_count;
-                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                CHECK_HIP_ERROR(limit_device_count(device_count, (int)arg.devices));
+
                 for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
                     CHECK_HIP_ERROR(hipGetDevice(&device_id));
@@ -408,7 +409,7 @@ void testing_trtri_batched(const Arguments& arg)
 
         // CBLAS doesn't have trtri implementation so using the LAPACK trtri
         for(size_t b = 0; b < batch_count; b++)
-            lapack_xtrtri<T>(char_uplo, char_diag, N, hB[b], lda);
+            ref_lapack_xtrtri<T>(char_uplo, char_diag, N, hB[b], lda);
 
         if(arg.timing)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;

@@ -22,6 +22,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_her.hpp"
 
@@ -89,16 +90,34 @@ rocblas_her_kernel(bool           is_upper,
                    TPtr           Aa,
                    int64_t        lda,
                    rocblas_stride shift_A,
-                   rocblas_stride stride_A)
+                   rocblas_stride stride_A,
+                   rocblas_int    batch_count)
 {
-    auto alpha = load_scalar(alpha_device_host);
-    if(!alpha)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        auto alpha = load_scalar(alpha_device_host, batch, 0); //stride_alpha is always 0
+        if(!alpha)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
         return;
+#endif
+        }
 
-    auto*       A = load_ptr_batch(Aa, blockIdx.y, shift_A, stride_A);
-    const auto* x = load_ptr_batch(xa, blockIdx.y, shift_x, stride_x);
+        auto*       A = load_ptr_batch(Aa, batch, shift_A, stride_A);
+        const auto* x = load_ptr_batch(xa, batch, shift_x, stride_x);
 
-    rocblas_her_kernel_calc<DIM_X>(is_upper, n, alpha, x, incx, A, lda);
+        rocblas_her_kernel_calc<DIM_X>(is_upper, n, alpha, x, incx, A, lda);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -132,13 +151,15 @@ rocblas_status rocblas_her_launcher(rocblas_handle handle,
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
 #define her_KARGS(alpha_)                                                                        \
     her_grid, her_threads, 0, rocblas_stream, uplo == rocblas_fill_upper, n, alpha_, x, shift_x, \
-        incx, stride_x, A, lda, offset_A, stride_A
+        incx, stride_x, A, lda, offset_A, stride_A, batch_count
 
     static constexpr int HER_DIM_X = 1024;
 
-    dim3 her_grid(n, batch_count);
+    dim3 her_grid(n, 1, batches);
     dim3 her_threads(HER_DIM_X);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)

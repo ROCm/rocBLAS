@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,71 +51,64 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode  = handle->layer_mode;
-        auto x_type_str  = rocblas_datatype_string(x_type);
-        auto y_type_str  = rocblas_datatype_string(y_type);
-        auto cs_type_str = rocblas_datatype_string(cs_type);
-        auto ex_type_str = rocblas_datatype_string(execution_type);
+        auto                    layer_mode  = handle->layer_mode;
+        auto                    x_type_str  = rocblas_datatype_string(x_type);
+        auto                    y_type_str  = rocblas_datatype_string(y_type);
+        auto                    cs_type_str = rocblas_datatype_string(cs_type);
+        auto                    ex_type_str = rocblas_datatype_string(execution_type);
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      ROCBLAS_API_STR(rocblas_rot_batched_ex),
-                      n,
-                      x,
-                      x_type_str,
-                      incx,
-                      y,
-                      y_type_str,
-                      incy,
-                      c,
-                      s,
-                      cs_type_str,
-                      batch_count,
-                      ex_type_str);
+            logger.log_trace(handle,
+                             ROCBLAS_API_STR(rocblas_rot_batched_ex),
+                             n,
+                             x,
+                             x_type_str,
+                             incx,
+                             y,
+                             y_type_str,
+                             incy,
+                             c,
+                             s,
+                             cs_type_str,
+                             batch_count,
+                             ex_type_str);
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH "-f rot_batched_ex --a_type",
-                      x_type_str,
-                      "--b_type",
-                      y_type_str,
-                      "--c_type",
-                      cs_type_str,
-                      "--compute_type",
-                      ex_type_str,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH "-f rot_batched_ex --a_type",
+                             x_type_str,
+                             "--b_type",
+                             y_type_str,
+                             "--c_type",
+                             cs_type_str,
+                             "--compute_type",
+                             ex_type_str,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy,
+                             "--batch_count",
+                             batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        ROCBLAS_API_STR(rocblas_rot_batched_ex),
-                        "N",
-                        n,
-                        "a_type",
-                        x_type_str,
-                        "incx",
-                        incx,
-                        "b_type",
-                        y_type_str,
-                        "incy",
-                        incy,
-                        "c_type",
-                        cs_type_str,
-                        "batch_count",
-                        batch_count,
-                        "compute_type",
-                        ex_type_str);
-
-        if constexpr(std::is_same_v<API_INT, int>)
-        {
-            if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-            {
-                return rocblas_status_invalid_size;
-            }
-        }
+            logger.log_profile(handle,
+                               ROCBLAS_API_STR(rocblas_rot_batched_ex),
+                               "N",
+                               n,
+                               "a_type",
+                               x_type_str,
+                               "incx",
+                               incx,
+                               "b_type",
+                               y_type_str,
+                               "incy",
+                               incy,
+                               "c_type",
+                               cs_type_str,
+                               "batch_count",
+                               batch_count,
+                               "compute_type",
+                               ex_type_str);
 
         if(n <= 0 || batch_count <= 0)
             return rocblas_status_success;

@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_sbmv.hpp"
 
@@ -153,23 +154,41 @@ rocblas_sbmv_kernel(rocblas_int    n,
                     W              ya,
                     rocblas_stride shifty,
                     int64_t        incy,
-                    rocblas_stride stride_y)
+                    rocblas_stride stride_y,
+                    rocblas_int    batch_count)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
-    if(!alpha && beta == 1)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        auto alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        auto beta  = load_scalar(beta_device_host, batch, stride_beta);
+        if(!alpha && beta == 1)
+        {
+#if DEVICE_GRID_YZ_16BIT
+            continue; //iterate to the next batch in the for loop rather than return.
+#else
         return;
+#endif
+        }
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, stride_A);
-    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stride_x);
+        const auto* A = cond_load_ptr_batch(alpha, Aa, batch, shifta, stride_A);
+        const auto* x = cond_load_ptr_batch(alpha, xa, batch, shiftx, stride_x);
 
-    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stride_y);
+        auto* y = load_ptr_batch(ya, batch, shifty, stride_y);
 
-    rocblas_sbmv_kernel_calc<UPPER, DIM_X, DIM_Y>(n, k, alpha, A, lda, x, incx, beta, y, incy);
+        rocblas_sbmv_kernel_calc<UPPER, DIM_X, DIM_Y>(n, k, alpha, A, lda, x, incx, beta, y, incy);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <typename T, typename TScal, typename TConstPtr, typename TPtr>
@@ -205,10 +224,12 @@ rocblas_status rocblas_internal_sbmv_launcher(rocblas_handle handle,
     auto shiftx = incx < 0 ? offset_x - incx * (n - 1) : offset_x;
     auto shifty = incy < 0 ? offset_y - incy * (n - 1) : offset_y;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int sbmv_DIM_X = 64;
     static constexpr int sbmv_DIM_Y = 16;
     rocblas_int          blocks     = (n - 1) / (sbmv_DIM_X) + 1;
-    dim3                 grid(blocks, batch_count);
+    dim3                 grid(blocks, 1, batches);
     dim3                 threads(sbmv_DIM_X, sbmv_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -237,7 +258,8 @@ rocblas_status rocblas_internal_sbmv_launcher(rocblas_handle handle,
                                   y,
                                   shifty,
                                   incy,
-                                  stride_y);
+                                  stride_y,
+                                  batch_count);
         }
         else
         {
@@ -263,7 +285,8 @@ rocblas_status rocblas_internal_sbmv_launcher(rocblas_handle handle,
                                   y,
                                   shifty,
                                   incy,
-                                  stride_y);
+                                  stride_y,
+                                  batch_count);
         }
     }
     else
@@ -296,7 +319,8 @@ rocblas_status rocblas_internal_sbmv_launcher(rocblas_handle handle,
                                   y,
                                   shifty,
                                   incy,
-                                  stride_y);
+                                  stride_y,
+                                  batch_count);
         }
         else
         {
@@ -322,7 +346,8 @@ rocblas_status rocblas_internal_sbmv_launcher(rocblas_handle handle,
                                   y,
                                   shifty,
                                   incy,
-                                  stride_y);
+                                  stride_y,
+                                  batch_count);
         }
     }
 

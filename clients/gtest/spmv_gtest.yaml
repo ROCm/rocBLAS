@@ -120,7 +120,7 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   pointer_mode_host: false
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942','950']
 
 - name: spmv_size_t_inc
   category: stress
@@ -131,9 +131,9 @@ Tests:
   alpha_beta: *alpha_beta_range_size_t_inc
   pointer_mode_device: false
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942','950']
 
-- name: spmv_64
+- name: spmv_ILP64
   category: stress
   arguments:
     - { N: 2, incx: 2147483649, incy: 1, batch_count: 1 }
@@ -199,6 +199,18 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 1, 3 ]
   pointer_mode_device: false
+
+- name: spmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - spmv_batched: *single_precision
+    - spmv_strided_batched: *single_precision
+  stride_scale: 1
 
   # strided batched
 - name: spmv_strided_batched_bad
@@ -284,5 +296,6 @@ Tests:
   atomics_mode: 0
   pointer_mode_host: false
   iters: 5
+  devices: 4
   repeatability_check: true
 ...

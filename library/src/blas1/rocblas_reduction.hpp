@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2022-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,10 @@
 
 #pragma once
 
+#include "device_macros.hpp"
 #include "int64_helpers.hpp"
 #include "utility.hpp"
 #include <hip/hip_runtime.h>
-
-#if defined(__GFX9__)
-  __device__ static constexpr int WarpSize = 64;
-#else  
-  __device__ static constexpr int WarpSize = 32;
-#endif
 
 static constexpr int rocblas_log2ui(int x)
 {
@@ -48,6 +43,7 @@ __inline__ __device__ T rocblas_wavefront_reduce(T val)
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
+#pragma unroll
     for(int i = 0; i < WFBITS; i++)
     {
         val += __shfl_down(val, offset);
@@ -61,6 +57,7 @@ __inline__ __device__ rocblas_float_complex rocblas_wavefront_reduce(rocblas_flo
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
+#pragma unroll
     for(int i = 0; i < WFBITS; i++)
     {
         val.real(val.real() + __shfl_down(val.real(), offset));
@@ -75,6 +72,7 @@ __inline__ __device__ rocblas_double_complex rocblas_wavefront_reduce(rocblas_do
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
+#pragma unroll
     for(int i = 0; i < WFBITS; i++)
     {
         val.real(val.real() + __shfl_down(val.real(), offset));
@@ -94,6 +92,7 @@ __inline__ __device__ rocblas_bfloat16 rocblas_wavefront_reduce(rocblas_bfloat16
     } tmp;
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
+#pragma unroll
     for(int i = 0; i < WFBITS; i++)
     {
         tmp.h = val;
@@ -114,6 +113,7 @@ __inline__ __device__ rocblas_half rocblas_wavefront_reduce(rocblas_half val)
     } tmp;
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
+#pragma unroll
     for(int i = 0; i < WFBITS; i++)
     {
         tmp.h = val;
@@ -124,26 +124,30 @@ __inline__ __device__ rocblas_half rocblas_wavefront_reduce(rocblas_half val)
     return val;
 }
 
-template <int NB, typename T>
+template <int WARP, int NB, typename T>
 __inline__ __device__ T rocblas_dot_block_reduce(T val)
 {
-    __shared__ T psums[WarpSize];
+    __shared__ T psums[WARP];
 
-    rocblas_int wavefront = threadIdx.x / WarpSize;
-    rocblas_int wavelet   = threadIdx.x % WarpSize;
+    rocblas_int wavefront = threadIdx.x / WARP;
+    rocblas_int wavelet   = threadIdx.x % WARP;
 
     if(wavefront == 0)
         psums[wavelet] = T(0);
     __syncthreads();
 
-    val = rocblas_wavefront_reduce<WarpSize>(val); // sum over wavefront
+    val = rocblas_wavefront_reduce<WARP>(val); // sum over wavefront
     if(wavelet == 0)
         psums[wavefront] = val; // store sum for wavefront
 
     __syncthreads(); // Wait for all wavefront reductions
 
     // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = NB / WarpSize;
+    static constexpr rocblas_int num_wavefronts = NB / WARP;
+
+    // single warp of either size will doing final sum so test with smaller constraint
+    static_assert(num_wavefronts <= WARP_32);
+
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T(0);
     if(wavefront == 0)
         val = rocblas_wavefront_reduce<num_wavefronts>(val); // sum wavefront sums
@@ -253,6 +257,42 @@ size_t rocblas_reduction_workspace_non_chunked_size(API_INT n, API_INT batch_cou
     // original API
 
     return sizeof(To) * (blocks + 1) * batch_count;
+}
+
+/*! \brief rocblas_reduction_kernel_part2
+    gathers all the partial results in workspace and finishes the final reduction.
+    ********************************************************************/
+template <int NB, int WIN, typename FINALIZE, typename V, typename T = V>
+ROCBLAS_KERNEL(NB)
+rocblas_reduction_kernel_part2(int n_sums, V* __restrict__ in, T* __restrict__ out)
+{
+    V sum = 0;
+
+    size_t offset = size_t(blockIdx.x) * n_sums;
+    in += offset;
+
+    int inc = NB * WIN;
+
+    int i         = threadIdx.x * WIN;
+    int remainder = n_sums % WIN;
+    int end       = n_sums - remainder;
+    for(; i < end; i += inc) // cover all sums as 1 block
+    {
+        for(int j = 0; j < WIN; j++)
+            sum += in[i + j];
+    }
+    if(threadIdx.x < remainder)
+    {
+        sum += in[n_sums - 1 - threadIdx.x];
+    }
+
+    if(warpSize == WARP_32)
+        sum = rocblas_dot_block_reduce<WARP_32, NB>(sum);
+    else
+        sum = rocblas_dot_block_reduce<WARP_64, NB>(sum);
+
+    if(threadIdx.x == 0)
+        out[blockIdx.x] = T(FINALIZE{}(sum));
 }
 
 /*! \brief rocblas_reduction_batched_kernel_workspace_size

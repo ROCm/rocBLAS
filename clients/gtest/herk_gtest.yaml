@@ -62,7 +62,7 @@ Tests:
   alpha_beta:
     - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
   pointer_mode_device: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 # non batched
@@ -199,7 +199,19 @@ Tests:
   batch_count: [ 5 ]
   pointer_mode_host: false
 
-- name: herk_64
+- name: herk_large_batch
+  category: stress
+  uplo: [ U, L ]
+  arguments:
+    - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: C}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  function:
+    - herk_batched: *single_precision_complex
+    - herk_strided_batched: *single_precision_complex
+  stride_scale: 1
+
+- name: herk_ILP64
   category: stress
   uplo: [ U, L ]
   arguments:
@@ -253,5 +265,6 @@ Tests:
   pointer_mode_host: false
   iters: 5
   atomics_mode: 0
+  devices: 4
   repeatability_check: true
 ...

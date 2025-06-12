@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_hbmv.hpp"
 
@@ -170,7 +171,8 @@ rocblas_hbmvn_kernel(bool           is_upper,
                      W              ya,
                      rocblas_stride shifty,
                      int64_t        incy,
-                     rocblas_stride stridey)
+                     rocblas_stride stridey,
+                     rocblas_int    batch_count)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -182,12 +184,23 @@ rocblas_hbmvn_kernel(bool           is_upper,
     if(!alpha && beta == 1)
         return;
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+    uint32_t batch = blockIdx.z;
 
-    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        const auto* A = cond_load_ptr_batch(alpha, Aa, batch, shifta, strideA);
+        const auto* x = cond_load_ptr_batch(alpha, xa, batch, shiftx, stridex);
 
-    rocblas_hbmvn_kernel_calc<DIM_X, DIM_Y>(is_upper, n, k, alpha, A, lda, x, incx, beta, y, incy);
+        auto* y = load_ptr_batch(ya, batch, shifty, stridey);
+
+        rocblas_hbmvn_kernel_calc<DIM_X, DIM_Y>(
+            is_upper, n, k, alpha, A, lda, x, incx, beta, y, incy);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -226,11 +239,13 @@ rocblas_status rocblas_internal_hbmv_launcher(rocblas_handle handle,
     auto shiftx = incx < 0 ? offsetx - incx * (n - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - incy * (n - 1) : offsety;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     // hbmvN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
     static constexpr int hbmvN_DIM_X = 64;
     static constexpr int hbmvN_DIM_Y = 16;
     rocblas_int          blocks      = (n - 1) / (hbmvN_DIM_X) + 1;
-    dim3                 hbmvn_grid(blocks, batch_count);
+    dim3                 hbmvn_grid(blocks, 1, batches);
     dim3                 hbmvn_threads(hbmvN_DIM_X, hbmvN_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -256,7 +271,8 @@ rocblas_status rocblas_internal_hbmv_launcher(rocblas_handle handle,
                               y,
                               shifty,
                               incy,
-                              stridey);
+                              stridey,
+                              batch_count);
     }
     else
     {
@@ -284,7 +300,8 @@ rocblas_status rocblas_internal_hbmv_launcher(rocblas_handle handle,
                               y,
                               shifty,
                               incy,
-                              stridey);
+                              stridey,
+                              batch_count);
     }
 
     return rocblas_status_success;

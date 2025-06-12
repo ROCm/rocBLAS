@@ -22,8 +22,8 @@
 
 #include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "rocblas_tpmv.hpp"
-
 #include "utility.hpp"
 
 #ifdef tmpv_calc_upperat
@@ -178,16 +178,28 @@ rocblas_tpmvn_kernel(bool           is_upper,
                      int64_t        incx,
                      rocblas_stride stride_x,
                      TWork          workspace,
-                     rocblas_stride stride_w)
+                     rocblas_stride stride_w,
+                     rocblas_int    batch_count)
 {
     static constexpr ptrdiff_t shift_w = 0;
-    rocblas_tpmvn_kernel_calc<NB>(is_upper,
-                                  is_unit_diag,
-                                  n,
-                                  load_ptr_batch(AP, blockIdx.y, shift_AP, stride_AP),
-                                  load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
-                                  incx,
-                                  load_ptr_batch(workspace, blockIdx.y, shift_w, stride_w));
+
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        rocblas_tpmvn_kernel_calc<NB>(is_upper,
+                                      is_unit_diag,
+                                      n,
+                                      load_ptr_batch(AP, batch, shift_AP, stride_AP),
+                                      load_ptr_batch(x, batch, shift_x, stride_x),
+                                      incx,
+                                      load_ptr_batch(workspace, batch, shift_w, stride_w));
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <rocblas_int NB, typename TConstPtr, typename TPtr, typename TWork>
@@ -203,16 +215,28 @@ rocblas_tpmvt_kernel(bool           is_upper,
                      int64_t        incx,
                      rocblas_stride stride_x,
                      TWork          workspace,
-                     rocblas_stride stride_w)
+                     rocblas_stride stride_w,
+                     rocblas_int    batch_count)
 {
     static constexpr ptrdiff_t shift_w = 0;
-    rocblas_tpmvt_kernel_calc<NB>(is_upper,
-                                  is_unit_diag,
-                                  n,
-                                  load_ptr_batch(AP, blockIdx.y, shift_AP, stride_AP),
-                                  load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
-                                  incx,
-                                  load_ptr_batch(workspace, blockIdx.y, shift_w, stride_w));
+
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        rocblas_tpmvt_kernel_calc<NB>(is_upper,
+                                      is_unit_diag,
+                                      n,
+                                      load_ptr_batch(AP, batch, shift_AP, stride_AP),
+                                      load_ptr_batch(x, batch, shift_x, stride_x),
+                                      incx,
+                                      load_ptr_batch(workspace, batch, shift_w, stride_w));
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 template <rocblas_int NB, typename TConstPtr, typename TPtr, typename TWork>
@@ -228,16 +252,27 @@ rocblas_tpmvc_kernel(bool           is_upper,
                      int64_t        incx,
                      rocblas_stride stride_x,
                      TWork          workspace,
-                     rocblas_stride stride_w)
+                     rocblas_stride stride_w,
+                     rocblas_int    batch_count)
 {
     static constexpr ptrdiff_t shift_w = 0;
-    rocblas_tpmvc_kernel_calc<NB>(is_upper,
-                                  is_unit_diag,
-                                  n,
-                                  load_ptr_batch(AP, blockIdx.y, shift_AP, stride_AP),
-                                  load_ptr_batch(x, blockIdx.y, shift_x, stride_x),
-                                  incx,
-                                  load_ptr_batch(workspace, blockIdx.y, shift_w, stride_w));
+
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        rocblas_tpmvc_kernel_calc<NB>(is_upper,
+                                      is_unit_diag,
+                                      n,
+                                      load_ptr_batch(AP, batch, shift_AP, stride_AP),
+                                      load_ptr_batch(x, batch, shift_x, stride_x),
+                                      incx,
+                                      load_ptr_batch(workspace, batch, shift_w, stride_w));
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 #undef tmpv_calc_upperat
@@ -274,7 +309,9 @@ rocblas_status rocblas_internal_tpmv_launcher(rocblas_handle    handle,
 
     int64_t shift_x = incx < 0 ? offset_x + incx * (1 - n) : offset_x;
 
-    dim3 tpmv_grid((n - 1) / NB + 1, batch_count);
+    int batches = handle->getBatchGridDim((int)batch_count);
+
+    dim3 tpmv_grid((n - 1) / NB + 1, 1, batches);
     dim3 tpmv_threads(NB);
 
     switch(transa)
@@ -297,7 +334,8 @@ rocblas_status rocblas_internal_tpmv_launcher(rocblas_handle    handle,
                               incx,
                               stride_x,
                               workspace,
-                              stride_w);
+                              stride_w,
+                              batch_count);
         break;
     }
 
@@ -319,7 +357,8 @@ rocblas_status rocblas_internal_tpmv_launcher(rocblas_handle    handle,
                               incx,
                               stride_x,
                               workspace,
-                              stride_w);
+                              stride_w,
+                              batch_count);
         break;
     }
 
@@ -341,7 +380,8 @@ rocblas_status rocblas_internal_tpmv_launcher(rocblas_handle    handle,
                               incx,
                               stride_x,
                               workspace,
-                              stride_w);
+                              stride_w,
+                              batch_count);
 
         break;
     }

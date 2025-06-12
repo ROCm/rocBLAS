@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_geam.hpp"
 
@@ -30,7 +31,8 @@ rocblas_geam_zero_matrix_device(rocblas_int    m,
                                 TPtr           Ca,
                                 rocblas_stride offset_c,
                                 int64_t        ldc,
-                                rocblas_stride stride_c)
+                                rocblas_stride stride_c,
+                                rocblas_int    batch_count)
 {
     int num_blocksx = (m - 1) / DIM_X + 1;
     int blkx        = blockIdx.x % num_blocksx;
@@ -38,12 +40,23 @@ rocblas_geam_zero_matrix_device(rocblas_int    m,
     int tx          = blkx * DIM_X + threadIdx.x;
     int ty          = blky * DIM_Y + threadIdx.y;
 
-    if(tx < m && ty < n)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto*  C       = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-        size_t c_index = tx + ldc * ty;
-        C[c_index]     = 0.0;
+#endif
+
+        if(tx < m && ty < n)
+        {
+            auto*  C       = load_ptr_batch(Ca, batch, offset_c, stride_c);
+            size_t c_index = tx + ldc * ty;
+            C[c_index]     = 0.0;
+        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 // general case for any alpha, beta, lda, ldb, ldc
@@ -66,7 +79,8 @@ rocblas_geam_device(rocblas_operation transA,
                     TPtr              Ca,
                     rocblas_stride    offset_c,
                     int64_t           ldc,
-                    rocblas_stride    stride_c)
+                    rocblas_stride    stride_c,
+                    rocblas_int       batch_count)
 {
     int num_blocksx = (m - 1) / DIM_X + 1;
     int blkx        = blockIdx.x % num_blocksx;
@@ -74,46 +88,56 @@ rocblas_geam_device(rocblas_operation transA,
     int tx          = blkx * DIM_X + threadIdx.x;
     int ty          = blky * DIM_Y + threadIdx.y;
 
-    if(tx < m && ty < n)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto alpha = load_scalar(alpha_device_host);
-        auto beta  = load_scalar(beta_device_host);
-
-        auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.z, offset_a, stride_a);
-        auto* B = cond_load_ptr_batch(beta, Ba, blockIdx.z, offset_b, stride_b);
-        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-
-        size_t a_index;
-        size_t b_index;
-        size_t c_index = tx + ldc * ty;
-
-        if(transA == rocblas_operation_none)
+#endif
+        if(tx < m && ty < n)
         {
-            a_index = tx + ty * lda;
-        }
-        else
-        {
-            a_index = tx * lda + ty;
+            auto alpha = load_scalar(alpha_device_host);
+            auto beta  = load_scalar(beta_device_host);
+
+            auto* A = cond_load_ptr_batch(alpha, Aa, batch, offset_a, stride_a);
+            auto* B = cond_load_ptr_batch(beta, Ba, batch, offset_b, stride_b);
+            auto* C = load_ptr_batch(Ca, batch, offset_c, stride_c);
+
+            size_t a_index;
+            size_t b_index;
+            size_t c_index = tx + ldc * ty;
+
+            if(transA == rocblas_operation_none)
+            {
+                a_index = tx + ty * lda;
+            }
+            else
+            {
+                a_index = tx * lda + ty;
+            }
+
+            if(transB == rocblas_operation_none)
+            {
+                b_index = tx + ty * ldb;
+            }
+            else
+            {
+                b_index = tx * ldb + ty;
+            }
+
+            auto a_val = alpha ? A[a_index] : 0;
+            auto b_val = beta ? B[b_index] : 0;
+            if(transA == rocblas_operation_conjugate_transpose)
+                a_val = conj(a_val);
+            if(transB == rocblas_operation_conjugate_transpose)
+                b_val = conj(b_val);
+
+            C[c_index] = beta * b_val + alpha * a_val;
         }
 
-        if(transB == rocblas_operation_none)
-        {
-            b_index = tx + ty * ldb;
-        }
-        else
-        {
-            b_index = tx * ldb + ty;
-        }
-
-        auto a_val = alpha ? A[a_index] : 0;
-        auto b_val = beta ? B[b_index] : 0;
-        if(transA == rocblas_operation_conjugate_transpose)
-            a_val = conj(a_val);
-        if(transB == rocblas_operation_conjugate_transpose)
-            b_val = conj(b_val);
-
-        C[c_index] = beta * b_val + alpha * a_val;
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 //  special case:
@@ -131,7 +155,8 @@ rocblas_geam_2matrix_device(rocblas_operation transA,
                             TPtr              Ca,
                             rocblas_stride    offset_c,
                             int64_t           ldc,
-                            rocblas_stride    stride_c)
+                            rocblas_stride    stride_c,
+                            rocblas_int       batch_count)
 {
     int num_blocksx = (m - 1) / DIM_X + 1;
     int blkx        = blockIdx.x % num_blocksx;
@@ -139,38 +164,48 @@ rocblas_geam_2matrix_device(rocblas_operation transA,
     int tx          = blkx * DIM_X + threadIdx.x;
     int ty          = blky * DIM_Y + threadIdx.y;
 
-    if(tx < m && ty < n)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto alpha = load_scalar(alpha_device_host);
-
-        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-
-        size_t c_index = tx + ldc * ty;
-        if(alpha == 0)
+#endif
+        if(tx < m && ty < n)
         {
-            C[c_index] = 0;
-        }
-        else
-        {
-            auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
+            auto alpha = load_scalar(alpha_device_host);
 
-            size_t a_index;
+            auto* C = load_ptr_batch(Ca, batch, offset_c, stride_c);
 
-            if(transA == rocblas_operation_none)
+            size_t c_index = tx + ldc * ty;
+            if(alpha == 0)
             {
-                a_index = tx + ty * lda;
+                C[c_index] = 0;
             }
             else
             {
-                a_index = tx * lda + ty;
-            }
+                auto* A = load_ptr_batch(Aa, batch, offset_a, stride_a);
 
-            auto a_val = A[a_index];
-            if(transA == rocblas_operation_conjugate_transpose)
-                a_val = conj(a_val);
-            C[c_index] = alpha * a_val;
+                size_t a_index;
+
+                if(transA == rocblas_operation_none)
+                {
+                    a_index = tx + ty * lda;
+                }
+                else
+                {
+                    a_index = tx * lda + ty;
+                }
+
+                auto a_val = A[a_index];
+                if(transA == rocblas_operation_conjugate_transpose)
+                    a_val = conj(a_val);
+                C[c_index] = alpha * a_val;
+            }
         }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 // special cases where: lda=ldb=ldc=m && transA==transB=none so matrices
@@ -189,29 +224,40 @@ rocblas_geam_1D_device(size_t         size,
                        rocblas_stride stride_b,
                        TPtr           Ca,
                        rocblas_stride offset_c,
-                       rocblas_stride stride_c)
+                       rocblas_stride stride_c,
+                       rocblas_int    batch_count)
 {
     size_t tx = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
-    if(tx < size)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto alpha = load_scalar(alpha_device_host);
-        auto beta  = load_scalar(beta_device_host);
-
-        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-
-        if(alpha == 0 && beta == 0)
+#endif
+        if(tx < size)
         {
-            C[tx] = 0;
-        }
-        else
-        {
-            auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.z, offset_a, stride_a);
-            auto* B = cond_load_ptr_batch(beta, Ba, blockIdx.z, offset_b, stride_b);
+            auto alpha = load_scalar(alpha_device_host);
+            auto beta  = load_scalar(beta_device_host);
 
-            C[tx] = (beta ? beta * B[tx] : 0) + (alpha ? alpha * A[tx] : 0);
+            auto* C = load_ptr_batch(Ca, batch, offset_c, stride_c);
+
+            if(alpha == 0 && beta == 0)
+            {
+                C[tx] = 0;
+            }
+            else
+            {
+                auto* A = cond_load_ptr_batch(alpha, Aa, batch, offset_a, stride_a);
+                auto* B = cond_load_ptr_batch(beta, Ba, batch, offset_b, stride_b);
+
+                C[tx] = (beta ? beta * B[tx] : 0) + (alpha ? alpha * A[tx] : 0);
+            }
         }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 // special cases where: lda=ldb=ldc=m && transA==transB=none so matrices
@@ -227,26 +273,37 @@ rocblas_geam_1D_2matrix_device(size_t         size,
                                rocblas_stride stride_a,
                                TPtr           Ca,
                                rocblas_stride offset_c,
-                               rocblas_stride stride_c)
+                               rocblas_stride stride_c,
+                               rocblas_int    batch_count)
 {
     size_t tx = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
-    if(tx < size)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto alpha = load_scalar(alpha_device_host);
-
-        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-
-        if(alpha == 0)
+#endif
+        if(tx < size)
         {
-            C[tx] = 0;
+            auto alpha = load_scalar(alpha_device_host);
+
+            auto* C = load_ptr_batch(Ca, batch, offset_c, stride_c);
+
+            if(alpha == 0)
+            {
+                C[tx] = 0;
+            }
+            else
+            {
+                auto* A = load_ptr_batch(Aa, batch, offset_a, stride_a);
+                C[tx]   = alpha * A[tx];
+            }
         }
-        else
-        {
-            auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
-            C[tx]   = alpha * A[tx];
-        }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 // special cases where: A == C && lda == ldc && transA == none
@@ -265,7 +322,8 @@ rocblas_geam_inplace_device(rocblas_operation transB,
                             TPtr              Ca,
                             rocblas_stride    offset_c,
                             int64_t           ldc,
-                            rocblas_stride    stride_c)
+                            rocblas_stride    stride_c,
+                            rocblas_int       batch_count)
 {
     int num_blocksx = (m - 1) / DIM_X + 1;
     int blkx        = blockIdx.x % num_blocksx;
@@ -273,47 +331,57 @@ rocblas_geam_inplace_device(rocblas_operation transB,
     int tx          = blkx * DIM_X + threadIdx.x;
     int ty          = blky * DIM_Y + threadIdx.y;
 
-    if(tx < m && ty < n)
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        auto alpha = load_scalar(alpha_device_host);
-        auto beta  = load_scalar(beta_device_host);
-
-        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
-
-        size_t b_index;
-        size_t c_index = tx + ldc * ty;
-
-        if(beta == 0)
+#endif
+        if(tx < m && ty < n)
         {
-            C[c_index] = alpha ? alpha * C[c_index] : 0;
-        }
-        else
-        {
-            auto* B = load_ptr_batch(Ba, blockIdx.z, offset_b, stride_b);
+            auto alpha = load_scalar(alpha_device_host);
+            auto beta  = load_scalar(beta_device_host);
 
-            if(transB == rocblas_operation_none)
+            auto* C = load_ptr_batch(Ca, batch, offset_c, stride_c);
+
+            size_t b_index;
+            size_t c_index = tx + ldc * ty;
+
+            if(beta == 0)
             {
-                b_index = tx + ty * ldb;
+                C[c_index] = alpha ? alpha * C[c_index] : 0;
             }
             else
             {
-                b_index = tx * ldb + ty;
-            }
+                auto* B = load_ptr_batch(Ba, batch, offset_b, stride_b);
 
-            auto b_val = B[b_index];
-            if(transB == rocblas_operation_conjugate_transpose)
-                b_val = conj(b_val);
+                if(transB == rocblas_operation_none)
+                {
+                    b_index = tx + ty * ldb;
+                }
+                else
+                {
+                    b_index = tx * ldb + ty;
+                }
 
-            if(alpha == 0)
-            {
-                C[c_index] = beta * b_val;
-            }
-            else
-            {
-                C[c_index] = beta * b_val + alpha * C[c_index];
+                auto b_val = B[b_index];
+                if(transB == rocblas_operation_conjugate_transpose)
+                    b_val = conj(b_val);
+
+                if(alpha == 0)
+                {
+                    C[c_index] = beta * b_val;
+                }
+                else
+                {
+                    C[c_index] = beta * b_val + alpha * C[c_index];
+                }
             }
         }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 /*
@@ -355,6 +423,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
 
 {
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
     auto pointer_mode = handle->pointer_mode;
     if(pointer_mode == rocblas_pointer_mode_host && !*alpha && !*beta)
@@ -366,7 +435,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         rocblas_int blocksY = (n - 1) / GEAM_DIM_Y + 1;
         blocksX *= blocksY;
 
-        dim3 geam_grid(blocksX, 1, batch_count);
+        dim3 geam_grid(blocksX, 1, batches);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         ROCBLAS_LAUNCH_KERNEL((rocblas_geam_zero_matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
@@ -379,7 +448,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                               C,
                               offset_c,
                               ldc,
-                              stride_c);
+                              stride_c,
+                              batch_count);
     }
     else if(C == A)
     {
@@ -391,7 +461,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
         blocksX *= blocksY; // overflow only on TB+
 
-        dim3 geam_grid(blocksX, 1, batch_count);
+        dim3 geam_grid(blocksX, 1, batches);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         if(pointer_mode == rocblas_pointer_mode_host)
@@ -413,7 +483,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
         else
         {
@@ -434,7 +505,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
     }
     else if(C == B)
@@ -447,7 +519,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
         blocksX *= blocksY; // overflow only on TB+
 
-        dim3 geam_grid(blocksX, 1, batch_count);
+        dim3 geam_grid(blocksX, 1, batches);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         if(pointer_mode == rocblas_pointer_mode_host)
@@ -469,7 +541,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
         else
         {
@@ -490,7 +563,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
     }
     else if(pointer_mode == rocblas_pointer_mode_host && !*beta)
@@ -504,7 +578,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             size_t               size     = size_t(m) * n;
             int                  blocks   = (size - 1) / GEAM_DIM + 1;
 
-            dim3 geam_grid(blocks, 1, batch_count);
+            dim3 geam_grid(blocks, 1, batches);
             dim3 geam_threads(GEAM_DIM);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_1D_2matrix_device<GEAM_DIM>),
@@ -519,7 +593,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   stride_a,
                                   C,
                                   offset_c,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
         else
         {
@@ -531,7 +606,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
             blocksX *= blocksY; // overflow only on TB+
 
-            dim3 geam_grid(blocksX, 1, batch_count);
+            dim3 geam_grid(blocksX, 1, batches);
             dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
@@ -550,7 +625,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
     }
     else if(rocblas_pointer_mode_host == pointer_mode && !*alpha)
@@ -564,7 +640,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             int                  size     = m * n;
             int                  blocks   = (size - 1) / GEAM_DIM + 1;
 
-            dim3 geam_grid(blocks, 1, batch_count);
+            dim3 geam_grid(blocks, 1, batches);
             dim3 geam_threads(GEAM_DIM);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_1D_2matrix_device<GEAM_DIM>),
@@ -579,7 +655,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   stride_b,
                                   C,
                                   offset_c,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
         else
         {
@@ -592,7 +669,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
             rocblas_int blocksY = (n - 1) / GEAM_DIM_Y + 1;
             blocksX *= blocksY; // overflow only on TB+
 
-            dim3 geam_grid(blocksX, 1, batch_count);
+            dim3 geam_grid(blocksX, 1, batches);
             dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
             ROCBLAS_LAUNCH_KERNEL((rocblas_geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
@@ -611,7 +688,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
     }
     else if(m == lda && transA == rocblas_operation_none && m == ldb
@@ -624,7 +702,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         int                  blocks   = (size - 1) / GEAM_DIM + 1;
         // GEAM_DIM needs to be large to prevent blocks overflowing int datatype.
 
-        dim3 geam_grid(blocks, 1, batch_count);
+        dim3 geam_grid(blocks, 1, batches);
         dim3 geam_threads(GEAM_DIM);
 
         if(rocblas_pointer_mode_host == pointer_mode)
@@ -645,7 +723,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   stride_b,
                                   C,
                                   offset_c,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
         else
         {
@@ -665,7 +744,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   stride_b,
                                   C,
                                   offset_c,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
     }
     else
@@ -678,7 +758,7 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
         rocblas_int blocksY = (n - 1) / GEAM_DIM_Y + 1;
         blocksX *= blocksY; // overflow only on TB+
 
-        dim3 geam_grid(blocksX, 1, batch_count);
+        dim3 geam_grid(blocksX, 1, batches);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
         if(pointer_mode == rocblas_pointer_mode_host)
@@ -705,7 +785,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
         else
         {
@@ -731,7 +812,8 @@ rocblas_status rocblas_geam_launcher(rocblas_handle    handle,
                                   C,
                                   offset_c,
                                   ldc,
-                                  stride_c);
+                                  stride_c,
+                                  batch_count);
         }
     }
 

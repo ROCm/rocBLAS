@@ -39,14 +39,6 @@ inline rocblas_status rocblas_spr_arg_check(rocblas_handle handle,
                                             rocblas_stride stride_A,
                                             API_INT        batch_count)
 {
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
-    }
-
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
     if(n < 0 || !incx || batch_count < 0)

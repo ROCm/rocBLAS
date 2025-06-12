@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <exception>
+#include <functional>
 #include <regex>
 #ifdef WIN32
 #include <windows.h>
@@ -44,6 +45,26 @@ testing::AssertionResult status_match(rocblas_status expected, rocblas_status st
     else
         return testing::AssertionFailure() << "got " << rocblas_status_to_string(status)
                                            << " instead of " << rocblas_status_to_string(expected);
+}
+
+void sorted_unique_solutions(std::vector<int>& indices)
+{
+    // default solutions are not unique
+    indices.erase(std::remove(indices.begin(), indices.end(), 0), indices.end());
+    indices.erase(std::remove(indices.begin(), indices.end(), -1), indices.end());
+
+    std::sort(indices.begin(), indices.end());
+    auto itr = std::unique(indices.begin(), indices.end());
+    indices.resize(std::distance(indices.begin(), itr));
+}
+
+void rocblas_client_set_gtest_filter(const char* filter_string)
+{
+#ifdef GOOGLE_TEST
+    testing::GTEST_FLAG(filter) = filter_string;
+    // newer gtest form caused compile errors
+    // GTEST_FLAG_SET(filter, filter_string);
+#endif
 }
 
 /*********************************************
@@ -141,6 +162,8 @@ static const unsigned test_timeout = [] {
 // Lambda wrapper which detects signals and exceptions in an invokable function
 void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm)
 {
+#ifdef GOOGLE_TEST
+
     // Save the current handler (to allow nested calls to this function)
     auto old_handler = t_handler;
 
@@ -197,12 +220,15 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
     // Restore the previous handler
     t_handler = old_handler;
 
+    const ::testing::TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info();
+
     if(hipPeekAtLastError() != hipSuccess)
     {
         rocblas_cerr << "hipGetLastError at end of test: "
-                     << ::testing::UnitTest::GetInstance()->current_test_info()->name()
-                     << std::endl;
+                     << (test_info ? test_info->name() : "Unknown") << std::endl;
         (void)rocblas_internal_convert_hip_to_rocblas_status_and_log(
             hipGetLastError()); // clear last error
     }
+
+#endif
 }

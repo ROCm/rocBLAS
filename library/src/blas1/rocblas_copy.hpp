@@ -60,14 +60,6 @@ inline rocblas_status rocblas_copy_arg_check(rocblas_handle handle,
     if(!x || !y)
         return rocblas_status_invalid_pointer;
 
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
-    }
-
     return rocblas_status_continue;
 }
 

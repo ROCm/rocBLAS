@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "definitions.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "herk_syrk_device.hpp"
 #include "int64_helpers.hpp"
@@ -34,7 +35,8 @@ template <typename T>
 static const T beta_1 = T(1);
 
 template <typename API_INT, bool TWOK, bool HERK, typename T, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
+rocblas_status rocblas_syrkx_syr2k_dispatch(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
                                             rocblas_operation trans,
                                             rocblas_int       n,
                                             API_INT           k,
@@ -49,12 +51,12 @@ rocblas_status rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
                                             TPtr*             dC,
                                             API_INT           ldc,
                                             rocblas_stride    stride_c,
-                                            rocblas_int       batch_count,
-                                            hipStream_t       stream)
+                                            rocblas_int       batch_count)
 {
     if(TWOK)
     {
-        return rocblas_syr2k_her2k_dispatch<API_INT, TWOK, HERK, 32>(uplo,
+        return rocblas_syr2k_her2k_dispatch<API_INT, TWOK, HERK, 32>(handle,
+                                                                     uplo,
                                                                      trans,
                                                                      n,
                                                                      k,
@@ -68,12 +70,12 @@ rocblas_status rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
                                                                      dC,
                                                                      ldc,
                                                                      stride_c,
-                                                                     batch_count,
-                                                                     stream);
+                                                                     batch_count);
     }
     else
     {
-        return rocblas_syrkx_herkx_dispatch<API_INT, HERK, T>(uplo,
+        return rocblas_syrkx_herkx_dispatch<API_INT, HERK, T>(handle,
+                                                              uplo,
                                                               trans,
                                                               n,
                                                               k,
@@ -88,8 +90,7 @@ rocblas_status rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
                                                               dC,
                                                               ldc,
                                                               stride_c,
-                                                              batch_count,
-                                                              stream);
+                                                              batch_count);
     }
 }
 
@@ -153,7 +154,8 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
     n_nb = n / nb; // number of diagonal blocks of size nb
     rem  = n % nb; // size of remainder block when n is not multiple of nb
 
-    hipStream_t stream = handle->get_stream();
+    hipStream_t stream  = handle->get_stream();
+    int         batches = batch_count;
 
     if(TWOK)
     {
@@ -162,7 +164,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         static constexpr int syr2k_SCALE_DIM_Y = 8;
         rocblas_int          gx                = (n - 1) / (syr2k_SCALE_DIM_X) + 1;
         rocblas_int          gy                = (n - 1) / (syr2k_SCALE_DIM_Y) + 1;
-        dim3                 syr2k_scale_grid(gx, gy, batch_count);
+        dim3                 syr2k_scale_grid(gx, gy, batches);
         dim3                 syr2k_scale_threads(syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y);
 
         // first scale C so we can use directly for output without work buffer
@@ -172,7 +174,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             syr2k_scale_grid,
             syr2k_scale_threads,
             0,
-            handle->get_stream(),
+            stream,
             uplo == rocblas_fill_upper,
             n,
             k,
@@ -180,15 +182,16 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             *beta,
             dc,
             ldc,
-            0);
+            0,
+            batch_count);
     }
 
     // call rocblas_syrkx_syr2k_dispatch with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
-    RETURN_IF_ROCBLAS_ERROR( (rocblas_syrkx_syr2k_dispatch<API_INT, TWOK, HERK, T>(uplo, trans, nb, k, *alpha,
+    RETURN_IF_ROCBLAS_ERROR( (rocblas_syrkx_syr2k_dispatch<API_INT, TWOK, HERK, T>(handle, uplo, trans, nb, k, *alpha,
                          da, lda, nb * a_s1,
                          db, ldb, nb * b_s1, *beta,
-                         dc, ldc, nb * (c_s1 + c_s2), n_nb, stream)));
+                         dc, ldc, nb * (c_s1 + c_s2), n_nb)));
     // clang-format on
 
     // remainder diagonal block of size n_diag < nb
@@ -198,10 +201,10 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         n_diag = n - i_diag;
         // call rocblas_syrkx_syr2k_dispatch for one remainder diagonal block of size n_diag
         // clang-format off
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_syrkx_syr2k_dispatch<API_INT, TWOK, HERK, T>(uplo, trans, n_diag, k, *alpha,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_syrkx_syr2k_dispatch<API_INT, TWOK, HERK, T>(handle, uplo, trans, n_diag, k, *alpha,
                           da + i_diag * a_s1, lda, stride_a,
                           db + i_diag * b_s1, ldb, stride_b, *beta,
-                          dc + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count, stream)));
+                          dc + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count)));
         // clang-format on
     }
 
@@ -353,10 +356,12 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
     if(!n || !batch_count)
         return rocblas_status_success;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int syr2k_DIM_XY = 32;
     rocblas_int          bx           = (n - 1) / (syr2k_DIM_XY) + 1;
     rocblas_int          by           = (n - 1) / (syr2k_DIM_XY) + 1;
-    dim3                 syr2k_grid(bx, by, batch_count);
+    dim3                 syr2k_grid(bx, by, batches);
     dim3                 syr2k_threads(syr2k_DIM_XY, syr2k_DIM_XY);
 
     TPtr           CP_krn;
@@ -409,7 +414,8 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
                 b_st_or_of,
                 CP_krn,
                 ldc,
-                c_st_or_of);
+                c_st_or_of,
+                batch_count);
         }
         else
         {
@@ -432,7 +438,8 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
                 b_st_or_of,
                 CP_krn,
                 ldc,
-                c_st_or_of);
+                c_st_or_of,
+                batch_count);
         }
     }
     else
@@ -458,7 +465,8 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
                 b_st_or_of,
                 CP_krn,
                 ldc,
-                c_st_or_of);
+                c_st_or_of,
+                batch_count);
         }
         else
         {
@@ -481,7 +489,8 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
                 b_st_or_of,
                 CP_krn,
                 ldc,
-                c_st_or_of);
+                c_st_or_of,
+                batch_count);
         }
     }
 
@@ -590,11 +599,13 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
     TConstPtr dB = dB_in;
     TConstPtr dA = dA_in;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     static constexpr int syr2k_SCALE_DIM_X = 128;
     static constexpr int syr2k_SCALE_DIM_Y = 8;
     rocblas_int          gx                = (n - 1) / (syr2k_SCALE_DIM_X) + 1;
     rocblas_int          gy                = (n - 1) / (syr2k_SCALE_DIM_Y) + 1;
-    dim3                 syr2k_scale_grid(gx, gy, batch_count);
+    dim3                 syr2k_scale_grid(gx, gy, batches);
     dim3                 syr2k_scale_threads(syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y);
 
     // first scale C so we can use directly for output without work buffer
@@ -611,7 +622,8 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
         *beta,
         dC,
         ldc,
-        BATCHED ? offset_c : stride_c);
+        BATCHED ? offset_c : stride_c,
+        batch_count);
 
     if(k == 0)
         return rocblas_status_success;

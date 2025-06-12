@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,52 +65,53 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_copy_strided_batched_name<T>,
-                      n,
-                      x,
-                      incx,
-                      stridex,
-                      y,
-                      incy,
-                      stridey,
-                      batch_count);
+            logger.log_trace(handle,
+                             rocblas_copy_strided_batched_name<T>,
+                             n,
+                             x,
+                             incx,
+                             stridex,
+                             y,
+                             incy,
+                             stridey,
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f copy_strided_batched -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--stride_x",
-                      stridex,
-                      "--incy",
-                      incy,
-                      "--stride_y",
-                      stridey,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f copy_strided_batched -r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--stride_x",
+                             stridex,
+                             "--incy",
+                             incy,
+                             "--stride_y",
+                             stridey,
+                             "--batch_count",
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_copy_strided_batched_name<T>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "stride_x",
-                        stridex,
-                        "incy",
-                        incy,
-                        "stride_y",
-                        stridey,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_copy_strided_batched_name<T>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "stride_x",
+                               stridex,
+                               "incy",
+                               incy,
+                               "stride_y",
+                               stridey,
+                               "batch_count",
+                               batch_count);
 
         rocblas_status arg_status = rocblas_copy_arg_check(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);

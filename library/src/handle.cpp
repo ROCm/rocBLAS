@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
 #include <hipblaslt/hipblaslt.h>
 #endif
 
-#if BUILD_WITH_TENSILE
+#ifdef BUILD_WITH_TENSILE
 #else
 // see TensileHost.cpp for normal rocblas_initialize definition
 // it isn't compiled if not BUILD_WITH_TENSILE so defining here
@@ -106,17 +106,13 @@ static Processor getActiveArch(int deviceId)
     {
         return Processor::gfx90a;
     }
-    else if(deviceString.find("gfx940") != std::string::npos)
-    {
-        return Processor::gfx940;
-    }
-    else if(deviceString.find("gfx941") != std::string::npos)
-    {
-        return Processor::gfx941;
-    }
     else if(deviceString.find("gfx942") != std::string::npos)
     {
         return Processor::gfx942;
+    }
+    else if(deviceString.find("gfx950") != std::string::npos)
+    {
+        return Processor::gfx950;
     }
     else if(deviceString.find("gfx1010") != std::string::npos)
     {
@@ -170,6 +166,9 @@ _rocblas_handle::_rocblas_handle()
 {
     archMajor      = arch / 100; // this may need to switch to string handling in the future
     archMajorMinor = arch / 10;
+
+    THROW_IF_HIP_ERROR(hipDeviceGetAttribute(
+        &mWarpSize, hipDeviceAttribute_t(hipDeviceAttributeWarpSize), device));
 
     //ROCBLAS_STREAM_ORDER_ALLOC
     const char* stream_order_alloc_env = read_env("ROCBLAS_STREAM_ORDER_ALLOC");
@@ -267,7 +266,7 @@ _rocblas_handle::_rocblas_handle()
         hipblasltEnvVar = -1;
     }
 
-    if(useHipBLASLt())
+    if(isHipBLASLtEnabled())
     {
         hipblasLtHandle                = std::make_shared<hipblasLtHandle_t>();
         hipblasStatus_t hipblas_status = hipblasLtCreate(&(*hipblasLtHandle));
@@ -408,6 +407,40 @@ bool _rocblas_handle::device_allocator(size_t size)
     return success;
 }
 #endif
+
+/*******************************************************************************
+ * Set the external data packet pointer
+ ******************************************************************************/
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_set_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    handle->set_data_ptr(data_ptr);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * Get the external data packet pointer
+ ******************************************************************************/
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_get_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    handle->get_data_ptr(data_ptr);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * start device memory size queries
@@ -829,7 +862,7 @@ void _rocblas_handle::init_logging()
         layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
 
         // open log_trace file
-        if(layer_mode & rocblas_layer_mode_log_trace)
+        if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_internal))
             log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
 
         // open log_bench file

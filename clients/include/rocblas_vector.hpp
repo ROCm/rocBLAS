@@ -24,14 +24,16 @@
 
 #include "d_vector.hpp"
 
+#include "device_batch_vector.hpp"
+#include "device_multiple_strided_batch_vector.hpp"
+#include "device_strided_batch_vector.hpp"
+#include "device_vector.hpp"
+
 #include "host_batch_vector.hpp"
+#include "host_multiple_strided_batch_vector.hpp"
 #include "host_pinned_vector.hpp"
 #include "host_strided_batch_vector.hpp"
 #include "host_vector.hpp"
-
-#include "device_batch_vector.hpp"
-#include "device_strided_batch_vector.hpp"
-#include "device_vector.hpp"
 
 #include "rocblas_init.hpp"
 

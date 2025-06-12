@@ -31,6 +31,7 @@
 #define ZSYMM_BATCHED_MIN_NB 32
 
 #include "definitions.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_gemm.hpp"
 #include "rocblas_symm_hemm.hpp"
@@ -40,14 +41,13 @@
 template <typename T>
 static const T beta_1 = T(1);
 
-template <typename T>
+template <int DIM_X, int DIM_Y, typename T>
 ROCBLAS_KERNEL_ILF void
     rocblas_symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, int64_t ldc)
 {
-    auto tx = blockIdx.x * blockDim.x + threadIdx.x;
+    auto tx = blockIdx.x * DIM_X + threadIdx.x;
 
-    for(ptrdiff_t ty = blockIdx.y * blockDim.y + threadIdx.y; tx < m && ty < n;
-        ty += blockDim.y * gridDim.y)
+    for(ptrdiff_t ty = blockIdx.y * DIM_Y + threadIdx.y; tx < m && ty < n; ty += DIM_Y * gridDim.y)
     {
         C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
     }
@@ -64,14 +64,24 @@ rocblas_symm_scale_kernel(rocblas_int    m,
                           U              CP_array,
                           rocblas_stride shift_c,
                           int64_t        ldc,
-                          rocblas_stride stride_c)
+                          rocblas_stride stride_c,
+                          rocblas_int    batch_count)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
         return;
 
-    auto C = load_ptr_batch(CP_array, blockIdx.z, shift_c, stride_c);
-    rocblas_symm_scale_device(m, n, beta, C, ldc);
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        auto C = load_ptr_batch(CP_array, batch, shift_c, stride_c);
+        rocblas_symm_scale_device<DIM_X, DIM_Y>(m, n, beta, C, ldc);
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -235,20 +245,32 @@ rocblas_symm_hemm_kernel(bool           is_upper,
                          TPtr           CP_array,
                          rocblas_stride shift_c,
                          int64_t        ldc,
-                         rocblas_stride stride_c)
+                         rocblas_stride stride_c,
+                         rocblas_int    batch_count)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)
         return;
 
-    auto A = load_ptr_batch(AP_array, blockIdx.z, shift_a, stride_a);
-    auto B = load_ptr_batch(BP_array, blockIdx.z, shift_b, stride_b);
-    auto C = load_ptr_batch(CP_array, blockIdx.z, shift_c, stride_c);
+    uint32_t batch = blockIdx.z;
 
-    // compute matrix multiplies and accumulate on the fly into C
-    // when HERM does ^H in place of ^T for A fetches to symmetric empty side
-    rocblas_symm_hemm_mult_add_device<HERM, RIGHT, DIM_XYT>(
-        is_upper, m, n, alpha, A, lda, B, ldb, C, ldc);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        auto A = load_ptr_batch(AP_array, batch, shift_a, stride_a);
+        auto B = load_ptr_batch(BP_array, batch, shift_b, stride_b);
+        auto C = load_ptr_batch(CP_array, batch, shift_c, stride_c);
+
+        // compute matrix multiplies and accumulate on the fly into C
+        // when HERM does ^H in place of ^T for A fetches to symmetric empty side
+        rocblas_symm_hemm_mult_add_device<HERM, RIGHT, DIM_XYT>(
+            is_upper, m, n, alpha, A, lda, B, ldb, C, ldc);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -287,13 +309,15 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
     rocblas_int          gx               = (m - 1) / (symm_SCALE_DIM_X) + 1;
     rocblas_int          gy = std::min(c_YZ_grid_launch_limit, (n - 1) / (symm_SCALE_DIM_Y) + 1);
 
-    dim3 symm_scale_grid(gx, gy, batch_count);
+    int batches = handle->getBatchGridDim((int)batch_count);
+
+    dim3 symm_scale_grid(gx, gy, batches);
     dim3 symm_scale_threads(symm_SCALE_DIM_X, symm_SCALE_DIM_Y);
 
     static constexpr int symm_DIM_XY = 32;
     rocblas_int          bx          = (m - 1) / (symm_DIM_XY) + 1;
     rocblas_int          by = std::min(c_YZ_grid_launch_limit, (n - 1) / (symm_DIM_XY) + 1);
-    dim3                 symm_grid(bx, by, batch_count);
+    dim3                 symm_grid(bx, by, batches);
     dim3                 symm_threads(symm_DIM_XY, symm_DIM_XY);
 
     // Launch a herk kernel for symm.
@@ -311,7 +335,8 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
                               CP,
                               offsetC,
                               ldc,
-                              strideC);
+                              strideC,
+                              batch_count);
 
         if(side == rocblas_side_left)
         {
@@ -335,7 +360,8 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
                                   CP,
                                   offsetC,
                                   ldc,
-                                  strideC);
+                                  strideC,
+                                  batch_count);
         }
         else
         {
@@ -359,7 +385,8 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
                                   CP,
                                   offsetC,
                                   ldc,
-                                  strideC);
+                                  strideC,
+                                  batch_count);
         }
     }
     else
@@ -379,7 +406,8 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
                               CP,
                               offsetC,
                               ldc,
-                              strideC);
+                              strideC,
+                              batch_count);
 
         if(side == rocblas_side_left)
         {
@@ -403,7 +431,8 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
                                   CP,
                                   offsetC,
                                   ldc,
-                                  strideC);
+                                  strideC,
+                                  batch_count);
         }
         else
         {
@@ -427,7 +456,8 @@ rocblas_status rocblas_symm_hemm_dispatch(rocblas_handle handle,
                                   CP,
                                   offsetC,
                                   ldc,
-                                  strideC);
+                                  strideC,
+                                  batch_count);
         }
     }
     return rocblas_status_success;

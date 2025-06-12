@@ -118,7 +118,7 @@ rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
             if(k_64 == 0 || (alpha && *alpha == 0))
             {
                 status = rocblas_gemm_scale_launcher_64(
-                    m_64, n_64, *beta, C, offset_c, ldc_64, stride_c, batch_count, rocblas_stream);
+                    handle, m_64, n_64, *beta, C, offset_c, ldc_64, stride_c, batch_count);
             }
             else
             {
@@ -134,6 +134,7 @@ rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
                         int32_t m = int32_t(std::min(m_64 - m_base, c_i64_grid_X_chunk));
 
                         status = rocblas_gemm_source_solution_64<BATCHED>(
+                            handle,
                             trans_a,
                             trans_b,
                             m,
@@ -159,8 +160,7 @@ rocblas_status rocblas_internal_gemm_64(rocblas_handle    handle,
                             ldc_64,
                             stride_c,
                             offset_c + m_base + n_base * ldc_64,
-                            batch_count,
-                            rocblas_stream);
+                            batch_count);
 
                         if(status != rocblas_status_success)
                             return status;

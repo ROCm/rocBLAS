@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "definitions.hpp"
+#include "device_macros.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_gemm.hpp"
 #include "rocblas_trmm.hpp"
@@ -80,22 +81,34 @@ rocblas_set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                              rocblas_stride stride_alpha,
                                              TPtr           Aa,
                                              int64_t        lda,
-                                             rocblas_stride a_st_or_of)
+                                             rocblas_stride a_st_or_of,
+                                             rocblas_int    batch_count)
 {
     ptrdiff_t tx = blockIdx.x * DIM_X + threadIdx.x;
 
-    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
+    uint32_t batch = blockIdx.z;
 
-    if(alpha == 0)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        for(ptrdiff_t ty = blockIdx.y * DIM_Y + threadIdx.y; tx < m && ty < n;
-            ty += DIM_Y * gridDim.y)
-        {
-            auto* A = load_ptr_batch(Aa, blockIdx.z, a_st_or_of);
+#endif
 
-            A[tx + size_t(lda) * ty] = 0;
+        auto alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+
+        if(alpha == 0)
+        {
+            for(ptrdiff_t ty = blockIdx.y * DIM_Y + threadIdx.y; tx < m && ty < n;
+                ty += DIM_Y * gridDim.y)
+            {
+                auto* A = load_ptr_batch(Aa, batch, a_st_or_of);
+
+                A[tx + size_t(lda) * ty] = 0;
+            }
         }
+
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 template <typename TScal, typename TPtr>
@@ -114,13 +127,14 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
     static constexpr int GEMV_DIM_X = 16;
     static constexpr int GEMV_DIM_Y = 16;
     rocblas_int          blocksX    = (m - 1) / GEMV_DIM_X + 1;
     rocblas_int          blocksY    = std::min(c_YZ_grid_launch_limit, (n - 1) / GEMV_DIM_Y + 1);
 
-    dim3 grid(blocksX, blocksY, batch_count);
+    dim3 grid(blocksX, blocksY, batches);
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -136,7 +150,8 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
             stride_alpha,
             A,
             lda,
-            a_st_or_of);
+            a_st_or_of,
+            batch_count);
     else
         ROCBLAS_LAUNCH_KERNEL(
             (rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
@@ -150,7 +165,8 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
             stride_alpha,
             A,
             lda,
-            a_st_or_of);
+            a_st_or_of,
+            batch_count);
     return rocblas_status_success;
 }
 
@@ -188,153 +204,165 @@ rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
     constexpr bool        ITER_UPPER = (UPPER && !TRANSPOSE) || (!UPPER && TRANSPOSE);
     constexpr rocblas_int DIM        = NB / THR_DIM;
 
-    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    auto A     = load_ptr_batch(A_arg, blockIdx.z, offset_a, stride_a);
-    auto B     = load_ptr_batch(B_arg, blockIdx.z, offset_b, stride_b);
-    auto C     = load_ptr_batch(C_arg, blockIdx.z, offset_c, stride_c);
+    uint32_t batch = blockIdx.z;
 
-    if(alpha == 0)
-        return;
-
-    const rocblas_int k = LEFT ? m : n;
-
-    const rocblas_int tx = threadIdx.x;
-    const rocblas_int ty = threadIdx.y;
-    const rocblas_int bx = blockIdx.x;
-
-    __shared__ T sA[NB][NB];
-    __shared__ T sB[NB][NB];
-
-    T rC[THR_DIM][THR_DIM];
-
-    for(rocblas_int by = blockIdx.y; by < ((n - 1) / NB + 1); by += gridDim.y)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        // A and B offset by blocks and threads
-        // For LEFT,  bx is block row of A. For upper triangular, we need to offset the column
-        //            as well since the first (lower) portion doesn't need to be accessed.
-        // For RIGHT, by is block column of A. For lower triangular, we need to offset the row
-        //            as well since the first (upper) portion doesn't need to be accessed.
-        //
-        rocblas_stride A_col_offset
-            = LEFT ? (ITER_UPPER ? bx * NB + ty : ty) : (ITER_UPPER ? by * NB + ty : ty + NB * by);
-        rocblas_stride A_row_offset = LEFT ? bx * NB + tx : (ITER_UPPER ? tx : by * NB + tx);
-        rocblas_stride B_row_offset = LEFT ? (ITER_UPPER ? NB * bx + tx : tx) : bx * NB + tx;
-        rocblas_stride B_col_offset = LEFT ? by * NB + ty : (ITER_UPPER ? ty : ty + NB * by);
+#endif
 
-        const T* dA
-            = A
-              + (TRANSPOSE ? A_col_offset + A_row_offset * lda : A_row_offset + A_col_offset * lda);
-        const T* dB = B + B_row_offset + B_col_offset * ldb;
+        auto alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        auto A     = load_ptr_batch(A_arg, batch, offset_a, stride_a);
+        auto B     = load_ptr_batch(B_arg, batch, offset_b, stride_b);
+        auto C     = load_ptr_batch(C_arg, batch, offset_c, stride_c);
 
-        // zero out result matrix
-        for(rocblas_int i = 0; i < THR_DIM; i++)
+        if(alpha == 0)
+            return;
+
+        const rocblas_int k = LEFT ? m : n;
+
+        const rocblas_int tx = threadIdx.x;
+        const rocblas_int ty = threadIdx.y;
+        const rocblas_int bx = blockIdx.x;
+
+        __shared__ T sA[NB][NB];
+        __shared__ T sB[NB][NB];
+
+        T rC[THR_DIM][THR_DIM];
+
+        for(rocblas_int by = blockIdx.y; by < ((n - 1) / NB + 1); by += gridDim.y)
         {
-            for(rocblas_int j = 0; j < THR_DIM; j++)
-            {
-                rC[i][j] = 0.0;
-            }
-        }
+            // A and B offset by blocks and threads
+            // For LEFT,  bx is block row of A. For upper triangular, we need to offset the column
+            //            as well since the first (lower) portion doesn't need to be accessed.
+            // For RIGHT, by is block column of A. For lower triangular, we need to offset the row
+            //            as well since the first (upper) portion doesn't need to be accessed.
+            //
+            rocblas_stride A_col_offset = LEFT ? (ITER_UPPER ? bx * NB + ty : ty)
+                                               : (ITER_UPPER ? by * NB + ty : ty + NB * by);
+            rocblas_stride A_row_offset = LEFT ? bx * NB + tx : (ITER_UPPER ? tx : by * NB + tx);
+            rocblas_stride B_row_offset = LEFT ? (ITER_UPPER ? NB * bx + tx : tx) : bx * NB + tx;
+            rocblas_stride B_col_offset = LEFT ? by * NB + ty : (ITER_UPPER ? ty : ty + NB * by);
 
-        // full blocks of A. bx is the block row which is equal to
-        // the number of full blocks in that block row (for lower triangular)
-        const rocblas_int full_blocks = LEFT ? NB * bx : NB * by;
+            const T* dA = A
+                          + (TRANSPOSE ? A_col_offset + A_row_offset * lda
+                                       : A_row_offset + A_col_offset * lda);
+            const T* dB = B + B_row_offset + B_col_offset * ldb;
 
-        // Iterate through the blocks. If we iterate up the triangular matrix on the left, we use the inverse of what is calculated above,
-        // otherwise we add a BLK for the triangular block.
-        rocblas_int block_iter_end
-            = ((ITER_UPPER && LEFT) || (!ITER_UPPER && !LEFT)) ? k - full_blocks : full_blocks + NB;
-        for(rocblas_int blk_iter = 0; blk_iter < block_iter_end; blk_iter += NB)
-        {
-            // store A in shared memory
-            for(rocblas_int i = 0; i < NB; i += DIM)
+            // zero out result matrix
+            for(rocblas_int i = 0; i < THR_DIM; i++)
             {
-                for(rocblas_int j = 0; j < NB; j += DIM)
+                for(rocblas_int j = 0; j < THR_DIM; j++)
                 {
-                    // Check if the A index is within the bounds of the matrix, is on a diagonal, and is within the triangular section.
-                    size_t A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
-                    bool   in_diag
-                        = diag == rocblas_diagonal_unit && j + A_row_offset == i + A_col_offset;
-                    bool in_size = j + A_row_offset < k && i + A_col_offset < k;
-                    bool in_bounds
-                        = in_size
-                          && (UPPER ? (TRANSPOSE ? (j + A_row_offset >= i + A_col_offset)
-                                                 : (j + A_row_offset <= i + A_col_offset))
-                                    : (TRANSPOSE ? (j + A_row_offset <= i + A_col_offset)
-                                                 : (j + A_row_offset >= i + A_col_offset)));
-
-                    if(in_bounds && !in_diag)
-                        sA[i + ty][j + tx] = CONJ ? conj(dA[A_idx]) : dA[A_idx];
-                    else if(in_diag)
-                        sA[i + ty][j + tx] = 1;
-                    else
-                        sA[i + ty][j + tx] = 0;
+                    rC[i][j] = 0.0;
                 }
             }
 
-            // store B in shared memory
-            for(rocblas_int i = 0; i < NB; i += DIM)
-            {
-                for(rocblas_int j = 0; j < NB; j += DIM)
-                {
-                    if(i + B_col_offset < n && j + B_row_offset < m)
-                        sB[i + ty][j + tx] = dB[j + i * size_t(ldb)];
-                    else
-                        sB[i + ty][j + tx] = 0;
-                }
-            }
+            // full blocks of A. bx is the block row which is equal to
+            // the number of full blocks in that block row (for lower triangular)
+            const rocblas_int full_blocks = LEFT ? NB * bx : NB * by;
 
-            __syncthreads();
-
-            // multiply C = AB
-            for(rocblas_int i = 0; i < NB; i++)
+            // Iterate through the blocks. If we iterate up the triangular matrix on the left, we use the inverse of what is calculated above,
+            // otherwise we add a BLK for the triangular block.
+            rocblas_int block_iter_end = ((ITER_UPPER && LEFT) || (!ITER_UPPER && !LEFT))
+                                             ? k - full_blocks
+                                             : full_blocks + NB;
+            for(rocblas_int blk_iter = 0; blk_iter < block_iter_end; blk_iter += NB)
             {
-                for(rocblas_int jn = 0; jn < THR_DIM; jn++)
+                // store A in shared memory
+                for(rocblas_int i = 0; i < NB; i += DIM)
                 {
-                    for(rocblas_int jm = 0; jm < THR_DIM; jm++)
+                    for(rocblas_int j = 0; j < NB; j += DIM)
                     {
-                        if(LEFT)
-                            rC[jn][jm] += sA[i][jm * DIM + tx] * sB[jn * DIM + ty][i];
+                        // Check if the A index is within the bounds of the matrix, is on a diagonal, and is within the triangular section.
+                        size_t A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
+                        bool   in_diag
+                            = diag == rocblas_diagonal_unit && j + A_row_offset == i + A_col_offset;
+                        bool in_size = j + A_row_offset < k && i + A_col_offset < k;
+                        bool in_bounds
+                            = in_size
+                              && (UPPER ? (TRANSPOSE ? (j + A_row_offset >= i + A_col_offset)
+                                                     : (j + A_row_offset <= i + A_col_offset))
+                                        : (TRANSPOSE ? (j + A_row_offset <= i + A_col_offset)
+                                                     : (j + A_row_offset >= i + A_col_offset)));
+
+                        if(in_bounds && !in_diag)
+                            sA[i + ty][j + tx] = CONJ ? conj(dA[A_idx]) : dA[A_idx];
+                        else if(in_diag)
+                            sA[i + ty][j + tx] = 1;
                         else
-                            rC[jn][jm] += sB[i][jm * DIM + tx] * sA[jn * DIM + ty][i];
+                            sA[i + ty][j + tx] = 0;
+                    }
+                }
+
+                // store B in shared memory
+                for(rocblas_int i = 0; i < NB; i += DIM)
+                {
+                    for(rocblas_int j = 0; j < NB; j += DIM)
+                    {
+                        if(i + B_col_offset < n && j + B_row_offset < m)
+                            sB[i + ty][j + tx] = dB[j + i * size_t(ldb)];
+                        else
+                            sB[i + ty][j + tx] = 0;
+                    }
+                }
+
+                __syncthreads();
+
+                // multiply C = AB
+                for(rocblas_int i = 0; i < NB; i++)
+                {
+                    for(rocblas_int jn = 0; jn < THR_DIM; jn++)
+                    {
+                        for(rocblas_int jm = 0; jm < THR_DIM; jm++)
+                        {
+                            if(LEFT)
+                                rC[jn][jm] += sA[i][jm * DIM + tx] * sB[jn * DIM + ty][i];
+                            else
+                                rC[jn][jm] += sB[i][jm * DIM + tx] * sA[jn * DIM + ty][i];
+                        }
+                    }
+                }
+
+                // Iterate to next block column of A to multiply
+                // For transpose, we iterate down the row of memory, effectively
+                // iterating across the column of the transposed matrix
+                if(LEFT)
+                {
+                    dA += TRANSPOSE ? NB : NB * size_t(lda);
+                    A_col_offset += NB;
+                    dB += NB;
+                    B_row_offset += NB;
+                }
+                else
+                {
+                    dA += !TRANSPOSE ? NB : NB * size_t(lda);
+                    A_row_offset += NB;
+                    dB += NB * size_t(ldb);
+                    B_col_offset += NB;
+                }
+
+                __syncthreads();
+            }
+
+            // store the C matrix
+            for(rocblas_int jn = 0; jn < THR_DIM; jn++)
+            {
+                rocblas_int c_idxn = by * NB + jn * DIM + ty;
+                for(rocblas_int jm = 0; jm < THR_DIM; jm++)
+                {
+                    rocblas_int c_idxm = bx * NB + jm * DIM + tx;
+                    if(c_idxm < m && c_idxn < n)
+                    {
+                        C[c_idxn * size_t(ldc) + c_idxm] += alpha * rC[jn][jm];
                     }
                 }
             }
-
-            // Iterate to next block column of A to multiply
-            // For transpose, we iterate down the row of memory, effectively
-            // iterating across the column of the transposed matrix
-            if(LEFT)
-            {
-                dA += TRANSPOSE ? NB : NB * size_t(lda);
-                A_col_offset += NB;
-                dB += NB;
-                B_row_offset += NB;
-            }
-            else
-            {
-                dA += !TRANSPOSE ? NB : NB * size_t(lda);
-                A_row_offset += NB;
-                dB += NB * size_t(ldb);
-                B_col_offset += NB;
-            }
-
-            __syncthreads();
         }
 
-        // store the C matrix
-        for(rocblas_int jn = 0; jn < THR_DIM; jn++)
-        {
-            rocblas_int c_idxn = by * NB + jn * DIM + ty;
-            for(rocblas_int jm = 0; jm < THR_DIM; jm++)
-            {
-                rocblas_int c_idxm = bx * NB + jm * DIM + tx;
-                if(c_idxm < m && c_idxn < n)
-                {
-                    C[c_idxn * size_t(ldc) + c_idxm] += alpha * rC[jn][jm];
-                }
-            }
-        }
+#if DEVICE_GRID_YZ_16BIT
     }
+#endif
 }
 
 template <typename T,
@@ -369,13 +397,16 @@ rocblas_status rocblas_trmm_outofplace_dispatch(rocblas_handle   handle,
     // grid of  ((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1) blocks per batch
     // block of (dim_m, dim_n) threads per block
     // for float, NB = 32, so just using that for now in case limited mem
-    constexpr rocblas_int THR_DIM        = 2;
-    hipStream_t           rocblas_stream = handle->get_stream();
-    const rocblas_int     blkx           = ((m - 1) / NB + 1);
-    const rocblas_int     blky           = std::min(c_YZ_grid_launch_limit, ((n - 1) / NB + 1));
-    dim3                  grid(blkx, blky, batch_count);
+    constexpr rocblas_int THR_DIM = 2;
 
-    dim3 threads(NB / THR_DIM, NB / THR_DIM, 1);
+    hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
+
+    const rocblas_int blkx = (m - 1) / NB + 1;
+    const rocblas_int blky = std::min(c_YZ_grid_launch_limit, ((n - 1) / NB + 1));
+    dim3              grid(blkx, blky, batches);
+
+    dim3 threads(NB / THR_DIM, NB / THR_DIM);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
@@ -454,64 +485,76 @@ rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
                         int64_t          ldc,
-                        rocblas_stride   c_st_or_of)
+                        rocblas_stride   c_st_or_of,
+                        rocblas_int      batch_count)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    if(alpha == 0)
-        return;
-    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
+    uint32_t batch = blockIdx.z;
 
-    const int nblocks = (n - 1) / NB + 1;
-    const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
-    B += bx * NB * size_t(ldb);
-    C += bx * NB * size_t(ldc);
-
-    __shared__ T sA[NB * NB];
-    __shared__ T sB[NB * NB];
-
-    // initialize sA and sB to zero
-    sA[ty * NB + tx] = 0;
-    sB[ty * NB + tx] = 0;
-
-    // load A and B
-    if(ty < m && tx < m)
-        sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
-    if(ty < nn && tx < m)
-        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
-
-    // handle diag
-    if(diag == rocblas_diagonal_unit)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        if(ty == tx)
-            sA[ty * NB + tx] = 1.0;
-    }
+#endif
 
-    // handle uplo
-    if(uplo == rocblas_fill_upper)
-    {
-        if(tx > ty)
-            sA[ty * NB + tx] = 0.0;
-    }
-    else
-    {
-        if(tx < ty)
-            sA[ty * NB + tx] = 0.0;
-    }
-    __syncthreads();
+        T alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        if(alpha != T(0))
+        {
+            auto* A = load_ptr_batch(A_arg, batch, a_st_or_of);
+            auto* B = load_ptr_batch(B_arg, batch, b_st_or_of);
+            auto* C = load_ptr_batch(C_arg, batch, c_st_or_of);
 
-    T accumulator = 0;
+            const int nblocks = (n - 1) / NB + 1;
+            const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
+            B += bx * NB * size_t(ldb);
+            C += bx * NB * size_t(ldc);
+
+            __shared__ T sA[NB * NB];
+            __shared__ T sB[NB * NB];
+
+            // initialize sA and sB to zero
+            sA[ty * NB + tx] = 0;
+            sB[ty * NB + tx] = 0;
+
+            // load A and B
+            if(ty < m && tx < m)
+                sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
+            if(ty < nn && tx < m)
+                sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
+
+            // handle diag
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(ty == tx)
+                    sA[ty * NB + tx] = 1.0;
+            }
+
+            // handle uplo
+            if(uplo == rocblas_fill_upper)
+            {
+                if(tx > ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            else
+            {
+                if(tx < ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            __syncthreads();
+
+            T accumulator = 0;
 #pragma unroll
-    for(int i = 0; i < NB; i++)
-        accumulator += sA[i * NB + tx] * sB[ty * NB + i];
-    accumulator *= alpha;
-    if(ty < nn && tx < m)
-        C[ty * size_t(ldc) + tx] = accumulator;
+            for(int i = 0; i < NB; i++)
+                accumulator += sA[i * NB + tx] * sB[ty * NB + i];
+            accumulator *= alpha;
+            if(ty < nn && tx < m)
+                C[ty * size_t(ldc) + tx] = accumulator;
+        }
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 // left, Trans|ConjTrans
@@ -531,77 +574,89 @@ rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
                         int64_t          ldc,
-                        rocblas_stride   c_st_or_of)
+                        rocblas_stride   c_st_or_of,
+                        rocblas_int      batch_count)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    if(alpha == 0)
-        return;
-    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
+    uint32_t batch = blockIdx.z;
 
-    const int nblocks = (n - 1) / NB + 1;
-    const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
-    B += bx * NB * size_t(ldb);
-    C += bx * NB * size_t(ldc);
-
-    __shared__ T sA[NB * NB];
-    __shared__ T sB[NB * NB];
-
-    // init sA and sB to zero
-    sA[ty * NB + tx] = 0.0;
-    sB[ty * NB + tx] = 0.0;
-    __syncthreads(); // needed because sA will be stored as transposed
-
-    // load A and B
-    if(ty < m && tx < m)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        if(CONJA)
+#endif
+
+        T alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        if(alpha != T(0))
         {
-            sA[tx * NB + ty] = conj(A[ty * size_t(lda) + tx]);
-        }
-        else
-        {
-            sA[tx * NB + ty] = A[ty * size_t(lda) + tx];
-        }
-    }
-    if(ty < nn && tx < m)
-        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
+            auto* A = load_ptr_batch(A_arg, batch, a_st_or_of);
+            auto* B = load_ptr_batch(B_arg, batch, b_st_or_of);
+            auto* C = load_ptr_batch(C_arg, batch, c_st_or_of);
 
-    // handle diag
-    if(diag == rocblas_diagonal_unit)
-    {
-        if(ty == tx)
-            sA[ty * NB + tx] = 1.0;
-    }
+            const int nblocks = (n - 1) / NB + 1;
+            const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
+            B += bx * NB * size_t(ldb);
+            C += bx * NB * size_t(ldc);
 
-    // handle uplo
-    __syncthreads();
-    if(uplo == rocblas_fill_lower)
-    {
-        if(tx > ty)
+            __shared__ T sA[NB * NB];
+            __shared__ T sB[NB * NB];
+
+            // init sA and sB to zero
             sA[ty * NB + tx] = 0.0;
-    }
-    else
-    {
-        if(tx < ty)
-            sA[ty * NB + tx] = 0.0;
-    }
-    __syncthreads();
+            sB[ty * NB + tx] = 0.0;
+            __syncthreads(); // needed because sA will be stored as transposed
 
-    T accumulator = 0.0;
+            // load A and B
+            if(ty < m && tx < m)
+            {
+                if(CONJA)
+                {
+                    sA[tx * NB + ty] = conj(A[ty * size_t(lda) + tx]);
+                }
+                else
+                {
+                    sA[tx * NB + ty] = A[ty * size_t(lda) + tx];
+                }
+            }
+            if(ty < nn && tx < m)
+                sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
+
+            // handle diag
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(ty == tx)
+                    sA[ty * NB + tx] = 1.0;
+            }
+
+            // handle uplo
+            __syncthreads();
+            if(uplo == rocblas_fill_lower)
+            {
+                if(tx > ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            else
+            {
+                if(tx < ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            __syncthreads();
+
+            T accumulator = 0.0;
 #pragma unroll
-    for(int i = 0; i < NB; i++)
-        accumulator += sA[i * NB + tx] * sB[ty * NB + i];
-    accumulator *= alpha;
+            for(int i = 0; i < NB; i++)
+                accumulator += sA[i * NB + tx] * sB[ty * NB + i];
+            accumulator *= alpha;
 
-    // write C
-    if(ty < nn && tx < m)
-        C[ty * size_t(ldc) + tx] = accumulator;
+            // write C
+            if(ty < nn && tx < m)
+                C[ty * size_t(ldc) + tx] = accumulator;
+        }
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 // right NoTrans
@@ -621,65 +676,77 @@ rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
                         int64_t          ldc,
-                        rocblas_stride   c_st_or_of)
+                        rocblas_stride   c_st_or_of,
+                        rocblas_int      batch_count)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    if(alpha == 0)
-        return;
-    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
+    uint32_t batch = blockIdx.z;
 
-    const int nblocks = (m - 1) / NB + 1;
-    const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
-    B += bx * NB;
-    C += bx * NB;
-
-    __shared__ T sA[NB * NB];
-    __shared__ T sB[NB * NB];
-
-    // init sA and sB to zero
-    sA[ty * NB + tx] = 0.0;
-    sB[ty * NB + tx] = 0.0;
-
-    // load A and B
-    if(ty < n && tx < n)
-        sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
-    if(ty < n && tx < mm)
-        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
-
-    // handle diag
-    if(diag == rocblas_diagonal_unit)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        if(ty == tx)
-            sA[ty * NB + tx] = 1.0;
-    }
+#endif
 
-    // handle uplo
-    if(uplo == rocblas_fill_upper)
-    {
-        if(tx > ty)
+        T alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        if(alpha != T(0))
+        {
+            auto* A = load_ptr_batch(A_arg, batch, a_st_or_of);
+            auto* B = load_ptr_batch(B_arg, batch, b_st_or_of);
+            auto* C = load_ptr_batch(C_arg, batch, c_st_or_of);
+
+            const int nblocks = (m - 1) / NB + 1;
+            const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
+            B += bx * NB;
+            C += bx * NB;
+
+            __shared__ T sA[NB * NB];
+            __shared__ T sB[NB * NB];
+
+            // init sA and sB to zero
             sA[ty * NB + tx] = 0.0;
-    }
-    else
-    {
-        if(tx < ty)
-            sA[ty * NB + tx] = 0.0;
-    }
-    __syncthreads();
+            sB[ty * NB + tx] = 0.0;
 
-    T accumulator = 0.0;
+            // load A and B
+            if(ty < n && tx < n)
+                sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
+            if(ty < n && tx < mm)
+                sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
+
+            // handle diag
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(ty == tx)
+                    sA[ty * NB + tx] = 1.0;
+            }
+
+            // handle uplo
+            if(uplo == rocblas_fill_upper)
+            {
+                if(tx > ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            else
+            {
+                if(tx < ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            __syncthreads();
+
+            T accumulator = 0.0;
 #pragma unroll
-    for(int i = 0; i < NB; i++)
-        accumulator += sB[i * NB + tx] * sA[ty * NB + i];
-    accumulator *= alpha;
-    // write C
-    if(ty < n && tx < mm)
-        C[ty * size_t(ldc) + tx] = accumulator;
+            for(int i = 0; i < NB; i++)
+                accumulator += sB[i * NB + tx] * sA[ty * NB + i];
+            accumulator *= alpha;
+            // write C
+            if(ty < n && tx < mm)
+                C[ty * size_t(ldc) + tx] = accumulator;
+        }
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 // right, transpose_and_conjugate_transpose
@@ -699,74 +766,87 @@ rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
                         rocblas_stride   b_st_or_of,
                         TPtr*            C_arg,
                         int64_t          ldc,
-                        rocblas_stride   c_st_or_of)
+                        rocblas_stride   c_st_or_of,
+                        rocblas_int      batch_count)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
-    if(alpha == 0)
-        return;
-    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
+    uint32_t batch = blockIdx.z;
 
-    const int nblocks = (m - 1) / NB + 1;
-    const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
-    B += bx * NB;
-    C += bx * NB;
-
-    __shared__ T sA[NB * NB];
-    __shared__ T sB[NB * NB];
-
-    // init sA and sB to zero
-    sA[ty * NB + tx] = 0.0;
-    sB[ty * NB + tx] = 0.0;
-
-    // load A and B
-    if(ty < n && tx < n)
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
     {
-        if(CONJA)
+#endif
+
+        T alpha = load_scalar(alpha_device_host, batch, stride_alpha);
+        if(alpha != T(0))
         {
-            sA[ty * NB + tx] = conj(A[ty * size_t(lda) + tx]);
-        }
-        else
-        {
-            sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
-        }
-    }
-    if(ty < n && tx < mm)
-        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
+            auto* A = load_ptr_batch(A_arg, batch, a_st_or_of);
+            auto* B = load_ptr_batch(B_arg, batch, b_st_or_of);
+            auto* C = load_ptr_batch(C_arg, batch, c_st_or_of);
 
-    // handle diag
-    if(diag == rocblas_diagonal_unit)
-    {
-        if(ty == tx)
-            sA[ty * NB + tx] = 1.0;
-    }
+            const int nblocks = (m - 1) / NB + 1;
+            const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
+            B += bx * NB;
+            C += bx * NB;
 
-    // handle uplo
-    if(uplo == rocblas_fill_upper)
-    {
-        if(tx > ty)
+            __shared__ T sA[NB * NB];
+            __shared__ T sB[NB * NB];
+
+            // init sA and sB to zero
             sA[ty * NB + tx] = 0.0;
-    }
-    else
-    {
-        if(tx < ty)
-            sA[ty * NB + tx] = 0.0;
-    }
-    __syncthreads();
+            sB[ty * NB + tx] = 0.0;
 
-    T accumulator = 0.0;
+            // load A and B
+            if(ty < n && tx < n)
+            {
+                if(CONJA)
+                {
+                    sA[ty * NB + tx] = conj(A[ty * size_t(lda) + tx]);
+                }
+                else
+                {
+                    sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
+                }
+            }
+            if(ty < n && tx < mm)
+                sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
+
+            // handle diag
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(ty == tx)
+                    sA[ty * NB + tx] = 1.0;
+            }
+
+            // handle uplo
+            if(uplo == rocblas_fill_upper)
+            {
+                if(tx > ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            else
+            {
+                if(tx < ty)
+                    sA[ty * NB + tx] = 0.0;
+            }
+            __syncthreads();
+
+            T accumulator = 0.0;
 #pragma unroll
-    for(int i = 0; i < NB; i++)
-        accumulator += sB[i * NB + tx] * sA[i * NB + ty];
-    accumulator *= alpha;
-    // write C
-    if(ty < n && tx < mm)
-        C[ty * size_t(ldc) + tx] = accumulator;
+            for(int i = 0; i < NB; i++)
+                accumulator += sB[i * NB + tx] * sA[i * NB + ty];
+            accumulator *= alpha;
+            // write C
+            if(ty < n && tx < mm)
+                C[ty * size_t(ldc) + tx] = accumulator;
+        }
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 // clang-format off
@@ -785,9 +865,10 @@ rocblas_status rocblas_trmm_template_lNx(rocblas_handle   handle,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
-    dim3 threads(NB, NB, 1);
-    dim3 grid((n  - 1) / NB + 1, 1, batch_count);
+    dim3 threads(NB, NB);
+    dim3 grid((n  - 1) / NB + 1, 1, batches);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
@@ -795,14 +876,14 @@ rocblas_status rocblas_trmm_template_lNx(rocblas_handle   handle,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
     else
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
 
     return rocblas_status_success;
 }
@@ -822,9 +903,10 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
-    dim3 threads(NB, NB, 1);
-    dim3 grid(((n - 1) / NB) + 1, 1, batch_count);
+    dim3 threads(NB, NB);
+    dim3 grid(((n - 1) / NB) + 1, 1, batches);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
@@ -832,14 +914,14 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
     else
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
 
     return rocblas_status_success;
 }
@@ -859,9 +941,10 @@ rocblas_status rocblas_trmm_template_rNx(rocblas_handle   handle,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
-    dim3 threads(NB, NB, 1);
-    dim3 grid((m - 1) / NB + 1, 1, batch_count);
+    dim3 threads(NB, NB);
+    dim3 grid((m - 1) / NB + 1, 1, batches);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
@@ -869,14 +952,14 @@ rocblas_status rocblas_trmm_template_rNx(rocblas_handle   handle,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
     else
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
 
     return rocblas_status_success;
 }
@@ -896,9 +979,10 @@ rocblas_status rocblas_trmm_template_rTx(rocblas_handle   handle,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
+    int         batches        = handle->getBatchGridDim((int)batch_count);
 
-    dim3 threads(NB, NB, 1);
-    dim3 grid((m - 1) / NB + 1, 1, batch_count);
+    dim3 threads(NB, NB);
+    dim3 grid((m - 1) / NB + 1, 1, batches);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
@@ -906,14 +990,14 @@ rocblas_status rocblas_trmm_template_rTx(rocblas_handle   handle,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
     else
         ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
-                           dC, ldc, c_st_or_of);
+                           dC, ldc, c_st_or_of, batch_count);
 
     return rocblas_status_success;
 }

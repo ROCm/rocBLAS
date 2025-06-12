@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,9 @@ rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    handle,
                                                    d,
                                                    d_type,
                                                    ldd,
-                                                   compute_type);
+                                                   compute_type,
+                                                   1,
+                                                   true); // get_solutions
 
         if(validArgs != rocblas_status_continue)
         {
@@ -154,9 +156,9 @@ rocblas_status rocblas_gemm_ex_get_solutions_by_type(rocblas_handle   handle,
 #ifdef BUILD_WITH_TENSILE
     // Create dummy GEMM problem to take advantage of problem templating
     // Most parameters are ignored, just needs to be valid for all types
-    float          alpha = 0.0f;
-    float          beta  = 0.0f;
-    rocblas_stride stride{1};
+    rocblas_double_complex alpha{0, 0};
+    rocblas_double_complex beta{0, 0};
+    rocblas_stride         stride{1};
     return rocblas_gemm_ex_get_solutions_template<false>(handle,
                                                          rocblas_operation_none,
                                                          rocblas_operation_none,

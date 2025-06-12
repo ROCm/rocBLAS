@@ -885,7 +885,7 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
   pointer_mode_device: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: trsm_right_size_t_overflow
@@ -904,7 +904,7 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
   pointer_mode_device: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: trsm_left_internal_api
@@ -1233,7 +1233,7 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [64]
 
-- name: trsm_left_64
+- name: trsm_left_ILP64
   category: stress
   arguments:
     # - { M: 2, N: 2147483649, lda: 4, ldb: 4, batch_count: 1 }
@@ -1251,7 +1251,7 @@ Tests:
   precision: *single_precision
   pointer_mode_host: false
 
-- name: trsm_right_64
+- name: trsm_right_ILP64
   category: stress
   arguments:
     # - { M: 2147483649, N: 2, lda: 10, ldb: 2147483650, batch_count: 1 }
@@ -1268,7 +1268,23 @@ Tests:
   precision: *single_precision
   pointer_mode_host: false
 
-- name: trsm_batched_64
+- name: trsm_large_batch
+  category: stress
+  arguments:
+    - { M: 3, N: 3, lda: 3, ldb: 3, batch_count: *c_grid_yz_require_passes }
+  side: [ L, R ]
+  uplo: [ L, U ]
+  transA: [ N ]
+  diag: [ U ]
+  stride_scale: [ 1 ]
+  function:
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
+    - trsm_batched_ex: *single_precision
+    - trsm_strided_batched_ex: *single_precision
+  pointer_mode_host: false
+
+- name: trsm_batched_ILP64
   category: stress
   arguments:
     - { M: 4, N: 4, lda: 4, ldb: 4, batch_count: *c_grid_yz_require_passes }
@@ -1280,8 +1296,8 @@ Tests:
   os_flags: [ LINUX ]
   stride_scale: [ 1 ]
   function:
-    trsm_batched: *single_precision
-    trsm_strided_batched: *single_precision
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
   pointer_mode_host: false
 
 - name: trsm_graph_test
@@ -1330,5 +1346,6 @@ Tests:
   iters: 5
   initialization: hpl
   pointer_mode_host : false
+  devices: 4
   repeatability_check: true
 ...

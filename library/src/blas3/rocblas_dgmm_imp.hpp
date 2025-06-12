@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,9 +55,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -65,40 +65,40 @@ namespace
             auto side_letter = rocblas_side_letter(side);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_dgmm_name<T>, side, m, n, A, lda, x, incx, C, ldc);
+                logger.log_trace(handle, rocblas_dgmm_name<T>, side, m, n, A, lda, x, incx, C, ldc);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f dgmm -r",
-                          rocblas_precision_string<T>,
-                          "--side",
-                          side_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          "--lda",
-                          lda,
-                          "--incx",
-                          incx,
-                          "--ldc",
-                          ldc);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f dgmm -r",
+                                 rocblas_precision_string<T>,
+                                 "--side",
+                                 side_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 "--lda",
+                                 lda,
+                                 "--incx",
+                                 incx,
+                                 "--ldc",
+                                 ldc);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_dgmm_name<T>,
-                            "side",
-                            side_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "incx",
-                            incx,
-                            "ldc",
-                            ldc);
+                logger.log_profile(handle,
+                                   rocblas_dgmm_name<T>,
+                                   "side",
+                                   side_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "lda",
+                                   lda,
+                                   "incx",
+                                   incx,
+                                   "ldc",
+                                   ldc);
         }
 
         static constexpr rocblas_stride offset_A = 0, offset_x = 0, offset_C = 0;

@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 #include "handle.hpp"
 #include "rocblas_spr2.hpp"
 
@@ -68,17 +69,29 @@ rocblas_spr2_kernel(bool           host_ptr_mode,
                     rocblas_stride stride_y,
                     TPtr           APa,
                     rocblas_stride shift_AP,
-                    rocblas_stride stride_AP)
+                    rocblas_stride stride_AP,
+                    rocblas_int    batch_count)
 {
     auto alpha = host_ptr_mode ? alpha_device_host.value : load_scalar(alpha_device_host.ptr);
+
     if(!alpha)
         return;
 
-    auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_AP, stride_AP);
-    const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
-    const auto* y  = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
+    uint32_t batch = blockIdx.z;
 
-    rocblas_spr2_kernel_calc<DIM_X, DIM_Y, N_TX>(is_upper, n, alpha, x, incx, y, incy, AP);
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+        auto*       AP = load_ptr_batch(APa, batch, shift_AP, stride_AP);
+        const auto* x  = load_ptr_batch(xa, batch, shift_x, stride_x);
+        const auto* y  = load_ptr_batch(ya, batch, shift_y, stride_y);
+
+        rocblas_spr2_kernel_calc<DIM_X, DIM_Y, N_TX>(is_upper, n, alpha, x, incx, y, incy, AP);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /**
@@ -113,6 +126,8 @@ rocblas_status rocblas_internal_spr2_launcher(rocblas_handle handle,
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
     ptrdiff_t shift_y = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     //Identifying the precision to have an appropriate optimization
     static constexpr bool is_float = std::is_same_v<TScal, float>;
 
@@ -123,7 +138,7 @@ rocblas_status rocblas_internal_spr2_launcher(rocblas_handle handle,
     rocblas_int blocksX = (n - 1) / (SPR2_DIM_X * N_TX) + 1;
     rocblas_int blocksY = (n - 1) / SPR2_DIM_Y + 1;
 
-    dim3 spr2_grid(blocksX, blocksY, batch_count);
+    dim3 spr2_grid(blocksX, blocksY, batches);
     dim3 spr2_threads(SPR2_DIM_X, SPR2_DIM_Y);
 
     bool                            host_mode = handle->pointer_mode == rocblas_pointer_mode_host;
@@ -148,7 +163,8 @@ rocblas_status rocblas_internal_spr2_launcher(rocblas_handle handle,
                           stride_y,
                           AP,
                           offset_AP,
-                          stride_AP);
+                          stride_AP,
+                          batch_count);
 
     return rocblas_status_success;
 }

@@ -72,11 +72,11 @@ Tests:
   alpha_beta:
     - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
   pointer_mode_host: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: syrk_size_t_N
-  category: nightly #stress
+  category: stress
   function: syrk
   precision: *single_precision
   uplo: [ L, U ]
@@ -91,7 +91,7 @@ Tests:
   alpha_beta:
     - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
   pointer_mode_host: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: syrk_quick
@@ -236,7 +236,19 @@ Tests:
   batch_count: [ 2 ]
   pointer_mode_host: false
 
-- name: syrk_64
+- name: syrk_large_batch
+  category: stress
+  uplo: [ U, L ]
+  arguments:
+    - { N:  2, K: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  function:
+    - syrk_batched: *single_precision
+    - syrk_strided_batched: *single_precision
+  stride_scale: 1
+
+- name: syrk_ILP64
   category: stress
   uplo: [ U, L ]
   arguments:
@@ -289,5 +301,6 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
   stride_scale: 1
+  devices: 4
   repeatability_check: true
 ...

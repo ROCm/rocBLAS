@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,27 +59,19 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if constexpr(std::is_same_v<API_INT, int>)
-        {
-            if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-            {
-                return rocblas_status_invalid_size;
-            }
-        }
-
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_scal_name<T, U>,
-                      n,
-                      LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                      x,
-                      incx,
-                      batch_count);
+            logger.log_trace(handle,
+                             rocblas_scal_name<T, U>,
+                             n,
+                             LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                             x,
+                             incx,
+                             batch_count);
 
         // there are an extra 2 scal functions, thus
         // the -r mode will not work correctly. Substitute
@@ -87,22 +79,22 @@ namespace
         // ANSWER: -r is syntatic sugar; the types can be specified separately
         if(layer_mode & rocblas_layer_mode_log_bench)
         {
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f scal_batched --a_type",
-                      rocblas_precision_string<T>,
-                      "--b_type",
-                      rocblas_precision_string<U>,
-                      "-n",
-                      n,
-                      LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                      "--incx",
-                      incx,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f scal_batched --a_type",
+                             rocblas_precision_string<T>,
+                             "--b_type",
+                             rocblas_precision_string<U>,
+                             "-n",
+                             n,
+                             LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                             "--incx",
+                             incx,
+                             "--batch_count",
+                             batch_count);
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(
+            logger.log_profile(
                 handle, rocblas_scal_name<T, U>, "N", n, "incx", incx, "batch_count", batch_count);
 
         if(n <= 0 || incx <= 0 || batch_count <= 0)

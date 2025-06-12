@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #include "rocblas_test.hpp"
 #include "test_cleanup.hpp"
 
+#include "client_omp.hpp"
 #include "client_utility.hpp"
 
 using namespace testing;
@@ -160,7 +161,15 @@ public:
     void OnTestProgramEnd(const UnitTest& unit_test) override
     {
         if(skipped_tests)
+        {
             rocblas_cout << "[ SKIPPED  ] " << skipped_tests << " tests." << std::endl;
+
+            // repeat in case of too many skipped
+            rocblas_cout << "[ PASSED   ] " << unit_test.successful_test_count() << " tests."
+                         << std::endl;
+            rocblas_cout << "[ FAILED   ] " << unit_test.failed_test_count() << " tests."
+                         << std::endl;
+        }
         eventListener->OnTestProgramEnd(unit_test);
     }
 };
@@ -205,41 +214,6 @@ static void rocblas_set_listener()
     listeners.Append(listener);
 }
 
-static std::string rocblas_version_string()
-{
-    size_t size;
-    rocblas_get_version_string_size(&size);
-    std::string str(size - 1, '\0');
-    rocblas_get_version_string(str.data(), size);
-    return str;
-}
-
-// Print Version
-static void rocblas_print_version()
-{
-    static std::string blas_version = rocblas_version_string();
-
-    rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
-}
-
-// Print rocBLAS and Tensile commit hashes
-static void rocblas_print_commit_hashes()
-{
-    const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
-
-#if BUILD_WITH_TENSILE
-    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl
-                 << std::endl;
-#else
-    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl
-                 << std::endl;
-#endif
-}
-
 static void rocblas_print_usage_warning()
 {
     std::string warning(
@@ -248,14 +222,50 @@ static void rocblas_print_usage_warning()
     rocblas_cout << "info: " << warning << "\n" << std::endl;
 }
 
-static std::string rocblas_capture_args(int argc, char** argv)
+static std::string rocblas_capture_args(int argc, char** argv, std::string& filter_str)
 {
+    bool yaml   = false;
+    bool filter = false;
+
     std::ostringstream cmdLine;
     cmdLine << "command line: ";
     for(int i = 0; i < argc; i++)
     {
         if(argv[i])
+        {
+            if(strstr(argv[i], "--yaml"))
+            {
+                yaml = true;
+            }
+            if(strstr(argv[i], "--gtest_filter="))
+            {
+                std::string argv_str(argv[i]);
+                filter_str = argv_str.substr(strlen("--gtest_filter="));
+                filter     = true;
+            }
+
             cmdLine << std::string(argv[i]) << " ";
+        }
+    }
+
+    // guard against non explicit full test set, stress will be removed by default
+    if(!yaml)
+    {
+        const char* known_bug_pos      = strstr(filter_str.c_str(), "*known_bug");
+        const char* filter_removal_pos = strstr(filter_str.c_str(), "-");
+        // detect if known_bugs is near beginning of filter and is in removal set
+        bool only_less_known_bugs = known_bug_pos && (known_bug_pos - filter_str.c_str() < 3)
+                                    && (filter_removal_pos && known_bug_pos > filter_removal_pos);
+        if(filter_str.empty() || only_less_known_bugs)
+        {
+            if(!filter_removal_pos)
+                filter_str += "-";
+            filter_str += ":*stress*";
+            rocblas_client_set_gtest_filter(filter_str.c_str());
+            std::string warning(
+                "automatically adding filter to remove stress tests. --gtest_filter=");
+            rocblas_cout << "info: " << warning << filter_str << "\n" << std::endl;
+        }
     }
     return cmdLine.str();
 }
@@ -284,7 +294,11 @@ static void rocblas_set_test_device()
  *****************/
 int main(int argc, char** argv)
 {
-    std::string args = rocblas_capture_args(argc, argv);
+    client_omp_manager::limit_by_processor_count();
+    rocblas_client_init();
+
+    std::string filter_override;
+    std::string args = rocblas_capture_args(argc, argv, filter_override);
 
     auto* no_signal_handling = getenv("ROCBLAS_TEST_NO_SIGACTION");
     if(no_signal_handling)
@@ -297,13 +311,7 @@ int main(int argc, char** argv)
         rocblas_test_sigaction();
     }
 
-    rocblas_print_version();
-
-    // Print rocBLAS and Tensile commit hashes
-    rocblas_print_commit_hashes();
-
-    // Warn users if using older reference library
-    print_reference_lib_warning();
+    print_rocblas_version_string();
 
     // Set test device
     rocblas_set_test_device();
@@ -315,6 +323,8 @@ int main(int argc, char** argv)
 
     // Initialize Google Tests
     testing::InitGoogleTest(&argc, argv);
+    if(!filter_override.empty())
+        rocblas_client_set_gtest_filter(filter_override.c_str());
 
     // Free up all temporary data generated during test creation
     test_cleanup::cleanup();
@@ -326,12 +336,14 @@ int main(int argc, char** argv)
     int status = RUN_ALL_TESTS();
 
     // Failures printed at end for reporting so repeat version info
-    rocblas_print_version();
+    print_rocblas_version_string();
 
     // end test results with command line
     rocblas_print_args(args);
 
     //rocblas_shutdown();
+
+    rocblas_client_shutdown();
 
     return status;
 }

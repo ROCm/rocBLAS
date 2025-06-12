@@ -85,8 +85,6 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
         = BATCHED ? "rocblas_gemm_batched_ex_64"
                   : (stride_a ? "rocblas_gemm_strided_batched_ex_64" : "rocblas_gemm_ex_64");
 
-    hipStream_t rocblas_stream = handle->get_stream();
-
     if(check_numerics && !std::is_same_v<Ti, signed char>)
     {
         bool           is_input = true;
@@ -144,6 +142,7 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
             {
                 int32_t m = int32_t(std::min(m_64 - m_base, c_i64_grid_X_chunk));
                 status    = rocblas_gemm_source_solution_64<BATCHED>(
+                    handle,
                     trans_a,
                     trans_b,
                     m,
@@ -167,8 +166,7 @@ rocblas_status rocblas_internal_gemm_ex_typecasting_64(rocblas_handle     handle
                     ldd_64,
                     stride_d,
                     offsetD + m_base + n_base * ldd_64,
-                    batch_count,
-                    rocblas_stream);
+                    batch_count);
             }
         }
 

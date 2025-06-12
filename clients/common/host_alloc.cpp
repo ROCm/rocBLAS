@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ static size_t                  mem_used{0};
 static std::map<void*, size_t> mem_allocated;
 static std::mutex              mem_mutex;
 
-inline void alloc_ptr_use(void* ptr, size_t size)
+void alloc_ptr_use(void* ptr, size_t size)
 {
     std::lock_guard<std::mutex> lock(mem_mutex);
     if(ptr)
@@ -51,7 +51,7 @@ inline void alloc_ptr_use(void* ptr, size_t size)
     }
 }
 
-inline void free_ptr_use(void* ptr)
+void free_ptr_use(void* ptr)
 {
     std::lock_guard<std::mutex> lock(mem_mutex);
     if(ptr && mem_allocated[ptr])
@@ -124,7 +124,7 @@ ptrdiff_t host_bytes_available()
 #endif
 }
 
-inline bool host_mem_safe(size_t n_bytes)
+bool host_mem_safe(size_t n_bytes)
 {
 #if defined(ROCBLAS_BENCH)
     return true; // roll out to rocblas-bench when CI does perf testing

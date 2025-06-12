@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,8 @@ function( rocblas_library_settings lib_target_ )
 
   # Do not allow Variable Length Arrays (use unique_ptr instead)
   target_compile_options( ${lib_target_} PRIVATE -Werror=vla )
+  # We widely use extensions and AMD Clang in use
+  target_compile_options( ${lib_target_} PRIVATE -Wno-c++17-extensions )
 
   target_compile_definitions( ${lib_target_} PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_BETA_FEATURES_API )
 
@@ -79,10 +81,56 @@ function( rocblas_library_settings lib_target_ )
   if (WIN32)
     target_link_libraries( ${lib_target_} PRIVATE hip::device )
   else()
-    target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc )
+    target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc)
+
+    if(BUILD_SHARED_LIBS)
+      set(ROCTX_PATH "" CACHE STRING "Path to the roctx library (directory containing libroctx64.so)")
+
+      find_path(ROCTRACER_INCLUDE_DIR
+        NAMES roctracer/roctx.h
+        HINTS
+        ${ROCTX_PATH}
+        ${ROCTX_PATH}/include
+        /opt/rocm/include
+        ${ROCTX_PATH}/../include
+        DOC "Path to the roctracer include directory containing roctx.h")
+
+      find_library(ROCTX_LIBRARY
+        NAMES roctx64
+        HINTS
+        ${ROCTX_PATH} # User-provided path
+        ${ROCTX_PATH}/lib
+        PATHS
+        /opt/rocm/lib # Default ROCm path
+        NO_DEFAULT_PATH
+      )
+
+      if(ROCTRACER_INCLUDE_DIR AND ROCTX_LIBRARY)
+        message(STATUS "Found roctracer include directory: ${ROCTRACER_INCLUDE_DIR}")
+        message(STATUS "Found roctx library: ${ROCTX_LIBRARY}")
+
+        # Add the include directory
+        target_include_directories(${lib_target_} PRIVATE ${ROCTRACER_INCLUDE_DIR})
+
+        # Link the rocTx lib
+        target_link_libraries(${lib_target_} PRIVATE ${ROCTX_LIBRARY})
+        message(STATUS "ROCTX tracing support enabled for target ${lib_target_}.")
+      else()
+        message(WARNING "ROCTX tracing will be disabled for target ${lib_target_}.")
+
+        if(NOT ROCTRACER_INCLUDE_DIR)
+          message(WARNING "Header 'roctracer/roctx.h' not found.")
+        endif()
+
+        if(NOT ROCTX_LIBRARY)
+          message(WARNING "Library 'roctx64' not found. ROCTX_PATH: '${ROCTX_PATH}' Default PATH: '/opt/rocm/lib'.")
+        endif()
+
+        target_compile_definitions(${lib_target_} PRIVATE "DISABLE_ROCTX")
+      endif()
+    endif()
   endif()
     target_link_libraries( ${lib_target_} PRIVATE Threads::Threads )
-
   #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
   set_target_properties( ${lib_target_} PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
@@ -90,6 +138,12 @@ function( rocblas_library_settings lib_target_ )
   if( NOT BUILD_SHARED_LIBS )
     # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
     set_target_properties( ${lib_target_} PROPERTIES PREFIX "lib" )
+  endif()
+
+  if(BUILD_CODE_COVERAGE)
+    #target_compile_options(-fprofile-instr-generate -fcoverage-mapping)
+    target_compile_options( ${lib_target_} PRIVATE -fprofile-arcs -ftest-coverage )
+    target_link_libraries( ${lib_target_} PRIVATE --coverage -lgcov)
   endif()
 
   rocm_set_soversion( ${lib_target_} ${rocblas_SOVERSION} )
@@ -105,7 +159,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # This is incremented when the ABI to the library changes
-set( rocblas_SOVERSION 4.4 )
+set( rocblas_SOVERSION 5.1 )
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 
@@ -178,7 +232,6 @@ set( rocblas_headers_public
   include/rocblas.h
   include/internal/rocblas-types.h
   include/internal/rocblas_bfloat16.h
-  include/internal/rocblas_float8.h
   include/internal/rocblas-auxiliary.h
   include/internal/rocblas-functions.h
   include/internal/rocblas-macros.h

@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,6 @@ function( rocblas_client_library_settings lib_target_ )
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
-    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
   )
 
   target_include_directories( ${lib_target_}
@@ -56,17 +55,24 @@ function( rocblas_client_library_settings lib_target_ )
   )
 
   target_compile_definitions( ${lib_target_} PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
-  target_compile_definitions( ${lib_target_} PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST )
+  target_compile_definitions( ${lib_target_} PRIVATE ${TENSILE_DEFINES} ${HIPBLASLT_DEFINES} GOOGLE_TEST )
   # GOOGLE_TEST left off for reuse of this function by by gemm tuner
   if ( NOT BUILD_FORTRAN_CLIENTS )
     target_compile_definitions( ${lib_target_} PRIVATE CLIENTS_NO_FORTRAN )
   endif()
 
+  # We widely use extensions and AMD Clang warnings are too noisy
+  target_compile_options( ${lib_target_} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-c++17-extensions> )
+
+  if(BUILD_ADDRESS_SANITIZER)
+    target_compile_definitions( ${lib_target_} PRIVATE ASAN_BUILD )
+  endif()
 endfunction()
 
 set(rocblas_common_source
     # general
     singletons.cpp
+    client_omp.cpp
     client_utility.cpp
     frequency_monitor.cpp
     rocblas_arguments.cpp
@@ -75,20 +81,13 @@ set(rocblas_common_source
     rocblas_parse_data.cpp
     host_alloc.cpp
     gtest_helpers.cpp
+    rocblas_matrix.cpp
 )
 
 set(rocblas_testing_common_source
     # general
     cblas_interface.cpp
     ${BLIS_CPP}
-    # aux
-    # general.cpp
-    # set_get_pointer_mode.cpp
-    # set_get_atomics_mode.cpp
-    # logging_mode.cpp
-    # ostream_threadsafety.cpp
-    # set_get_vector.cpp
-    # set_get_matrix.cpp
     # blas1
     blas1/common_asum.cpp
     blas1/common_axpy.cpp
@@ -147,12 +146,6 @@ set(rocblas_testing_common_source
     blas_ex/common_geam_ex.cpp
 )
 
-if( BUILD_WITH_TENSILE )
-  set( rocblas_testing_common_tensile_source
-       blas_ex/common_gemm_ex3.cpp
-  )
-endif()
-
 add_library(rocblas_clients_common OBJECT ${rocblas_testing_common_tensile_source} ${rocblas_common_source})
 
 rocblas_client_library_settings( rocblas_clients_common )
@@ -161,9 +154,14 @@ add_library(rocblas_clients_testing_common OBJECT ${rocblas_testing_common_sourc
 
 rocblas_client_library_settings( rocblas_clients_testing_common )
 
+if ( WARN_NOT_ILP64_PREFERRED )
+  target_compile_definitions( rocblas_clients_common PRIVATE ROCBLAS_REFERENCE_LIB_WARN )
+endif()
+target_compile_definitions( rocblas_clients_common PRIVATE ROCBLAS_REFERENCE_LIB=${BLAS_LIBRARY} )
+
 
 # target is not linked as OBJECT library but we want any interface flags from dependencies
-target_link_libraries( rocblas_clients_common roc::rocblas hip::host hip::device ${GTEST_BOTH_LIBRARIES} ${COMMON_LINK_LIBS} )
-target_link_libraries( rocblas_clients_testing_common roc::rocblas hip::host hip::device ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} ${COMMON_LINK_LIBS} )
+target_link_libraries( rocblas_clients_common roc::rocblas hip::host hip::device $<IF:$<TARGET_EXISTS:GTest::gtest>,GTest::gtest,GTest::GTest> $<IF:$<TARGET_EXISTS:GTest::gtest_main>,GTest::gtest_main,GTest::Main> ${COMMON_LINK_LIBS} )
+target_link_libraries( rocblas_clients_testing_common roc::rocblas hip::host hip::device ${BLAS_LIBRARY} $<IF:$<TARGET_EXISTS:GTest::gtest>,GTest::gtest,GTest::GTest> $<IF:$<TARGET_EXISTS:GTest::gtest_main>,GTest::gtest_main,GTest::Main> ${COMMON_LINK_LIBS} )
 
 

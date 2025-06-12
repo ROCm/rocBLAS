@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,10 @@
 #include "gtest_helpers.hpp"
 #include <chrono>
 #include <cstdlib>
-#include <cstring>
 #include <new>
 #include <stdexcept>
 #include <stdlib.h>
+#include <thread>
 
 #ifdef WIN32
 #define strcasecmp(A, B) _stricmp(A, B)
@@ -52,7 +52,99 @@ namespace fs = std::experimental::filesystem;
 // Not WIN32
 #else
 #include <fcntl.h>
+#include <unistd.h>
 #endif
+
+void rocblas_client_init()
+{
+#ifndef WIN32
+    auto* ld_library_path_override = getenv("LD_LIBRARY_PATH");
+    if(ld_library_path_override)
+    {
+        rocblas_cout << "rocBLAS warning: LD_LIBRARY_PATH override may use incompatible rocblas "
+                     << std::endl;
+    }
+#endif
+
+    // Warn users if using older reference library
+    print_reference_lib_warning();
+}
+
+void rocblas_client_shutdown() {}
+
+void get_version_string(std::string& str)
+{
+    size_t size;
+    rocblas_get_version_string_size(&size);
+    str.resize(size - 1, '\0');
+    rocblas_get_version_string((char*)str.data(), size);
+}
+
+void print_rocblas_version_string()
+{
+    std::string rocblas_version;
+    get_version_string(rocblas_version);
+
+    rocblas_cout << "rocBLAS version: " << rocblas_version << std::endl;
+
+    print_rocblas_client_commit_hashes();
+}
+
+void print_reference_lib_warning()
+{
+#define TOSTR2(s) #s
+#define TOSTR(s) TOSTR2(s)
+
+#ifdef ROCBLAS_REFERENCE_LIB
+    rocblas_cout << "rocBLAS info: Using reference library '" << TOSTR(ROCBLAS_REFERENCE_LIB) << "'"
+                 << std::endl;
+#endif
+    // prints a warning to cout if the recommended reference library isn't used
+#ifdef ROCBLAS_REFERENCE_LIB_WARN
+    rocblas_cout << "rocBLAS warning: Reference library may not support 64-bit input arguments. "
+                    "If running a test suite, please use "
+                 << "--gtest_filter=-*stress* to avoid 64-bit test failures.\n";
+#endif
+
+#undef TOSTR
+#undef TOSTR2
+}
+
+// Print rocBLAS and Tensile commit hashes
+void print_rocblas_client_commit_hashes()
+{
+    static const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
+
+    rocblas_cout << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl;
+#if BUILD_WITH_TENSILE
+    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl;
+#else
+    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl;
+#endif
+
+    size_t size;
+    rocblas_get_commit_hash_string_size(&size);
+
+    std::string hash(size - 1, '\0');
+    rocblas_get_commit_hash_string((char*)hash.data(), size);
+
+    if(strcmp(rocblas_tensile_commit_hash[0], hash.data()))
+    {
+        rocblas_cout
+            << "rocBLAS warning: client rocblas commit differs from library rocblas commit: "
+            << hash << std::endl;
+    }
+}
+
+bool rocblas_file_exists(const char* path)
+{
+#ifdef WIN32
+    fs::path file_path(path);
+    return fs::exists(file_path);
+#else
+    return (access(path, F_OK) != -1);
+#endif
+}
 
 /* ============================================================================================ */
 // Return path of this executable
@@ -290,10 +382,30 @@ rocblas_local_handle::rocblas_local_handle()
 }
 
 rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
-    : rocblas_local_handle()
 {
+    if(arg.use_hipblaslt >= 0)
+    {
+        auto hipblaslt_env = getenv("ROCBLAS_USE_HIPBLASLT");
+        if(hipblaslt_env)
+            m_hipblaslt_saved_status = std::string(hipblaslt_env);
+        m_hipblaslt_env_set = true;
+        setenv("ROCBLAS_USE_HIPBLASLT", std::to_string(arg.use_hipblaslt).c_str(), true);
+    }
+
+    auto status = rocblas_create_handle(&m_handle);
+    if(status != rocblas_status_success)
+        throw std::runtime_error(rocblas_status_to_string(status));
+
+#ifdef GOOGLE_TEST
+    if(t_set_stream_callback)
+    {
+        (*t_set_stream_callback)(m_handle);
+        t_set_stream_callback.reset();
+    }
+#endif
+
     // Set the atomics mode
-    auto status = rocblas_set_atomics_mode(m_handle, arg.atomics_mode);
+    status = rocblas_set_atomics_mode(m_handle, arg.atomics_mode);
 
     // The check_numerics mode conditional defeat with "rocblas_check_numerics_mode_no_check"
     // Defeat check numerics when initializing any data with NaN with due to alpha or beta having NaN flags,
@@ -346,19 +458,25 @@ rocblas_local_handle::~rocblas_local_handle()
     if(m_memory)
         (hipFree)(m_memory);
 
+    if(m_hipblaslt_env_set)
+    {
+        setenv("ROCBLAS_USE_HIPBLASLT", m_hipblaslt_saved_status.c_str(), true);
+    }
+
     rocblas_destroy_handle(m_handle);
 }
 
 void rocblas_local_handle::rocblas_stream_begin_capture()
 {
-    m_handle->set_stream_order_memory_allocation(true);
-
     if(m_graph_stream)
         throw std::runtime_error("recursive rocblas_stream_begin_capture");
 
-    CHECK_HIP_ERROR(hipStreamCreate(&m_graph_stream));
-
     CHECK_ROCBLAS_ERROR(rocblas_get_stream(m_handle, &m_old_stream));
+    CHECK_HIP_ERROR(hipStreamSynchronize(m_old_stream));
+
+    m_handle->set_stream_order_memory_allocation(true);
+
+    CHECK_HIP_ERROR(hipStreamCreate(&m_graph_stream));
     CHECK_ROCBLAS_ERROR(rocblas_set_stream(m_handle, m_graph_stream));
 
     // BEGIN GRAPH CAPTURE
@@ -500,4 +618,13 @@ size_t calculate_flush_batch_count(size_t arg_flush_batch_count,
         rocblas_cout << "flush_batch_count = " << flush_batch_count << std::endl;
     }
     return flush_batch_count;
+}
+
+//Function to limit the number of devices to be used in a mult-gpu setup
+hipError_t limit_device_count(int& device_count, int max_limit)
+{
+    hipError_t hipStatus = hipGetDeviceCount(&device_count);
+    if(hipStatus == hipSuccess)
+        device_count = std::min(device_count, max_limit);
+    return hipStatus;
 }

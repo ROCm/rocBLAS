@@ -14,13 +14,16 @@ def runCI =
 {
     nodeDetails, jobName->
 
+    def settings = [formatCheck: false,
+                    addressSanitizer: false,
+                    gfilter: "*nightly*"]
+
     def prj = new rocProject('rocBLAS', 'Extended')
 
     // customize for project
     prj.paths.build_command = './install.sh -c'
 
     def noHipblasLT = env.BRANCH_NAME ==~ /PR-\d+/ && pullRequest.labels.contains("noHipblasLT")
-
     if (!noHipblasLT)
     {
         prj.libraryDependencies = ['hipBLAS-common', 'hipBLASLt']
@@ -33,21 +36,17 @@ def runCI =
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
 
-    boolean formatCheck = false
-
     def compileCommand =
     {
         platform, project->
 
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/common.groovy"
-        commonGroovy.runCompileCommand(platform, project, jobName)
+        commonGroovy.runCompileCommand(platform, project, jobName, settings)
     }
 
     def testCommand =
     {
         platform, project->
-
-        def gfilter = "*nightly*"
 
         def testFilter = ""
 
@@ -77,11 +76,11 @@ def runCI =
 
         if (testFilter.length() > 0)
         {
-            // The below command chops the final character ':' in testFilter and transfers the string to gfilter.
-            gfilter = testFilter.substring(0, testFilter.length() - 1);
+            // The below command chops the final character ':' in testFilter and transfers the string to settings.gfilter.
+            settings.gfilter = testFilter.substring(0, testFilter.length() - 1);
         }
 
-        commonGroovy.runTestCommand(platform, project, gfilter)
+        commonGroovy.runTestCommand(platform, project, settings)
     }
 
     def packageCommand =
@@ -91,7 +90,7 @@ def runCI =
         commonGroovy.runPackageCommand(platform, project)
     }
 
-    buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
+    buildProject(prj, settings.formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
 
 }
 

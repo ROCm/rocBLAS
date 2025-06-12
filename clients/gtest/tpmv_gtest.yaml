@@ -70,7 +70,7 @@ Tests:
   diag: [ N ]
   matrix_size: *size_t_index
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942','950']
 
 - name: tpmv_size_t
   category: stress
@@ -81,7 +81,7 @@ Tests:
   diag: [ N ]
   matrix_size: *size_t_index
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942','950']
 
 - name: tpmv_small
   category: quick
@@ -124,7 +124,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: *incx_range_small
 
-- name: tpmv_64
+- name: tpmv_ILP64
   category: stress
   arguments:
     - { N: 2, incx: 2147483649, batch_count: 1 }
@@ -193,6 +193,19 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: *incx_range_small
   batch_count: [ 3 ]
+
+- name: tpmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, lda: 3, incx: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  transA: [N, T, C]
+  diag: [N, U]
+  pointer_mode_host: false
+  function:
+    - tpmv_batched: *single_precision
+    - tpmv_strided_batched: *single_precision
+  stride_scale: 1
 
 - name: tpmv_strided_batched_bad_arg
   category: pre_checkin
@@ -289,5 +302,6 @@ Tests:
   atomics_mode : 0
   pointer_mode_host: false
   iters: 5
+  devices: 4
   repeatability_check: true
 ...

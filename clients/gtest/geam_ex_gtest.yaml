@@ -134,6 +134,7 @@ Tests:
   pointer_mode_host: false
   iters: 5
   atomics_mode : 0
+  devices: 4
   repeatability_check: true
 
 ...

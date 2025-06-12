@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 #include "check_numerics_matrix.hpp"
 #include "frequency_monitor.hpp"
 #include "testing_common.hpp"
+
+#include <rocblas/internal/rocblas-beta.h>
 
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>
@@ -224,7 +226,7 @@ dD, d_type, ldd, compute_type, algo, solution_index, flags));
 }
 
 template <typename Ti, typename To, typename Tc>
-void testing_gemm_ex(const Arguments& arg)
+void testing_gemm_ex_run(const Arguments& arg)
 {
     auto rocblas_gemm_ex_fn = arg.api & c_API_FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
     auto rocblas_gemm_ex_fn_64
@@ -399,7 +401,8 @@ void testing_gemm_ex(const Arguments& arg)
 
                 // multi-GPU support
                 int device_id, device_count;
-                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                CHECK_HIP_ERROR(limit_device_count(device_count, (int)arg.devices));
+
                 for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
                     CHECK_HIP_ERROR(hipGetDevice(&device_id));
@@ -496,9 +499,7 @@ void testing_gemm_ex(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                if((rocblas_handle(handle)->getArchMajor() == 11
-                    || rocblas_handle(handle)->getArchMajor() == 12)
-                   && (sizeof(Ti) == 2))
+                if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
                 {
                     const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
                     near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
@@ -529,9 +530,7 @@ void testing_gemm_ex(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                if((rocblas_handle(handle)->getArchMajor() == 11
-                    || rocblas_handle(handle)->getArchMajor() == 12)
-                   && (sizeof(Ti) == 2))
+                if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
                 {
                     const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
                     near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, tol);
@@ -611,17 +610,18 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(!dA_alloc || !dA_alloc->resize(A_row, A_col, lda, aligned_stride_a, flush_batch_count))
         {
-            // Allocate matrix as aligned_stride_a x 1, then initialize, then resize, to make sure there are no uninitialized gaps due to the stride.
             dA_alloc = std::make_unique<device_strided_batch_matrix<Ti>>(aligned_stride_a,
                                                                          1,
                                                                          aligned_stride_a,
                                                                          aligned_stride_a,
                                                                          flush_batch_count
                                                                              * extra_memory);
-            HOST_MEMCHECK(host_matrix<Ti>, hA, (aligned_stride_a, 1, aligned_stride_a));
-            rocblas_init_matrix<Ti>(
-                hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
-            CHECK_HIP_ERROR(dA_alloc->broadcast_one_matrix_from(hA));
+            rocblas_init_matrix<Ti>(handle,
+                                    *dA_alloc,
+                                    arg,
+                                    rocblas_client_alpha_sets_nan,
+                                    rocblas_client_general_matrix,
+                                    true);
             dA_alloc->resize(A_row, A_col, lda, aligned_stride_a, flush_batch_count);
         }
         if(!dB_alloc || !dB_alloc->resize(B_row, B_col, ldb, aligned_stride_b, flush_batch_count))
@@ -632,10 +632,13 @@ void testing_gemm_ex(const Arguments& arg)
                                                                          aligned_stride_b,
                                                                          flush_batch_count
                                                                              * extra_memory);
-            HOST_MEMCHECK(host_matrix<Ti>, hB, (aligned_stride_b, 1, aligned_stride_b));
-            rocblas_init_matrix<Ti, true>(
-                hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
-            CHECK_HIP_ERROR(dB_alloc->broadcast_one_matrix_from(hB));
+            rocblas_init_matrix<Ti>(handle,
+                                    *dB_alloc,
+                                    arg,
+                                    rocblas_client_alpha_sets_nan,
+                                    rocblas_client_general_matrix,
+                                    false,
+                                    true);
             dB_alloc->resize(B_row, B_col, ldb, aligned_stride_b, flush_batch_count);
         }
         if(!dC_alloc || !dC_alloc->resize(M, N, ldc, aligned_stride_c, flush_batch_count))
@@ -646,10 +649,11 @@ void testing_gemm_ex(const Arguments& arg)
                                                                          aligned_stride_c,
                                                                          flush_batch_count
                                                                              * extra_memory);
-            HOST_MEMCHECK(host_matrix<To>, hC, (aligned_stride_c, 1, aligned_stride_c));
-            rocblas_init_matrix<To, true>(
-                hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
-            CHECK_HIP_ERROR(dC_alloc->broadcast_one_matrix_from(hC));
+            rocblas_init_matrix<To>(handle,
+                                    *dC_alloc,
+                                    arg,
+                                    rocblas_client_beta_sets_nan,
+                                    rocblas_client_general_matrix);
             dC_alloc->resize(M, N, ldc, aligned_stride_c, flush_batch_count);
         }
         if(arg.outofplace)
@@ -668,6 +672,20 @@ void testing_gemm_ex(const Arguments& arg)
         auto& dD = (arg.outofplace) ? *dD_alloc : dC;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        // if solution index is given check it is valid before benchmarking
+        if(algo == rocblas_gemm_algo_solution_index && solution_index != 0)
+        {
+            uint32_t test_flags = flags | rocblas_gemm_flags_check_solution_index;
+            // clang-format off
+            DAPI_CHECK(rocblas_gemm_ex_fn, (handle, transA, transB, M, N, K, &h_alpha_Tc,
+                                                   dA[0], arg.a_type, lda,
+                                                   dB[0], arg.b_type, ldb, &h_beta_Tc,
+                                                   dC[0], arg.c_type, ldc,
+                                                   dD[0],     d_type, ldd,
+                                                   arg.compute_type, algo, solution_index, test_flags));
+            // clang-format on
+        }
 
         for(int i = 0; i < number_cold_calls; i++)
         {
@@ -751,6 +769,11 @@ void testing_gemm_ex(const Arguments& arg)
             dC_alloc.reset();
             dD_alloc.reset();
         }
+        else if(!arg.outofplace)
+        {
+            rocblas_init_matrix<To>(
+                handle, dC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+        }
 
         ArgumentModel<e_transA,
                       e_transB,
@@ -775,4 +798,71 @@ void testing_gemm_ex(const Arguments& arg)
                           ArgumentLogging::NA_value,
                           ArgumentLogging::NA_value);
     }
+#undef GEMM_EX_ARGS
+#undef rocblas_gemm_exM
+}
+
+template <typename Ti, typename To, typename Tc>
+void testing_gemm_ex(const Arguments& arg)
+{
+    bool                     compare_solutions = arg.solution_index == -2;
+    const Arguments*         arguments         = &arg;
+    Arguments                run_arg(arg);
+    std::vector<rocblas_int> solutions_that_solve(1, 0);
+
+    rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
+
+#ifdef BUILD_WITH_TENSILE // tensile or hipblaslt only for now
+    if(compare_solutions && algo == rocblas_gemm_algo_solution_index)
+    {
+        arguments = &run_arg; // override
+
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        // fetch all solutions
+        rocblas_int             solution_count = 0;
+        const rocblas_operation transA         = char2rocblas_operation(arg.transA);
+        const rocblas_operation transB         = char2rocblas_operation(arg.transB);
+        if(!arg.outofplace)
+        {
+            run_arg.ldd    = arg.ldc;
+            run_arg.d_type = arg.c_type;
+        }
+
+        Tc h_alpha_Tc = arg.get_alpha<Tc>();
+        Tc h_beta_Tc  = arg.get_beta<Tc>();
+
+#define GEMM_EX_SOL_ARGS                                                                    \
+    handle, transA, transB, arg.M, arg.N, arg.K, &h_alpha_Tc, nullptr, arg.a_type, arg.lda, \
+        nullptr, arg.b_type, arg.ldb, &h_beta_Tc, nullptr, arg.c_type, arg.ldc, nullptr,    \
+        run_arg.d_type, run_arg.ldd, arg.compute_type, algo
+
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_get_solutions(
+            GEMM_EX_SOL_ARGS, rocblas_gemm_flags_none, nullptr, &solution_count));
+        solutions_that_solve.resize(solution_count);
+        if(solution_count > 0)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_get_solutions(GEMM_EX_SOL_ARGS,
+                                                              rocblas_gemm_flags_none,
+                                                              solutions_that_solve.data(),
+                                                              &solution_count));
+
+            // append default
+            solutions_that_solve.push_back(0);
+        }
+    }
+#endif
+
+    for(auto sol : solutions_that_solve)
+    {
+        if(compare_solutions)
+        {
+            run_arg.solution_index = sol;
+        }
+
+        testing_gemm_ex_run<Ti, To, Tc>(*arguments);
+    }
+
+#undef GEMM_EX_SOL_ARGS
 }

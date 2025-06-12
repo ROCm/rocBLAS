@@ -151,7 +151,7 @@ Tests:
   alpha_beta: *alpha_beta_range_size_t_inc
   pointer_mode_device: false
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942','950']
 
 # hemv_batched
 - name: hemv_batched_NaN
@@ -206,6 +206,18 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
   pointer_mode_host: false
+
+- name: hemv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N:   3, lda:    3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  uplo: [ U, L ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - hemv_batched: *single_precision_complex
+    - hemv_strided_batched: *single_precision_complex
+  stride_scale: [ 1 ]
 
 # hemv_strided_batched
 - name: hemv_strided_batched_NaN
@@ -267,7 +279,7 @@ Tests:
   pointer_mode_host: false
 
 # 64-bit interface
-- name: hemv_64
+- name: hemv_ILP64
   category: stress
   arguments:
     - { N: 2, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
@@ -316,5 +328,6 @@ Tests:
   iters: 5
   stride_scale: 1
   pointer_mode_host: false
+  devices: 4
   repeatability_check: true
 ...

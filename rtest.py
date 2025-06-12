@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright (C) 2021-2023 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2021-2024 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -40,15 +40,21 @@ timeout = False
 test_proc = None
 stop = 0
 
-test_script = [ 'cd %IDIR%', '%XML%' ]
+test_script = [ '%XML%' ] # [ 'cd %IDIR%', '%XML%' ]
 
 def parse_args():
     """Parse command-line arguments"""
     parser = argparse.ArgumentParser(description="""
     Checks build arguments
     """)
-    parser.add_argument('-t', '--test', required=True,
-                        help='Test set to run from rtest.xml (required, e.g. osdb)')
+    parser.add_argument(      '--ci_labels', type=str, required=False, default="",
+                    help='Semi-colon seperated list of labels that may modify test runs (optional, e.g. "gfx12;TestLevel1Only")')
+    parser.add_argument(      '--ci_gfx', type=str, required=False, default="",
+                    help='Semi-colon seperated list of gfx targets expected on test runs (optional, e.g. "gfx1030;gfx1201")')
+    parser.add_argument('-e', '--emulation', type=str, required=False,
+                        help='Emulation test set to run from rtest.xml (e.g. smoke, regression, extended')
+    parser.add_argument('-t', '--test', required=False,
+                        help='Test set to run from rtest.xml (e.g. osdb)')
     parser.add_argument('-g', '--debug', required=False, default=False,  action='store_true',
                         help='Test Debug build (optional, default: false)')
     parser.add_argument('-o', '--output', type=str, required=False, default="xml",
@@ -61,6 +67,9 @@ def parse_args():
     #                     help='Verbose install (optional, default: False)')
     return parser.parse_args()
 
+def arg_into_list(arg) -> list:
+    arg = re.sub(r"['\"]|['\']",'', arg)
+    return arg.split(';')
 
 def vram_detect():
     global OS_info
@@ -166,7 +175,36 @@ def time_stop(start, pid):
             stop = 0
         time.sleep(0)
 
-def run_cmd(cmd, test = False, time_limit = 0):
+def gfilter_subset(filter, groups) -> str:
+    new_filter = ""
+    patterns = ["nightly"] if "nightly" in filter else ["quick", "pre_checkin"]
+    for i in groups:
+        for j in patterns:
+            new_filter += f'*{i}*{j}*:'
+    return new_filter
+
+def label_modifiers(cmd, labels) -> str:
+    original_cmd = cmd
+    processed = ["TestTensileOnly", "TestLevel3Only", "TestLevel2Only", "TestLevel1Only"]
+    overlap = [v for v in processed if v in labels]
+    if len(overlap):
+        tok = " --gtest_filter="
+        cmd = cmd.split(tok)[0] + tok
+    else:
+        return cmd
+
+    filter = ""
+    if "TestTensileOnly" in overlap:
+        filter += gfilter_subset( original_cmd, ["blas3_tensile", "blas2_tensile"] )
+    if "TestLevel3Only" in overlap:
+        filter += gfilter_subset( original_cmd, ["blas3"] )
+    if "TestLevel2Only" in overlap:
+        filter += gfilter_subset( original_cmd, ["blas2"] )
+    if "TestLevel1Only" in overlap:
+        filter += gfilter_subset( original_cmd, ["blas1"] )
+    return cmd + f'"{filter}"'
+
+def run_cmd(cmd, test = False, time_limit = 0, path = "" ):
     global args
     global test_proc, timer_thread
     global stop
@@ -182,7 +220,8 @@ def run_cmd(cmd, test = False, time_limit = 0):
             status = proc.returncode
         else:
             sub_env = os.environ.copy()
-            sub_env["PATH"] = os.getcwd() + os.pathsep + sub_env["PATH"]
+            if len(path):
+                sub_env["PATH"] = path + os.pathsep + sub_env["PATH"]
             error = False
             timeout = False
             test_proc = subprocess.Popen(cmdline, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, env=sub_env)
@@ -218,13 +257,27 @@ def run_cmd(cmd, test = False, time_limit = 0):
         status = 3
     return status
 
+def test_xml():
+    # Get the full path of the currently executing script look for installed name first
+    exe_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    installed_file = os.path.join( exe_path, 'rocblas_rtest.xml')
+    if (os.path.exists(installed_file)):
+        xmlPath = installed_file
+    else:
+        cwd = os.curdir
+        xmlPath = os.path.join( cwd, 'rtest.xml')
+    return xmlPath
+
 def batch(script, xml):
     global OS_info
     global args
     #
     cwd = pathlib.os.curdir
     rtest_cwd_path = os.path.abspath( os.path.join( cwd, 'rtest.xml') )
-    if os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
+    rtest_path = test_xml()
+    if 'rocblas_rtest.xml' in rtest_path:
+        test_dir = os.path.dirname( rtest_path )
+    elif os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
         # if in a staging directory then test locally
         test_dir = cwd
     else:
@@ -249,6 +302,7 @@ def batch(script, xml):
                 name = var.getAttribute('name')
                 val = var.getAttribute('value')
                 var_subs[name] = val
+            var_subs['EXE_DIR'] = test_dir + os.path.sep
             for test in xml.getElementsByTagName('test'):
                 sets = test.getAttribute('sets')
                 runset = sets.split(',')
@@ -270,7 +324,9 @@ def batch(script, xml):
 
                         raw_cmd = run.firstChild.data
                         var_cmd = raw_cmd.format_map(var_subs)
-                        error = run_cmd(var_cmd, True, timeout)
+                        if args.ci_labels:
+                            var_cmd = label_modifiers(var_cmd, arg_into_list(args.ci_labels))
+                        error = run_cmd(var_cmd, True, timeout, test_dir)
                         if (error == 2):
                             print( f'***\n*** Timed out when running: {name}\n***')
         else:
@@ -289,6 +345,7 @@ def batch(script, xml):
         os.chdir( cwd )
     return 0
 
+
 def run_tests():
     global test_script
     global xmlDoc
@@ -296,7 +353,7 @@ def run_tests():
     # install
     cwd = os.curdir
 
-    xmlPath = os.path.join( cwd, 'rtest.xml')
+    xmlPath = test_xml()
     xmlDoc = minidom.parse( xmlPath )
 
     scripts = []
@@ -318,7 +375,14 @@ def main():
     os_detect()
     args = parse_args()
 
-    status = run_tests()
+    if args.emulation:
+        args.test = f'emulation_{args.emulation}'
+
+    if not (args.test or args.emulation):
+        print('Either -t/--test or -e/--emulation is required.')
+        args.fail_test = True
+    else:
+        status = run_tests()
 
     if args.fail_test: status = 1
 

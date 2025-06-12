@@ -121,6 +121,17 @@ Tests:
   matrix_size: *large_matrix_size_range
   batch_count: [ 2 ]
 
+- name: trtri_large_batch
+  category: stress
+  arguments:
+    - { N: 3, lda: 3, batch_count: *c_grid_yz_require_passes }
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  stride_scale: [ 1 ]
+  function:
+    - trtri_batched: *single_precision
+    - trtri_strided_batched: *single_precision
+
 - name: trtri_size_t
   category: stress_trtri
   function:
@@ -131,7 +142,7 @@ Tests:
   uplo: [ U, L ]
   diag: [ N ]
   matrix_size: *int32_overflow_sizes
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: trtri_graph_test
@@ -165,5 +176,6 @@ Tests:
   pointer_mode_host: false
   iters: 5
   initialization: hpl
+  devices: 4
   repeatability_check: true
 ...

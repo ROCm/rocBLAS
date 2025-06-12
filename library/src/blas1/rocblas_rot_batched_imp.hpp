@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,47 +63,41 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if constexpr(std::is_same_v<API_INT, int>)
-        {
-            if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-            {
-                return rocblas_status_invalid_size;
-            }
-        }
-
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_rot_name<T, V>, n, x, incx, y, incy, c, s, batch_count);
+            logger.log_trace(
+                handle, rocblas_rot_name<T, V>, n, x, incx, y, incy, c, s, batch_count);
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH "-f rot_batched --a_type",
-                      rocblas_precision_string<T>,
-                      "--b_type",
-                      rocblas_precision_string<U>,
-                      "--c_type",
-                      rocblas_precision_string<V>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH "-f rot_batched --a_type",
+                             rocblas_precision_string<T>,
+                             "--b_type",
+                             rocblas_precision_string<U>,
+                             "--c_type",
+                             rocblas_precision_string<V>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--incy",
+                             incy,
+                             "--batch_count",
+                             batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_rot_name<T, V>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "incy",
-                        incy,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_rot_name<T, V>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "incy",
+                               incy,
+                               "batch_count",
+                               batch_count);
 
         if(n <= 0 || batch_count <= 0)
             return rocblas_status_success;

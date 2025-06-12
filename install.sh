@@ -115,27 +115,27 @@ install_packages( )
   # dependencies needed to build the rocblas library
   # Note python3-joblib is for Tensile and also installed by pip requirements.txt but there are known packaging errors so added here as workaround
   local library_dependencies_ubuntu=( "make"
-                                      "python3" "python3-yaml" "python3-venv" "python3-joblib" "python3*-pip" )
+                                      "python3" "python3-yaml" "python3-venv" "python3*-pip" )
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "rpm-build"
-                                      "python34" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
+                                      "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_centos_8=( "epel-release"
                                       "make" "rpm-build"
-                                      "python3" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
+                                      "python3" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_rhel_8=( "epel-release"
                                       "make" "rpm-build"
-                                      "python36" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
+                                      "python36" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_rhel_9=( "epel-release" "openssl-devel"
                                       "make" "rpm-build"
                                       "python39" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_fedora=( "make" "rpm-build"
-                                      "python34" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
+                                      "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" )
-  local library_dependencies_sles=(   "make" "python3-PyYAML" "python3-virtualenv" "python3-joblib"
+  local library_dependencies_sles=(   "make" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then

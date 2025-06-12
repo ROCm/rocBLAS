@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,38 +51,10 @@ endif()
 # Main
 # ########################################################################
 
-# This finds the rocm-cmake project, and installs it if not found
-# rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM 0.7.3 CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
-if( NOT ROCM_FOUND )
-  set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
-  file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
-      ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip STATUS status LOG log)
 
-  list(GET status 0 status_code)
-  list(GET status 1 status_string)
-
-  if(NOT status_code EQUAL 0)
-    message(FATAL_ERROR "error: downloading
-    'https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip' failed
-    status_code: ${status_code}
-    status_string: ${status_string}
-    log: ${log}
-    ")
-  endif()
-
-  message(STATUS "downloading... done")
-
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzvf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
-  execute_process( COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${PROJECT_EXTERN_DIR}/rocm-cmake .
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
-  execute_process( COMMAND ${CMAKE_COMMAND} --build rocm-cmake-${rocm_cmake_tag} --target install
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR})
-
-  find_package( ROCM 0.7.3 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
-endif( )
+# This finds the rocm-cmake project, and installs it if not found
+include(get-rocm-cmake)
 
 # rocm-cmake helpers
 include( ROCMSetupVersion )
@@ -100,7 +72,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "4.4.0" )
+set ( VERSION_STRING "5.1.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -110,14 +82,16 @@ list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /
 # setting target list based on ROCm version
 if (NOT BUILD_ADDRESS_SANITIZER)
   set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-  set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-  set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-  set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
+  set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+  set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+  set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
+  set( TARGET_LIST_ROCM_6.5 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
 else()
   set( TARGET_LIST_ROCM_5.6 "gfx908:xnack+;gfx90a:xnack+")
   set( TARGET_LIST_ROCM_5.7 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
   set( TARGET_LIST_ROCM_6.0 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
   set( TARGET_LIST_ROCM_6.3 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
+  set( TARGET_LIST_ROCM_6.5 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+;gfx950:xnack+")
 endif()
 
 if(ROCM_PLATFORM_VERSION)
@@ -127,13 +101,15 @@ if(ROCM_PLATFORM_VERSION)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_5.7}")
   elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.3.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.0}")
-  else()
+  elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.5.0)
     set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
+  else()
+    set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.5}")
   endif()
   message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} default supported gfx list")
 else()
   message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} is not set, using latest supported gfx list")
-  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.3}")
+  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.5}")
 endif()
 
 if( AMDGPU_TARGETS AND NOT GPU_TARGETS )
@@ -171,10 +147,18 @@ set( AMDGPU_TARGETS "${GPU_TARGETS}" CACHE STRING "List of GPUs (gfx targets) to
 
 option( BUILD_WITH_HIPBLASLT "Build with HipBLASLt" ON )
 set( hipblaslt_path "/opt/rocm" CACHE PATH "Use local HipBLASLt directory" )
-set( HIPBLASLT_VERSION 0.10 CACHE STRING "The version of HipBLASLt to be used" )
+set( HIPBLASLT_VERSION 1.0.0 CACHE STRING "The version of HipBLASLt to be used" )
 
 if( WIN32 OR NOT BUILD_WITH_TENSILE OR NOT BUILD_SHARED_LIBS )
   set( BUILD_WITH_HIPBLASLT OFF )
+endif()
+
+if( NOT SKIP_LIBRARY )
+  if(BUILD_WITH_HIPBLASLT)
+    # don't wait until after Tensile to find hipblaslt if enabled
+    find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
+    message(STATUS "FOUND hipBLASLt, INCLUDE_DIR: ${HIPBLASLT_INCLUDE_DIR}")
+  endif()
 endif()
 
 function(list_replace list old new)
@@ -195,7 +179,7 @@ if(NOT SKIP_LIBRARY)
 
     list_replace( Tensile_ARCHITECTURE "gfx90a" "gfx90a:xnack+\;gfx90a:xnack-")
 
-    set( TENSILE_VERSION 4.42.0 CACHE STRING "The version of Tensile to be used")
+    set( TENSILE_VERSION 4.44.0 CACHE STRING "The version of Tensile to be used")
 
     if(BUILD_WITH_PIP)
       if (WIN32)
@@ -211,7 +195,7 @@ if(NOT SKIP_LIBRARY)
         message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
       else()
         # Use the virtual-env setup and download package from specified repo:
-        set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
+        set( tensile_fork "ROCm" CACHE STRING "Tensile fork to use" )
         file (STRINGS "tensile_tag.txt" read_tensile_tag)
         set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
         virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
@@ -263,7 +247,7 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
   set(OPENMP_DEB "libomp-dev")
   set(GFORTRAN_RPM "libgfortran4")
   set(GFORTRAN_DEB "libgfortran4")
-  if(CLIENTS_OS STREQUAL "centos" OR CLIENTS_OS STREQUAL "rhel")
+  if(CLIENTS_OS STREQUAL "centos" OR CLIENTS_OS STREQUAL "rhel" OR CLIENTS_OS STREQUAL "almalinux")
     if(CLIENTS_OS_VERSION VERSION_GREATER_EQUAL "8")
       set(GFORTRAN_RPM "libgfortran")
     endif()
@@ -350,7 +334,9 @@ set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md" )
 set( CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
 
 if (WIN32)
-  SET( CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path" FORCE )
+  if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+    SET( CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path" FORCE )
+  endif()
   SET( INSTALL_PREFIX "C:/hipSDK" )
   SET( CPACK_SET_DESTDIR FALSE )
   SET( CPACK_PACKAGE_INSTALL_DIRECTORY "C:/hipSDK" )
@@ -363,6 +349,9 @@ else()
 endif( )
 
 set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" )
+
+# work around code object stripping failure if using /usr/bin/strip
+set( CPACK_RPM_SPEC_MORE_DEFINE "%define __strip ${rocm_bin}/../llvm/bin/llvm-strip")
 
 # Give rocblas compiled for CUDA backend a different name
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
@@ -386,19 +375,18 @@ rocm_create_package(
 if(BUILD_CODE_COVERAGE)
   #
   # > make coverage_cleanup (clean coverage related files.)
-  # > make coverage GTEST_FILTER=<>
-  # will run:
-  #  > make coverage_analysis GTEST_FILTER=<> (analyze tests)
-  #  > make coverage_output (generate html documentation)
   #
+  # > make coverage
+  # will run:
+  #  > make coverage_analysis (analyze tests)
+  #  > make coverage_output (generate html documentation)
   #
 
   #
-  # Run coverage analysis
+  # Run coverage analysis (rtest.xml sets specify coverage runs)
   #
   add_custom_target(coverage_analysis
-    COMMAND echo Coverage GTEST_FILTER=\${GTEST_FILTER}
-    COMMAND ./clients/staging/rocblas-test --gtest_filter=\"\${GTEST_FILTER}\"
+    COMMAND ${python} ./clients/staging/rocblas_rtest.py -t code_coverage
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
@@ -421,9 +409,9 @@ if(BUILD_CODE_COVERAGE)
   # Generate coverage output.
   #
   add_custom_command(TARGET coverage_output
-    COMMAND lcov --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
-    COMMAND lcov --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
-    COMMAND genhtml --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
+    COMMAND lcov --ignore-errors inconsistent --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
+    COMMAND lcov --ignore-errors inconsistent --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
+    COMMAND genhtml --ignore-errors inconsistent --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
     )
 
   add_custom_target(coverage DEPENDS coverage_output)

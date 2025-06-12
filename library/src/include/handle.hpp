@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,9 +82,8 @@ enum class Processor : int
     gfx906  = 906,
     gfx908  = 908,
     gfx90a  = 910,
-    gfx940  = 940,
-    gfx941  = 941,
     gfx942  = 942,
+    gfx950  = 950,
     gfx1010 = 1010,
     gfx1011 = 1011,
     gfx1012 = 1012,
@@ -103,6 +102,12 @@ enum class Processor : int
 
 // helper function in handle.cpp
 static rocblas_status free_existing_device_memory(rocblas_handle);
+
+// declare data packet methods for internal API
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_set_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr);
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_get_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr);
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -239,6 +244,11 @@ public:
         return archMajorMinor;
     }
 
+    int getWarpSize()
+    {
+        return mWarpSize;
+    }
+
     int getMaxSharedMemPerBlock()
     {
         int max_mem = -1;
@@ -252,10 +262,22 @@ public:
         return archMajor == 12;
     }
 
+    int getBatchGridDim(int batch_count)
+    {
+        // c_YZ_grid_launch_limit <= min(MaxGridSize[2], MaxGridSize[3]) from hipDeviceProp.MaxGridSize[3]
+        // in file /opt/rocm/include/hip/hip_runtime_api.h
+        // This function returns a grid size that will not exceed c_YZ_grid_launch_limit
+        // for now we are using a simple constant as there is only one variability (unsigned 16-bit/32-bit)
+        if(isYZGridDim16bit())
+            return std::min(batch_count, int(c_YZ_grid_launch_limit));
+        else
+            return batch_count;
+    }
+
     bool isDefaultHipBLASLtArch()
     {
-        int arch = getArch();
-        if(arch == 1200 || arch == 1201)
+        int gfx_arch = getArch();
+        if(gfx_arch == 1200 || gfx_arch == 1201 || gfx_arch == 950)
         {
             return true;
         }
@@ -268,34 +290,54 @@ public:
     }
 
     /*******************************************************************************
-     * This function determines whether or not to use the hipBLASLt backend based
-     * on the state of the environment variable and the current architecture.
-     *
+     * This function determines whether or not to try using the hipBLASLt backend
      * - If the enviornment variable is set, its value determines whether ot not to
-     *   use the hipBLASLt backend.
-     * - If the current architecture is supported, then the `prob_specific_useHipBLASLt`
-     *   input determines whether ot not to use the hipBLASLt backend.
-     * - Otherwise, the hipBLASLt backend is not used.
+     *   try the hipBLASLt backend.
+     * - Otherwise try when the current architecture is defaulted to hipBLASLt support
+     * - Always disable for any `batched` API when the current handle is in stream
+     *   capture mode (as hipblaslt batched dispatch does synchronous memory copies)
      ******************************************************************************/
-    auto useHipBLASLt(bool prob_specific_useHipBLASLt = true)
+    bool tryHipBLASLt(bool batched)
     {
+        bool status = false;
 
 #ifdef BUILD_WITH_HIPBLASLT
         if(hipblasltEnvVar < 0)
         {
             if(isDefaultHipBLASLtArch())
             {
-                return prob_specific_useHipBLASLt;
-            }
-            else
-            {
-                return false;
+                status = true;
             }
         }
-        return hipblasltEnvVar == 1;
-#else
-        return false;
+        else
+            status = hipblasltEnvVar == 1;
 #endif
+
+        if(status && batched)
+        {
+            status = !is_stream_in_capture_mode();
+        }
+
+        return status;
+    }
+
+    bool isHipBLASLtEnabled()
+    {
+        bool status = false;
+
+#ifdef BUILD_WITH_HIPBLASLT
+        if(hipblasltEnvVar < 0)
+        {
+            if(isDefaultHipBLASLtArch())
+            {
+                status = true;
+            }
+        }
+        else
+            status = hipblasltEnvVar == 1;
+#endif
+
+        return status;
     }
 
     inline int getDefaultDeviceMemorySize()
@@ -321,8 +363,8 @@ public:
     // default logging_mode is no logging
     rocblas_layer_mode layer_mode = rocblas_layer_mode_none;
 
-    // default atomics mode allows atomic operations
-    rocblas_atomics_mode atomics_mode = rocblas_atomics_allowed;
+    // default atomics mode does not allows atomic operations
+    rocblas_atomics_mode atomics_mode = rocblas_atomics_not_allowed;
 
     // Selects the benchmark library to be used for solution selection
     rocblas_performance_metric performance_metric = rocblas_default_performance_metric;
@@ -339,6 +381,18 @@ public:
     std::unique_ptr<rocblas_internal_ostream> log_profile_os;
     void                                      init_logging();
     void                                      init_check_numerics();
+
+    // data pointer for rocSOLVER
+    std::shared_ptr<void> data_ptr;
+
+    void get_data_ptr(std::shared_ptr<void>& data_ptr) const
+    {
+        data_ptr = this->data_ptr;
+    }
+    void set_data_ptr(std::shared_ptr<void>& data_ptr)
+    {
+        this->data_ptr = data_ptr;
+    }
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
@@ -484,6 +538,8 @@ private:
     const int arch;
     int       archMajor;
     int       archMajorMinor;
+
+    int mWarpSize;
 
     // hipBLASLt handle is created at handle creation time and remains in effect for the life of the handle.
     std::shared_ptr<hipblasLtHandle_t> hipblasLtHandle;
@@ -721,7 +777,7 @@ private:
 
     // Allocate workspace for GSU based on the needs.
     // clang-format off
-    class [[nodiscard]] _gsu_malloc_by_size final : _device_malloc
+    class [[nodiscard]] _gsu_malloc_by_size final : public _device_malloc
     {
     public:
         explicit _gsu_malloc_by_size(rocblas_handle handle, size_t requested_Workspace_Size)

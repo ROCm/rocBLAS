@@ -64,14 +64,6 @@ rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,
                                       API_INT           ldc,
                                       API_INT           batch_count)
 {
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
-    }
-
     if(side != rocblas_side_left && side != rocblas_side_right)
         return rocblas_status_invalid_value;
 

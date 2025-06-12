@@ -88,7 +88,7 @@ rocblas_status rocblas_internal_scal_launcher_64(rocblas_handle handle,
                 int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_X_chunk));
 
                 int  blocks = (n - 1) / NB + 1;
-                dim3 grid(blocks, batch_count);
+                dim3 grid(blocks, 1, batch_count);
                 dim3 threads(NB);
 
                 int64_t shiftx = offset_x + n_base * incx_64;
@@ -105,7 +105,8 @@ rocblas_status rocblas_internal_scal_launcher_64(rocblas_handle handle,
                                           x_ptr,
                                           shiftx,
                                           incx_64,
-                                          stride_x);
+                                          stride_x,
+                                          batch_count);
                 else // single alpha is on host
                     ROCBLAS_LAUNCH_KERNEL((rocblas_scal_kernel<int64_t, NB, T, Tex>),
                                           grid,
@@ -118,7 +119,8 @@ rocblas_status rocblas_internal_scal_launcher_64(rocblas_handle handle,
                                           x_ptr,
                                           shiftx,
                                           incx_64,
-                                          stride_x);
+                                          stride_x,
+                                          batch_count);
             }
         }
     }

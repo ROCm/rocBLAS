@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -115,9 +115,6 @@ if( BUILD_WITH_TENSILE )
   endif()
 
   set( rocblas_ex_source
-    blas_ex/rocblas_gemm_ex3.cpp
-    blas_ex/rocblas_gemm_strided_batched_ex3.cpp
-    blas_ex/rocblas_gemm_batched_ex3.cpp
     ${Tensile_SRC}
     ${HipBlasLT_SRC}
   )
@@ -327,6 +324,7 @@ set( rocblas_blas2_source
 
 set( rocblas_auxiliary_source
   handle.cpp
+  logging.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
   rocblas_ostream.cpp
@@ -684,9 +682,6 @@ rocblas_library_settings( rocblas )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
 
-if(BUILD_WITH_HIPBLASLT)
-  find_package( hipblaslt ${HIPBLASLT_VERSION} REQUIRED CONFIG PATHS ${hipblaslt_path} ${ROCM_PATH})
-endif()
 
 if( BUILD_WITH_TENSILE )
 
@@ -753,6 +748,7 @@ generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/r
 file( GLOB rocblas_prototype_inputs
   LIST_DIRECTORIES OFF
   CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp
@@ -762,7 +758,7 @@ file( GLOB rocblas_prototype_inputs
 )
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
-  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
+  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/src64/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
   #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/
   DEPENDS ${rocblas_prototype_inputs}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."

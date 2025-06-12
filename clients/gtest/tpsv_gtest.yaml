@@ -62,7 +62,7 @@ Tests:
   diag: [ N ]
   matrix_size: *size_t_index
   os_flags: LINUX
-  gpu_arch: ['90a']
+  gpu_arch: ['90a','942','950']
 
 # Regular tpsv
 - name: tpsv_bad_arg
@@ -103,7 +103,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
 
-- name: tpsv_64
+- name: tpsv_ILP64
   category: stress
   arguments:
     - { N: 2, incx: 2147483649, batch_count: 1 }
@@ -243,5 +243,6 @@ Tests:
   pointer_mode_host: false
   atomics_mode: 0
   iters: 5
+  devices: 4
   repeatability_check: true
 ...

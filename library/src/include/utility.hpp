@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -326,24 +326,7 @@ constexpr const char* rocblas_datatype_string(rocblas_datatype type)
     case rocblas_datatype_u32_c:  return "u32_c";
     case rocblas_datatype_bf16_r: return "bf16_r";
     case rocblas_datatype_bf16_c: return "bf16_c";
-    case rocblas_datatype_f8_r:  return "f8_r";
-    case rocblas_datatype_bf8_r:  return "bf8_r";
     case rocblas_datatype_invalid: return "invalid";
-    }
-    return "invalid";
-}
-
-// return precision string for rocblas_datatype
-constexpr const char* rocblas_datatype_string(rocblas_computetype type)
-{
-    switch(type)
-    {
-    case rocblas_compute_type_f32:  return "f32";
-    case rocblas_compute_type_f8_f8_f32:  return "f8_f8_f32";
-    case rocblas_compute_type_f8_bf8_f32:  return "f8_bf8_f32";
-    case rocblas_compute_type_bf8_f8_f32:  return "bf8_f8_f32";
-    case rocblas_compute_type_bf8_bf8_f32:  return "bf8_bf8_f32";
-    case rocblas_compute_type_invalid: return "invalid";
     }
     return "invalid";
 }
@@ -369,8 +352,6 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
     case rocblas_datatype_u32_c:  return 8;
     case rocblas_datatype_bf16_r: return 2;
     case rocblas_datatype_bf16_c: return 4;
-    case rocblas_datatype_f8_r:   return 1;
-    case rocblas_datatype_bf8_r:  return 1;
     case rocblas_datatype_invalid: return 4;
     }
     return 0;
@@ -409,14 +390,10 @@ template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<uint8
 template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<int32_t>                = rocblas_datatype_i32_r;
 template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<uint32_t>               = rocblas_datatype_u32_r;
 template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>       = rocblas_datatype_bf16_r;
-template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_f8>             = rocblas_datatype_f8_r;
-template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_bf8>            = rocblas_datatype_bf8_r;
 
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                              [] = "invalid";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_bfloat16      >[] = "bf16_r";
-template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_f8            >[] = "f8_r";
-template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_bf8           >[] = "bf8_r";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<float                 >[] = "f32_r";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<double                >[] = "f64_r";
@@ -508,16 +485,6 @@ __host__ __device__ inline bool rocblas_isnan(rocblas_half arg)
     return (~x.data & 0x7c00) == 0 && (x.data & 0x3ff) != 0;
 }
 
-__host__ __device__ inline bool rocblas_isnan(rocblas_f8 arg)
-{
-    return arg.is_nan();
-}
-
-__host__ __device__ inline bool rocblas_isnan(rocblas_bf8 arg)
-{
-    return arg.is_nan();
-}
-
 /*******************************************************************************
 * \brief  returns true if arg is Infinity
 ********************************************************************************/
@@ -550,16 +517,6 @@ __host__ __device__ inline bool rocblas_isinf(rocblas_half arg)
     return (~x.data & 0x7c00) == 0 && (x.data & 0x3ff) == 0;
 }
 
-__host__ __device__ inline bool rocblas_isinf(rocblas_f8 arg)
-{
-    return arg.is_inf();
-}
-
-__host__ __device__ inline bool rocblas_isinf(rocblas_bf8 arg)
-{
-    return arg.is_inf();
-}
-
 /*******************************************************************************
 * \brief  returns max value for type
 ********************************************************************************/
@@ -583,16 +540,6 @@ template <typename T>
 __host__ __device__ inline bool rocblas_iszero(T arg)
 {
     return arg == 0;
-}
-
-__host__ __device__ inline bool rocblas_iszero(rocblas_f8 arg)
-{
-    return arg.is_zero();
-}
-
-__host__ __device__ inline bool rocblas_iszero(rocblas_bf8 arg)
-{
-    return arg.is_zero();
 }
 
 // Absolute value
@@ -626,26 +573,6 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
     } t = {x};
     t.data &= 0x7fff;
     return t.x;
-}
-
-// rocblas_f8 is handled specially
-__device__ __host__ inline rocblas_f8 rocblas_abs(rocblas_f8 x)
-{
-    if(x.is_nan())
-        return x;
-
-    x.data &= 0x7f;
-    return x;
-}
-
-// rocblas_bf8 is handled specially
-__device__ __host__ inline rocblas_bf8 rocblas_abs(rocblas_bf8 x)
-{
-    if(x.is_nan())
-        return x;
-
-    x.data &= 0x7f;
-    return x;
 }
 
 /*******************************************************************************
@@ -695,32 +622,6 @@ __host__ __device__ inline bool rocblas_isdenorm(rocblas_bfloat16 arg)
         (x.data >= 0x0001)
         && (x.data
             < 0x0080)); //0x0001 is the smallest positive subnormal number and 0x0080 is the smallest positive normal number represented by rocblas_bfloat16
-}
-
-__host__ __device__ inline bool rocblas_isdenorm(rocblas_f8 arg)
-{
-    union
-    {
-        rocblas_f8 fp;
-        uint8_t    data;
-    } x = {rocblas_abs(arg)};
-    return (
-        (x.data >= 0x01)
-        && (x.data
-            < 0x08)); //0x01 is the smallest positive subnormal number and 0x08 is the smallest positive normal number represented by rocblas_f8
-}
-
-__host__ __device__ inline bool rocblas_isdenorm(rocblas_bf8 arg)
-{
-    union
-    {
-        rocblas_bf8 fp;
-        uint8_t     data;
-    } x = {rocblas_abs(arg)};
-    return (
-        (x.data >= 0x01)
-        && (x.data
-            < 0x04)); //0x01 is the smallest positive subnormal number and 0x04 is the smallest positive normal number represented by rocblas_bf8
 }
 
 // Is power of two
@@ -788,6 +689,25 @@ struct rocblas_const_batched_t_impl<T, true>
 
 template <typename T, bool BATCHED>
 using rocblas_const_batched_t = typename rocblas_const_batched_t_impl<T, BATCHED>::type;
+
+// Batched datatype
+template <typename T, bool BATCHED, typename = void>
+struct rocblas_type_from_ptr_t_impl
+{
+    // T should be either a const T* or a T* here
+    using type = typename std::remove_const<std::remove_pointer_t<T>>::type;
+};
+
+template <typename T>
+struct rocblas_type_from_ptr_t_impl<T, true>
+{
+    // T should be either a const T* const* or a T* const* here
+    using T_tmp = typename std::remove_const<std::remove_pointer_t<T>>::type;
+    using type  = typename rocblas_type_from_ptr_t_impl<T_tmp, false>::type;
+};
+
+template <typename T, bool BATCHED>
+using rocblas_type_from_ptr_t = typename rocblas_type_from_ptr_t_impl<T, BATCHED>::type;
 
 // Get array2 types from base type
 template <typename T, typename = void>
@@ -864,7 +784,7 @@ catch(...)
 // precision value to express the category of beta. This function is to
 // convert complex or other types to a double representing the category.
 template <typename T>
-constexpr double value_category(const T& beta)
+constexpr double rocblas_internal_value_category(const T& beta)
 {
     return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : beta == T(-1) ? -1.0 : 2.0;
 }
@@ -874,7 +794,7 @@ constexpr double value_category(const T& beta)
 bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
 
 // Internal use, whether Device supports xDL math op
-// We assume true if the value is between 940 to 1000
+// We assume true if the value is between 942 to 1000
 ROCBLAS_INTERNAL_EXPORT bool rocblas_internal_tensile_supports_xdl_math_op(rocblas_math_mode mode);
 
 // for internal use during testing, fetch arch name

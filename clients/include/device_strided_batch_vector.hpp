@@ -25,6 +25,12 @@
 #include "d_vector.hpp"
 
 //
+// Forward declaration of the host vector.
+//
+template <typename T>
+class host_vector;
+
+//
 // Local declaration of the host strided batch vector.
 //
 template <typename T>

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -144,7 +144,9 @@ rocblas_status rocblas_internal_rot_launcher(rocblas_handle handle,
     int64_t shiftx = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
     int64_t shifty = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
 
-    dim3        blocks((n - 1) / NB + 1, batch_count);
+    int batches = handle->getBatchGridDim((int)batch_count);
+
+    dim3        blocks((n - 1) / NB + 1, 1, batches);
     dim3        threads(NB);
     hipStream_t rocblas_stream = handle->get_stream();
 
@@ -166,7 +168,7 @@ rocblas_status rocblas_internal_rot_launcher(rocblas_handle handle,
                               c,
                               c_stride,
                               s,
-                              s_stride);
+                              s_stride, batch_count);
     else // c and s are on host
         ROCBLAS_LAUNCH_KERNEL((rocblas_rot_kernel<API_INT, NB, Tex>),
                               blocks,
@@ -185,7 +187,7 @@ rocblas_status rocblas_internal_rot_launcher(rocblas_handle handle,
                               *c,
                               c_stride,
                               *s,
-                              s_stride);
+                              s_stride, batch_count);
 
     return rocblas_status_success;
 }

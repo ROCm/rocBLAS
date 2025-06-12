@@ -58,6 +58,12 @@ def parse_args():
     general_opts.add_argument(      '--build_dir', type=str, required=False, default="build",
                         help='Specify path to configure & build process output directory.(optional, default: ./build)')
 
+    general_opts.add_argument(      '--ci_labels', type=str, required=False, default="",
+                        help='Semi-colon seperated list of labels that may modify build (optional, e.g. "gfx12;noTensile")')
+
+    general_opts.add_argument(      '--ci_gfx', type=str, required=False, default="",
+                        help='Semi-colon seperated list of gfx targets expected on test runs (optional, e.g. "gfx1030;gfx1201")')
+
     general_opts.add_argument(      '--cleanup', required=False, default=False, action='store_true',
                         help='Remove intermediary build files after build to reduce disk usage. (Linux only handled by install.sh)')
 
@@ -323,11 +329,13 @@ def fatal(msg, code=1):
 def deps_cmd():
     if os.name == "nt":
         exe = f"python3 rdeps.py"
-        all_args = ""
+        stripped_args = ""
     else:
-        exe = f"./install.sh --rmake_invoked -d"
+        exe = f"./install.sh --rmake_invoked -d "
         all_args = ' '.join(sys.argv[1:])
-    return exe, all_args
+        stripped_args = all_args.split('--ci_labels')[0] # last args in CI
+        stripped_args = stripped_args.split('-a ')[0]
+    return exe, stripped_args
 
 
 def config_cmd():
@@ -540,6 +548,28 @@ def make_cmd():
 
     return make_executable, cmd_opts
 
+def arg_into_list(arg) -> list:
+    arg = re.sub(r"['\"]|['\']",'', arg)
+    return arg.split(';')
+
+def label_modifiers(labels):
+    global args
+    processed = ["noTensile", "dependencies"]
+    overlap = [v for v in processed if v in labels]
+    if len(overlap):
+        if "noTensile" in overlap:
+            args.build_tensile = False
+        # TODO: Deferred
+        # if "dependencies" in overlap and os.name != "nt":
+        #     args.dependencies = True
+
+def gfx_modifiers(ci_gfx_list):
+    global args
+    if len(ci_gfx_list):
+        gfx = arg_into_list( args.gpu_architecture )
+        overlap = [v for v in ci_gfx_list if (v in gfx or "all" in gfx)]
+        if len(overlap):
+            args.gpu_architecture = ';'.join(overlap)
 
 def run_cmd(exe, opts):
     program = f"{exe} {opts}"
@@ -547,11 +577,15 @@ def run_cmd(exe, opts):
     proc = subprocess.run(program, check=True, stderr=subprocess.STDOUT, shell=True)
     return proc.returncode
 
-
 def main():
     global args
     os_detect()
     args = parse_args()
+
+    if args.ci_labels != "":
+        label_modifiers( arg_into_list(args.ci_labels) )
+    if args.ci_gfx != "":
+        gfx_modifiers( arg_into_list(args.ci_gfx) )
 
     if args.jobs == 0:
         args.jobs = jobs_heuristic()

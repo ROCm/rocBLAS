@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include "fetch_template.hpp"
 #include "int64_helpers.hpp"
 #include "reduction.hpp"
+#include "rocblas_dot.hpp"
 #include "rocblas_reduction.hpp"
 
 template <typename API_INT,
@@ -106,14 +107,6 @@ rocblas_status rocblas_asum_nrm2_arg_check(rocblas_handle handle,
                 memset(result, 0, batch_count * sizeof(Tr));
         }
         return rocblas_status_success;
-    }
-
-    if constexpr(std::is_same_v<API_INT, int>)
-    {
-        if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-        {
-            return rocblas_status_invalid_size;
-        }
     }
 
     if(!x)

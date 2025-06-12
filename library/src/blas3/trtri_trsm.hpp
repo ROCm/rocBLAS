@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "device_macros.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_gemm.hpp"
 #include "rocblas_trtri.hpp"
@@ -48,7 +49,8 @@ rocblas_trtri_trsm_kernel(rocblas_fill     uplo,
                           rocblas_stride   stride_A,
                           V                invA,
                           rocblas_stride   offset_invA,
-                          rocblas_stride   stride_invA)
+                          rocblas_stride   stride_invA,
+                          rocblas_int      batch_count)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -57,10 +59,22 @@ rocblas_trtri_trsm_kernel(rocblas_fill     uplo,
     rocblas_stride offA    = (2 * blockIdx.x) * (IB * size_t(lda) + IB) + offset_A;
     rocblas_stride offinvA = ((2 * blockIdx.x) / IBD) * (NB * size_t(NB))
                              + ((2 * blockIdx.x) % IBD) * (IB * size_t(NB) + IB) + offset_invA;
-    const T* a_i    = load_ptr_batch(A, blockIdx.y, offA, stride_A);
-    T*       invA_i = load_ptr_batch(invA, blockIdx.y, offinvA, stride_invA);
 
-    rocblas_custom_trtri_device<IB>(uplo, diag, IB, a_i, lda, invA_i, NB);
+    uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+    for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+    {
+#endif
+
+        const T* a_i    = load_ptr_batch(A, batch, offA, stride_A);
+        T*       invA_i = load_ptr_batch(invA, batch, offinvA, stride_invA);
+
+        rocblas_custom_trtri_device<IB>(uplo, diag, IB, a_i, lda, invA_i, NB);
+
+#if DEVICE_GRID_YZ_16BIT
+    }
+#endif
 }
 
 /* ============================================================================================ */
@@ -128,6 +142,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
 
     rocblas_status status;
 
+    int batches = handle->getBatchGridDim((int)batch_count);
+
     /* sub_blocks is number of divisible NB*NB sub_blocks, but 2 * sub_blocks of IB*IB sub_blocks.
        if n < NB. Then sub_blocks = 0; the trtri_trsm and batched gemm are disabled */
 
@@ -137,7 +153,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
     {
         constexpr rocblas_int IBD = 8;
         constexpr rocblas_int IB  = NB / IBD;
-        dim3                  grid(sub_blocks * IBD / 2, batch_count);
+        dim3                  grid(sub_blocks * IBD / 2, 1, batches);
         dim3                  threads(IB * IB);
 
         /*
@@ -183,16 +199,17 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                               stride_A,
                               invA,
                               offset_invAin,
-                              stride_invA);
+                              stride_invA,
+                              batch_count);
 
-        static constexpr size_t sub_blockSize = 128;
+        static constexpr size_t SUB_BLOCKSIZE = 128;
         size_t tri_elements_to_zero           = rocblas_num_non_tri_elements(NB) * sub_blocks;
-        size_t num_sub_blocks = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
+        size_t num_sub_blocks = (tri_elements_to_zero + SUB_BLOCKSIZE - 1) / SUB_BLOCKSIZE;
 
-        dim3 grid_fill(num_sub_blocks, batch_count);
-        dim3 threads_fill(sub_blockSize);
+        dim3 grid_fill(num_sub_blocks, 1, batches);
+        dim3 threads_fill(SUB_BLOCKSIZE);
         ROCBLAS_LAUNCH_KERNEL_GRID(grid_fill,
-                                   (rocblas_trtri_fill<sub_blockSize, T>),
+                                   (rocblas_trtri_fill<SUB_BLOCKSIZE, T>),
                                    grid_fill,
                                    threads_fill,
                                    0,
@@ -207,7 +224,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                                    invA,
                                    offset_invAin,
                                    stride_invA,
-                                   sub_blocks);
+                                   sub_blocks,
+                                   batch_count);
 
         constexpr rocblas_int JB              = IB * 4;
         rocblas_stride        sub_stride_A    = NB * size_t(lda) + NB;
@@ -310,14 +328,14 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
     rocblas_int rem = n - sub_blocks * NB;
     if(rem)
     {
-        static constexpr size_t sub_blockSize        = 128;
+        static constexpr size_t SUB_BLOCKSIZE        = 128;
         size_t                  tri_elements_to_zero = rocblas_num_non_tri_elements(rem);
-        size_t num_sub_blocks = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
+        size_t num_sub_blocks = (tri_elements_to_zero + SUB_BLOCKSIZE - 1) / SUB_BLOCKSIZE;
 
-        dim3 grid_fill(num_sub_blocks, batch_count);
-        dim3 threads_fill(sub_blockSize);
+        dim3 grid_fill(num_sub_blocks, 1, batches);
+        dim3 threads_fill(SUB_BLOCKSIZE);
         ROCBLAS_LAUNCH_KERNEL_GRID(grid_fill,
-                                   (rocblas_trtri_fill<sub_blockSize, T>),
+                                   (rocblas_trtri_fill<SUB_BLOCKSIZE, T>),
                                    grid_fill,
                                    threads_fill,
                                    0,
@@ -332,7 +350,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                                    invA,
                                    sub_blocks * NB * size_t(NB) + offset_invAin,
                                    stride_invA,
-                                   1);
+                                   1,
+                                   batch_count);
 
         if constexpr(BATCHED)
             status = rocblas_internal_trtri_batched_template(

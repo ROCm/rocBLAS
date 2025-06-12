@@ -112,7 +112,7 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
   pointer_mode_device: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: geam_NaN
@@ -261,7 +261,18 @@ Tests:
   alpha_beta: *huge_complex_alpha_beta_range
   pointer_mode_device: false
 
-- name: geam_64
+- name: geam_large_batch
+  category: pre_checkin # TODO
+  arguments:
+    - {  M: 2, N: 2, lda: 2, ldb: 2, ldc: 2, batch_count: *c_grid_yz_require_passes, transA: T, transB: T }
+  alpha: [1.0, 0.0]
+  beta: 1.0
+  function:
+    - geam_batched: *single_precision
+    - geam_strided_batched: *single_precision
+  stride_scale: 1
+
+- name: geam_ILP64
   category: stress
   arguments:
     - {  M: 2147483649, N: 1, lda: 2147483659, ldb: 2147483669,  ldc: 2147483689, batch_count: 1, transA: N, transB: N}
@@ -311,6 +322,7 @@ Tests:
   atomics_mode : 0
   pointer_mode_host: false
   iters: 5
+  devices: 4
   repeatability_check: true
 
 ...

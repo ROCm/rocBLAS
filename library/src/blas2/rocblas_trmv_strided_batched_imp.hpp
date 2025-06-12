@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,6 +60,7 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+        rocblas_internal_logger logger;
 
         if(!handle->is_device_memory_size_query())
         {
@@ -73,69 +74,69 @@ namespace
                 auto diag_letter   = rocblas_diag_letter(diag);
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    log_trace(handle,
-                              rocblas_trmv_strided_batched_name<T>,
-                              uplo,
-                              transa,
-                              diag,
-                              n,
-                              a,
-                              lda,
-                              x,
-                              incx,
-                              stridea,
-                              incx,
-                              stridex,
-                              batch_count);
+                    logger.log_trace(handle,
+                                     rocblas_trmv_strided_batched_name<T>,
+                                     uplo,
+                                     transa,
+                                     diag,
+                                     n,
+                                     a,
+                                     lda,
+                                     x,
+                                     incx,
+                                     stridea,
+                                     incx,
+                                     stridex,
+                                     batch_count);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    log_bench(handle,
-                              ROCBLAS_API_BENCH " -f trmv_strided_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transa_letter,
-                              "--diag",
-                              diag_letter,
-                              "-n",
-                              n,
-                              "--lda",
-                              lda,
-                              "--stride_a",
-                              stridea,
-                              "--incx",
-                              incx,
-                              "--stride_x",
-                              stridex,
-                              "--batch_count",
-                              batch_count);
+                    logger.log_bench(handle,
+                                     ROCBLAS_API_BENCH " -f trmv_strided_batched -r",
+                                     rocblas_precision_string<T>,
+                                     "--uplo",
+                                     uplo_letter,
+                                     "--transposeA",
+                                     transa_letter,
+                                     "--diag",
+                                     diag_letter,
+                                     "-n",
+                                     n,
+                                     "--lda",
+                                     lda,
+                                     "--stride_a",
+                                     stridea,
+                                     "--incx",
+                                     incx,
+                                     "--stride_x",
+                                     stridex,
+                                     "--batch_count",
+                                     batch_count);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_profile)
                 {
-                    log_profile(handle,
-                                rocblas_trmv_strided_batched_name<T>,
-                                "uplo",
-                                uplo_letter,
-                                "transA",
-                                transa_letter,
-                                "diag",
-                                diag_letter,
-                                "N",
-                                n,
-                                "lda",
-                                lda,
-                                "stride_a",
-                                stridea,
-                                "incx",
-                                incx,
-                                "stride_x",
-                                stridex,
-                                "batch_count",
-                                batch_count);
+                    logger.log_profile(handle,
+                                       rocblas_trmv_strided_batched_name<T>,
+                                       "uplo",
+                                       uplo_letter,
+                                       "transA",
+                                       transa_letter,
+                                       "diag",
+                                       diag_letter,
+                                       "N",
+                                       n,
+                                       "lda",
+                                       lda,
+                                       "stride_a",
+                                       stridea,
+                                       "incx",
+                                       incx,
+                                       "stride_x",
+                                       stridex,
+                                       "batch_count",
+                                       batch_count);
                 }
             }
         }

@@ -26,7 +26,6 @@
 #include <type_traits>
 #include <vector>
 
-#include "device_vector.hpp"
 #include "host_alloc.hpp"
 
 //!

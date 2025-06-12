@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -146,6 +146,7 @@ void testing_trsv(const Arguments& arg)
     hx_or_b    = hb;
 
     // copy data from CPU to device
+    CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
     double max_err_host            = 0.0;
@@ -172,11 +173,11 @@ void testing_trsv(const Arguments& arg)
         {
             // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
 
             handle.pre_test(arg);
             DAPI_CHECK(rocblas_trsv_fn, (handle, uplo, transA, diag, N, dA, lda, dx_or_b, incx));
             handle.post_test(arg);
+
             CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
         }
 
@@ -196,7 +197,8 @@ void testing_trsv(const Arguments& arg)
                 CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
                 // multi-GPU support
                 int device_id, device_count;
-                CHECK_HIP_ERROR(hipGetDeviceCount(&device_count));
+                CHECK_HIP_ERROR(limit_device_count(device_count, (int)arg.devices));
+
                 for(int dev_id = 0; dev_id < device_count; dev_id++)
                 {
                     CHECK_HIP_ERROR(hipGetDevice(&device_id));

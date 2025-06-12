@@ -25,6 +25,7 @@
 #include "../blas2/rocblas_gemv.hpp"
 #include "../blas3/trtri_trsm.hpp"
 #include "check_numerics_vector.hpp"
+#include "device_macros.hpp"
 
 template <typename T>
 static const T alpha_negative_one = T(-1);
@@ -44,17 +45,28 @@ rocblas_internal_flip_vector_kernel(U* __restrict__ data,
                                     rocblas_int    size,
                                     rocblas_int    abs_incx,
                                     rocblas_stride offset,
-                                    rocblas_stride stride)
+                                    rocblas_stride stride,
+                                    rocblas_int    batch_count)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     if(tx < size)
     {
-        T*          pdata = load_ptr_batch(data, blockIdx.y, offset, stride);
-        rocblas_int end   = (m - 1 - tx) * abs_incx;
-        rocblas_int start = tx * abs_incx;
-        T           temp  = pdata[end];
-        pdata[end]        = pdata[start];
-        pdata[start]      = temp;
+        // Load appropriate pointers
+        uint32_t batch = blockIdx.z;
+
+#if DEVICE_GRID_YZ_16BIT
+        for(; batch < batch_count; batch += c_YZ_grid_launch_limit)
+        {
+#endif
+            T*          pdata = load_ptr_batch(data, batch, offset, stride);
+            rocblas_int end   = (m - 1 - tx) * abs_incx;
+            rocblas_int start = tx * abs_incx;
+            T           temp  = pdata[end];
+            pdata[end]        = pdata[start];
+            pdata[start]      = temp;
+#if DEVICE_GRID_YZ_16BIT
+        }
+#endif
     }
 }
 
@@ -67,9 +79,10 @@ rocblas_status rocblas_internal_flip_vector(rocblas_handle handle,
                                             rocblas_int    batch_count,
                                             rocblas_stride offset = 0)
 {
+    int         batches = handle->getBatchGridDim((int)batch_count);
     rocblas_int size    = (m + 1) / 2;
     rocblas_int blocksX = (size - 1) / NB_X + 1;
-    dim3        grid(blocksX, batch_count, 1);
+    dim3        grid(blocksX, 1, batches);
     dim3        threads(NB_X, 1, 1);
 
     ROCBLAS_LAUNCH_KERNEL((rocblas_internal_flip_vector_kernel<NB_X, T>),
@@ -82,7 +95,8 @@ rocblas_status rocblas_internal_flip_vector(rocblas_handle handle,
                           size,
                           abs_incx,
                           offset,
-                          stride);
+                          stride,
+                          batch_count);
 
     return rocblas_status_success;
 }

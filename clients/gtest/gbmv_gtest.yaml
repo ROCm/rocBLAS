@@ -211,6 +211,20 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
 
+- name: gbmv_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { M: 3, N: 3, lda: 3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes }
+  KL: 1
+  KU: 1
+  transA: [ N, T ]
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  function:
+    - gbmv_batched: *single_precision
+    - gbmv_strided_batched: *single_precision
+  stride_scale: 1
+
 # gbmv_strided_batched
 - name: gbmv_strided_batched_NaN
   category: pre_checkin
@@ -291,10 +305,10 @@ Tests:
   pointer_mode_device: false
   alpha: [ 2.0 ]
   beta: [ 3.0 ]
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
-- name: gbmv_64
+- name: gbmv_ILP64
   category: stress
   arguments:
     - { M: 3, N: 3, lda: 1024, incx: 1, incy: 1, batch_count: 1 } # TODO use I64 with less memory
@@ -333,9 +347,10 @@ Tests:
   pointer_mode_host: false
   atomics_mode: 0
   iters: 5
+  devices: 4
   repeatability_check: true
 
-# - name: gbmv_64
+# - name: gbmv_ILP64
 #   category: stress # TODO decide on full problem support
 #   arguments:
 #     - { transA: N, M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }

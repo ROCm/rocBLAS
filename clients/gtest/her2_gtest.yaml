@@ -94,7 +94,7 @@ Tests:
   pointer_mode_device: false
   incx: 1
   incy: 1
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 - name: her2_fortran
@@ -146,14 +146,14 @@ Tests:
   alpha_beta: *alpha_range_small
 
 - name: her2_size_t
-  category: nightly
+  category: stress
   function: her2
   precision: *single_precision_complex
   uplo: [ U    ]
   matrix_size: *size_t_n_incx_incy
   pointer_mode_device: false
   alpha_beta: *alpha_range_small
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
   os_flags: LINUX
 
 # batched
@@ -209,6 +209,18 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   batch_count: [ 3 ]
+
+- name: her2_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { N: 3, lda:  3, incx: 1, incy: 1, batch_count: *c_grid_yz_require_passes} #generic kernel
+  alpha: [ 2.0 ]
+  uplo: [ U, L ]
+  pointer_mode_host: false
+  function:
+    - her2_batched: *single_precision_complex
+    - her2_strided_batched: *single_precision_complex
+  stride_scale: 1
 
 # strided batched
 - name: her2_strided_batched_fortran
@@ -269,7 +281,7 @@ Tests:
   stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
-- name: her2_64
+- name: her2_ILP64
   category: stress
   arguments:
     - { N: 2, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
@@ -320,5 +332,6 @@ Tests:
   initialization: hpl
   atomics_mode: 0
   iters: 5
+  devices: 4
   repeatability_check: true
 ...

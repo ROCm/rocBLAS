@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,8 +65,9 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -74,84 +75,84 @@ namespace
             auto transA_letter = rocblas_transpose_letter(transA);
 
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_gbmv_name<T>,
-                          transA,
-                          m,
-                          n,
-                          kl,
-                          ku,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          stride_A,
-                          x,
-                          incx,
-                          stride_x,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          y,
-                          incy,
-                          stride_y,
-                          batch_count);
+                logger.log_trace(handle,
+                                 rocblas_gbmv_name<T>,
+                                 transA,
+                                 m,
+                                 n,
+                                 kl,
+                                 ku,
+                                 LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                                 A,
+                                 lda,
+                                 stride_A,
+                                 x,
+                                 incx,
+                                 stride_x,
+                                 LOG_TRACE_SCALAR_VALUE(handle, beta),
+                                 y,
+                                 incy,
+                                 stride_y,
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          ROCBLAS_API_BENCH " -f gbmv_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--transposeA",
-                          transA_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          "--kl",
-                          kl,
-                          "--ku",
-                          ku,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          stride_A,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stride_x,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stride_y,
-                          "--batch_count",
-                          batch_count);
+                logger.log_bench(handle,
+                                 ROCBLAS_API_BENCH " -f gbmv_strided_batched -r",
+                                 rocblas_precision_string<T>,
+                                 "--transposeA",
+                                 transA_letter,
+                                 "-m",
+                                 m,
+                                 "-n",
+                                 n,
+                                 "--kl",
+                                 kl,
+                                 "--ku",
+                                 ku,
+                                 LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                                 "--lda",
+                                 lda,
+                                 "--stride_a",
+                                 stride_A,
+                                 "--incx",
+                                 incx,
+                                 "--stride_x",
+                                 stride_x,
+                                 LOG_BENCH_SCALAR_VALUE(handle, beta),
+                                 "--incy",
+                                 incy,
+                                 "--stride_y",
+                                 stride_y,
+                                 "--batch_count",
+                                 batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_gbmv_name<T>,
-                            "transA",
-                            transA_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "kl",
-                            kl,
-                            "ku",
-                            ku,
-                            "lda",
-                            lda,
-                            "stride_a",
-                            stride_A,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "incy",
-                            incy,
-                            "stride_y",
-                            stride_y,
-                            "batch_count",
-                            batch_count);
+                logger.log_profile(handle,
+                                   rocblas_gbmv_name<T>,
+                                   "transA",
+                                   transA_letter,
+                                   "M",
+                                   m,
+                                   "N",
+                                   n,
+                                   "kl",
+                                   kl,
+                                   "ku",
+                                   ku,
+                                   "lda",
+                                   lda,
+                                   "stride_a",
+                                   stride_A,
+                                   "incx",
+                                   incx,
+                                   "stride_x",
+                                   stride_x,
+                                   "incy",
+                                   incy,
+                                   "stride_y",
+                                   stride_y,
+                                   "batch_count",
+                                   batch_count);
         }
 
         rocblas_status arg_status = rocblas_gbmv_arg_check(handle,

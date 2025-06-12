@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 #define ROCBLAS_BETA_FEATURES_API
 #include "program_options.hpp"
 
+#include "client_omp.hpp"
 #include "client_utility.hpp"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
@@ -105,10 +106,6 @@
 #include "type_dispatch.hpp"
 #undef I
 
-#if BUILD_WITH_TENSILE
-#include "blas_ex/common_gemm_ex3.hpp"
-#endif
-
 using namespace roc; // For emulated program_options
 using namespace std::literals; // For std::string literals of form "str"s
 
@@ -187,69 +184,6 @@ struct perf_gemm_strided_batched_ex<
         run_function(map, arg);
     }
 };
-
-#if BUILD_WITH_TENSILE
-
-// Template to dispatch testing_gemm_ex3 for performance tests
-// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
-template <typename TiA, typename TiB = TiA, typename To = TiA, typename Tc = To, typename = void>
-struct perf_gemm_ex3 : rocblas_test_invalid
-{
-};
-
-template <typename TiA, typename TiB, typename To, typename Tc>
-struct perf_gemm_ex3<
-    TiA,
-    TiB,
-    To,
-    Tc,
-    std::enable_if_t<(!std::is_same<TiA, void>{} && !std::is_same<TiB, void>{})
-                     && ((std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}
-                          || std::is_same<TiA, rocblas_half>{} || std::is_same<TiA, float>{}))
-                     && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{}
-                         || std::is_same<TiB, rocblas_half>{} || std::is_same<TiB, float>{})>>
-    : rocblas_test_valid
-{
-    void operator()(const Arguments& arg)
-    {
-        static const func_map map = {
-            {"gemm_ex3", testing_gemm_ex3<TiA, TiB, To, Tc>},
-            {"gemm_batched_ex3", testing_gemm_batched_ex3<TiA, TiB, To, Tc>},
-        };
-        run_function(map, arg);
-    }
-};
-
-// Template to dispatch testing_gemm_ex3 for performance tests
-// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
-template <typename TiA, typename TiB = TiA, typename To = TiA, typename Tc = To, typename = void>
-struct perf_gemm_strided_batched_ex3 : rocblas_test_invalid
-{
-};
-
-template <typename TiA, typename TiB, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex3<
-    TiA,
-    TiB,
-    To,
-    Tc,
-    std::enable_if_t<(!std::is_same<TiA, void>{} && !std::is_same<TiB, void>{})
-                     && ((std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}
-                          || std::is_same<TiA, rocblas_half>{} || std::is_same<TiA, float>{}))
-                     && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{}
-                         || std::is_same<TiB, rocblas_half>{} || std::is_same<TiB, float>{})>>
-    : rocblas_test_valid
-{
-    void operator()(const Arguments& arg)
-    {
-        static const func_map map = {
-            {"gemm_strided_batched_ex3", testing_gemm_strided_batched_ex3<TiA, TiB, To, Tc>},
-        };
-        run_function(map, arg);
-    }
-};
-
-#endif // BUILD_WITH_TENSILE
 
 template <typename T, typename U = T, typename = void>
 struct perf_blas : rocblas_test_invalid
@@ -965,6 +899,71 @@ struct perf_blas_rotg<
 // unit check override
 int8_t g_unit_check = 0;
 
+void gemm_arg_adjust(Arguments& arg, bool any_stride)
+{
+    // adjust dimension for GEMM routines
+    int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
+    int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+    int64_t min_ldc = arg.M;
+    int64_t min_ldd = arg.M;
+
+    bool is_ex = strstr(arg.function, "_ex");
+
+    if(arg.lda < min_lda)
+    {
+        rocblas_cout << "rocblas-bench INFO: lda < min_lda, setting lda = " << min_lda << std::endl;
+        arg.lda = min_lda;
+    }
+    if(arg.ldb < min_ldb)
+    {
+        rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, setting ldb = " << min_ldb << std::endl;
+        arg.ldb = min_ldb;
+    }
+    if(arg.ldc < min_ldc)
+    {
+        rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, setting ldc = " << min_ldc << std::endl;
+        arg.ldc = min_ldc;
+    }
+    if(is_ex && arg.ldd < min_ldd)
+    {
+        rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, setting ldd = " << min_ldd << std::endl;
+        arg.ldd = min_ldd;
+    }
+
+    if(strstr(arg.function, "strided"))
+    {
+        rocblas_stride min_stride_c = arg.ldc * arg.N;
+        rocblas_stride min_stride_d = arg.ldd * arg.N;
+        if(!any_stride && arg.stride_c < min_stride_c)
+        {
+            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, setting stride_c = "
+                         << min_stride_c << std::endl;
+            arg.stride_c = min_stride_c;
+        }
+        if(is_ex && !any_stride && arg.stride_d < min_stride_d)
+        {
+            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, setting stride_d = "
+                         << min_stride_d << std::endl;
+            arg.stride_d = min_stride_d;
+        }
+    }
+
+    if(!strstr(arg.function, "batched") && arg.batch_count > 1)
+    {
+        rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for non batched functions"
+                     << ", setting batch_count = 1" << std::endl;
+        arg.batch_count = 1;
+    }
+
+    if(!is_ex && arg.solution_index)
+    {
+        rocblas_cout << "rocblas-bench INFO: solution_index only supported by gemm_ex, "
+                     << "gemm_batched_ex, gemm_strided_batched_ex"
+                     << ", setting solution_index = 0" << std::endl;
+        arg.solution_index = 0;
+    }
+}
+
 int run_bench_test(bool               init,
                    Arguments&         arg,
                    const std::string& filter,
@@ -1017,235 +1016,25 @@ int run_bench_test(bool               init,
     }
 
     // argument modifications
-    if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
+    if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched")
+       || !strcmp(function, "gemm_strided_batched"))
     {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(!strcmp(function, "gemm") && arg.batch_count > 1)
-        {
-            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm"
-                         << ", set batch_count = 1" << std::endl;
-            arg.batch_count = 1;
-        }
-    }
-    else if(!strcmp(function, "gemm_strided_batched"))
-    {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        rocblas_stride min_stride_c = arg.ldc * arg.N;
-        rocblas_stride min_stride_d = arg.ldd * arg.N;
-        if(!any_stride && arg.stride_c < min_stride_c)
-        {
-            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                         << min_stride_c << std::endl;
-            arg.stride_c = min_stride_c;
-        }
-        if(!any_stride && arg.stride_d < min_stride_d)
-        {
-            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, set stride_d = "
-                         << min_stride_d << std::endl;
-            arg.stride_d = min_stride_d;
-        }
+        gemm_arg_adjust(arg, any_stride);
     }
 
     // dispatch
     if(!strcmp(function, "gemm_ex") || !strcmp(function, "gemm_batched_ex"))
     {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-        int64_t min_ldd = arg.M;
+        gemm_arg_adjust(arg, any_stride);
 
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(arg.ldd < min_ldd)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
-            arg.ldd = min_ldd;
-        }
-        if(!strcmp(function, "gemm_ex") && arg.batch_count > 1)
-        {
-            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex"
-                         << ", set batch_count = 1" << std::endl;
-            arg.batch_count = 1;
-        }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
     else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-        int64_t min_ldd = arg.M;
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(arg.ldd < min_ldd)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
-            arg.ldd = min_ldd;
-        }
-        rocblas_stride min_stride_c = arg.ldc * arg.N;
-        rocblas_stride min_stride_d = arg.ldd * arg.N;
-        if(!any_stride && arg.stride_c < min_stride_c)
-        {
-            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                         << min_stride_c << std::endl;
-            arg.stride_c = min_stride_c;
-        }
-        if(!any_stride && arg.stride_d < min_stride_d)
-        {
-            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, set stride_d = "
-                         << min_stride_d << std::endl;
-            arg.stride_d = min_stride_d;
-        }
+        gemm_arg_adjust(arg, any_stride);
 
         rocblas_gemm_dispatch<perf_gemm_strided_batched_ex>(arg);
     }
-#if BUILD_WITH_TENSILE
-    else if(!strcmp(function, "gemm_ex3") || !strcmp(function, "gemm_batched_ex3"))
-    {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-        int64_t min_ldd = arg.M;
-
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(arg.ldd < min_ldd)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
-            arg.ldd = min_ldd;
-        }
-        if(!strcmp(function, "gemm_ex3") && arg.batch_count > 1)
-        {
-            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex3"
-                         << ", set batch_count = 1" << std::endl;
-            arg.batch_count = 1;
-        }
-        rocblas_gemm_dispatch<perf_gemm_ex3>(arg);
-    }
-    else if(!strcmp(function, "gemm_strided_batched_ex3"))
-    {
-        // adjust dimension for GEMM routines
-        int64_t min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        int64_t min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        int64_t min_ldc = arg.M;
-        int64_t min_ldd = arg.M;
-        if(arg.lda < min_lda)
-        {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(arg.ldd < min_ldd)
-        {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
-            arg.ldd = min_ldd;
-        }
-        rocblas_stride min_stride_c = arg.ldc * arg.N;
-        rocblas_stride min_stride_d = arg.ldd * arg.N;
-        if(!any_stride && arg.stride_c < min_stride_c)
-        {
-            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                         << min_stride_c << std::endl;
-            arg.stride_c = min_stride_c;
-        }
-        if(!any_stride && arg.stride_d < min_stride_d)
-        {
-            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, set stride_d = "
-                         << min_stride_d << std::endl;
-            arg.stride_d = min_stride_d;
-        }
-
-        rocblas_gemm_dispatch<perf_gemm_strided_batched_ex3>(arg);
-    }
-#endif
     else
     {
         if(!strcmp(function, "scal") || !strcmp(function, "scal_batched")
@@ -1395,6 +1184,9 @@ void fix_batch(int argc, char* argv[])
 int main(int argc, char* argv[])
 try
 {
+    client_omp_manager::limit_by_processor_count();
+    rocblas_client_init();
+
     fix_batch(argc, argv);
     Arguments   arg;
     std::string function;
@@ -1404,7 +1196,6 @@ try
     std::string c_type;
     std::string d_type;
     std::string compute_type;
-    std::string composite_compute_type;
     std::string initialization;
     std::string filter;
     std::string name_filter;
@@ -1414,8 +1205,8 @@ try
     int32_t     geam_ex_op          = 0;
     int32_t     api                 = 0;
     bool        datafile            = rocblas_parse_data(argc, argv);
-    bool        atomics_allowed     = true;
-    bool        atomics_not_allowed = false;
+    bool        atomics_allowed     = false;
+    bool        atomics_not_allowed = true;
     bool        log_function_name   = false;
     bool        log_datatype        = false;
     bool        any_stride          = false;
@@ -1531,7 +1322,7 @@ try
 
         ("precision,r",
          value<std::string>(&precision)->default_value("f32_r"), "Precision. "
-         "Options: h,s,d,c,z,f8_r, bf8_r, f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z, f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("a_type",
          value<std::string>(&a_type), "Precision of matrix A. "
@@ -1552,10 +1343,6 @@ try
         ("compute_type",
          value<std::string>(&compute_type), "Precision of computation. "
          "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
-
-        ("composite_compute_type",
-         value<std::string>(&composite_compute_type), "Precision of computation. "
-         "Options: f32, f8_f8_f32, f8_bf8_f32, bf8_f8_f32, bf8_bf8_f32")
 
         ("initialization, init",
          value<std::string>(&initialization)->default_value("hpl"),
@@ -1624,12 +1411,12 @@ try
          "geam_ex_operation, 0: min_plus operation, 1: plus_min operation")
 
         ("atomics_allowed",
-         bool_switch(&atomics_allowed)->default_value(true),
-         "Atomic operations with non-determinism in results are allowed (default true)")
+         bool_switch(&atomics_allowed)->default_value(false),
+         "Atomic operations with non-determinism in results are allowed (default false)")
 
         ("atomics_not_allowed",
-         bool_switch(&atomics_not_allowed)->default_value(false),
-         "Atomic operations with non-determinism in results are not allowed (default false)")
+         bool_switch(&atomics_not_allowed)->default_value(true),
+         "Atomic operations with non-determinism in results are not allowed (default true)")
 
         ("device",
          value<int32_t>(&device_id)->default_value(0),
@@ -1662,6 +1449,10 @@ try
          ("log_datatype",
          bool_switch(&log_datatype)->default_value(false),
          "Include datatypes used in output.")
+
+        ("use_hipblaslt",
+         value<int32_t>(&arg.use_hipblaslt)->default_value(-1),
+         "Whether to use hipblaslt (default: -1, always: 1, never: 0)")
 
         ("function_filter",
          value<std::string>(&filter),
@@ -1730,43 +1521,17 @@ try
         return 0;
     }
 
-    if(vm.find("version") != vm.end())
+    print_rocblas_version_string(); // version and commit hash
+    if(vm.find("version") != vm.end() || vm.find("rocblas_tensile_commit_hash") != vm.end())
     {
-        size_t size;
-        rocblas_get_version_string_size(&size);
-        std::string blas_version(size - 1, '\0');
-        rocblas_get_version_string(blas_version.data(), size);
-        rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
 
-    const char* rocblas_tensile_commit_hash[] = {ROCBLAS_TENSILE_COMMIT_ID};
-
-#if BUILD_WITH_TENSILE
-    rocblas_cout << std::endl
-                 << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: " << rocblas_tensile_commit_hash[1] << std::endl
-                 << std::endl;
-
-    if(vm.find("rocblas_tensile_commit_hash") != vm.end())
-        return 0;
-#else
-    rocblas_cout << std::endl
-                 << "rocBLAS-commit-hash: " << rocblas_tensile_commit_hash[0] << std::endl
-                 << std::endl;
-    rocblas_cout << "Tensile-commit-hash: N/A, as rocBLAS was built without Tensile" << std::endl
-                 << std::endl;
-    if(vm.find("rocblas_tensile_commit_hash") != vm.end())
-        return 0;
-#endif
-
-    // Warn users if using older reference library
-    print_reference_lib_warning();
-
     // transfer local variable state
-
-    arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
+    arg.atomics_mode = rocblas_atomics_not_allowed;
+    // two command line options so if either changed from default enable atomics
+    if(atomics_allowed == true || atomics_not_allowed == false)
+        arg.atomics_mode = rocblas_atomics_allowed;
 
     if(api)
         arg.api = rocblas_client_api(api);
@@ -1859,11 +1624,6 @@ try
     if(arg.compute_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --compute_type " + compute_type);
 
-    arg.composite_compute_type = string2rocblas_computetype(composite_compute_type);
-    if(arg.composite_compute_type == static_cast<rocblas_computetype>(-1))
-        throw std::invalid_argument("Invalid value for --composite_compute_type "
-                                    + composite_compute_type);
-
     arg.initialization = string2rocblas_initialization(initialization);
     if(arg.initialization == static_cast<rocblas_initialization>(0)) // zero not in enum
         throw std::invalid_argument("Invalid value for --initialization " + initialization);
@@ -1894,6 +1654,8 @@ try
 
     int status = 0;
     // TODO: query for any failed tests
+
+    rocblas_client_shutdown();
 
     return status;
 }

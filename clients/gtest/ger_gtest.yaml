@@ -37,8 +37,8 @@ Definitions:
 
   - &large_matrix_size_range
     - { M: 1025, N: 4011, lda: 1025, stride_a:   4111275 }
-    - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
-    - { M: 4300000, N: 2, lda: 4300000, stride_a: 9000000 }
+    - { M: 7001, N: 2000, lda: 7000, stride_a:   14000000 }
+    - { M: 4300001, N: 2, lda: 4300000, stride_a: 9000000 }
     - { M: 2, N: 4300000, lda: 2, stride_a: 9000000 }
 
   - &double_buffered_size_range
@@ -111,7 +111,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha: [ -0.5 ]
   pointer_mode_host: false
-  gpu_arch: '90a'
+  gpu_arch: ['90a','942','950']
 
 - name: ger_size_t_inc
   category: stress
@@ -224,6 +224,17 @@ Tests:
   alpha: [ 2.0, 0.0 ]
   batch_count: [ 3 ]
 
+- name: ger_batched_grid_z_16bit
+  category: stress
+  arguments:
+    - { M: 1025, N:   1, lda: 1025, incx: 1, incy: 1, stride_a: 1025, batch_count: *c_grid_yz_require_passes } #generic float kernel
+    - { M:  128, N: 128, lda:  128, incx: 1, incy: 1, stride_a: 16384, batch_count: *c_grid_yz_require_passes} #double buffered loads
+  alpha: [ 2.0 ]
+  pointer_mode_host: false
+  function:
+    - ger_batched: *single_precision
+    - ger_strided_batched: *single_precision
+
 # ger_strided_batched
 - name: ger_strided_batched_fortran
   category: quick
@@ -286,7 +297,7 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
 
-- name: ger_64
+- name: ger_ILP64
   category: stress
   arguments:
     - { M: 2147483649, N: 1, lda: 2147483649, incx: 1, incy: 1, batch_count: 1 }
@@ -331,5 +342,6 @@ Tests:
   initialization: hpl
   iters: 5
   pointer_mode_host: false
+  devices: 4
   repeatability_check: true
 ...

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,14 +56,6 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if constexpr(std::is_same_v<API_INT, int>)
-        {
-            if(batch_count > c_YZ_grid_launch_limit && handle->isYZGridDim16bit())
-            {
-                return rocblas_status_invalid_size;
-            }
-        }
-
         size_t dev_bytes
             = rocblas_single_pass_reduction_workspace_size<API_INT, ROCBLAS_IAMAX_NB, index_val_t>(
                 n, batch_count);
@@ -76,33 +68,33 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode     = handle->layer_mode;
-        auto check_numerics = handle->check_numerics;
-
+        auto                    layer_mode     = handle->layer_mode;
+        auto                    check_numerics = handle->check_numerics;
+        rocblas_internal_logger logger;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_iamax_batched_name<T>, n, x, incx, batch_count);
+            logger.log_trace(handle, rocblas_iamax_batched_name<T>, n, x, incx, batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      ROCBLAS_API_BENCH " -f iamax_batched",
-                      "-r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--batch_count",
-                      batch_count);
+            logger.log_bench(handle,
+                             ROCBLAS_API_BENCH " -f iamax_batched",
+                             "-r",
+                             rocblas_precision_string<T>,
+                             "-n",
+                             n,
+                             "--incx",
+                             incx,
+                             "--batch_count",
+                             batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_iamax_batched_name<T>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "batch_count",
-                        batch_count);
+            logger.log_profile(handle,
+                               rocblas_iamax_batched_name<T>,
+                               "N",
+                               n,
+                               "incx",
+                               incx,
+                               "batch_count",
+                               batch_count);
 
         static constexpr rocblas_stride shiftx_0  = 0;
         static constexpr rocblas_stride stridex_0 = 0;
