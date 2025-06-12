@@ -37,6 +37,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   endif()
 endif()
 
+# TODO: compute this before making project call
+option(ROCBLAS_ENABLE_SUPERBUILD "Build as ROCm BLAS subproject." OFF)
+
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile_commands.json for clang tooling support" ON)
 
 option(ROCBLAS_ENABLE_CLIENT "Build rocBLAS clients." ON)
@@ -92,7 +95,7 @@ if(ROCBLAS_ENABLE_BLIS)
 endif()
 
 if(ROCBLAS_ENABLE_HIPBLASLT)
-  if(NOT TARGET roc::hipblaslt)
+  if(NOT ROCBLAS_ENABLE_SUPERBUILD)
     find_package(hipblaslt 1.0.0 REQUIRED)
   endif()
   rocm_package_add_dependencies(DEPENDS "hipblaslt >= 1.0.0")
@@ -103,19 +106,16 @@ if(ROCBLAS_ENABLE_ROCM_SMI)
 endif()
 
 if(ROCBLAS_ENABLE_TENSILE)
-  message(STATUS "Configuring device libraries...")
-  if(NOT TARGET roc::tensile-host)
+  if(NOT ROCBLAS_ENABLE_SUPERBUILD)
     message(STATUS "Adding Tensile from subdirectory: ${ROCBLAS_TENSILE_SUBDIR_PATH}")
     add_subdirectory(${ROCBLAS_TENSILE_SUBDIR_PATH}/next-cmake
                      ${CMAKE_CURRENT_BINARY_DIR}/Tensile)
   endif()
 endif()
 
-message(STATUS "Configuring host library")
 add_subdirectory(host-library)
 
 if(ROCBLAS_ENABLE_CLIENT)
-  message(STATUS "Configuing clients")
   add_subdirectory(clients)
 endif()
 
@@ -127,8 +127,6 @@ if(ROCBLAS_ENABLE_CLIENT)
     string(TOLOWER "${CLIENTS_OS}" CLIENTS_OS)
     rocm_read_os_release(CLIENTS_OS_VERSION VERSION_ID)
   endif()
-
-  message(STATUS "OS: ${CLIENTS_OS} ${CLIENTS_OS_VERSION}")
 
   set(OPENMP_RPM "libgomp")
   set(OPENMP_DEB "libomp-dev")
