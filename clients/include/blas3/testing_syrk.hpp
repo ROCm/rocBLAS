@@ -334,17 +334,7 @@ void testing_syrk(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                if(std::is_same_v<
-                       T,
-                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
-                {
-                    const double tol = K * sum_error_tolerance<T>;
-                    near_check_general<T>(N, N, ldc, hC_gold, hC, tol);
-                }
-                else
-                {
-                    unit_check_general<T>(N, N, ldc, hC_gold, hC);
-                }
+                unit_check_general<T>(N, N, ldc, hC_gold, hC);
             }
 
             if(arg.norm_check)
@@ -360,17 +350,7 @@ void testing_syrk(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                if(std::is_same_v<
-                       T,
-                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
-                {
-                    const double tol = K * sum_error_tolerance<T>;
-                    near_check_general<T>(N, N, ldc, hC_gold, hC, tol);
-                }
-                else
-                {
-                    unit_check_general<T>(N, N, ldc, hC_gold, hC);
-                }
+                unit_check_general<T>(N, N, ldc, hC_gold, hC);
             }
 
             if(arg.norm_check)

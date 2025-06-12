@@ -310,8 +310,7 @@ void testing_herk(const Arguments& arg)
         auto compare_hC_to_gold = [&] {
             if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, ldc, hC_gold, hC, tol);
+                unit_check_general<T>(N, N, ldc, hC_gold, hC);
             }
 
             double error = 0;

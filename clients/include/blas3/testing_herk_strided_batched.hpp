@@ -548,17 +548,7 @@ void testing_herk_strided_batched(const Arguments& arg)
         auto compare_hC_to_gold = [&] {
             if(arg.unit_check)
             {
-                if(std::is_same_v<
-                       T,
-                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
-                {
-                    const double tol = K * sum_error_tolerance<T>;
-                    near_check_general<T>(N, N, ldc, strideC, hC_gold, hC, batch_count, tol);
-                }
-                else
-                {
-                    unit_check_general<T>(N, N, ldc, strideC, hC_gold, hC, batch_count);
-                }
+                unit_check_general<T>(N, N, ldc, strideC, hC_gold, hC, batch_count);
             }
 
             double error = 0;

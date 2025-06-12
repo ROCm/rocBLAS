@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1378,6 +1378,11 @@ rocblas_copy_triangular_excluding_diagonal_kernel(rocblas_int    n,
                     C[row + col * int64_t(ldc)] = W_C[index];
             }
         }
+
+        // When copying back to C, we need to zero-out diagonal
+        if constexpr(!copy_from_C_to_W_C && rocblas_is_complex<T>)
+            if(row == col)
+                C[row + row * int64_t(ldc)] = std::real(C[row + row * int64_t(ldc)]);
 
 #if DEVICE_GRID_YZ_16BIT
     }
