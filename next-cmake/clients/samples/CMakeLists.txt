@@ -28,19 +28,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
                              INTERFACE ROCBLAS_INTERNAL_API)
 endif()
 
-add_library(sample-helper-cpp INTERFACE)
+add_library(sample-helper-cpp OBJECT)
 
-target_compile_features(sample-helper-cpp INTERFACE cxx_std_14)
-target_compile_definitions(sample-helper-cpp INTERFACE ROCM_USE_FLOAT16)
-target_link_libraries(sample-helper-cpp INTERFACE sample-helper-common)
+target_compile_features(sample-helper-cpp PUBLIC cxx_std_14)
+target_compile_definitions(sample-helper-cpp PUBLIC ROCM_USE_FLOAT16)
+target_link_libraries(sample-helper-cpp PUBLIC sample-helper-common)
 target_sources(
   sample-helper-cpp
-  INTERFACE
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/client_utility.cpp>
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/singletons.cpp>
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_random.cpp>
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../common/host_alloc.cpp>
-    $<BUILD_INTERFACE:${_CMAKE_CURRENT_SOURCE_DIR}/../include/client_utility.hpp>
+  PRIVATE
+    "${_CMAKE_CURRENT_SOURCE_DIR}/../common/client_utility.cpp"
+    "${_CMAKE_CURRENT_SOURCE_DIR}/../common/singletons.cpp"
+    "${_CMAKE_CURRENT_SOURCE_DIR}/../common/rocblas_random.cpp"
+    "${_CMAKE_CURRENT_SOURCE_DIR}/../common/host_alloc.cpp"
+    "${_CMAKE_CURRENT_SOURCE_DIR}/../include/client_utility.hpp"
 )
 
 add_library(sample-helper-c INTERFACE)
@@ -54,13 +54,11 @@ if(ROCBLAS_ENABLE_FORTRAN)
   # Link this here because we don't need to link against rocblas-clients-common
   # in the samples
   target_link_libraries(
-    sample-helper-f90 INTERFACE sample-helper-common
-                                rocblas-fortran
-                                rocblas-fortran-clients-common)
-  target_include_directories(
-    sample-helper-f90 INTERFACE
-    $<TARGET_PROPERTY:rocblas-fortran,Fortran_MODULE_DIRECTORY>)
-endif()
+    sample-helper-f90 INTERFACE roc::rocblas
+                                rocblas::rocblas-fortran-module
+                                rocblas::rocblas-fortran-client
+                                hip::device)
+  endif()
 
 # Unused examples:
 # example_gemm_strided_batched_ex_xdl_math_op.cpp

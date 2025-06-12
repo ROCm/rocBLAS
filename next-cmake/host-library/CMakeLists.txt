@@ -56,8 +56,9 @@ target_link_libraries(rocblas-interface INTERFACE hip::host hip::device)
 
 add_library(rocblas-helper OBJECT)
 
-target_link_libraries(rocblas-helper PRIVATE rocblas-interface hip::host
+target_link_libraries(rocblas-helper PRIVATE roc::tensile-host rocblas-interface hip::host
                                              hip::device)
+target_compile_features(rocblas-helper PRIVATE cxx_std_17)
 
 if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
   set_target_properties(rocblas-helper PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -75,7 +76,7 @@ endif()
 
 target_compile_definitions(rocblas64 PRIVATE ROCBLAS_INTERNAL_ILP64)
 
-target_link_libraries(rocblas64 PRIVATE rocblas-interface)
+target_link_libraries(rocblas64 PUBLIC rocblas-helper PRIVATE rocblas-interface)
 
 if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
   add_library(rocblas SHARED)
@@ -108,20 +109,21 @@ if(ROCTX64_LIBRARY)
   target_link_libraries(rocblas PRIVATE ${ROCTX64_LIBRARY})
 endif()
 
-target_link_libraries(rocblas PRIVATE roc::tensile-host rocblas-interface rocblas64)
+target_link_libraries(rocblas PRIVATE rocblas-helper roc::tensile-host rocblas-interface rocblas64)
 
 if(ROCBLAS_ENABLE_FORTRAN)
-  add_library(rocblas-fortran OBJECT)
+  add_library(rocblas-fortran-module OBJECT)
+  add_library(rocblas::rocblas-fortran-module ALIAS rocblas-fortran-module)
   target_sources(
-    rocblas-fortran
+    rocblas-fortran-module
     PUBLIC
       ${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_module.f90
   )
-  set_target_properties(rocblas-fortran PROPERTIES
+  set_target_properties(rocblas-fortran-module PROPERTIES
     Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/modules
     POSITION_INDEPENDENT_CODE ON)
 
-  target_include_directories(rocblas-fortran
+  target_include_directories(rocblas-fortran-module
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/modules>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/rocblas>)

@@ -26,7 +26,6 @@ endif()
 target_sources(
   rocblas
   PRIVATE
-    $<TARGET_OBJECTS:rocblas-helper>
     # rocblas_blas3_source: L3 sources that use Tensile but can also use source
     # GEMM as fallback
     ${_CMAKE_CURRENT_SOURCE_DIR}/blas3/rocblas_trsm.cpp

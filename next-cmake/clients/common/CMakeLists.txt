@@ -56,32 +56,32 @@ target_link_libraries(
          GTest::gtest)
 
 if(ROCBLAS_ENABLE_FORTRAN)
-  add_library(rocblas-fortran-clients-common OBJECT)
-
+  add_library(rocblas-fortran-client OBJECT)
+  add_library(rocblas::rocblas-fortran-client ALIAS rocblas-fortran-client)
   if(ROCBLAS_ENABLE_TENSILE)
     target_sources(
-      rocblas-fortran-clients-common
+      rocblas-fortran-client
       PUBLIC
         ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran_tensile.f90)
   endif()
 
   target_sources(
-    rocblas-fortran-clients-common
+    rocblas-fortran-client
     PUBLIC
       ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90)
 
-  target_link_libraries(rocblas-fortran-clients-common
+  target_link_libraries(rocblas-fortran-client
     PUBLIC
-      rocblas-fortran)
+      rocblas::rocblas-fortran-module)
 
   # Make the object library available to the main client library
-  set_target_properties(rocblas-fortran-clients-common
+  set_target_properties(rocblas-fortran-client
     PROPERTIES
       POSITION_INDEPENDENT_CODE ON)
 
   target_link_libraries(rocblas-clients-common
     PRIVATE
-      rocblas-fortran-clients-common)
+      rocblas-fortran-client)
 else()
   target_compile_definitions(rocblas-clients-common PUBLIC CLIENTS_NO_FORTRAN)
 endif()

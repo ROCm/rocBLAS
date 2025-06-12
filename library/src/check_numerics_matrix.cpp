@@ -308,13 +308,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                         const int                 check_numerics, \
                                                         bool                      is_input)
 
-INST(int const*);
-INST(int* const*);
-INST(int*);
-INST(int const* const*);
-INST(signed char const*);
-INST(signed char const* const*);
-
 INST(float*);
 INST(float* const*);
 INST(float const*);
