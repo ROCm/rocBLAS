@@ -64,14 +64,9 @@ if(ROCBLAS_ENABLE_TENSILE)
 endif()
 set(ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file")
 
-option(BUILD_SHARED_LIBS "Build the rocBLAS shared or static library; master switch." ON)
-option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ${BUILD_SHARED_LIBS})
-
-option(BUILD_TESTING "Build test client; master switch." ON)
-option(ROCBLAS_BUILD_TESTING "Build test client." ${BUILD_TESTING})
-
-option(BUILD_CODE_COVERAGE "Build tests with coverage support; master switch." OFF)
-option(ROCBLAS_BUILD_COVERAGE "Build tests with coverage support." ${BUILD_CODE_COVERAGE})
+option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ON)
+option(ROCBLAS_BUILD_TESTING "Build test client; master switch." ON)
+option(ROCBLAS_BUILD_COVERAGE "Build tests with coverage support." OFF)
 
 # I don't know that we can build with BLIS OFF
 option(ROCBLAS_ENABLE_BLIS "Enable BLIS support." ON)
@@ -150,7 +145,7 @@ if(ROCBLAS_ENABLE_CLIENT)
   rocm_package_setup_client_component(clients-common)
 endif()
 
-if(ROCBLAS_BUILD_TESTING AND BUILD_TESTING)
+if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
   rocm_package_setup_client_component(
     tests
     DEPENDS
@@ -271,7 +266,7 @@ if(ROCBLAS_ENABLE_CLIENT)
     endif()
   endif()
 
-  if(ROCBLAS_BUILD_TESTING AND BUILD_TESTING)
+  if(ROCBLAS_BUILD_TESTING OR BUILD_TESTING)
     rocm_install(TARGETS rocblas-test COMPONENT tests DESTINATION
                  ${CMAKE_INSTALL_BINDIR})
 
@@ -358,23 +353,18 @@ rocm_create_package(
   LDCONFIG_DIR
   ${ROCBLAS_CONFIG_DIR})
 
-if(ROCBLAS_BUILD_COVERAGE AND BUILD_CODE_COVERAGE)
-  target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate
-                                         -fcoverage-mapping)
+if(ROCBLAS_BUILD_COVERAGE OR BUILD_CODE_COVERAGE)
+  target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
   target_link_options(rocblas PRIVATE -fprofile-instr-generate)
 
-  target_compile_options(
-    rocblas-clients-common PRIVATE -g -O0 -fprofile-instr-generate
-                                   -fcoverage-mapping)
-  target_link_options(rocblas-clients-common PRIVATE -fprofile-instr-generate)
+  # target_compile_options(rocblas-clients-common PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+  # target_link_options(rocblas-clients-common PRIVATE -fprofile-instr-generate)
 
-  target_compile_options(rocblas-bench PRIVATE -g -O0 -fprofile-instr-generate
-                                               -fcoverage-mapping)
-  target_link_options(rocblas-bench PRIVATE -fprofile-instr-generate)
+  # target_compile_options(rocblas-bench PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+  # target_link_options(rocblas-bench PRIVATE -fprofile-instr-generate)
 
-  target_compile_options(rocblas-test PRIVATE -g -O0 -fprofile-instr-generate
-                                              -fcoverage-mapping)
-  target_link_options(rocblas-test PRIVATE -fprofile-instr-generate)
+  # target_compile_options(rocblas-test PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+  # target_link_options(rocblas-test PRIVATE -fprofile-instr-generate)
 
   set(coverage_dir "${CMAKE_CURRENT_BINARY_DIR}/coverage-report")
   add_custom_target(
@@ -389,7 +379,6 @@ if(ROCBLAS_BUILD_COVERAGE AND BUILD_CODE_COVERAGE)
       --precompile=rocblas-test-precompile.db)
 
   find_program(LLVM_PROFDATA llvm-profdata HINTS llvm/bin REQUIRED)
-
   find_program(LLVM_COV llvm-cov REQUIRED HINTS llvm/bin)
 
   add_custom_target(

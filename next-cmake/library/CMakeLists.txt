@@ -54,13 +54,13 @@ target_link_libraries(rocblas-helper PRIVATE roc::tensile-host rocblas-interface
                                              hip::device)
 target_compile_features(rocblas-helper PRIVATE cxx_std_17)
 
-if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
   set_target_properties(rocblas-helper PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 add_library(rocblas64 OBJECT)
 
-if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
   set_target_properties(rocblas64 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
@@ -72,7 +72,7 @@ target_compile_definitions(rocblas64 PRIVATE ROCBLAS_INTERNAL_ILP64)
 
 target_link_libraries(rocblas64 PUBLIC rocblas-helper PRIVATE rocblas-interface)
 
-if(ROCBLAS_BUILD_SHARED_LIBS AND BUILD_SHARED_LIBS)
+if(ROCBLAS_BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
   add_library(rocblas SHARED)
 else()
   add_library(rocblas STATIC)
