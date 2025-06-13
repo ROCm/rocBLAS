@@ -3,6 +3,12 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
+## rocBLAS 4.4.1 for ROCm 6.4.2
+
+### Resolved issues
+
+* Zero imaginary portion of diagonal of C matrix for cherk/zherk for gfx90a/gfx942 with problem sizes `k > 500`
+
 ## rocBLAS 4.4.0 for ROCm 6.4
 
 ### Added
