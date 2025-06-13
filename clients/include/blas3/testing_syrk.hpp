@@ -334,7 +334,7 @@ void testing_syrk(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                 if(std::is_same_v<
+                if(std::is_same_v<
                        T,
                        rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
                 {
