@@ -66,7 +66,8 @@ set(ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDI
 
 option(ROCBLAS_BUILD_SHARED_LIBS "Build the rocBLAS shared or static library." ON)
 option(ROCBLAS_BUILD_TESTING "Build test client; master switch." ON)
-option(ROCBLAS_BUILD_COVERAGE "Build tests with coverage support." OFF)
+option(ROCBLAS_BUILD_COVERAGE "Build tests with coverage enabled." OFF)
+set(ROCBLAS_COVERAGE_GTEST_FILTER "*quick*:*pre_checkin*:*ILP64*-*known_bug*" CACHE STRING "GTest filter for coverage tests.")
 
 # I don't know that we can build with BLIS OFF
 option(ROCBLAS_ENABLE_BLIS "Enable BLIS support." ON)
@@ -75,6 +76,14 @@ option(ROCBLAS_ENABLE_ASAN "Build with address sanitizer enabled." OFF)
 
 if(ROCBLAS_ENABLE_FORTRAN AND ROCBLAS_ENABLE_ASAN)
   message(FATAL_ERROR "Cannot enable fortran clients and address sanitizers.")
+endif()
+
+if(ROCBLAS_BUILD_COVERAGE OR BUILD_CODE_COVERAGE)
+  if(ROCBLAS_ENABLE_FORTRAN)
+    message(FATAL_ERROR "Cannot enable fortran clients and code coverage.")
+  elseif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(FATAL_ERROR "Code coverage is only supported for CMAKE_BUILD_TYPE=Debug.")
+  endif()
 endif()
 
 if(ROCBLAS_ENABLE_FORTRAN)
@@ -358,19 +367,18 @@ rocm_create_package(
   ${ROCBLAS_CONFIG_DIR})
 
 if(ROCBLAS_BUILD_COVERAGE OR BUILD_CODE_COVERAGE)
-  target_compile_options(rocblas PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+  message(STATUS "Configuring code coverage target")
+  target_compile_options(rocblas PRIVATE -fprofile-instr-generate -fcoverage-mapping)
   target_link_options(rocblas PRIVATE -fprofile-instr-generate)
 
-  # target_compile_options(rocblas-clients-common PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-  # target_link_options(rocblas-clients-common PRIVATE -fprofile-instr-generate)
-
-  # target_compile_options(rocblas-bench PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-  # target_link_options(rocblas-bench PRIVATE -fprofile-instr-generate)
-
-  # target_compile_options(rocblas-test PRIVATE -g -O0 -fprofile-instr-generate -fcoverage-mapping)
-  # target_link_options(rocblas-test PRIVATE -fprofile-instr-generate)
-
   set(coverage_dir "${CMAKE_CURRENT_BINARY_DIR}/coverage-report")
+  set(coverage_test_arguments
+    "--precompile=rocblas-test-precompile.db"
+  )
+  if(ROCBLAS_COVERAGE_GTEST_FILTER)
+    list(APPEND coverage_test_arguments "--gtest_filter=${ROCBLAS_COVERAGE_GTEST_FILTER}")
+  endif()
+
   add_custom_target(
     code_cov_tests
     DEPENDS rocblas-test
@@ -379,8 +387,8 @@ if(ROCBLAS_BUILD_COVERAGE OR BUILD_CODE_COVERAGE)
     COMMAND
       ${CMAKE_COMMAND} -E env
       LLVM_PROFILE_FILE="${coverage_dir}/profraw/rocblas-coverage_%p.profraw"
-      GTEST_LISTENER=NO_PASS_LINE_IN_LOG $<TARGET_FILE:rocblas-test>
-      --precompile=rocblas-test-precompile.db)
+      $<TARGET_FILE:rocblas-test> ${coverage_test_arguments}
+    COMMENT "Running coverage with test command: $<TARGET_FILE:rocblas-test> ${coverage_test_arguments}")
 
   find_program(LLVM_PROFDATA llvm-profdata HINTS llvm/bin REQUIRED)
   find_program(LLVM_COV llvm-cov REQUIRED HINTS llvm/bin)
@@ -397,5 +405,7 @@ if(ROCBLAS_BUILD_COVERAGE OR BUILD_CODE_COVERAGE)
     COMMAND
       ${LLVM_COV} show -object $<TARGET_FILE:rocblas>
       -instr-profile="${coverage_dir}/rocblas.profdata" -format=html
-      -output-dir="${coverage_dir}")
+      -output-dir="${coverage_dir}"
+    COMMENT "Generating coverage... report can be found in ${coverage_dir}/index.html")
+
 endif()
