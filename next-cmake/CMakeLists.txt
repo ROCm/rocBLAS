@@ -243,8 +243,8 @@ endif()
 
 rocm_install(
   FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-export.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/host-library/include/rocblas/internal/rocblas-version.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/library/include/rocblas/internal/rocblas-export.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/library/include/rocblas/internal/rocblas-version.h"
   DESTINATION
   "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/internal"
   COMPONENT devel)
