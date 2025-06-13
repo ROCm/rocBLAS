@@ -12,5 +12,9 @@ target_compile_definitions(rocblas-bench PRIVATE GOOGLE_TEST)
 
 target_link_libraries(rocblas-bench PRIVATE rocblas-clients-common)
 
+if(ROCBLAS_ENABLE_ASAN)
+  rocblas_target_configure_sanitizers(rocblas-bench PRIVATE)
+endif()
+
 add_subdirectory(include)
 add_subdirectory(src)

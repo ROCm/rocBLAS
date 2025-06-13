@@ -6,10 +6,6 @@ set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_CLIENT_SAMPLES_DIR})
 
 add_library(sample-helper-common INTERFACE)
 
-if(ROCBLAS_ENABLE_ASAN)
-  rocblas_target_configure_sanitizers(sample-helper-common INTERFACE)
-endif()
-
 if(ROCBLAS_ENABLE_BLIS)
   target_link_libraries(sample-helper-common INTERFACE BLIS::BLIS)
 endif()
@@ -48,6 +44,11 @@ add_library(sample-helper-c INTERFACE)
 target_compile_definitions(sample-helper-c INTERFACE __HIP_PLATFORM_HCC__)
 target_compile_features(sample-helper-c INTERFACE c_std_11)
 target_link_libraries(sample-helper-c INTERFACE sample-helper-common)
+
+if(ROCBLAS_ENABLE_ASAN)
+  rocblas_target_configure_sanitizers(sample-helper-cpp PUBLIC)
+  rocblas_target_configure_sanitizers(sample-helper-c INTERFACE)
+endif()
 
 if(ROCBLAS_ENABLE_FORTRAN)
   add_library(sample-helper-f90 INTERFACE)

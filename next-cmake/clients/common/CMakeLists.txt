@@ -40,6 +40,7 @@ target_include_directories(
 
 if(ROCBLAS_ENABLE_ASAN)
   rocblas_target_configure_sanitizers(rocblas-clients-common PRIVATE)
+  target_compile_definitions(rocblas-clients-common PRIVATE ASAN_BUILD)
 endif()
 
 if(rocm_smi_FOUND)
@@ -61,17 +62,17 @@ if(ROCBLAS_ENABLE_FORTRAN)
   if(ROCBLAS_ENABLE_TENSILE)
     target_sources(
       rocblas-fortran-client
-      PUBLIC
+      PRIVATE
         ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran_tensile.f90)
   endif()
 
   target_sources(
     rocblas-fortran-client
-    PUBLIC
+    PRIVATE
       ${_CMAKE_CURRENT_SOURCE_DIR}/../include/rocblas_fortran.f90)
 
   target_link_libraries(rocblas-fortran-client
-    PUBLIC
+    PRIVATE
       rocblas::rocblas-fortran-module)
 
   # Make the object library available to the main client library

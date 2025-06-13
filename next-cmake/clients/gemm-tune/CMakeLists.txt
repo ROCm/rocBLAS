@@ -15,5 +15,9 @@ target_compile_definitions(
 
 target_link_libraries(rocblas-gemm-tune PRIVATE rocblas-clients-common)
 
+if(ROCBLAS_ENABLE_ASAN)
+  rocblas_target_configure_sanitizers(rocblas-gemm-tune PRIVATE)
+endif()
+
 add_subdirectory(include)
 add_subdirectory(src)
