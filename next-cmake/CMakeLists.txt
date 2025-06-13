@@ -73,17 +73,15 @@ option(ROCBLAS_ENABLE_BLIS "Enable BLIS support." ON)
 option(ROCBLAS_ENABLE_MARKER "Enable rocTracer marker support." OFF)
 option(ROCBLAS_ENABLE_ASAN "Build with address sanitizer enabled." OFF)
 
-find_package(hip REQUIRED)
-
-if(ROCBLAS_ENABLE_MARKER)
-  find_library(ROCTX64_LIBRARY NAMES roctx64 libroctx64)
-  if(ROCTX64_LIBRARY)
-    message(STATUS "Found roctx64: ${ROCTX64_LIBRARY}")
-  else()
-    message(WARNING "Could NOT find roctx64: disabling marker support")
-    set(ROCBLAS_ENABLE_MARKER OFF)
-  endif()
+if(ROCBLAS_ENABLE_FORTRAN AND ROCBLAS_ENABLE_ASAN)
+  message(FATAL_ERROR "Cannot enable fortran clients and address sanitizers.")
 endif()
+
+if(ROCBLAS_ENABLE_FORTRAN)
+  enable_language(Fortran)
+endif()
+
+find_package(hip REQUIRED)
 
 if(ROCBLAS_ENABLE_BLIS)
   find_package(BLIS REQUIRED)
@@ -109,6 +107,12 @@ if(ROCBLAS_ENABLE_TENSILE)
 endif()
 
 add_subdirectory(library)
+
+if(ROCBLAS_ENABLE_MARKER)
+  find_library(ROCTX64_LIBRARY REQUIRED NAMES roctx64 libroctx64)
+else()
+    target_compile_definitions(rocblas-helper PRIVATE DISABLE_ROCTX)
+endif()
 
 if(ROCBLAS_ENABLE_CLIENT)
   add_subdirectory(clients)

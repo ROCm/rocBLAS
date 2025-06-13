@@ -4,10 +4,6 @@
 set(TEMP_HOST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../library)
 set(_CMAKE_CURRENT_SOURCE_DIR ${TEMP_HOST_SOURCE_DIR})
 
-if(ROCBLAS_ENABLE_FORTRAN)
-  enable_language(Fortran)
-endif()
-
 add_library(rocblas-interface INTERFACE)
 
 target_include_directories(
@@ -64,10 +60,6 @@ if(ROCBLAS_BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
   set_target_properties(rocblas64 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
-if(ROCBLAS_ENABLE_ASAN)
-  rocblas_target_configure_sanitizers(rocblas PRIVATE)
-endif()
-
 target_compile_definitions(rocblas64 PRIVATE ROCBLAS_INTERNAL_ILP64)
 
 target_link_libraries(rocblas64 PUBLIC rocblas-helper PRIVATE rocblas-interface)
@@ -80,6 +72,12 @@ endif()
 
 rocm_set_soversion(rocblas ${rocblas_SOVERSION})
 add_library(roc::rocblas ALIAS rocblas)
+
+if(ROCBLAS_ENABLE_ASAN)
+  rocblas_target_configure_sanitizers(rocblas PRIVATE)
+  rocblas_target_configure_sanitizers(rocblas64 PRIVATE)
+endif()
+
 
 target_include_directories(
   rocblas
@@ -99,7 +97,7 @@ endif()
 set_target_properties(rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                          ${PROJECT_BINARY_DIR}/staging)
 
-if(ROCTX64_LIBRARY)
+if(ROCBLAS_ENABLE_MARKER)
   target_link_libraries(rocblas PRIVATE ${ROCTX64_LIBRARY})
 endif()
 
@@ -110,7 +108,7 @@ if(ROCBLAS_ENABLE_FORTRAN)
   add_library(rocblas::rocblas-fortran-module ALIAS rocblas-fortran-module)
   target_sources(
     rocblas-fortran-module
-    PUBLIC
+    PRIVATE
       ${_CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_module.f90
   )
   set_target_properties(rocblas-fortran-module PROPERTIES
