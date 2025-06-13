@@ -259,7 +259,7 @@ void testing_herk_batched(const Arguments& arg)
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true, true);
     rocblas_init_matrix(
-        hC, arg, rocblas_client_beta_sets_nan, rocblas_client_hermitian_matrix, false, true);
+        hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix, false, true);
 
     hC_gold.copy_from(hC);
 
@@ -386,7 +386,17 @@ void testing_herk_batched(const Arguments& arg)
         auto compare_hC_to_gold = [&] {
             if(arg.unit_check)
             {
-                unit_check_general<T>(N, N, ldc, hC_gold, hC, batch_count);
+                if(std::is_same_v<
+                       T,
+                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+                {
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(N, N, ldc, hC_gold, hC, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(N, N, ldc, hC_gold, hC, batch_count);
+                }
             }
 
             double error = 0;

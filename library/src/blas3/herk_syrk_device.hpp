@@ -1327,9 +1327,9 @@ rocblas_status rocblas_syr2k_her2k_dispatch(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
-template <bool copy_from_C_to_W_C, bool is_upper, typename T, typename TPtr, int DIM_X, int DIM_Y>
+template <bool copy_from_C_to_W_C, bool is_upper, bool HERM, typename T, typename TPtr, int DIM_X, int DIM_Y>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_copy_triangular_excluding_diagonal_kernel(rocblas_int    n,
+rocblas_copy_triangular_syrk_herk_kernel(rocblas_int    n,
                                                   TPtr           d_C,
                                                   rocblas_int    ldc,
                                                   rocblas_stride stride_C,
@@ -1379,9 +1379,9 @@ rocblas_copy_triangular_excluding_diagonal_kernel(rocblas_int    n,
             }
         }
 
-        // When copying back to C, we need to zero-out diagonal
-        if constexpr(!copy_from_C_to_W_C && rocblas_is_complex<T>)
-            if(row == col)
+        // When copying back to C, we need to zero-out diagonal imaginary
+        if constexpr(HERM && !copy_from_C_to_W_C)
+            if(row == col && row < n)
                 C[row + row * int64_t(ldc)] = std::real(C[row + row * int64_t(ldc)]);
 
 #if DEVICE_GRID_YZ_16BIT
@@ -1389,8 +1389,8 @@ rocblas_copy_triangular_excluding_diagonal_kernel(rocblas_int    n,
 #endif
 }
 
-template <bool copy_from_C_to_W_C, bool is_upper, typename T, typename TPtr>
-rocblas_status rocblas_copy_triangular_excluding_diagonal(rocblas_handle handle,
+template <bool copy_from_C_to_W_C, bool is_upper, bool HERM, typename T, typename TPtr>
+rocblas_status rocblas_copy_triangular_syrk_herk(rocblas_handle handle,
                                                           rocblas_int    n,
                                                           TPtr           C,
                                                           rocblas_int    ldc,
@@ -1410,8 +1410,9 @@ rocblas_status rocblas_copy_triangular_excluding_diagonal(rocblas_handle handle,
     dim3 gridDim((n - 1) / blockDim.x + 1, (n - 1) / blockDim.y + 1, batches);
 
     // Launch kernel
-    ROCBLAS_LAUNCH_KERNEL((rocblas_copy_triangular_excluding_diagonal_kernel<copy_from_C_to_W_C,
+    ROCBLAS_LAUNCH_KERNEL((rocblas_copy_triangular_syrk_herk_kernel<copy_from_C_to_W_C,
                                                                              is_upper,
+                                                                             HERM,
                                                                              T,
                                                                              TPtr,
                                                                              DIM_X,
