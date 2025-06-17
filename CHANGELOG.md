@@ -45,11 +45,15 @@ rocBLAS documentation is available at
 * Reduced the default verbosity level for internal GEMM backend information
 * Updated from the deprecated rocm-cmake to ROCmCMakeBuildTools
 * Corrected AlmaLinux gfortran package dependencies
-* Zero imaginary portion of diagonal of C matrix for cherk/zherk for gfx90a/gfx942 with problem sizes `k > 500`
 
 ### Upcoming changes
 
 * Deprecated the use of negative indices to indicate the default solution is being used for `gemm_ex` with `rocblas_gemm_algo_solution_index`
+
+## rocBLAS 4.4.1 for ROCm 6.4.2
+
+### Resolved issues
+* Zero imaginary portion of diagonal of C matrix for cherk/zherk for gfx90a/gfx942 with problem sizes `k > 500`
 
 ## rocBLAS 4.4.0 for ROCm 6.4
 
