@@ -47,8 +47,9 @@ inline bool reduction_requires_near(const Arguments& arg, int64_t n)
            || (std::is_same_v<T, rocblas_half> && n > 10000);
 }
 
-// Sum error tolerance for large sums. Multiplied by the number of items
-// in the sum to get an expected absolute error bound.
+// Sum error tolerance for large sums. If multiplied by the number of items
+// in the sum you get an expected a normalized upper bound on error.
+// The sum exponent needs to also be considered for the error tolerance
 
 template <class T>
 inline constexpr double sum_error_tolerance = get_epsilon<T>();
