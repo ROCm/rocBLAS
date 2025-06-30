@@ -1,5 +1,6 @@
 # rocBLAS
-
+> [!CAUTION]
+> The rocBLAS repository is retired, please use the [ROCm/rocm-libraries](https://github.com/ROCm/rocm-libraries) repository
 rocBLAS is the [ROCm](https://rocm.docs.amd.com/en/latest) Basic Linear Algebra Subprograms (BLAS)
 library. rocBLAS is implemented in the
 [HIP programming language](https://github.com/ROCm/HIP) and optimized for AMD
