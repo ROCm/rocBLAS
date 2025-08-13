@@ -1,1 +1,12 @@
-
+version: 2
+updates:
+  - package-ecosystem: "pip" # See documentation for possible values
+    directory: "/docs/sphinx" # Location of package manifests
+    open-pull-requests-limit: 0
+    schedule:
+      interval: "weekly"
+    target-branch: "develop_deprecated"
+    labels:
+      - "documentation"
+      - "dependencies"
+      - "ci:docs-only"
