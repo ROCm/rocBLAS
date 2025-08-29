@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -358,10 +358,6 @@ Processor _rocblas_handle::getActiveArch()
     {
         return Processor::gfx942;
     }
-    else if(deviceString.find("gfx950") != std::string::npos)
-    {
-        return Processor::gfx950;
-    }
     else if(deviceString.find("gfx1010") != std::string::npos)
     {
         return Processor::gfx1010;
@@ -389,10 +385,6 @@ Processor _rocblas_handle::getActiveArch()
     else if(deviceString.find("gfx1102") != std::string::npos)
     {
         return Processor::gfx1102;
-    }
-    else if(deviceString.find("gfx1150") != std::string::npos)
-    {
-        return Processor::gfx1150;
     }
     else if(deviceString.find("gfx1151") != std::string::npos)
     {
