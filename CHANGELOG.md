@@ -3,6 +3,13 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
+## rocBLAS 5.0.2 for ROCm 7.0.2
+
+### Added
+
+* Enabled gfx1150 and gfx1151.
+* The `ROCBLAS_USE_HIPBLASLT_BATCHED` variable to independently control the batched hipblaslt backend. Set `ROCBLAS_USE_HIPBLASLT_BATCHED=0` to disable batched GEMM use of the hipblaslt backend.
+
 ## rocBLAS 5.0.0 for ROCm 7.0
 
 ### Added
@@ -48,6 +55,13 @@ rocBLAS documentation is available at
 ### Upcoming changes
 
 * Deprecated the use of negative indices to indicate the default solution is being used for `gemm_ex` with `rocblas_gemm_algo_solution_index`
+
+## rocBLAS 4.4.2 for ROCm 6.4.3
+
+### Added
+
+* gfx1150 support
+* gfx1151 yaml files
 
 ## rocBLAS 4.4.1 for ROCm 6.4.2
 
