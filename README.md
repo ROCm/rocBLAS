@@ -1,4 +1,5 @@
 # rocBLAS
+
 > [!CAUTION]
 > The rocBLAS repository is retired, please use the [ROCm/rocm-libraries](https://github.com/ROCm/rocm-libraries) repository
 
@@ -6,6 +7,13 @@ rocBLAS is the [ROCm](https://rocm.docs.amd.com/en/latest) Basic Linear Algebra 
 library. rocBLAS is implemented in the
 [HIP programming language](https://github.com/ROCm/HIP) and optimized for AMD
 GPUs.
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Documentation](#documentation)
+- [Quick Start](#quick-start)
+- [License](#license)
 
 ## Requirements
 
@@ -17,3 +25,30 @@ ROCm installation and required platform dependencies, refer to the
 
 > [!NOTE]
 > The published rocBLAS documentation is available at [rocBLAS](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html) in an organized, easy-to-read format, with search and a table of contents. The documentation source files reside in the rocBLAS/docs folder of this repository. As with all ROCm projects, the documentation is open source. For more information, see [Contribute to ROCm documentation](https://rocm.docs.amd.com/en/latest/contribute/contributing.html).
+
+## Quick Start
+
+### Installation
+
+For the latest rocBLAS library, please visit the [ROCm/rocm-libraries](https://github.com/ROCm/rocm-libraries) repository.
+
+### Basic Usage Example
+
+Here's a simple example of using rocBLAS for matrix multiplication:
+
+```cpp
+#include <hip/hip_runtime.h>
+#include <rocblas/rocblas.h>
+
+int main() {
+    rocblas_handle handle;
+    rocblas_create_handle(&handle);
+    
+    // Your rocBLAS operations here
+    
+    rocblas_destroy_handle(handle);
+    return 0;
+}
+```
+
+For comprehensive examples and tutorials, please refer to the [official documentation](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
