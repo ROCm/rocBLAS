@@ -182,6 +182,7 @@ typedef enum rocblas_datatype_
     rocblas_datatype_mxfp4_r = 170, /**< MXFP4 microscaling 4-bit (E2M1 + E8M0 shared exp), real */
     rocblas_datatype_fp8_r   = 171, /**< FP8 (E4M3, 1-4-3), real */
     rocblas_datatype_bf8_r   = 172, /**< BF8 (E5M2, 1-5-2), real */
+    rocblas_datatype_e8m0_r  = 173, /**< UE8M0 block-wise shared exponent (unsigned, bias=127), real */
     rocblas_datatype_invalid = 255, /**< Invalid datatype value. Do not use. */
 } rocblas_datatype;
 
