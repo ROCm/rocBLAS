@@ -179,6 +179,9 @@ typedef enum rocblas_datatype_
     rocblas_datatype_u32_c   = 167, /**< 32-bit unsigned integer, complex */
     rocblas_datatype_bf16_r  = 168, /**< 16-bit bfloat, real */
     rocblas_datatype_bf16_c  = 169, /**< 16-bit bfloat, complex */
+    rocblas_datatype_mxfp4_r = 170, /**< MXFP4 microscaling 4-bit (E2M1 + E8M0 shared exp), real */
+    rocblas_datatype_fp8_r   = 171, /**< FP8 (E4M3, 1-4-3), real */
+    rocblas_datatype_bf8_r   = 172, /**< BF8 (E5M2, 1-5-2), real */
     rocblas_datatype_invalid = 255, /**< Invalid datatype value. Do not use. */
 } rocblas_datatype;
 

@@ -22,6 +22,15 @@
 
 #ifdef BUILD_WITH_TENSILE
 #include "../blas3/Tensile/gemm_tensile.hpp"
+#include <stdlib.h>  // getenv, atoi
+
+// SWMMAC StaggeredPipeline dispatch (gfx1200+ INT4/FP16)
+// Set ROCBLAS_SWMMAC_INT4=1 to enable. Routes to __builtin_amdgcn_swmmac_* kernels.
+extern "C" bool rocblas_swmmac_launch(
+    hipStream_t stream, int a_type, int compute_type,
+    int M, int N, int K,
+    void const* A, int lda, void const* B, int ldb,
+    void* C, int ldc);
 #endif
 #include "../../src/src64/blas_ex/rocblas_gemm_ex_64.hpp"
 
@@ -721,8 +730,41 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
         algo, solution_index, rocblas_gemm_flags(flags)
 
 #ifdef BUILD_WITH_TENSILE
+    // SWMMAC StaggeredPipeline routing for INT4/FP16 (gfx1200+)
+    // Set ROCBLAS_SWMMAC_INT4=1 to enable. Bypasses Tensile for SWMMAC types.
     if(!sourceSolutionBased)
     {
+        // Quick check for SWMMAC-routable types (INT4 via i8+i32, FP16 via f16+f32)
+        static int swmmac_enabled = [](){
+            const char* env = getenv("ROCBLAS_SWMMAC_INT4");
+            return env ? atoi(env) : 0;
+        }();
+        if(swmmac_enabled && !BATCHED)
+        {
+            bool is_i4 = (a_type == rocblas_datatype_i8_r
+                       && compute_type == rocblas_datatype_i32_r);
+            bool is_fp16 = (a_type == rocblas_datatype_f16_r
+                         && (compute_type == rocblas_datatype_f32_r
+                          || compute_type == rocblas_datatype_f16_r));
+            bool is_bf16 = (a_type == rocblas_datatype_bf16_r
+                         && (compute_type == rocblas_datatype_f32_r
+                          || compute_type == rocblas_datatype_bf16_r));
+            bool is_mxfp4= (a_type == rocblas_datatype_mxfp4_r);  // 170
+            bool is_fp8 =  (a_type == rocblas_datatype_fp8_r);    // 171
+            bool is_bf8 =  (a_type == rocblas_datatype_bf8_r);    // 172
+            // INT8 uses same i8_r+i32_r as INT4; rocblas_swmmac_launch
+            // distinguishes by K (K%64→INT4, K%32→INT8)
+            if(is_i4 || is_fp16 || is_bf16 || is_mxfp4 || is_fp8 || is_bf8)
+            {
+                hipStream_t stream = handle ? handle->get_stream() : 0;
+                rb_status = rocblas_swmmac_launch(stream,
+                    a_type, compute_type, m, n, k,
+                    (void*)a, lda, (void*)b, ldb, d, ldd)
+                    ? rocblas_status_success
+                    : rocblas_status_not_implemented;
+                return rb_status;
+            }
+        }
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
            && compute_type == rocblas_datatype_f64_r)

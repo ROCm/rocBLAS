@@ -159,6 +159,7 @@ set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
     blas_ex/rocblas_gemm_ex_kernels.cpp
+    blas_ex/rocblas_swmmac.cpp  # SWMMAC StaggeredPipeline (INT4/FP16/BF16/INT8)
     blas_ex/rocblas_trsv_ex.cpp
     blas_ex/rocblas_trsv_strided_batched_ex.cpp
     blas_ex/rocblas_trsv_batched_ex.cpp
