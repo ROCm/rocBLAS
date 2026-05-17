@@ -159,9 +159,14 @@ set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
     blas_ex/rocblas_gemm_ex_kernels.cpp
+    blas_ex/rocblas_swmmac.cpp  # SWMMAC StaggeredPipeline (INT4/FP16/BF16/INT8)
     blas_ex/rocblas_trsv_ex.cpp
     blas_ex/rocblas_trsv_strided_batched_ex.cpp
     blas_ex/rocblas_trsv_batched_ex.cpp
+    blas_ex/rocblas_syrk_ex.cpp
+    blas_ex/rocblas_syrk_ex_kernels.cpp
+    blas_ex/rocblas_herk_ex.cpp
+    blas_ex/rocblas_herk_ex_kernels.cpp
 )
 
 set( rocblas_blas3_source_no_tensile
@@ -664,6 +669,11 @@ add_library( rocblas
   ${subdir_src64_list}
 )
 
+# Add Windows version resource to library
+if(WIN32 AND BUILD_SHARED_LIBS)
+  target_sources(rocblas PRIVATE "${PROJECT_BINARY_DIR}/version.rc")
+endif()
+
 foreach( file ${subdir_src64_list} )
   SET_SOURCE_FILES_PROPERTIES( ${file} PROPERTIES COMPILE_DEFINITIONS ROCBLAS_INTERNAL_ILP64 )
 endforeach()
@@ -690,13 +700,7 @@ if( BUILD_WITH_TENSILE )
   endif()
 
   if(BUILD_WITH_HIPBLASLT)
-    target_include_directories( rocblas
-      SYSTEM BEFORE PRIVATE
-        $<BUILD_INTERFACE:${HIPBLASLT_INCLUDE_DIR}>
-    )
-    if( BUILD_SHARED_LIBS )
-      target_link_libraries( rocblas PRIVATE roc::hipblaslt )
-    endif()
+    target_link_libraries( rocblas PRIVATE roc::hipblaslt )
   endif()
 
   if( NOT BUILD_SHARED_LIBS )

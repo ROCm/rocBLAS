@@ -3,7 +3,69 @@
 rocBLAS documentation is available at
 [https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html](https://rocm.docs.amd.com/projects/rocBLAS/en/latest/index.html).
 
-## (Unreleased) rocBLAS 5.0.0
+## rocBLAS 5.4.0
+
+### Added
+
+* gfx1250 and gfx90c enabled.
+* Trace logging `ROCBLAS_LAYER=1` for `rocblas_gemm_ex_get_solutions`, `rocblas_gemm_batched_ex_get_solutions`, `rocblas_gemm_ex_get_solutions_by_type`, and `rocblas_gemm_batched_ex_get_solutions_by_type`.
+* Version and other properties to Windows `rocblas.dll`.
+* Support for `OpenBLAS` ILP64 API for host reference in clients.
+* Dockerfiles in `docker` directory to assist in setting up development.
+
+### Optimized
+* Improved the performance of Level 3 `geam` for pure transpose scale use cases.
+* Improved the performance of Level 2 `tpsv`.
+
+### Resolved issues
+* Fix for querying solutions when using `hipBLASLt` backend with `rocblas_gemm_batched_ex_get_solutions` if using null data pointers.
+
+## rocBLAS 5.3.0
+
+### Added
+* Level 3 `herk_ex` function for both C and FORTRAN but without support for the ILP64 API.
+
+### Changed
+* Client build system now automatically builds AOCL 5.2 (AMD Optimizing CPU Libraries) from source on Linux for improved CPU BLAS performance. New `--skip-aocl` and `--clean-deps` flags added to `install.sh` for build control. New `LINK_BLIS` CMake option to control AOCL BLAS linking in client binaries.
+* amd-smi replaces the deprecated rocm-smi dependency for `rocblas-bench` client functionality for clock frequency monitoring, for example, `ROCBLAS_BENCH_FREQ`.
+* `trsv` function no longer internally calls `hipSetDevice` if a different device is current in the calling thread.  The calling thread's current device should be consistent with the one set in the `rocblas_handle`, the same as was true for all other rocBLAS functions.
+
+### Optimized
+* Improved the performance of Level 2 trsv batched for the problem sizes where `batch_count > 16*n` and `n < 128`.
+* Improved the performance of Level 3 trsm batched for the problem sizes where `side == left` and `n == 1` and `batch_count > 16*m` and `m < 128`.
+
+## rocBLAS 5.2.0 for ROCm 7.2
+
+### Added
+* Level 3 `syrk_ex` function for both C and FORTRAN but without support for the ILP64 API.
+
+### Optimized
+* Level 2 `tpmv` and `sbmv` functions.
+
+### Resolved issues
+* Corrected client memory use counts for the `ROCBLAS_CLIENT_RAM_GB_LIMIT` environment variable.
+* Fix to avoid false Clang static analysis warnings.
+
+## rocBLAS 5.1.1 for ROCm 7.1.1
+
+### Changed
+
+* By default, rocBLAS will not use stream order allocation for its internal workspace. To enable this behavior, set the `ROCBLAS_STREAM_ORDER_ALLOC` environment variable.
+
+## rocBLAS 5.1.0 for ROCm 7.1
+
+### Added
+* Sample for clients using OpenMP threads calling rocBLAS functions.
+* gfx1103, gfx1150, and gfx1151 enabled.
+
+### Changed
+* By default, the Tensile build is no longer based on `tensile_tag.txt` but uses the same commit from shared/tensile in the rocm-libraries repository. The rmake or install `-t` option can build from another local path with a different commit.
+
+### Optimized
+
+* Improved the performance of Level 2 gemv transposed (`TransA != N`) for the problem sizes where `m` is small and `n` is large on gfx90a and gfx942.
+
+## rocBLAS 5.0.0 for ROCm 7.0
 
 ### Added
 
@@ -45,6 +107,7 @@ rocBLAS documentation is available at
 * Reduced the default verbosity level for internal GEMM backend information
 * Updated from the deprecated rocm-cmake to ROCmCMakeBuildTools
 * Corrected AlmaLinux gfortran package dependencies
+* Included upgrade of `packaging` in addition to `pip` in Tensile Virtual Environment to stabilize `setuptools` from failures
 
 ### Upcoming changes
 
@@ -125,7 +188,7 @@ rocBLAS documentation is available at
 * Level 2 functions and level 3 trsm have additional ILP64 API for both C and FORTRAN (_64 name suffix) with int64_t function arguments
 * Cache flush timing for gemm_batched_ex, gemm_strided_batched_ex, axpy
 * Benchmark class for common timing code
-* An environment variable "ROCBLAS_DEFAULT_ATOMICS_MODE" to set default atomics mode during creation of 'rocblas_handle'
+* An environment variable "ROCBLAS_DEFAULT_ATOMICS_MODE" to set default atomics mode during creation of `rocblas_handle`
 * Extended dot_ex to support single-precision (fp32_r) input and double-precision (fp64_r) output and compute types
 
 ### Optimized

@@ -79,6 +79,7 @@ enum class Processor : int
     // only including supported types
     gfx803  = 803,
     gfx900  = 900,
+    gfx90c  = 912,
     gfx906  = 906,
     gfx908  = 908,
     gfx90a  = 910,
@@ -90,14 +91,21 @@ enum class Processor : int
     gfx1030 = 1030,
     gfx1031 = 1031,
     gfx1032 = 1032,
+    gfx1033 = 1033,
     gfx1034 = 1034,
     gfx1035 = 1035,
+    gfx1036 = 1036,
     gfx1100 = 1100,
     gfx1101 = 1101,
     gfx1102 = 1102,
+    gfx1103 = 1103,
+    gfx1150 = 1150,
     gfx1151 = 1151,
+    gfx1152 = 1152,
+    gfx1153 = 1153,
     gfx1200 = 1200,
-    gfx1201 = 1201
+    gfx1201 = 1201,
+    gfx1250 = 1250
 };
 
 // helper function in handle.cpp
@@ -108,6 +116,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_set_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr);
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_get_data_ptr(rocblas_handle handle, std::shared_ptr<void>& data_ptr);
+
+// cached device properties for handle device
+ROCBLAS_INTERNAL_EXPORT_NOINLINE const hipDeviceProp_t*
+                                       rocblas_internal_get_device_prop(rocblas_handle handle);
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -141,16 +153,20 @@ private:
             : device_id(device_id)
             , old_device_id(-1)
         {
-            hipGetDevice(&old_device_id);
+            THROW_IF_HIP_ERROR(hipGetDevice(&old_device_id));
             if(device_id != old_device_id)
-                hipSetDevice(device_id);
+            {
+                THROW_IF_HIP_ERROR(hipSetDevice(device_id));
+            }
         }
 
         // Old device ID is restored on destruction
         ~_rocblas_saved_device_id()
         {
             if(device_id != old_device_id)
-                hipSetDevice(old_device_id);
+            {
+                (void)(hipSetDevice(old_device_id));
+            }
         }
 
         // Move constructor
@@ -251,6 +267,7 @@ public:
 
     int getMaxSharedMemPerBlock()
     {
+        // TODO review sharedMemPerBlockOptin or use cached device_properties
         int max_mem = -1;
         THROW_IF_HIP_ERROR(hipDeviceGetAttribute(
             &max_mem, hipDeviceAttribute_t(hipDeviceAttributeMaxSharedMemoryPerBlock), device));
@@ -277,7 +294,7 @@ public:
     bool isDefaultHipBLASLtArch()
     {
         int gfx_arch = getArch();
-        if(gfx_arch == 1200 || gfx_arch == 1201 || gfx_arch == 950)
+        if(gfx_arch == 1200 || gfx_arch == 1201 || gfx_arch == 1250 || gfx_arch == 950)
         {
             return true;
         }
@@ -296,6 +313,7 @@ public:
      * - Otherwise try when the current architecture is defaulted to hipBLASLt support
      * - Always disable for any `batched` API when the current handle is in stream
      *   capture mode (as hipblaslt batched dispatch does synchronous memory copies)
+     * - batched mode requires env variable opt in as has additional pointer copies
      ******************************************************************************/
     bool tryHipBLASLt(bool batched)
     {
@@ -315,7 +333,20 @@ public:
 
         if(status && batched)
         {
-            status = !is_stream_in_capture_mode();
+            static bool hipblasltEnvBatchedDisabled = [&] {
+                auto* env_var = getenv("ROCBLAS_USE_HIPBLASLT_BATCHED");
+                if(env_var)
+                {
+                    return strncmp(env_var, "0", 1) == 0;
+                }
+                return false;
+            }();
+
+            // only use for batched when explicitly enabled by env variable
+            if(!hipblasltEnvBatchedDisabled)
+                status = !is_stream_in_capture_mode();
+            else
+                status = false;
         }
 
         return status;
@@ -338,6 +369,21 @@ public:
 #endif
 
         return status;
+    }
+
+    /**
+     * @brief Checks if the hipBLASLt feature is explicitly enabled by the user.
+     *
+     * This method determines whether the hipBLASLt feature is forced on by
+     * checking the value of the `hipblasltEnvVar` environment variable.
+     *
+     * @return true if the `hipblasltEnvVar` is set to 1, indicating that the
+     *         feature is explicitly enabled by the user; false otherwise.
+     */
+    bool isHipBLASLtForcedOn()
+    {
+        // Only true if the user has set the environment variable on
+        return hipblasltEnvVar == 1;
     }
 
     inline int getDefaultDeviceMemorySize()
@@ -526,11 +572,17 @@ private:
     // rocblas by default take the system default stream 0 users cannot create
     hipStream_t stream = 0;
 
+    rocblas_status set_stream(hipStream_t new_stream);
+
 #if ROCBLAS_REALLOC_ON_DEMAND
     // Helper for device memory allocator
     bool ROCBLAS_EXPORT device_allocator(size_t size);
 #endif
 
+public:
+    hipDeviceProp_t device_properties;
+
+private:
     // Device ID is created at handle creation time and remains in effect for the life of the handle.
     const int device;
 
@@ -539,11 +591,15 @@ private:
     int       archMajor;
     int       archMajorMinor;
 
-    int mWarpSize;
+    const int mWarpSize;
 
     // hipBLASLt handle is created at handle creation time and remains in effect for the life of the handle.
     std::shared_ptr<hipblasLtHandle_t> hipblasLtHandle;
     int                                hipblasltEnvVar = -1;
+
+    // used in constructor initialization list
+    int       getActiveDevice();
+    Processor getActiveArch();
 
     // Opaque smart allocator class to perform device memory allocations
     // clang-format off
