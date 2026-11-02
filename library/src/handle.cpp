@@ -283,7 +283,6 @@ _rocblas_handle::~_rocblas_handle()
 /*******************************************************************************
  * helper for allocating device memory
  ******************************************************************************/
-#if ROCBLAS_REALLOC_ON_DEMAND
 bool _rocblas_handle::device_allocator(size_t size)
 {
     bool success = size <= device_memory_size - device_memory_in_use;
@@ -318,7 +317,6 @@ bool _rocblas_handle::device_allocator(size_t size)
     }
     return success;
 }
-#endif
 
 rocblas_status _rocblas_handle::set_stream(hipStream_t new_stream)
 {
@@ -755,12 +753,8 @@ catch(...)
  ******************************************************************************/
 extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 {
-#if ROCBLAS_REALLOC_ON_DEMAND
     return handle
            && handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed;
-#else
-    return false;
-#endif
 }
 
 /*******************************************************************************
